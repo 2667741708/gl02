@@ -1,0 +1,342 @@
+{
+  "schema_version": "bf3d.golden_views.v1",
+  "suite_id": "VB-QA-002",
+  "requirement_id": "REQ-BF3D-VISUAL-BIBLE-001",
+  "visual_bible_version": "v1.1",
+  "lookdev_preset": "../../web/presets/lookdev_camera_v1.json",
+  "furnace_id": "GL02",
+  "updated_at": "2026-07-18",
+  "suite_status": "parameters_locked_baseline_images_not_approved",
+  "important_boundary": "The listed P40 PNGs are approved evidence for the P40 LookDev scope. They have not yet been promoted to signed automated Golden baselines. No Web Golden baseline is approved.",
+  "asset_locks": {
+    "p40_approved_blend": {
+      "path": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/P40_LOOKDEV_APPROVED.blend",
+      "sha256": "03635cf6608a54c4a671fb4d84adcb9451a36fe47cea7b564af2d4d3b69b2256",
+      "approval": "approved"
+    },
+    "formal_glb": {
+      "path": "../../../../高炉前端数据/models/gl02_blast_furnace.glb",
+      "sha256": "808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6",
+      "replaced_by_p50_or_p60": false
+    },
+    "p50": "KEEP_P50_PENDING_NOT_APPROVED",
+    "p60": "not_granted_preflight_only"
+  },
+  "deterministic_inputs": {
+    "clock": {
+      "mode": "frozen",
+      "iso8601": "2026-07-18T00:00:00+08:00"
+    },
+    "data_snapshot": {
+      "snapshot_id": "STATIC_VISUAL_REVIEW_NO_LIVE_DATA_V1",
+      "schema": "bf3d_snapshot.v1",
+      "source": "controlled_fixture_required",
+      "live_websocket_allowed": false,
+      "sensor_values": null,
+      "quality_state": "not_applicable_static_material_review",
+      "note": "When a data-driven Golden suite is added, it must point to a checked-in fixture with timestamps, evidence, derivation and quality."
+    },
+    "random_seeds": {
+      "procedural_material": 407181,
+      "shader_noise": 407182,
+      "particles": 407183,
+      "animation": 407184,
+      "camera_jitter": 0,
+      "note": "These are the controlled seeds for newly captured Golden images. Existing P40 PNGs predate this seed registry and are not retroactively claimed to use them."
+    },
+    "animation": {
+      "enabled": false,
+      "frame": 1,
+      "time_seconds": 0.0
+    },
+    "layer_highlight": {
+      "enabled": false,
+      "selected_layer": null
+    },
+    "cutaway": {
+      "enabled": false,
+      "progress": 0.0
+    }
+  },
+  "environments": {
+    "NEUTRAL_P40": {
+      "type": "procedural_world",
+      "hdri": null,
+      "color_management": "AgX / Medium Low Contrast / exposure 0.0",
+      "approval": "approved_for_p40_scope"
+    },
+    "PRESENTATION_P40": {
+      "type": "procedural_world",
+      "hdri": null,
+      "color_management": "AgX / Medium High Contrast / exposure 0.38",
+      "approval": "approved_for_p40_scope"
+    },
+    "INDUSTRIAL_SUNSET_CANDIDATE": {
+      "type": "hdri",
+      "path": "../../source/references/hdri/industrial_sunset_2k.hdr",
+      "sha256": "2a411097d65fcebfe00275641bd80350f95c7a1dbfc53b2260df85b296d2b990",
+      "license": "CC0",
+      "pmrem_required_for_web": true,
+      "approval": "candidate_asset_registered_not_visual_approved"
+    }
+  },
+  "capture_contracts": {
+    "blender_eevee": {
+      "engine": "BLENDER_EEVEE",
+      "viewport_px": [
+        960,
+        540
+      ],
+      "pixel_ratio": 1.0,
+      "file_format": "PNG",
+      "transparent": false
+    },
+    "blender_cycles": {
+      "engine": "CYCLES",
+      "viewport_px": [
+        640,
+        360
+      ],
+      "samples": 48,
+      "denoise": true,
+      "reference_device": "OPTIX",
+      "file_format": "PNG",
+      "transparent": false
+    },
+    "web_desktop_reference": {
+      "engine": "Chromium",
+      "viewport_px": [
+        1920,
+        1080
+      ],
+      "device_scale_factor": 1.0,
+      "browser_zoom": 1.0,
+      "url_path": "/frontend_dashboard_v3.server.html?ws_port=8767#overview",
+      "runtime_quality": "high",
+      "network_idle_required": true,
+      "live_websocket_allowed": false,
+      "baseline_state": "not_captured"
+    }
+  },
+  "acceptance_tolerances": {
+    "camera_numeric_absolute": 0.000001,
+    "silhouette_edge_p95_px_at_1920x1080": 3.0,
+    "projected_landmark_px": 4.0,
+    "middle_gray_delta_e2000": 3.0,
+    "material_patch_delta_e2000": 5.0,
+    "luminance_relative_percent": 8.0,
+    "changed_pixel_ratio_percent_after_masking_ui_clock": 1.0,
+    "rule": "A threshold pass is necessary but not sufficient; the reviewer must confirm no lost microdetail, clipping, sensor occlusion, false data state or approval-boundary violation."
+  },
+  "views": [
+    {
+      "id": "GV-P40-N-001",
+      "camera_id": "CAM_GLOBAL_FRONT",
+      "lookdev": "NEUTRAL_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Full-furnace front silhouette and neutral material balance",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/neutral/P40_NEUTRAL_CAM_GLOBAL_FRONT.png",
+      "evidence_sha256": "965f81127bd752b47496539293a01eca2e43a0fdd9c62c0291e4a30899d030c1",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-N-002",
+      "camera_id": "CAM_GLOBAL_BACK",
+      "lookdev": "NEUTRAL_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Rear silhouette and lighting symmetry",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/neutral/P40_NEUTRAL_CAM_GLOBAL_BACK.png",
+      "evidence_sha256": "cd1e1a9103a92c503e1568b92a9e2dc47362ede0776a98e0cfaf3c724e201fd0",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-N-003",
+      "camera_id": "CAM_GLOBAL_LEFT",
+      "lookdev": "NEUTRAL_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Left silhouette, platforms and shell segmentation",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/neutral/P40_NEUTRAL_CAM_GLOBAL_LEFT.png",
+      "evidence_sha256": "8bd7da2d966dbca3e6f8a4c235bc90dd3c1548be8997eb7a0302657c4654b0af",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-N-004",
+      "camera_id": "CAM_GLOBAL_RIGHT",
+      "lookdev": "NEUTRAL_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Right silhouette, platforms and shell segmentation",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/neutral/P40_NEUTRAL_CAM_GLOBAL_RIGHT.png",
+      "evidence_sha256": "62bade00cfe583bc50f0c093d5d98bd9ed900e2192bbaaec782e5cbe0b41f986",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-N-005",
+      "camera_id": "CAM_DETAIL_SHELL",
+      "lookdev": "NEUTRAL_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Shell roughness, seams, welds and microdetail under neutral light",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/neutral/P40_NEUTRAL_CAM_DETAIL_SHELL.png",
+      "evidence_sha256": "cf2de069dff7e5bb7378750f61d8729cc662f5e04a4e9218c137222fdea9a594",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-N-006",
+      "camera_id": "CAM_DETAIL_TUYERE",
+      "lookdev": "NEUTRAL_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Tuyere flange, bolts, nozzle and bustle relationship",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/neutral/P40_NEUTRAL_CAM_DETAIL_TUYERE.png",
+      "evidence_sha256": "df41d8070b9f8110db2720b9fc84d6956b6ee7a92d556e7c4733ea3e4efb3469",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-N-007",
+      "camera_id": "CAM_DETAIL_TAPHOLE",
+      "lookdev": "NEUTRAL_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Taphole detail and known abstraction boundary",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/neutral/P40_NEUTRAL_CAM_DETAIL_TAPHOLE.png",
+      "evidence_sha256": "f220de648e10dc40cd4d7f34cfa13a3b09f14ae9dc37df6ea780b84b02c927dc",
+      "evidence_review_state": "approved_for_p40_lookdev_scope_with_nonblocking_geometry_followup",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-P-001",
+      "camera_id": "CAM_GLOBAL_FRONT",
+      "lookdev": "PRESENTATION_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Industrial presentation front silhouette",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/presentation/P40_PRESENTATION_CAM_GLOBAL_FRONT.png",
+      "evidence_sha256": "11ddba93256a69f327d96120aa920a23182c822d6691d44fc470a389ef35327f",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-P-002",
+      "camera_id": "CAM_GLOBAL_BACK",
+      "lookdev": "PRESENTATION_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Industrial presentation rear silhouette",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/presentation/P40_PRESENTATION_CAM_GLOBAL_BACK.png",
+      "evidence_sha256": "323c9872e7861999676c4db4706ca1b1c279557134c803e4c79db6718c24f169",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-P-003",
+      "camera_id": "CAM_GLOBAL_LEFT",
+      "lookdev": "PRESENTATION_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Industrial presentation left silhouette",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/presentation/P40_PRESENTATION_CAM_GLOBAL_LEFT.png",
+      "evidence_sha256": "2c37fadb13384dd0a956ef07c475e5e3388ea72a5552fdba27328c5e164810d0",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-P-004",
+      "camera_id": "CAM_GLOBAL_RIGHT",
+      "lookdev": "PRESENTATION_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Industrial presentation right silhouette",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/presentation/P40_PRESENTATION_CAM_GLOBAL_RIGHT.png",
+      "evidence_sha256": "8b5a656424b55b52908fd91fc0d9a7a83ab0411b6c75ecb9f28a3f7bebdc0ca3",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-P-005",
+      "camera_id": "CAM_DETAIL_SHELL",
+      "lookdev": "PRESENTATION_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Shell roughness and edge readability under presentation light",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/presentation/P40_PRESENTATION_CAM_DETAIL_SHELL.png",
+      "evidence_sha256": "ed1c7faeece50c6e061b78cdc7916cb04bbe4186150fbfd192bcae9fc718eec2",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-P-006",
+      "camera_id": "CAM_DETAIL_TUYERE",
+      "lookdev": "PRESENTATION_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Tuyere readability under warm key and cool rim",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/presentation/P40_PRESENTATION_CAM_DETAIL_TUYERE.png",
+      "evidence_sha256": "1eff01ffb20ce68d674448b47c14d7886a4e42fcfd587f083f17b0c8eb030eac",
+      "evidence_review_state": "approved_for_p40_lookdev_scope",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-P40-P-007",
+      "camera_id": "CAM_DETAIL_TAPHOLE",
+      "lookdev": "PRESENTATION_P40",
+      "capture_contract": "blender_eevee",
+      "purpose": "Taphole readability under presentation light",
+      "evidence_image": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/renders/eevee/presentation/P40_PRESENTATION_CAM_DETAIL_TAPHOLE.png",
+      "evidence_sha256": "d55c648818ca56a2a2ef14917f68e78fb665ded665126d0fb03e9f3ebd58aea8",
+      "evidence_review_state": "approved_for_p40_lookdev_scope_with_nonblocking_geometry_followup",
+      "golden_baseline_state": "not_promoted"
+    },
+    {
+      "id": "GV-WEB-X-001",
+      "camera_id": "CAM_GLOBAL_FRONT",
+      "lookdev": "PRESENTATION_P40",
+      "capture_contract": "web_desktop_reference",
+      "purpose": "First Blender-to-Web cross-engine convergence baseline",
+      "evidence_image": null,
+      "evidence_sha256": null,
+      "evidence_review_state": "not_captured",
+      "golden_baseline_state": "blocked_until_preset_loading_pmrem_and_camera_basis_are_implemented"
+    },
+    {
+      "id": "GV-WEB-HDR-001",
+      "camera_id": "CAM_DETAIL_SHELL",
+      "lookdev": "INDUSTRIAL_SUNSET_CANDIDATE",
+      "capture_contract": "web_desktop_reference",
+      "purpose": "Candidate HDRI/PMREM shell roughness assessment",
+      "evidence_image": null,
+      "evidence_sha256": null,
+      "evidence_review_state": "not_captured",
+      "golden_baseline_state": "blocked_until_hdri_pmrem_visual_approval"
+    }
+  ],
+  "web_viewport_matrix_after_first_baseline": {
+    "chromium_required": [
+      "1280x720",
+      "1366x768",
+      "1440x900",
+      "1546x864",
+      "1920x1080",
+      "1024x768",
+      "768x1024",
+      "390x844",
+      "375x667"
+    ],
+    "firefox_representative": [
+      "1920x1080",
+      "1366x768",
+      "768x1024",
+      "390x844"
+    ],
+    "webkit_representative": [
+      "1920x1080",
+      "1366x768",
+      "768x1024",
+      "390x844"
+    ],
+    "status": "existing_ui_matrix_is_evidence_only_new_golden_capture_pending"
+  },
+  "promotion_requirements": [
+    "Capture PNGs from the exact asset hashes, preset, camera, viewport, frozen snapshot and seeds above.",
+    "Store baseline image path, SHA-256, renderer/GPU/browser version and capture time.",
+    "Run numerical comparison and human review; record reviewer, decision and accepted deviations.",
+    "Do not promote a P50/P60 rendering while its asset approval remains pending or preflight-only.",
+    "Do not promote the HDRI views before licence/hash, PMREM, Blender/Web parity and sensor legibility pass."
+  ]
+}

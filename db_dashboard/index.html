@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GL02 数据库仪表盘</title>
+  <script src="/libs/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg: #f5f7f8;
+      --panel: #ffffff;
+      --line: #d7dde1;
+      --text: #1f2933;
+      --muted: #60717d;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --danger: #b42318;
+      --ok: #15803d;
+      --warn: #ca8a04;
+      --shadow: 0 1px 2px rgba(31, 41, 51, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 18px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f9fbfb;
+      padding: 4px 8px;
+      min-height: 26px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .dot.ok { background: var(--ok); }
+    .dot.warn { background: var(--warn); }
+    .dot.err { background: var(--danger); }
+    main {
+      padding: 14px 18px 24px;
+      display: grid;
+      gap: 14px;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .panel, .kpi {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      box-shadow: var(--shadow);
+    }
+    .kpi { padding: 12px; }
+    .kpi .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .kpi .value {
+      font-size: 20px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .panel-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    button, input, select {
+      font: inherit;
+    }
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 6px;
+      min-height: 32px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    button:hover { border-color: #94a3ad; background: #f8fafb; }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    button.active {
+      background: #e7f3f1;
+      border-color: var(--accent);
+      color: #075e58;
+      font-weight: 700;
+    }
+    button.warning {
+      border-color: #d6a44c;
+      background: #fff8ea;
+      color: #7c4a03;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .controls {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    label {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      min-height: 32px;
+      padding: 6px 8px;
+    }
+    select[multiple] {
+      min-height: 220px;
+      padding: 4px;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .content {
+      min-width: 0;
+    }
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 12px;
+    }
+    .chart {
+      min-height: 280px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+    }
+    .summary-list {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+    }
+    .summary-item {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      padding: 10px 12px;
+    }
+    .summary-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .summary-text {
+      white-space: pre-wrap;
+      user-select: text;
+      line-height: 1.55;
+    }
+    .table-wrap {
+      overflow: auto;
+      max-height: 62vh;
+      background: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      user-select: text;
+      font-size: 12px;
+    }
+    th, td {
+      border-bottom: 1px solid #e6eaed;
+      border-right: 1px solid #edf0f2;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #eef4f4;
+      font-weight: 700;
+    }
+    tr:hover td { background: #f7fbfb; }
+    .empty {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .msg {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 120px;
+      overflow: auto;
+    }
+    .condition-label { font-weight: 700; }
+    @media (max-width: 980px) {
+      .kpis { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+      .grid, .charts { grid-template-columns: 1fr; }
+      .bar { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <h1>GL02 数据库仪表盘</h1>
+      <div class="status">
+        <a href="/heat" style="text-decoration:none"><button class="primary">进入炉次分析</button></a>
+        <span class="pill"><span id="dbDot" class="dot"></span><span id="dbText">连接中</span></span>
+        <span class="pill">本地库 <span id="dbInfo">127.0.0.1:15432</span></span>
+        <span class="pill">最新数据 <span id="latestTs">-</span></span>
+        <button id="syncBtn" class="warning">同步 220.12</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="kpis">
+      <div class="kpi"><div class="label">传感器行数</div><div id="kpiSensorRows" class="value">-</div></div>
+      <div class="kpi"><div class="label">物理点位</div><div id="kpiTags" class="value">-</div></div>
+      <div class="kpi"><div class="label">基线日期</div><div id="kpiBaseline" class="value">-</div></div>
+      <div class="kpi"><div class="label">最新炉况</div><div id="kpiDiagnosis" class="value">-</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">炉况仪表盘</h2>
+        <div class="button-row">
+          <button data-range="24h" class="rangeBtn active">24h</button>
+          <button data-range="7d" class="rangeBtn">7d</button>
+          <button data-range="30d" class="rangeBtn">30d</button>
+          <button data-range="all" class="rangeBtn">全部</button>
+        </div>
+      </div>
+      <div class="charts">
+        <div id="distChart" class="chart"></div>
+        <div id="timelineChart" class="chart"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">短时大模型综合判断</h2>
+        <div class="button-row">
+          <button id="refreshSummaryBtn">刷新</button>
+          <button id="copySummaryBtn">复制最新判断</button>
+        </div>
+      </div>
+      <div id="summaryList" class="summary-list"><div class="empty">等待加载</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">数据查询</h2>
+        <div class="tabs">
+          <button class="tab active" data-tab="sensor">传感器</button>
+          <button class="tab" data-tab="baseline">历史基线</button>
+          <button class="tab" data-tab="diagnosis">炉况明细</button>
+          <button class="tab" data-tab="foreman-score">高炉长评分</button>
+          <button class="tab" data-tab="summary">大模型判断</button>
+          <button class="tab" data-tab="quality">质量状态</button>
+        </div>
+      </div>
+      <div class="grid">
+        <aside class="controls">
+          <label>开始时间 <input id="startInput" type="datetime-local" /></label>
+          <label>结束时间 <input id="endInput" type="datetime-local" /></label>
+          <label id="variableLabel">变量
+            <input id="varSearch" type="search" placeholder="搜索变量/描述" />
+            <select id="variables" multiple></select>
+          </label>
+          <label id="labelFilter" style="display:none">炉况
+            <select id="labels" multiple>
+              <option value="normal">normal</option>
+              <option value="lowline">lowline</option>
+              <option value="edge">edge</option>
+              <option value="center">center</option>
+              <option value="channel">channel</option>
+              <option value="cold">cold</option>
+              <option value="hot">hot</option>
+              <option value="column">column</option>
+              <option value="data_quality_low">data_quality_low</option>
+            </select>
+          </label>
+          <label id="qualityFilter" style="display:none">质量窗口
+            <select id="kinds" multiple>
+              <option value="recent_60min">recent_60min</option>
+              <option value="recent_24h">recent_24h</option>
+              <option value="baseline_window">baseline_window</option>
+            </select>
+          </label>
+          <label>最多行数 <input id="limitInput" type="number" min="100" max="200000" step="100" value="20000" /></label>
+          <div class="button-row">
+            <button id="queryBtn" class="primary">查询</button>
+            <button id="copyBtn">复制表格</button>
+            <button id="csvBtn">CSV</button>
+            <button id="xlsxBtn">XLSX</button>
+          </div>
+          <div id="syncMsg" class="msg"></div>
+        </aside>
+        <div class="content">
+          <div id="tableWrap" class="table-wrap"><div class="empty">等待查询</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      tab: 'sensor',
+      variables: [],
+      rows: [],
+      columns: [],
+      range: '24h'
+    };
+    const $ = (id) => document.getElementById(id);
+    const CONDITION_COLORS = {
+      normal: '#2f8cff',
+      lowline: '#33d15e',
+      edge: '#ffbc32',
+      center: '#ff4d5b',
+      channel: '#9b5cff',
+      cold: '#2dd6e8',
+      hot: '#ff8a24',
+      column: '#7bdc52',
+      data_quality_low: '#6d28d9',
+      unknown: '#64748b'
+    };
+    const CONDITION_ORDER = ['normal', 'lowline', 'edge', 'center', 'channel', 'cold', 'hot', 'column', 'data_quality_low', 'unknown'];
+    function conditionColor(label) {
+      return CONDITION_COLORS[String(label || '').trim()] || '#64748b';
+    }
+    function conditionRank(label) {
+      const idx = CONDITION_ORDER.indexOf(String(label || '').trim());
+      return idx === -1 ? CONDITION_ORDER.length : idx;
+    }
+
+    function fmtNumber(n) {
+      if (n === null || n === undefined || n === '') return '-';
+      const num = Number(n);
+      return Number.isFinite(num) ? num.toLocaleString('zh-CN') : String(n);
+    }
+    function toLocalInput(d) {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    function queryString(extra = {}) {
+      const start = $('startInput').value.replace('T', ' ');
+      const end = $('endInput').value.replace('T', ' ');
+      const limit = $('limitInput').value || '20000';
+      const params = new URLSearchParams({ start, end, limit, ...extra });
+      if (state.tab === 'sensor' || state.tab === 'baseline') {
+        const vars = [...$('variables').selectedOptions].map(o => o.value).join(',');
+        if (vars) params.set('variables', vars);
+      }
+      if (state.tab === 'diagnosis' || state.tab === 'foreman-score') {
+        const labels = [...$('labels').selectedOptions].map(o => o.value).join(',');
+        if (labels) params.set('labels', labels);
+      }
+      if (state.tab === 'quality') {
+        const kinds = [...$('kinds').selectedOptions].map(o => o.value).join(',');
+        if (kinds) params.set('kinds', kinds);
+      }
+      return params.toString();
+    }
+    function endpoint() {
+      return {
+        sensor: '/api/sensor',
+        baseline: '/api/baselines',
+        diagnosis: '/api/diagnosis',
+        'foreman-score': '/api/diagnosis-foreman-scores',
+        summary: '/api/summaries',
+        quality: '/api/quality'
+      }[state.tab];
+    }
+    async function fetchJson(url, opts) {
+      const res = await fetch(url, opts);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'request failed');
+      return data;
+    }
+    async function loadOverview() {
+      try {
+        const data = await fetchJson('/api/overview');
+        $('dbDot').className = 'dot ok';
+        $('dbText').textContent = '已连接';
+        $('dbInfo').textContent = `${data.database.host}:${data.database.port}/${data.database.dbname}`;
+        $('latestTs').textContent = data.sensor.max_ts || '-';
+        $('kpiSensorRows').textContent =
+          `${data.sensor.rows_is_estimate ? '≈' : ''}${fmtNumber(data.sensor.rows)}`;
+        $('kpiTags').textContent = fmtNumber(data.sensor.tags);
+        $('kpiBaseline').textContent = `${data.baseline.days || 0} 天`;
+        $('kpiDiagnosis').innerHTML = labelHtml(data.latest_diagnosis?.main_label || '-');
+        renderLatestSummary(data.latest_summary);
+        await loadDashboard();
+      } catch (err) {
+        $('dbDot').className = 'dot err';
+        $('dbText').textContent = err.message;
+      }
+    }
+    function labelHtml(label) {
+      const safe = escapeHtml(String(label));
+      return `<span class="condition-label" style="color:${conditionColor(label)}">${safe}</span>`;
+    }
+    function rangeTimes(range) {
+      const end = new Date();
+      const start = new Date(end);
+      if (range === '24h') start.setHours(end.getHours() - 24);
+      else if (range === '7d') start.setDate(end.getDate() - 7);
+      else if (range === '30d') start.setDate(end.getDate() - 30);
+      else start.setFullYear(2026, 2, 8);
+      return [toLocalInput(start), toLocalInput(end)];
+    }
+    async function loadDashboard() {
+      const [start, end] = rangeTimes(state.range);
+      const params = new URLSearchParams({ start: start.replace('T',' '), end: end.replace('T',' '), limit: '100000' });
+      const data = await fetchJson(`/api/diagnosis?${params}`);
+      renderDistChart(data.distribution || []);
+      renderTimeline(data.rows || []);
+    }
+    function renderLatestSummary(summary) {
+      const list = $('summaryList');
+      if (!summary) {
+        list.innerHTML = '<div class="empty">暂无大模型综合判断</div>';
+        return;
+      }
+      list.innerHTML = summaryCard(summary);
+    }
+    async function loadSummaries() {
+      const [start, end] = rangeTimes(state.range);
+      const params = new URLSearchParams({ start: start.replace('T',' '), end: end.replace('T',' '), limit: '12' });
+      const data = await fetchJson(`/api/summaries?${params}`);
+      const rows = data.rows || [];
+      $('summaryList').innerHTML = rows.length ? rows.map(summaryCard).join('') : '<div class="empty">暂无大模型综合判断</div>';
+    }
+    function summaryCard(item) {
+      return `<article class="summary-item">
+        <div class="summary-meta">
+          <span>${escapeHtml(String(item.created_at || '-'))}</span>
+          <span>${escapeHtml(String(item.model_name || '-'))}</span>
+          <span>${escapeHtml(String(item.status || '-'))}</span>
+          <span>${escapeHtml(String(item.queue_id || '-'))}</span>
+        </div>
+        <div class="summary-text">${escapeHtml(String(item.llm_summary || ''))}</div>
+      </article>`;
+    }
+    function renderDistChart(distribution) {
+      const el = $('distChart');
+      if (!window.echarts) {
+        el.textContent = JSON.stringify(distribution);
+        return;
+      }
+      const chart = echarts.init(el);
+      const data = distribution
+        .slice()
+        .sort((a, b) => conditionRank(a.main_label) - conditionRank(b.main_label) || String(a.main_label).localeCompare(String(b.main_label)))
+        .map(r => ({
+          name: r.main_label,
+          value: Number(r.n),
+          itemStyle: { color: conditionColor(r.main_label) }
+        }));
+      chart.setOption({
+        tooltip: { trigger: 'item' },
+        legend: { bottom: 4 },
+        series: [{
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '44%'],
+          data
+        }]
+      });
+    }
+    function renderTimeline(rows) {
+      const el = $('timelineChart');
+      if (!window.echarts) {
+        el.textContent = `${rows.length} rows`;
+        return;
+      }
+      const buckets = new Map();
+      for (const r of rows) {
+        const day = String(r.diagnosis_ts).slice(0, 10);
+        const item = buckets.get(day) || {};
+        item[r.main_label] = (item[r.main_label] || 0) + 1;
+        buckets.set(day, item);
+      }
+      const days = [...buckets.keys()].sort();
+      const labels = [...new Set(rows.map(r => r.main_label))]
+        .sort((a, b) => conditionRank(a) - conditionRank(b) || String(a).localeCompare(String(b)));
+      const chart = echarts.init(el);
+      chart.setOption({
+        tooltip: { trigger: 'axis' },
+        legend: { top: 4 },
+        color: labels.map(conditionColor),
+        grid: { left: 42, right: 18, top: 42, bottom: 32 },
+        xAxis: { type: 'category', data: days },
+        yAxis: { type: 'value' },
+        series: labels.map(label => ({
+          name: label,
+          type: 'bar',
+          stack: 'total',
+          itemStyle: { color: conditionColor(label) },
+          data: days.map(day => buckets.get(day)?.[label] || 0)
+        }))
+      });
+    }
+    async function loadVariables() {
+      const data = await fetchJson('/api/variables');
+      state.variables = data.variables || [];
+      renderVariables();
+    }
+    function renderVariables() {
+      const text = $('varSearch').value.trim().toLowerCase();
+      const selected = new Set([...$('variables').selectedOptions].map(o => o.value));
+      const defaults = new Set(['PI','DP_total','P_top','P_blast','T_top','GasUtil']);
+      $('variables').innerHTML = '';
+      for (const v of state.variables) {
+        const hay = `${v.variable_name || ''} ${v.chinese_name || ''} ${v.description || ''}`.toLowerCase();
+        if (text && !hay.includes(text)) continue;
+        const opt = document.createElement('option');
+        opt.value = v.variable_name;
+        opt.textContent = `${v.variable_name}${v.description ? ' - ' + v.description : ''}`;
+        if (selected.has(v.variable_name) || (!selected.size && defaults.has(v.variable_name))) opt.selected = true;
+        $('variables').appendChild(opt);
+      }
+    }
+    function setTab(tab) {
+      state.tab = tab;
+      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      $('variableLabel').style.display = (tab === 'sensor' || tab === 'baseline') ? '' : 'none';
+      $('labelFilter').style.display = (tab === 'diagnosis' || tab === 'foreman-score') ? '' : 'none';
+      $('qualityFilter').style.display = tab === 'quality' ? '' : 'none';
+      $('limitInput').value = tab === 'sensor' ? '20000' : (tab === 'summary' ? '200' : '100000');
+      query();
+    }
+    async function query() {
+      $('tableWrap').innerHTML = '<div class="empty">查询中</div>';
+      try {
+        const data = await fetchJson(`${endpoint()}?${queryString()}`);
+        state.rows = data.rows || [];
+        state.columns = data.columns || [];
+        renderTable();
+        if (state.tab === 'diagnosis') {
+          renderDistChart(data.distribution || []);
+          renderTimeline(data.rows || []);
+        }
+        if (state.tab === 'foreman-score') {
+          const store = data.review_store || {};
+          $('syncMsg').textContent = store.available
+            ? '高炉长评分来自本机复核事件库；未提交评分的时间点显示“未打分”。'
+            : `本机复核事件库不可用：${store.message || '未配置'}`;
+        }
+        if (state.tab === 'summary') {
+          $('summaryList').innerHTML = state.rows.length ? state.rows.slice(0, 12).map(summaryCard).join('') : '<div class="empty">暂无大模型综合判断</div>';
+        }
+      } catch (err) {
+        $('tableWrap').innerHTML = `<div class="empty">${err.message}</div>`;
+      }
+    }
+    function renderTable() {
+      if (!state.rows.length) {
+        $('tableWrap').innerHTML = '<div class="empty">无数据</div>';
+        return;
+      }
+      const cols = state.columns.length ? state.columns : Object.keys(state.rows[0]);
+      const head = `<thead><tr>${cols.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>`;
+      const body = state.rows.map(row => `<tr>${cols.map(c => `<td>${formatCell(row[c], c)}</td>`).join('')}</tr>`).join('');
+      $('tableWrap').innerHTML = `<table>${head}<tbody>${body}</tbody></table>`;
+    }
+    function formatCell(value, column) {
+      if (value === null || value === undefined) return '';
+      if (column === 'main_label' || column === 'condition_label' || column === 'system_main_label') return labelHtml(String(value));
+      if (typeof value === 'object') return escapeHtml(JSON.stringify(value));
+      if (typeof value === 'number') return Number.isInteger(value) ? String(value) : String(Math.round(value * 10000) / 10000);
+      return escapeHtml(String(value));
+    }
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
+    async function copyTable() {
+      const selection = String(window.getSelection());
+      if (selection.trim()) {
+        await navigator.clipboard.writeText(selection);
+        $('syncMsg').textContent = '已复制选中内容';
+        return;
+      }
+      const cols = state.columns.length ? state.columns : (state.rows[0] ? Object.keys(state.rows[0]) : []);
+      const lines = [cols.join('\t')].concat(state.rows.map(row => cols.map(c => cellText(row[c])).join('\t')));
+      await navigator.clipboard.writeText(lines.join('\n'));
+      $('syncMsg').textContent = `已复制 ${state.rows.length} 行`;
+    }
+    function cellText(value) {
+      if (value === null || value === undefined) return '';
+      return typeof value === 'object' ? JSON.stringify(value) : String(value);
+    }
+    function download(fmt) {
+      window.location.href = `${endpoint()}?${queryString({ format: fmt })}`;
+    }
+    async function copyLatestSummary() {
+      const first = $('summaryList').querySelector('.summary-text');
+      await navigator.clipboard.writeText(first ? first.textContent : '');
+      $('syncMsg').textContent = '已复制最新大模型判断';
+    }
+    async function runSync() {
+      $('syncBtn').disabled = true;
+      $('syncMsg').textContent = '同步已启动';
+      try {
+        await fetchJson('/api/sync/run', { method: 'POST' });
+        pollSync();
+      } finally {
+        setTimeout(() => { $('syncBtn').disabled = false; }, 5000);
+      }
+    }
+    async function pollSync() {
+      const data = await fetchJson('/api/sync/status');
+      const sync = data.sync || {};
+      $('syncMsg').textContent = [
+        sync.running ? '同步运行中' : `同步状态 ${sync.message || '-'}`,
+        ...(sync.tail || []).slice(-8)
+      ].join('\n');
+      if (sync.running) setTimeout(pollSync, 3000);
+      else loadOverview();
+    }
+    function initDates() {
+      const end = new Date();
+      const start = new Date(end);
+      start.setHours(end.getHours() - 8);
+      $('startInput').value = toLocalInput(start);
+      $('endInput').value = toLocalInput(end);
+    }
+    document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+    document.querySelectorAll('.rangeBtn').forEach(btn => btn.addEventListener('click', () => {
+      state.range = btn.dataset.range;
+      document.querySelectorAll('.rangeBtn').forEach(b => b.classList.toggle('active', b === btn));
+      loadDashboard();
+      loadSummaries();
+    }));
+    $('queryBtn').addEventListener('click', query);
+    $('copyBtn').addEventListener('click', copyTable);
+    $('csvBtn').addEventListener('click', () => download('csv'));
+    $('xlsxBtn').addEventListener('click', () => download('xlsx'));
+    $('syncBtn').addEventListener('click', runSync);
+    $('refreshSummaryBtn').addEventListener('click', loadSummaries);
+    $('copySummaryBtn').addEventListener('click', copyLatestSummary);
+    $('varSearch').addEventListener('input', renderVariables);
+    initDates();
+    loadVariables().then(query);
+    loadOverview();
+    loadSummaries();
+    setInterval(loadOverview, 30000);
+    setInterval(loadSummaries, 30000);
+  </script>
+</body>
+</html>

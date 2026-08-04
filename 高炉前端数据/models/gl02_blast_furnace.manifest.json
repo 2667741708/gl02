@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "model_id": "GL02_LAYERED_FURNACE",
+  "generated_at": "2026-07-16T13:16:29+08:00",
+  "source_generator_root": "D:\\文件\\pythonCAD",
+  "source_entry": "D:\\文件\\pythonCAD\\src\\generate_gl02_cad.py",
+  "target": "高炉前端数据\\models\\gl02_blast_furnace.glb",
+  "bytes": 4314736,
+  "sha256": "808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6",
+  "coordinate_confidence": "approximate_until_real_cad_dimensions",
+  "nodes": 190,
+  "meshes": 29,
+  "materials": 23,
+  "sensor_nodes": 115,
+  "body_sensor_nodes": 80,
+  "process_zones": [
+    "APPROX_GL02_FURNACE_BELLY",
+    "APPROX_GL02_FURNACE_BOSH",
+    "APPROX_GL02_FURNACE_HEARTH",
+    "APPROX_GL02_FURNACE_SHAFT",
+    "APPROX_GL02_FURNACE_THROAT"
+  ],
+  "sensor_layers": [
+    "GL02_SENSOR_LAYER_L7",
+    "GL02_SENSOR_LAYER_L8",
+    "GL02_SENSOR_LAYER_L9",
+    "GL02_SENSOR_LAYER_L10",
+    "GL02_SENSOR_LAYER_L11",
+    "GL02_SENSOR_LAYER_L12",
+    "GL02_SENSOR_LAYER_L13",
+    "GL02_SENSOR_LAYER_L14",
+    "GL02_SENSOR_LAYER_L15",
+    "GL02_SENSOR_LAYER_L16"
+  ],
+  "generator": "gl02-cad-generator high-detail visual builder"
+}

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <title>GL02 高炉 R2Y 材质信号可见性诊断</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="assets/bf3d-review-renderer.css" />
+    <style>
+      .r2y-header{min-height:76px;padding:10px 14px}
+      .r2y-header .boundary-banner{min-width:510px}
+      .r2y-contract-strip>div{padding:7px 12px}
+      .r2y-layout{grid-template-columns:960px minmax(0,1fr);max-width:1440px;gap:12px;padding:12px}
+      .r2y-viewport-card{overflow:visible}
+      .r2y-toolbar{grid-template-columns:minmax(0,1fr) auto;padding:9px 10px}
+      .r2y-toolbar .state-id{font:700 13px/1.35 Consolas,"Courier New",monospace;color:#d8e4e0}
+      .r2y-output-frame{position:relative;width:960px;height:540px;overflow:hidden;background:#202628}
+      .r2y-output-frame canvas{position:absolute;inset:0;display:block;width:960px;height:540px}
+      #r2y-webgl-canvas{z-index:0;opacity:0;pointer-events:none}
+      #r2y-output-canvas{z-index:1}
+      .r2y-state-layer{width:960px;height:540px}
+      .r2y-footer-line{padding:7px 10px}
+      .r2y-inspector{max-height:650px;overflow:auto}
+      .r2y-state-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+      .r2y-state-grid button{min-width:0;min-height:34px;padding:5px 7px;font-size:12px;line-height:1.25}
+      .r2y-state-grid button.is-active{border-color:var(--accent);color:#e9fffa;background:#34544f}
+      .r2y-facts{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+      .r2y-facts li{display:flex;justify-content:space-between;gap:8px;padding-bottom:5px;border-bottom:1px solid var(--line-soft);font-size:12px}
+      .r2y-facts b{color:#d9e5e1;font-family:Consolas,"Courier New",monospace;text-align:right}
+      .r2y-stop{border-left:3px solid var(--warning);padding-left:9px;color:var(--muted);font-size:12px;line-height:1.5}
+      .r2y-stop strong{color:#f2c5a7}
+      @media(max-width:1420px){
+        .r2y-layout{grid-template-columns:960px minmax(0,1fr);padding:8px;gap:8px}
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./libs/three/three.module.js",
+          "three/addons/": "./libs/three/"
+        }
+      }
+    </script>
+    <script type="module" src="assets/bf3d-review-renderer-r2y.js"></script>
+  </head>
+  <body
+    data-bf3d-review-page="r2y-material-signal-diagnostic"
+    data-load-state="loading"
+    data-capture-id="00_contract"
+    data-evidence="E/diagnostic"
+    data-beauty-approved="false"
+    data-production-approved="false"
+    data-full-matrix-allowed="false"
+  >
+    <a class="skip-link" href="#review-main">跳到材质信号诊断区</a>
+
+    <header class="review-header r2y-header">
+      <div class="title-block">
+        <p class="eyebrow">GL02 · R2Y · 锁定 V5 material GLB</p>
+        <h1>材质信号可见性隔离诊断</h1>
+        <p>单变量检视 BaseColor、Normal、Roughness 的数据、采样、消费与最终可见性。</p>
+      </div>
+      <div class="boundary-banner" role="status" aria-live="polite">
+        <strong>E/diagnostic</strong>
+        <span>NOT BEAUTY</span>
+        <span>NOT PRODUCTION</span>
+        <small>AO off · 不改 V5/R2X/正式资产 · 不运行完整矩阵</small>
+      </div>
+    </header>
+
+    <section class="contract-strip r2y-contract-strip" aria-label="R2Y 固定合同">
+      <div>
+        <span>资产</span>
+        <b id="asset-contract">material.v5 · 正在核验 SHA</b>
+      </div>
+      <div>
+        <span>色彩路径</span>
+        <b>Three r160 · sRGB · ACES · exposure 1</b>
+      </div>
+      <div>
+        <span>画布</span>
+        <b>960×540 · DPR 1 · 正交镜头</b>
+      </div>
+      <div>
+        <span>机器边界</span>
+        <b>Chromium 1440×900 representative only</b>
+      </div>
+    </section>
+
+    <main id="review-main" class="review-layout r2y-layout">
+      <section class="viewport-card r2y-viewport-card" aria-labelledby="viewport-heading">
+        <div class="review-toolbar r2y-toolbar">
+          <div>
+            <p class="toolbar-label" id="viewport-heading">预注册捕获状态</p>
+            <div id="active-capture-label" class="state-id">00_contract</div>
+          </div>
+          <button type="button" class="quiet-button" id="retry-button" hidden>
+            重试加载
+          </button>
+        </div>
+
+        <div
+          id="r2y-output-frame"
+          class="r2y-output-frame"
+          aria-label="R2Y 固定 960×540 诊断输出"
+        >
+          <canvas
+            id="r2y-webgl-canvas"
+            width="960"
+            height="540"
+            aria-hidden="true"
+          ></canvas>
+          <canvas
+            id="r2y-output-canvas"
+            width="960"
+            height="540"
+            role="img"
+            aria-label="R2Y 材质信号诊断捕获画布"
+          ></canvas>
+          <div
+            id="review-state-layer"
+            class="state-layer r2y-state-layer"
+            data-kind="loading"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div class="state-mark" aria-hidden="true"></div>
+            <h2 id="state-title">正在读取锁定 V5 material GLB</h2>
+            <p id="state-message">下载后核验 bytes、SHA、五壳、PBR 与 AO-off 合同。</p>
+            <progress
+              id="load-progress"
+              class="load-progress"
+              aria-label="资产加载进度"
+              max="100"
+              value="0"
+            >0%</progress>
+          </div>
+        </div>
+
+        <div class="viewport-footer r2y-footer-line">
+          <p id="active-view-description">合同页：13 个固定状态，诊断图不得作为 PBR beauty。</p>
+          <p>输出固定为 960×540；机器捕获不使用浏览器缩放。</p>
+        </div>
+      </section>
+
+      <aside class="inspector r2y-inspector" aria-label="R2Y 诊断状态">
+        <section class="inspector-section status-section">
+          <div class="section-heading">
+            <div>
+              <p class="toolbar-label">运行状态</p>
+              <h2>材质快照合同</h2>
+            </div>
+            <span id="load-state-badge" class="state-badge is-loading">加载中</span>
+          </div>
+          <dl class="status-grid">
+            <div><dt>V5 SHA-256</dt><dd id="asset-sha">待核验</dd></div>
+            <div><dt>外壳 / 材质</dt><dd id="object-counts">待读取</dd></div>
+            <div><dt>PBR 改写</dt><dd id="pbr-mutation-count">未检查</dd></div>
+            <div><dt>AO</dt><dd id="ao-status">Off · 待核验</dd></div>
+          </dl>
+        </section>
+
+        <section class="inspector-section">
+          <p class="toolbar-label">13 个预注册状态</p>
+          <h2>固定捕获入口</h2>
+          <div class="r2y-state-grid" id="capture-state-grid">
+            <button type="button" data-r2y-capture="00_contract">00 合同</button>
+            <button type="button" data-r2y-capture="01_p40_detail_ortho6p2">01 近景 6.2</button>
+            <button type="button" data-r2y-capture="02_macro_ortho3p1">02 宏距 3.1</button>
+            <button type="button" data-r2y-capture="03_graze30">03 掠射 30°</button>
+            <button type="button" data-r2y-capture="04_graze75">04 掠射 75°</button>
+            <button type="button" data-r2y-capture="05_aniso1">05 各向异性 1×</button>
+            <button type="button" data-r2y-capture="06_aniso8">06 各向异性上限</button>
+            <button type="button" data-r2y-capture="07_env0">07 环境 0</button>
+            <button type="button" data-r2y-capture="08_env1">08 环境固定值</button>
+            <button type="button" data-r2y-capture="09_basecolor_raw">09 BaseColor raw</button>
+            <button type="button" data-r2y-capture="10_normal_xy_fixed">10 Normal XY fixed</button>
+            <button type="button" data-r2y-capture="11_roughness_fixed">11 Roughness fixed</button>
+            <button type="button" data-r2y-capture="12_contact_sheet">12 Contact sheet</button>
+          </div>
+        </section>
+
+        <section class="inspector-section">
+          <p class="toolbar-label">当前不变量</p>
+          <h2>Beauty 单变量边界</h2>
+          <ul class="r2y-facts">
+            <li><span>BaseColor / Normal / ORM</span><b>V5 原值</b></li>
+            <li><span>normalScale</span><b>0.45</b></li>
+            <li><span>AO map / AO 强化</span><b>0 / off</b></li>
+            <li><span>禁用对象 / 黄色轮廓</span><b>0 / 0</b></li>
+            <li><span>传感器 / 引线 / 粒子</span><b>0 / 0 / 0</b></li>
+          </ul>
+        </section>
+
+        <section class="inspector-section calibration-boundary">
+          <p class="toolbar-label">停止线</p>
+          <h2>失败关闭</h2>
+          <p class="r2y-stop">
+            <strong>CHANNEL DIAGNOSTIC / NOT PBR</strong><br />
+            通道图、宏距、掠射、各向异性或环境门失败时，只记录诊断结论；不得晋级
+            Beauty、Golden、P50/P60 或生产集成。
+          </p>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="review-footer">
+      <b>R2Y 隔离诊断</b>
+      <span>只请求锁定 V5 material GLB</span>
+      <span>不加载正式 GLB、生产控制器或 R2X 候选</span>
+      <span>完整矩阵禁止</span>
+    </footer>
+  </body>
+</html>

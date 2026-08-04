@@ -1,0 +1,26 @@
+{
+  "catalog_version": "1.0.0",
+  "contract": "business_object.schema.json",
+  "files": [
+    "sensors.json",
+    "heat_analysis.json",
+    "calculation_tools.json",
+    "chart_capabilities.json",
+    "knowledge_assets.json"
+  ],
+  "object_types": [
+    "sensor",
+    "heat",
+    "hot_metal_analysis",
+    "slag_analysis",
+    "feed_chemistry",
+    "report",
+    "qa_history",
+    "calculation",
+    "chart"
+  ],
+  "notes": [
+    "传感器对象由sensors.json规则与bf_data_mcp_server.VARIABLES运行时合并。",
+    "目录只描述业务对象和只读能力，不包含数据库凭据、SQL或生产写入能力。"
+  ]
+}

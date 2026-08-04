@@ -1,0 +1,4 @@
+interface:
+  display_name: "高炉几何审计"
+  short_description: "保护全部传感器节点语义并优化高炉工业硬表面几何细节"
+  default_prompt: "使用 $bf3d-geometry-audit 审计并优化高炉硬表面几何。"

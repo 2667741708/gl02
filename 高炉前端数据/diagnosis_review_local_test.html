@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>异常炉况复核本机测试场景</title>
+  <link rel="stylesheet" href="/assets/bf-diagnosis-review-local.css">
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#20292d;color:#eef1ef;font-family:SimSun,"宋体",serif}.fixture-shell{max-width:1100px;margin:auto;padding:24px}.fixture-panel{padding:18px;border:1px solid #64736d;border-radius:6px;background:#303b40}.fixture-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.fixture-actions button{min-height:44px;padding:8px 16px;border:1px solid #9eaaa5;border-radius:4px;background:#edf0ee;color:#172125;font-size:16px;cursor:pointer}.fixture-actions button:focus-visible{outline:3px solid #f0b93b}.fixture-note{line-height:1.7;color:#d4dcd8}.fixture-current{padding:12px;border-left:5px solid #d54a43;background:#172025;font-size:18px;overflow-wrap:anywhere}
+  </style>
+</head>
+<body>
+  <main class="fixture-shell">
+    <section class="fixture-panel">
+      <h1>异常炉况复核 · 本机测试场景</h1>
+      <p class="fixture-note">本页仅允许回环地址访问。测试记录固定标记为 local_fixture，不代表真实诊断，也不会写入220.12。</p>
+      <div class="fixture-actions" aria-label="测试炉况">
+        <button type="button" data-label="normal">正常顺行</button>
+        <button type="button" data-label="cold">热制度下行</button>
+        <button type="button" data-label="hot">热制度上行</button>
+        <button type="button" data-label="lowline">低料线</button>
+        <button type="button" data-label="channel">管道行程</button>
+      </div>
+      <div class="fixture-current" role="status">请选择测试场景。</div>
+    </section>
+  </main>
+  <script>
+    (function(){
+      if(!["127.0.0.1","localhost","::1","[::1]"].includes(location.hostname)){document.body.innerHTML="<main class='fixture-shell'><h1>拒绝访问</h1><p>测试场景页只允许从本机回环地址打开。</p></main>";return;}
+      var labels={normal:"正常顺行",cold:"热制度下行",hot:"热制度上行",lowline:"低料线",channel:"管道行程"};
+      document.querySelectorAll("[data-label]").forEach(function(button){button.addEventListener("click",function(){var params=new URLSearchParams(location.search);params.set("fixture",button.dataset.label);params.set("case_id",button.dataset.label+"-"+Date.now());history.replaceState(null,"",location.pathname+"?"+params.toString());document.querySelector(".fixture-current").textContent="当前测试场景："+labels[button.dataset.label];window.dispatchEvent(new Event("bf:diagnosis-review-fixture"));});});
+    })();
+  </script>
+  <script defer src="/assets/bf-diagnosis-review-local.js"></script>
+</body>
+</html>

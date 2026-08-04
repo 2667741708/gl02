@@ -1,0 +1,35 @@
+{
+  "collection": "bf_unified_vectors",
+  "storage": "postgresql_pgvector_hybrid",
+  "source_dir": "D:\\文件\\服务器实际运行版\\高炉四智能体配置以及知识库",
+  "db_path": "D:\\文件\\服务器实际运行版\\高炉前端数据\\data\\bf_unified_vectors.sqlite3",
+  "task_types": [
+    "process_qa",
+    "condition_diagnosis",
+    "parameter_optimization",
+    "operation_report",
+    "case_analysis",
+    "mixed"
+  ],
+  "metadata_fields": [
+    "doc_id",
+    "chunk_id",
+    "title",
+    "source_file",
+    "knowledge_category",
+    "task_scope",
+    "topic",
+    "entities",
+    "phenomenon",
+    "parameter_names",
+    "chunk_type",
+    "authority_level",
+    "source_priority",
+    "content_hash"
+  ],
+  "mvp_notes": [
+    "当前 V4 运行期使用 PostgreSQL rag_chunk + pgvector embedding + sklearn TF-IDF rerank 的混合检索。",
+    "对外保持 evidence pack 接口不变，可通过 mode=keyword/vector/hybrid 对比检索效果。",
+    "故障分析报告.rar 后续建议结构化抽取后写入 bf_case_vectors。"
+  ]
+}

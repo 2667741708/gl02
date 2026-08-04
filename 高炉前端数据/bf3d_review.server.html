@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <title>GL02 高炉 V3 材质与结构审查（illustrative）</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="assets/bf3d-review-renderer.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./libs/three/three.module.js",
+          "three/addons/": "./libs/three/"
+        }
+      }
+    </script>
+    <script type="module" src="assets/bf3d-review-renderer.js"></script>
+  </head>
+  <body
+    data-bf3d-review-page="isolated"
+    data-load-state="loading"
+    data-review-mode="material"
+    data-material-view="exterior"
+    data-color-equivalence="not-approved"
+  >
+    <a class="skip-link" href="#review-main">跳到三维审查区</a>
+
+    <header class="review-header">
+      <div class="title-block">
+        <p class="eyebrow">GL02 · V3 受控资产 · 独立只读页</p>
+        <h1>高炉材质与结构审查</h1>
+        <p>仅用于浏览器可见性与结构复核，不接入生产页面或实时数据。</p>
+      </div>
+      <div class="boundary-banner" role="status" aria-live="polite">
+        <strong>E/illustrative</strong>
+        <span>REF-PENDING</span>
+        <span>未完成 Blender 等价校准</span>
+        <small>非施工数据 · 禁止控制用途</small>
+      </div>
+    </header>
+
+    <section class="contract-strip" aria-label="审查运行合同">
+      <div>
+        <span>资产</span>
+        <b id="asset-contract">review.v3 · 正在核验 SHA</b>
+      </div>
+      <div>
+        <span>渲染器</span>
+        <b id="renderer-contract">Three.js r160 · 独占实例</b>
+      </div>
+      <div>
+        <span>灯光</span>
+        <b id="lighting-contract">P40 候选 · 近似路径</b>
+      </div>
+      <div>
+        <span>曝光</span>
+        <b>固定 1.00 · 无用户调节</b>
+      </div>
+    </section>
+
+    <main id="review-main" class="review-layout">
+      <section class="viewport-card" aria-labelledby="viewport-heading">
+        <div class="review-toolbar">
+          <div>
+            <p class="toolbar-label" id="viewport-heading">主审查模式</p>
+            <div class="segmented" role="group" aria-label="选择主审查模式">
+              <button
+                type="button"
+                class="is-active"
+                data-mode-button="material"
+                aria-pressed="true"
+              >
+                纯材质审查
+              </button>
+              <button
+                type="button"
+                data-mode-button="structural"
+                aria-pressed="false"
+              >
+                结构剖面
+              </button>
+            </div>
+          </div>
+
+          <div class="material-view-control">
+            <p class="toolbar-label">材质视角</p>
+            <div
+              class="segmented compact"
+              role="group"
+              aria-label="选择材质审查视角"
+            >
+              <button
+                type="button"
+                class="is-active"
+                data-material-view-button="exterior"
+                aria-pressed="true"
+              >
+                外表面
+              </button>
+              <button
+                type="button"
+                data-material-view-button="interior"
+                aria-pressed="false"
+              >
+                内部层近景
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="quiet-button" id="reset-view-button">
+            复位视角
+          </button>
+        </div>
+
+        <div
+          id="bf3d-review-viewport"
+          class="review-viewport"
+          aria-label="GL02 高炉 V3 三维审查视口"
+        >
+          <div class="viewport-watermark" aria-hidden="true">
+            <b>E/illustrative</b>
+            <span>REF-PENDING</span>
+          </div>
+
+          <div
+            id="review-state-layer"
+            class="state-layer"
+            data-kind="loading"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div class="state-mark" aria-hidden="true"></div>
+            <h2 id="state-title">正在读取受控审查资产</h2>
+            <p id="state-message">下载后将在浏览器内核验 SHA-256。</p>
+            <progress
+              id="load-progress"
+              class="load-progress"
+              aria-label="资产加载进度"
+              max="100"
+              value="0"
+            >
+              0%
+            </progress>
+            <button type="button" id="retry-button" hidden>重试加载</button>
+          </div>
+        </div>
+
+        <div class="viewport-footer">
+          <p id="active-view-description">
+            外表面：R2J 五区实体交界与原始表面纹理，不是数据圆环、轮廓或引线；保留 GLB 原始 PBR。
+          </p>
+          <p>鼠标拖动旋转 · 滚轮缩放 · 右键平移</p>
+        </div>
+      </section>
+
+      <aside class="inspector" aria-label="只读审查信息">
+        <section class="inspector-section status-section">
+          <div class="section-heading">
+            <div>
+              <p class="toolbar-label">运行状态</p>
+              <h2>资产合同</h2>
+            </div>
+            <span id="load-state-badge" class="state-badge is-loading"
+              >加载中</span
+            >
+          </div>
+          <dl class="status-grid">
+            <div>
+              <dt>SHA-256</dt>
+              <dd id="asset-sha">待核验</dd>
+            </div>
+            <div>
+              <dt>逻辑对象</dt>
+              <dd id="logical-counts">待读取</dd>
+            </div>
+            <div>
+              <dt>物理剖面</dt>
+              <dd id="section-count">待读取</dd>
+            </div>
+            <div>
+              <dt>PBR 状态</dt>
+              <dd id="pbr-status">未检查</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="inspector-section">
+          <div class="section-heading">
+            <div>
+              <p class="toolbar-label">当前可见集</p>
+              <h2 id="visible-set-title">外表面材质</h2>
+            </div>
+            <span id="visible-object-count" class="count-badge">0</span>
+          </div>
+          <p id="visible-set-note" class="section-note">
+            R2J 五区实体交界与原始表面纹理，不是数据圆环、轮廓或引线。
+          </p>
+        </section>
+
+        <section class="inspector-section section-register">
+          <div class="section-heading">
+            <div>
+              <p class="toolbar-label">结构名录</p>
+              <h2>十个物理 Section</h2>
+            </div>
+            <span class="readonly-badge">只读</span>
+          </div>
+          <div class="table-scroll" tabindex="0">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">对象</th>
+                  <th scope="col">结构角色</th>
+                  <th scope="col">状态</th>
+                </tr>
+              </thead>
+              <tbody id="section-register-body">
+                <tr data-list-state="loading">
+                  <td colspan="3">正在读取结构名录…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="section-list-empty" class="list-empty" hidden>
+            资产中没有可审查的物理 Section。
+          </p>
+        </section>
+
+        <section class="inspector-section calibration-boundary">
+          <p class="toolbar-label">校准边界</p>
+          <h2>明确近似路径</h2>
+          <ul>
+            <li>三盏 P40 Directional 候选灯，方向固定。</li>
+            <li>TOP 使用等面积方形 RectAreaLight，LTC 仅初始化一次。</li>
+            <li>固定线性常量环境经 PMREM；不以 AmbientLight 替代。</li>
+            <li>ACES 1.00 为审查近似，不声明 Blender / Three 等价。</li>
+          </ul>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="review-footer">
+      <b>只读隔离审查</b>
+      <span>不请求正式 GLB</span>
+      <span>不加载生产页面或生产 3D 控制器</span>
+      <span>刷新页面即可重新建立独占渲染生命周期</span>
+    </footer>
+  </body>
+</html>

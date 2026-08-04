@@ -1,0 +1,132 @@
+{
+  "schema_version": "bf3d.clean_structural_review_asset.v2",
+  "requirement_id": "REQ-BF3D-CLEAN-STRUCTURAL-REVIEW-20260719",
+  "asset_id": "GL02_CLEAN_STRUCTURAL_REVIEW_V2",
+  "status": "controlled_local_review_asset",
+  "evidence": "illustrative",
+  "not_for_construction": true,
+  "correction": {
+    "root_cause": "V1 retained operational scene meshes and relied on Three.js visibility/clipping; direct Blender import therefore exposed them.",
+    "asset_level_removal": [
+      "115 sensor render/pick objects",
+      "burden reference rings",
+      "gas/blast flow lines",
+      "temperature highlight rings",
+      "legacy process particles and decorative meshes",
+      "access/support geometry outside the R5/R2J/R2K review scope",
+      "optional missing skull placeholder"
+    ],
+    "runtime_clipping_required_for_v2_section": false
+  },
+  "provenance": {
+    "r5_web_base": {
+      "path": "PT/高炉3D模型/work/INT_30_20260718_R2H_WEB_DETAIL_NORMAL/input/INT_30_R2G_BASE_R1_R5_UNCHANGED.glb",
+      "sha256": "9db82c83f2e3c8c78aff38c2b71810fcabb8394806f765d94280bedb0145f952"
+    },
+    "r2j_r2k_blend": {
+      "path": "PT/高炉3D模型/work/INT_30_20260719_R2K_WALL_INTERNAL_SOLIDS/blends/INT_30_R2K_WALL_INTERNAL_SOLIDS_CANDIDATE.blend",
+      "sha256": "51fb6f57fe06ff923de5ea823aca8ba0fb51382d757b768a0669ce74b85bba68"
+    }
+  },
+  "outputs": {
+    "material_review_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_material_review.v2.glb",
+      "bytes": 7685312,
+      "sha256": "93e97e5dbe47c82c995d7b286ccf74cf2522e6629e9ed2a42588fedd67daf99f",
+      "nodes": 5,
+      "meshes": 5,
+      "materials": 4,
+      "textures": 10,
+      "images": 7,
+      "roles": {
+        "steel_shell": 5
+      },
+      "material_names": [
+        "INT30_R2G_R1_LOCK_BAKED_PBR_STEEL",
+        "BF3D_V2_STEEL_INNER_PBR_E",
+        "BF3D_V2_STEEL_CUT_PBR_E",
+        "INT30_R2G_R1_LOCK_BAKED_PBR_STEEL.001"
+      ],
+      "forbidden_names": []
+    },
+    "structural_section_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_structural_review.v2.glb",
+      "bytes": 18747832,
+      "sha256": "f54eed99f932bf9ef174fc4a447393efca58f215bb50f1295879ba7e597ae663",
+      "nodes": 10,
+      "meshes": 10,
+      "materials": 14,
+      "textures": 30,
+      "images": 27,
+      "roles": {
+        "backfill": 1,
+        "cooling_stave": 2,
+        "hotface_embed": 1,
+        "refractory": 1,
+        "steel_shell": 5
+      },
+      "material_names": [
+        "INT30_R2G_R1_LOCK_BAKED_PBR_STEEL",
+        "BF3D_V2_STEEL_INNER_PBR_E",
+        "BF3D_V2_STEEL_CUT_PBR_E",
+        "INT30_R2G_R1_LOCK_BAKED_PBR_STEEL.001",
+        "BF3D_V2_BACKFILL_PBR_E",
+        "BF3D_V2_BACKFILL_CUT_PBR_E",
+        "BF3D_V2_HOTFACE_PBR_E",
+        "BF3D_V2_HOTFACE_CUT_PBR_E",
+        "BF3D_V2_REFRACTORY_PBR_E",
+        "BF3D_V2_REFRACTORY_CUT_PBR_E",
+        "BF3D_V2_CAST_IRON_PBR_E",
+        "BF3D_V2_CAST_IRON_CUT_PBR_E",
+        "BF3D_V2_COPPER_PBR_E",
+        "BF3D_V2_COPPER_CUT_PBR_E"
+      ],
+      "forbidden_names": []
+    },
+    "direct_open_blend": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_structural_review.v2.blend",
+      "bytes": 18327364,
+      "sha256": "c14d28cae991b5d37ebe84e96f3ef90853b09cdb45853d3a088b8051430162a8"
+    },
+    "section_preview": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2P_CLEAN_STRUCTURAL_REVIEW/renders/BF3D_V2_STRUCTURAL_SECTION.png",
+      "bytes": 1327464,
+      "sha256": "349251f0a3418e6db83c6c7edad1c57d363ca1affc4ac7825f8e3c4b91af374d"
+    }
+  },
+  "rollback": {
+    "formal_glb": "高炉前端数据/models/gl02_blast_furnace.glb",
+    "formal_glb_sha256": "808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6",
+    "v1_review_glb": "高炉前端数据/models/gl02_blast_furnace_structural_review.v1.glb",
+    "v1_review_glb_sha256": "859819f415feee0533018daf3290c65c69b607352d8e8e34735e952d8f3772fd",
+    "historical_files_overwritten": false
+  },
+  "material_identity": {
+    "exterior": "R5/R2H baked coarse steel-shell PBR",
+    "inner_steel": "MAT-STEEL-INNER-E",
+    "backfill": "MAT-BACKFILL-CASTABLE-E",
+    "cast_iron_cooling": "MAT-COOL-CAST-001-E",
+    "copper_cooling": "MAT-COOL-COPPER-001-E",
+    "refractory": "MAT-REFRACTORY-001-E",
+    "hotface": "MAT-HOTFACE-SINTERED-E"
+  },
+  "checks": {
+    "material_glb_exactly_five_shell_entities": true,
+    "structural_glb_exact_roles": true,
+    "structural_glb_exactly_ten_nodes": true,
+    "material_glb_has_no_forbidden_geometry": true,
+    "structural_glb_has_no_forbidden_geometry": true,
+    "no_sensor_objects_in_scene": true,
+    "no_curve_or_line_objects_in_scene": true,
+    "all_section_objects_are_physically_cut": true,
+    "all_r2k_section_objects_have_cut_caps": true,
+    "r2j_entities_retain_three_material_boundaries": true,
+    "required_internal_material_ids_present": true,
+    "material_glb_contains_textures": true,
+    "structural_glb_contains_material_textures": true,
+    "blend_saved_and_nonempty": true,
+    "formal_glb_unchanged": true,
+    "v1_glb_unchanged": true
+  },
+  "all_checks_pass": true
+}

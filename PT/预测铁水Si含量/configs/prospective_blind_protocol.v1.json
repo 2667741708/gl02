@@ -1,0 +1,65 @@
+{
+  "protocol_id": "SI-PROSPECTIVE-BLIND-V1-20260727",
+  "status": "frozen_waiting_for_future_heats",
+  "frozen_at": "2026-07-27T10:10:00+08:00",
+  "historical_data_max_prediction_cutoff": "2026-07-26T19:02:00+08:00",
+  "prospective_eligibility": {
+    "prediction_cutoff_strictly_after": "2026-07-27T00:00:00+08:00",
+    "official_meltno_required": true,
+    "prediction_must_be_written_before_label_available_ts": true,
+    "sensor_feature_cutoff": "sensor_ts < prediction_cutoff_ts",
+    "minimum_completed_heats": 300,
+    "minimum_calendar_span_days": 30,
+    "evaluate_when": "both_minimums_are_satisfied",
+    "no_interim_model_selection": true
+  },
+  "frozen_candidates": [
+    {
+      "candidate_id": "V9_POINT_MAE_CHAMPION",
+      "role": "lowest_historical_point_mae",
+      "model_path": "../reports/experiments/EXP-SI-V9-MULTIMODEL-PARETO-8H-002_20260727/models/selected_v9_ensemble.joblib",
+      "model_sha256": "e5ea83a760ba309b4f62ae0c603d3e43cbfa813f377f622b7b22b9af9f2be89f",
+      "historical_mae": 0.04709828509685497,
+      "historical_hit_rate_abs_le_002": 0.25
+    },
+    {
+      "candidate_id": "V10_PRETEST_STABILITY_CHAMPION",
+      "role": "best_april_may_june_robust_score",
+      "model_path": "../reports/experiments/EXP-SI-V10-LAG-FIELD-8H-001_20260727/models/selected_v10.joblib",
+      "model_sha256": "5925ae3e0d337288d865821b16cc885fcb559ddd534750c24a8626eee2d93d85",
+      "pretest_robust_mae_score": 0.057909575236972974,
+      "historical_mae": 0.04804901501870463,
+      "historical_hit_rate_abs_le_002": 0.26744186046511625
+    }
+  ],
+  "locked_metrics": [
+    "mae",
+    "rmse",
+    "bias",
+    "hit_rate_abs_le_002",
+    "hit_rate_abs_le_003",
+    "hit_rate_abs_le_004",
+    "hit_rate_abs_le_005",
+    "p10_p90_coverage",
+    "mean_p10_p90_width"
+  ],
+  "stratification": [
+    "calendar_month",
+    "shift",
+    "taphole_id_when_available",
+    "sample_count",
+    "si_level_band",
+    "sensor_data_quality"
+  ],
+  "decision_rules": {
+    "primary": "lower_mae_with_paired_95pct_interval_excluding_zero",
+    "secondary": "higher_hit_rate_abs_le_002_without_worse_monthly_max_mae",
+    "goal_mae": 0.02,
+    "production_release_allowed": false,
+    "mcp_integration_allowed": false
+  },
+  "temperature_joint_head": {
+    "status": "blocked_no_true_hot_metal_temperature_label",
+    "taphole_temperature_is_proxy_only": true
+  }
+}

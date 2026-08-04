@@ -1,0 +1,4 @@
+interface:
+  display_name: "高炉灯光渲染"
+  short_description: "建立高炉中性材质校准灯光体系与固定机位最终渲染基线流程"
+  default_prompt: "使用 $bf3d-light-render 建立高炉灯光和渲染基线。"

@@ -1,0 +1,19 @@
+{
+  "name": "front2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python start_front2.py",
+    "build": "python verify_front2_static.py",
+    "preview": "python start_front2.py",
+    "check": "python verify_front2_static.py"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "5.0.4",
+    "vite": "6.4.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {}
+}

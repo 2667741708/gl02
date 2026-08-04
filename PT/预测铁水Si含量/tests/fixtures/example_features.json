@@ -1,0 +1,21 @@
+{
+  "z__T_blast_mean_120m": 0.0,
+  "z__TFT_mean_120m": 0.0,
+  "z__O2_rate_mean_120m": 0.0,
+  "z__PCI_rate_mean_120m": 0.0,
+  "z__DP_total_mean_120m": 0.0,
+  "z__DP_total_slope_120m": 0.0,
+  "z__PI_mean_120m": 0.0,
+  "z__Q_blast_mean_120m": 0.0,
+  "z__T_top_range_mean_120m": 0.0,
+  "z__body_temperature_sector_range_120m": 0.0,
+  "z__P_top_mean_120m": 0.0,
+  "z__burden_TFe_dry_weighted": 0.0,
+  "z__burden_SiO2_dry_weighted": 0.0,
+  "z__burden_Al2O3_dry_weighted": 0.0,
+  "z__burden_S_dry_weighted": 0.0,
+  "z__previous_heat_Si_median": 0.0,
+  "z__previous_3_heat_Si_median": 0.0,
+  "z__previous_3_heat_Si_slope": 0.0
+}
+

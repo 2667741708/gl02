@@ -1,0 +1,613 @@
+<!doctype html>
+<!-- REQ-HEAT-CENTRIC-DASHBOARD-20260725 / REQ-HEAT-SI-DISTRIBUTION-20260726 -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," />
+  <title>GL02 炉次质量与传感器分析</title>
+  <script src="/libs/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg:#111718; --panel:#1a2223; --panel2:#202a2b; --line:#344244;
+      --text:#edf3f1; --muted:#9eadaa; --cyan:#52c6ba; --green:#55ba7c;
+      --amber:#d6aa54; --red:#d86464; --ink:#0e1415;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; min-height:100%; background:var(--bg); color:var(--text); }
+    body { font-family:SimSun, "宋体", serif; font-size:15px; }
+    button, select, input { font:inherit; }
+    button, .button-link {
+      min-height:34px; border:1px solid #47605d; border-radius:5px;
+      background:#263332; color:var(--text); padding:6px 12px; cursor:pointer;
+    }
+    button:hover, .button-link:hover { border-color:var(--cyan); }
+    button.primary { background:#276c65; border-color:#3a968c; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    a { color:#a7e3dc; }
+    header {
+      position:sticky; top:0; z-index:10; border-bottom:1px solid #3b4d4d;
+      background:rgba(16,23,24,.96); box-shadow:0 8px 18px rgba(0,0,0,.24);
+    }
+    .topbar {
+      max-width:1920px; min-height:62px; margin:auto; padding:10px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .title h1 { margin:0; font-size:24px; letter-spacing:1px; }
+    .title p { margin:4px 0 0; color:var(--muted); font-size:13px; }
+    .actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+    .status {
+      display:inline-flex; align-items:center; gap:7px; padding:6px 10px;
+      border:1px solid var(--line); border-radius:5px; background:#182020;
+    }
+    .dot { width:8px; height:8px; border-radius:50%; background:var(--amber); }
+    .dot.ok { background:var(--green); box-shadow:0 0 10px rgba(85,186,124,.7); }
+    .dot.err { background:var(--red); }
+    main { max-width:1920px; margin:auto; padding:14px 18px 28px; }
+    .filters {
+      display:flex; flex-wrap:wrap; align-items:end; gap:10px; margin-bottom:12px;
+      padding:10px 12px; background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    }
+    label { display:grid; gap:4px; color:var(--muted); font-size:13px; }
+    select, input {
+      min-height:34px; border:1px solid #425150; border-radius:4px;
+      background:#11191a; color:var(--text); padding:5px 8px;
+    }
+    .kpis { display:grid; grid-template-columns:repeat(6,minmax(130px,1fr)); gap:10px; }
+    .kpi {
+      min-height:84px; padding:11px 12px; border:1px solid var(--line);
+      border-radius:6px; background:linear-gradient(145deg,#1b2525,#172020);
+    }
+    .kpi .label { color:var(--muted); font-size:13px; }
+    .kpi .value { margin-top:8px; font-size:24px; font-family:Consolas,monospace; }
+    .kpi .sub { margin-top:4px; color:var(--muted); font-size:12px; }
+    .layout {
+      display:grid; grid-template-columns:minmax(470px,38%) minmax(0,62%);
+      gap:12px; margin-top:12px; align-items:start;
+    }
+    .panel {
+      border:1px solid var(--line); border-radius:6px; background:var(--panel);
+      min-width:0; overflow:hidden;
+    }
+    .panel-head {
+      min-height:44px; display:flex; align-items:center; justify-content:space-between;
+      gap:10px; padding:8px 12px; border-bottom:1px solid var(--line); background:var(--panel2);
+    }
+    .panel-head h2, .panel-head h3 { margin:0; font-size:17px; }
+    .panel-body { padding:12px; }
+    .table-wrap { overflow:auto; max-width:100%; border:1px solid #33403f; border-radius:4px; }
+    table { width:100%; border-collapse:collapse; min-width:720px; }
+    th, td {
+      padding:8px 9px; border-bottom:1px solid #303d3c; text-align:left;
+      vertical-align:top; white-space:normal; line-height:1.35;
+    }
+    th {
+      position:sticky; top:0; z-index:1; background:#263130; color:#c9d8d5;
+      font-weight:700; white-space:nowrap;
+    }
+    tbody tr { cursor:pointer; }
+    tbody tr:hover td, tbody tr.selected td { background:#243332; }
+    tbody tr.selected td:first-child { box-shadow:inset 3px 0 var(--cyan); }
+    .mono { font-family:Consolas,monospace; font-variant-numeric:tabular-nums; }
+    .tag {
+      display:inline-block; padding:2px 6px; border-radius:4px; border:1px solid #4d5c5b;
+      font-size:12px; white-space:nowrap;
+    }
+    .tag.good { color:#8cddb0; border-color:#3d7655; background:#183025; }
+    .tag.partial, .tag.warn { color:#eccb84; border-color:#7a653a; background:#302816; }
+    .tag.missing, .tag.bad { color:#ef9999; border-color:#7b4141; background:#321c1c; }
+    .detail-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+    .detail-item { padding:8px 9px; border:1px solid #34403f; border-radius:4px; background:#161e1f; }
+    .detail-item .name { color:var(--muted); font-size:12px; }
+    .detail-item .val { margin-top:5px; overflow-wrap:anywhere; }
+    .si-summary-grid {
+      display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px;
+      margin:8px 0;
+    }
+    .si-summary-item {
+      padding:8px 9px; border:1px solid #46504b; border-radius:4px;
+      background:#1d2421;
+    }
+    .si-summary-item .name { color:var(--muted); font-size:12px; }
+    .si-summary-item .val {
+      margin-top:4px; color:#f0cd7d; font-family:Consolas,monospace;
+      font-size:16px; font-variant-numeric:tabular-nums;
+    }
+    .notice {
+      margin:10px 0; padding:9px 11px; border-left:3px solid var(--amber);
+      background:#2b2619; color:#e4d1a5; line-height:1.55;
+    }
+    .section { margin-top:12px; }
+    .section-title { display:flex; justify-content:space-between; gap:8px; align-items:center; margin:0 0 7px; }
+    .section-title h3 { margin:0; font-size:16px; }
+    .chart { width:100%; height:260px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+    .empty, .loading, .error {
+      min-height:90px; display:grid; place-items:center; padding:18px; color:var(--muted);
+      text-align:center; white-space:pre-wrap;
+    }
+    .error { color:#ef9999; }
+    .window-line {
+      display:grid; grid-template-columns:1fr 1fr 1fr; border:1px solid #42504f;
+      border-radius:5px; overflow:hidden; margin-top:8px;
+    }
+    .window-seg { padding:8px; text-align:center; background:#172020; border-right:1px solid #42504f; }
+    .window-seg:last-child { border-right:0; }
+    .window-seg.active { background:#27534f; color:#c8fff8; }
+    .sensor-tools { display:flex; align-items:end; flex-wrap:wrap; gap:8px; }
+    #sensorTableWrap { max-height:520px; }
+    footer { margin-top:14px; color:var(--muted); font-size:12px; line-height:1.6; }
+    @media(max-width:1280px) {
+      .kpis { grid-template-columns:repeat(3,minmax(130px,1fr)); }
+      .layout { grid-template-columns:1fr; }
+      .detail-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    }
+    @media(max-width:780px) {
+      .topbar { align-items:flex-start; flex-direction:column; }
+      main { padding:10px; }
+      .kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .detail-grid, .split, .si-summary-grid { grid-template-columns:1fr; }
+      .filters { align-items:stretch; }
+      .filters label, .filters select, .filters input, .filters button { width:100%; }
+      .actions { width:100%; }
+      .actions > * { flex:1; text-align:center; }
+      .title h1 { font-size:20px; }
+      .window-line { grid-template-columns:1fr; }
+      .window-seg { border-right:0; border-bottom:1px solid #42504f; }
+      .window-seg:last-child { border-bottom:0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="title">
+        <h1>2号高炉 · 炉次质量与传感器分析</h1>
+        <p>以正式炉次号为主键，关联出铁、铁水、炉渣、烧结矿背景和133点时间窗口</p>
+      </div>
+      <div class="actions">
+        <a class="button-link" href="/">返回数据库仪表盘</a>
+        <span class="status"><span id="statusDot" class="dot"></span><span id="statusText">准备加载</span></span>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="filters" aria-label="炉次查询控制">
+      <label>最近炉次数
+        <select id="heatLimit">
+          <option value="12">12炉</option>
+          <option value="24" selected>24炉</option>
+          <option value="48">48炉</option>
+          <option value="96">96炉</option>
+        </select>
+      </label>
+      <label>开始日期<input id="dateFrom" type="date"></label>
+      <label>结束日期<input id="dateTo" type="date"></label>
+      <label>传感器时间窗口
+        <select id="windowKind">
+          <option value="pre_tap" selected>出铁前120分钟</option>
+          <option value="tapping">出铁过程</option>
+          <option value="inter_heat">炉次间隔</option>
+        </select>
+      </label>
+      <label>传感器组
+        <select id="sensorGroup">
+          <option value="core" selected>核心工艺点</option>
+          <option value="static">18个静压力点</option>
+          <option value="body">L7—L16炉体温度80点</option>
+          <option value="all">全部133点</option>
+        </select>
+      </label>
+      <button id="refreshBtn" class="primary">刷新数据</button>
+      <a id="exportBtn" class="button-link" href="/api/heats?limit=24&format=xlsx">导出炉次XLSX</a>
+      <a id="heatExportBtn" class="button-link" href="#" aria-disabled="true">导出当前炉次完整ZIP</a>
+    </section>
+
+    <section class="kpis" aria-label="炉次概览">
+      <div class="kpi"><div class="label">查询炉次</div><div id="kpiHeats" class="value">--</div><div class="sub">正式 meltno</div></div>
+      <div class="kpi"><div class="label">实绩铁量合计</div><div id="kpiIron" class="value">--</div><div class="sub">当前列表范围，吨</div></div>
+      <div class="kpi"><div class="label">铁水化验覆盖</div><div id="kpiHot" class="value">--</div><div class="sub">至少1个铁水样</div></div>
+      <div class="kpi"><div class="label">炉渣化验覆盖</div><div id="kpiSlag" class="value">--</div><div class="sub">按 meltno 精确关联</div></div>
+      <div class="kpi"><div class="label">铁水+炉渣完整</div><div id="kpiComplete" class="value">--</div><div class="sub">两类结果均存在</div></div>
+      <div class="kpi"><div class="label">平均出铁时长</div><div id="kpiDuration" class="value">--</div><div class="sub">分钟</div></div>
+    </section>
+
+    <section class="split">
+      <div class="panel">
+        <div class="panel-head"><h2>炉次实绩与铁水Si分布</h2><span class="tag">全部样本＋中位数＋范围</span></div>
+        <div id="heatChart" class="chart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>当前传感器窗口覆盖率</h2><span id="coverageTag" class="tag">等待选择炉次</span></div>
+        <div id="coverageChart" class="chart"></div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>炉次列表</h2>
+          <span id="heatListMeta" class="tag">等待加载</span>
+        </div>
+        <div id="listNotice"></div>
+        <div id="heatTableWrap" class="table-wrap"><div class="loading">正在读取Vastbase炉次和化验数据…</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 id="detailTitle">炉次详情</h2>
+          <span id="detailStatus" class="tag">请选择炉次</span>
+        </div>
+        <div id="detailBody" class="panel-body">
+          <div class="empty">从左侧选择一个正式炉次，查看质量和传感器窗口。</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      炉渣按 <span class="mono">meltno</span> 精确关联；正式铁水化验按 <span class="mono">t_qpes_inner_batch.heatno → t_ipes_cond.meltno</span> 精确关联；
+      烧结矿只作为上游时间背景。pSpace、IMES Web、Vastbase 与 PostgreSQL 查询均为只读，页面不提供生产控制写入。
+    </footer>
+  </main>
+
+  <script>
+    const state = {
+      heats: [], selected: '', detail: null, heatChart: null, coverageChart: null,
+      detailRequestId: 0
+    };
+    const $ = id => document.getElementById(id);
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const fmt = (value, digits=2) => {
+      if (value === null || value === undefined || value === '') return '--';
+      const n = Number(value);
+      return Number.isFinite(n) ? n.toLocaleString('zh-CN',{maximumFractionDigits:digits}) : String(value);
+    };
+    const fmtTs = value => value ? String(value).replace('T',' ').slice(0,19) : '--';
+    const pct = (num, den) => den ? `${(100 * num / den).toFixed(0)}%` : '--';
+    const statusText = status => ({complete:'完整',partial:'部分',missing:'缺失',good:'完整',warn:'关注'}[status] || status || '--');
+    function siSummary(heat) {
+      if (heat?.hot_metal_si_summary) return heat.hot_metal_si_summary;
+      const values = (heat?.hot_metal_samples || [])
+        .map(item => Number(item.Si)).filter(Number.isFinite).sort((a,b)=>a-b);
+      const middle = values.length
+        ? (values.length % 2
+          ? values[(values.length - 1) / 2]
+          : (values[values.length / 2 - 1] + values[values.length / 2]) / 2)
+        : null;
+      return {
+        sample_count:(heat?.hot_metal_samples || []).length,
+        valid_count:values.length,
+        min:values.length ? values[0] : null,
+        median:middle,
+        max:values.length ? values[values.length - 1] : null,
+        spread:values.length ? values[values.length - 1] - values[0] : null
+      };
+    }
+    function setStatus(kind, text) {
+      $('statusDot').className = `dot ${kind || ''}`;
+      $('statusText').textContent = text;
+    }
+    async function fetchJson(url) {
+      const response = await fetch(url, {cache:'no-store'});
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+      return data;
+    }
+    function renderKpis(summary) {
+      const n = summary.heat_count || 0;
+      $('kpiHeats').textContent = fmt(n,0);
+      $('kpiIron').textContent = fmt(summary.actual_iron_qty_total,1);
+      $('kpiHot').textContent = pct(summary.hot_metal_heat_count,n);
+      $('kpiSlag').textContent = pct(summary.slag_heat_count,n);
+      $('kpiComplete').textContent = pct(summary.complete_heat_count,n);
+      $('kpiDuration').textContent = fmt(summary.average_duration_minutes,1);
+    }
+    function renderHeatTable() {
+      if (!state.heats.length) {
+        $('heatTableWrap').innerHTML = '<div class="empty">当前范围没有可显示炉次</div>';
+        return;
+      }
+      const rows = state.heats.map(h => {
+        const si = siSummary(h);
+        const slag = h.latest_slag || {};
+        return `<tr data-meltno="${esc(h.meltno)}" class="${h.meltno===state.selected?'selected':''}">
+          <td class="mono">${esc(h.meltno)}</td>
+          <td>${esc(fmtTs(h.open_ts).slice(5,16))}<br><span class="mono">${esc(fmt(h.duration_minutes,0))} min</span></td>
+          <td class="mono">${esc(fmt(h.actual_iron_qty,1))}</td>
+          <td class="mono"><strong>${esc(fmt(si.median,3))}</strong><br><small>${esc(si.valid_count)}样 · ${esc(fmt(si.min,3))}—${esc(fmt(si.max,3))}</small></td>
+          <td class="mono">${esc(fmt(slag.R2,2))}<br><small>FeO ${esc(fmt(slag.FeO,2))}</small></td>
+          <td><span class="tag ${esc(h.alignment_status)}">${esc(statusText(h.alignment_status))}</span></td>
+        </tr>`;
+      }).join('');
+      $('heatTableWrap').innerHTML = `<table>
+        <thead><tr><th>炉次</th><th>开口/时长</th><th>铁量</th><th>Si中位/范围</th><th>炉渣R2/FeO</th><th>关联</th></tr></thead>
+        <tbody>${rows}</tbody></table>`;
+      $('heatTableWrap').querySelectorAll('tr[data-meltno]').forEach(row => {
+        row.addEventListener('click', () => selectHeat(row.dataset.meltno));
+      });
+    }
+    function renderHeatChart() {
+      if (!window.echarts) return;
+      state.heatChart ||= echarts.init($('heatChart'));
+      const heats = [...state.heats].reverse();
+      const heatLabels = heats.map(h=>h.meltno.split('-').pop());
+      const medians = heats.map(h=>siSummary(h).median);
+      const ranges = heats.map((h,index) => {
+        const summary = siSummary(h);
+        return summary.valid_count ? [index,summary.min,summary.max] : null;
+      }).filter(Boolean);
+      const samples = [];
+      heats.forEach((h,heatIndex) => {
+        const valid = (h.hot_metal_samples || []).filter(item=>Number.isFinite(Number(item.Si)));
+        valid.forEach((item,sampleIndex) => {
+          samples.push({
+            value:[heatIndex,Number(item.Si),item.sample_no,item.result_ts],
+            symbolOffset:[(sampleIndex - (valid.length - 1) / 2) * 7,0]
+          });
+        });
+      });
+      state.heatChart.setOption({
+        animation:false, backgroundColor:'transparent',
+        tooltip:{
+          trigger:'item',
+          formatter:param=>{
+            const index = Array.isArray(param.value) ? Number(param.value[0]) : param.dataIndex;
+            const meltno = heats[index]?.meltno || param.name || '--';
+            if (param.seriesName === '全部Si样本') {
+              return `${esc(meltno)}<br>${esc(param.value[2])}<br>Si ${esc(fmt(param.value[1],3))}%<br>${esc(fmtTs(param.value[3]))}`;
+            }
+            if (param.seriesName === 'Si最小—最大') {
+              return `${esc(meltno)}<br>最小 ${esc(fmt(param.value[1],3))}%<br>最大 ${esc(fmt(param.value[2],3))}%`;
+            }
+            if (param.seriesName === 'Si中位数') {
+              return `${esc(meltno)}<br>Si中位数 ${esc(fmt(param.value,3))}%`;
+            }
+            return `${esc(meltno)}<br>实绩铁量 ${esc(fmt(param.value,1))} t`;
+          }
+        },
+        legend:{textStyle:{color:'#cbd7d5'},data:['实绩铁量','Si最小—最大','Si中位数','全部Si样本']},
+        grid:{left:54,right:58,top:48,bottom:54},
+        xAxis:{type:'category',data:heatLabels,axisLabel:{color:'#aebbb8',rotate:35},axisLine:{lineStyle:{color:'#52605f'}}},
+        yAxis:[
+          {type:'value',name:'铁量/t',nameTextStyle:{color:'#aebbb8'},axisLabel:{color:'#aebbb8'},splitLine:{lineStyle:{color:'#2d3938'}}},
+          {type:'value',name:'Si/%',nameTextStyle:{color:'#aebbb8'},axisLabel:{color:'#aebbb8'},splitLine:{show:false}}
+        ],
+        series:[
+          {name:'实绩铁量',type:'bar',data:heats.map(h=>h.actual_iron_qty),itemStyle:{color:'#4c9d91'}},
+          {
+            name:'Si最小—最大',type:'custom',yAxisIndex:1,data:ranges,
+            encode:{x:0,y:[1,2]},z:3,
+            renderItem:(params,api)=>{
+              const low = api.coord([api.value(0),api.value(1)]);
+              const high = api.coord([api.value(0),api.value(2)]);
+              const cap = 5;
+              const style = {stroke:'#d6aa54',lineWidth:2,opacity:.78};
+              return {type:'group',children:[
+                {type:'line',shape:{x1:low[0],y1:low[1],x2:high[0],y2:high[1]},style},
+                {type:'line',shape:{x1:low[0]-cap,y1:low[1],x2:low[0]+cap,y2:low[1]},style},
+                {type:'line',shape:{x1:high[0]-cap,y1:high[1],x2:high[0]+cap,y2:high[1]},style}
+              ]};
+            }
+          },
+          {
+            name:'Si中位数',type:'line',yAxisIndex:1,symbol:'diamond',symbolSize:8,
+            data:medians,lineStyle:{color:'#f3c35b',width:2},itemStyle:{color:'#f3c35b'},
+            connectNulls:false,z:5
+          },
+          {
+            name:'全部Si样本',type:'scatter',yAxisIndex:1,data:samples,
+            symbolSize:7,itemStyle:{color:'#f7efe1',borderColor:'#be8534',borderWidth:1.5},
+            encode:{x:0,y:1},z:6
+          }
+        ]
+      }, true);
+    }
+    function renderCoverageChart(sensorWindow) {
+      if (!window.echarts) return;
+      state.coverageChart ||= echarts.init($('coverageChart'));
+      const rows = sensorWindow?.statistics || [];
+      const chartRows = rows.slice().sort((a,b)=>a.coverage_ratio-b.coverage_ratio).slice(0,24);
+      state.coverageChart.setOption({
+        animation:false, backgroundColor:'transparent',
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:items => `${esc(items[0]?.name)}<br>覆盖率 ${(items[0]?.value*100).toFixed(1)}%`},
+        grid:{left:116,right:26,top:18,bottom:32},
+        xAxis:{type:'value',min:0,max:1,axisLabel:{color:'#aebbb8',formatter:v=>`${v*100}%`},splitLine:{lineStyle:{color:'#2d3938'}}},
+        yAxis:{type:'category',data:chartRows.map(r=>r.variable_name),axisLabel:{color:'#aebbb8',width:106,overflow:'truncate'},axisLine:{lineStyle:{color:'#52605f'}}},
+        series:[{type:'bar',data:chartRows.map(r=>({value:r.coverage_ratio,itemStyle:{color:r.coverage_ratio>=.95?'#55ba7c':r.coverage_ratio>0?'#d6aa54':'#d86464'}})),barMaxWidth:12}]
+      }, true);
+      $('coverageTag').textContent = `${sensorWindow.point_count}点 · 平均${(sensorWindow.average_coverage*100).toFixed(1)}%`;
+      $('coverageTag').className = `tag ${sensorWindow.average_coverage>=.95?'good':'warn'}`;
+    }
+    function chemistryTable(items, type) {
+      if (!items?.length) return '<div class="empty">没有匹配的化验结果</div>';
+      const isHot = type === 'hot';
+      const columns = isHot
+        ? [['sample_no','试样号'],['result_ts','结果时间'],['C','C'],['Si','Si'],['Mn','Mn'],['P','P'],['S','S'],['Ti','Ti']]
+        : [['sample_no','试样号'],['publish_ts','发布时间'],['FeO','FeO'],['CaO','CaO'],['MgO','MgO'],['SiO2','SiO₂'],['Al2O3','Al₂O₃'],['R2','R2'],['R3','R3']];
+      return `<div class="table-wrap"><table><thead><tr>${columns.map(c=>`<th>${esc(c[1])}</th>`).join('')}</tr></thead>
+        <tbody>${items.map(item=>`<tr>${columns.map(([key])=>`<td class="${key.includes('time')||key.includes('_ts')?'mono':''}">${esc(key.includes('time')||key.includes('_ts')?fmtTs(item[key]):fmt(item[key],3))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    }
+    function siSummaryPanel(heat) {
+      const summary = siSummary(heat);
+      if (!summary.valid_count) return '<div class="empty">当前炉次没有有效Si结果</div>';
+      return `<div class="si-summary-grid" aria-label="铁水Si炉次统计">
+        <div class="si-summary-item"><div class="name">有效样本</div><div class="val">${esc(summary.valid_count)} / ${esc(summary.sample_count)}</div></div>
+        <div class="si-summary-item"><div class="name">Si中位数</div><div class="val">${esc(fmt(summary.median,3))}%</div></div>
+        <div class="si-summary-item"><div class="name">Si最小—最大</div><div class="val">${esc(fmt(summary.min,3))}—${esc(fmt(summary.max,3))}%</div></div>
+        <div class="si-summary-item"><div class="name">炉内样本极差</div><div class="val">${esc(fmt(summary.spread,3))}%</div></div>
+      </div>`;
+    }
+    function sinterTable(items) {
+      if (!items?.length) return '<div class="empty">开铁口前12小时没有烧结矿化验记录</div>';
+      return `<div class="table-wrap"><table><thead><tr>
+        <th>试样</th><th>烧结机</th><th>制样时间</th><th>距开口</th><th>TFe</th><th>FeO</th><th>R2</th><th>CaO</th><th>SiO₂</th><th>Zn</th><th>映射</th>
+      </tr></thead><tbody>${items.map(item=>`<tr>
+        <td class="mono">${esc(item.sample_no)}</td><td>${esc(item.center_name)}</td><td class="mono">${esc(fmtTs(item.sample_ts))}</td>
+        <td>${esc(fmt(item.lag_to_heat_hours,1))}h</td><td>${esc(fmt(item.TFe,2))}</td><td>${esc(fmt(item.FeO,2))}</td>
+        <td>${esc(fmt(item.R2,2))}</td><td>${esc(fmt(item.CaO,2))}</td><td>${esc(fmt(item.SiO2,2))}</td>
+        <td>${esc(fmt(item.Zn,3))}</td><td><span class="tag warn">仅时间背景</span></td>
+      </tr>`).join('')}</tbody></table></div>`;
+    }
+    function sensorTable(sensorWindow) {
+      const rows = sensorWindow?.statistics || [];
+      if (!rows.length) return '<div class="empty">该组没有可用物理点</div>';
+      return `<div class="sensor-tools"><label>筛选点位<input id="sensorSearch" type="search" placeholder="编号或中文语义"></label>
+        <span class="tag">${esc(sensorWindow.point_count)}点</span><span class="tag">${esc(sensorWindow.expected_minutes)}分钟</span></div>
+        <div id="sensorTableWrap" class="table-wrap"><table><thead><tr>
+          <th>变量</th><th>中文语义</th><th>均值</th><th>最小</th><th>最大</th><th>标准差</th><th>每分钟斜率</th><th>末值</th><th>覆盖率</th>
+        </tr></thead><tbody>${rows.map(row=>`<tr data-search="${esc(`${row.variable_name} ${row.chinese_name} ${row.description||''}`.toLowerCase())}">
+          <td class="mono">${esc(row.variable_name)}</td><td>${esc(row.chinese_name)}</td>
+          <td class="mono">${esc(fmt(row.mean,3))} ${esc(row.unit)}</td><td class="mono">${esc(fmt(row.min,3))}</td>
+          <td class="mono">${esc(fmt(row.max,3))}</td><td class="mono">${esc(fmt(row.std,3))}</td>
+          <td class="mono">${esc(fmt(row.slope_per_minute,5))}</td><td class="mono">${esc(fmt(row.latest,3))}</td>
+          <td><span class="tag ${esc(row.status)}">${esc((row.coverage_ratio*100).toFixed(1))}%</span></td>
+        </tr>`).join('')}</tbody></table></div>`;
+    }
+    const availabilityText = {
+      heat_open_time_is_in_future:'开铁口时间晚于服务器当前时间，暂不适合作为已完成炉次分析。',
+      sensor_window_after_latest_sensor_data:'该炉次窗口晚于传感器库最新时间，因此窗口没有传感器值。',
+      sensor_window_before_sensor_history:'该炉次早于当前传感器历史范围。',
+      sensor_window_partial_or_missing:'该窗口点位覆盖不完整；早期历史可能只回填了部分点位。',
+      hot_metal_sample_missing:'未匹配到铁水化验样本。',
+      slag_sample_missing:'源化验视图中没有该炉次的炉渣样本。'
+    };
+    function availabilityPanel(info) {
+      if (!info?.reasons?.length) return '<div class="notice">当前炉次主要数据映射完整。</div>';
+      return `<div class="notice">${info.reasons.map(reason=>`<div>• ${esc(availabilityText[reason]||reason)}</div>`).join('')}
+        <div>传感器历史范围：${esc(fmtTs(info.sensor_source_min_ts))} — ${esc(fmtTs(info.sensor_source_max_ts))}</div></div>`;
+    }
+    function diagnosisTable(diagnosis) {
+      const rows = diagnosis?.items || [];
+      if (!rows.length) return '<div class="empty">该窗口没有炉况引擎快照</div>';
+      return `<div class="table-wrap"><table><thead><tr><th>时间</th><th>主炉况</th><th>分数</th><th>置信度</th><th>次炉况</th><th>证据</th></tr></thead>
+        <tbody>${rows.map(row=>`<tr><td class="mono">${esc(fmtTs(row.diagnosis_ts))}</td><td>${esc(row.main_label_display)}</td>
+        <td>${esc(fmt(row.main_score,2))}</td><td>${esc(fmt(row.main_confidence,2))}</td><td>${esc(row.secondary_label_display||'--')}</td>
+        <td>${esc(typeof row.evidence==='string'?row.evidence:JSON.stringify(row.evidence||{},null,0))}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    function recommendationPanel(diagnosis) {
+      const latest = diagnosis?.latest;
+      if (!latest) return '<div class="empty">没有诊断快照，建议引擎无法生成只读建议</div>';
+      if (latest.recommendation_status !== 'ready') return `<div class="empty">建议引擎状态：${esc(latest.recommendation_status||'不可用')}</div>`;
+      return `<div class="notice">以下为建议引擎根据窗口末次炉况生成的只读结果，不直接控制生产。</div>
+        <pre style="white-space:pre-wrap;overflow:auto;max-height:420px">${esc(JSON.stringify(latest.recommendation,null,2))}</pre>`;
+    }
+    function renderDetail(data) {
+      const h = data.heat, w = data.sensor_window, d = data.diagnosis;
+      $('detailTitle').textContent = `炉次 ${h.meltno}`;
+      $('detailStatus').textContent = statusText(h.alignment_status);
+      $('detailStatus').className = `tag ${h.alignment_status}`;
+      const exportParams = new URLSearchParams({meltno:h.meltno,window:w.kind,group:'all',pre_tap_minutes:'120'});
+      $('heatExportBtn').href = `/api/heat-export?${exportParams}`;
+      $('heatExportBtn').setAttribute('aria-disabled','false');
+      const windowLabels = {pre_tap:'出铁前',tapping:'出铁过程',inter_heat:'炉次间隔'};
+      $('detailBody').innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-item"><div class="name">开铁口</div><div class="val mono">${esc(fmtTs(h.open_ts))}</div></div>
+          <div class="detail-item"><div class="name">堵铁口</div><div class="val mono">${esc(fmtTs(h.close_ts))}</div></div>
+          <div class="detail-item"><div class="name">出铁时长</div><div class="val">${esc(fmt(h.duration_minutes,0))} 分钟</div></div>
+          <div class="detail-item"><div class="name">实绩铁量</div><div class="val">${esc(fmt(h.actual_iron_qty,2))} t（${esc(h.output_count)}条）</div></div>
+          <div class="detail-item"><div class="name">铁水样数</div><div class="val">${esc(h.hot_metal_sample_count)}</div></div>
+          <div class="detail-item"><div class="name">炉渣样数</div><div class="val">${esc(h.slag_sample_count)}</div></div>
+          <div class="detail-item"><div class="name">窗口炉况记录</div><div class="val">${esc(d.count)} 条</div></div>
+          <div class="detail-item"><div class="name">窗口平均炉况分</div><div class="val">${esc(fmt(d.average_main_score,2))}</div></div>
+        </div>
+        <div class="section"><div class="section-title"><h3>数据可用性说明</h3><span class="tag ${data.data_availability.state==='complete'?'good':'warn'}">${esc(statusText(data.data_availability.state))}</span></div>${availabilityPanel(data.data_availability)}</div>
+        <div class="section">
+          <div class="section-title"><h3>传感器窗口</h3><span class="mono">${esc(fmtTs(w.start))} — ${esc(fmtTs(w.end_exclusive))}</span></div>
+          <div class="window-line">
+            <div class="window-seg ${w.kind==='inter_heat'?'active':''}">上一炉堵口 → 本炉开口<br>炉次间隔</div>
+            <div class="window-seg ${w.kind==='pre_tap'?'active':''}">开口前120分钟<br>预测/因果窗口</div>
+            <div class="window-seg ${w.kind==='tapping'?'active':''}">开口 → 堵口<br>出铁过程窗口</div>
+          </div>
+        </div>
+        <div class="section"><div class="section-title"><h3>铁水质量</h3><span class="tag">全部样本＋中位数＋最小/最大</span></div>${siSummaryPanel(h)}${chemistryTable(h.hot_metal_samples,'hot')}</div>
+        <div class="section"><div class="section-title"><h3>炉渣质量</h3><span class="tag good">meltno精确关联</span></div>${chemistryTable(h.slag_samples,'slag')}</div>
+        <div class="section">
+          <div class="section-title"><h3>烧结矿化验背景</h3><span class="tag warn">非炉次精确谱系</span></div>
+          <div class="notice">烧结矿数据真实来自Vastbase，但视图没有高炉炉次号。这里只显示本炉开铁口前12小时样品，用于解释原料背景；生产级归属必须继续关联料仓、矿批、batch_input和炉次批次范围。</div>
+          ${sinterTable(h.sinter_context)}
+        </div>
+        <div class="section"><div class="section-title"><h3>炉况引擎分析</h3><span class="tag">${esc(d.count)}条快照</span></div>${diagnosisTable(d)}</div>
+        <div class="section"><div class="section-title"><h3>建议引擎</h3><span class="tag warn">只读辅助</span></div>${recommendationPanel(d)}</div>
+        <div class="section"><div class="section-title"><h3>传感器统计</h3><span class="tag">${esc(w.group)}</span></div>${sensorTable(w)}</div>`;
+      const search = $('sensorSearch');
+      if (search) search.addEventListener('input', () => {
+        const query = search.value.trim().toLowerCase();
+        $('sensorTableWrap').querySelectorAll('tbody tr').forEach(row => {
+          row.style.display = !query || row.dataset.search.includes(query) ? '' : 'none';
+        });
+      });
+      renderCoverageChart(w);
+    }
+    async function selectHeat(meltno) {
+      state.selected = meltno;
+      const requestId = ++state.detailRequestId;
+      renderHeatTable();
+      $('detailBody').innerHTML = '<div class="loading">正在聚合该炉次的化验、烧结矿背景、诊断和传感器窗口…</div>';
+      $('detailTitle').textContent = `炉次 ${meltno}`;
+      $('detailStatus').textContent = '加载中';
+      $('detailStatus').className = 'tag warn';
+      const params = new URLSearchParams({
+        meltno,
+        window:$('windowKind').value,
+        group:$('sensorGroup').value,
+        pre_tap_minutes:'120'
+      });
+      try {
+        const data = await fetchJson(`/api/heat-detail?${params}`);
+        if (requestId !== state.detailRequestId || state.selected !== meltno) return;
+        state.detail = data;
+        renderDetail(data);
+      } catch (error) {
+        if (requestId !== state.detailRequestId || state.selected !== meltno) return;
+        $('detailBody').innerHTML = `<div class="error">炉次详情读取失败：${esc(error.message)}<br><button id="retryDetail">重试</button></div>`;
+        $('detailStatus').textContent = '读取失败';
+        $('detailStatus').className = 'tag bad';
+        $('retryDetail')?.addEventListener('click',()=>selectHeat(meltno));
+      }
+    }
+    async function loadHeats() {
+      const limit = $('heatLimit').value;
+      const query = new URLSearchParams({limit});
+      if ($('dateFrom').value) query.set('date_from',$('dateFrom').value);
+      if ($('dateTo').value) query.set('date_to',$('dateTo').value);
+      $('refreshBtn').disabled = true;
+      setStatus('', '正在读取');
+      $('heatTableWrap').innerHTML = '<div class="loading">正在读取Vastbase炉次、产量与质量化验…</div>';
+      try {
+        const data = await fetchJson(`/api/heats?${query}`);
+        state.heats = data.heats || [];
+        renderKpis(data.summary || {});
+        $('heatListMeta').textContent = `${state.heats.length}炉 · ${fmtTs(data.checked_at)}`;
+        const exportQuery = new URLSearchParams(query); exportQuery.set('format','xlsx');
+        $('exportBtn').href = `/api/heats?${exportQuery}`;
+        const excluded = Number(data.data_quality?.excluded_future_heat_count||0);
+        $('listNotice').innerHTML = excluded
+          ? `<div class="notice">已排除 ${esc(excluded)} 条开铁口时间晚于服务器当前时间的异常炉次记录；如需审计可通过接口显式设置 include_future=true。</div>` : '';
+        renderHeatTable();
+        renderHeatChart();
+        setStatus('ok', '三数据源已连接');
+        if (!state.selected || !state.heats.some(h=>h.meltno===state.selected)) {
+          state.selected = state.heats[0]?.meltno || '';
+        }
+        if (state.selected) await selectHeat(state.selected);
+      } catch (error) {
+        setStatus('err','读取失败');
+        $('heatTableWrap').innerHTML = `<div class="error">炉次列表读取失败：${esc(error.message)}<br><button id="retryList">重试</button></div>`;
+        $('retryList')?.addEventListener('click',loadHeats);
+      } finally {
+        $('refreshBtn').disabled = false;
+      }
+    }
+    $('refreshBtn').addEventListener('click',loadHeats);
+    $('heatLimit').addEventListener('change',loadHeats);
+    $('dateFrom').addEventListener('change',loadHeats);
+    $('dateTo').addEventListener('change',loadHeats);
+    $('windowKind').addEventListener('change',()=>state.selected&&selectHeat(state.selected));
+    $('sensorGroup').addEventListener('change',()=>state.selected&&selectHeat(state.selected));
+    window.addEventListener('resize',()=>{state.heatChart?.resize();state.coverageChart?.resize();});
+    loadHeats();
+  </script>
+  <script src="/heat-data-explorer.js"></script>
+</body>
+</html>

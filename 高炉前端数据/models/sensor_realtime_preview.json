@@ -1,0 +1,1167 @@
+{
+  "timestamp": "preview-sample",
+  "furnace_id": "GL02",
+  "values": {
+    "T_body_L7_A": {
+      "value": 339.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "炉腹下L7A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0155",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L7_B": {
+      "value": 340.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "炉腹下L7B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0156",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L7_C": {
+      "value": 341.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉腹下L7C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0157",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L7_D": {
+      "value": 342.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉腹下L7D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0158",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L7_E": {
+      "value": 343.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉腹下L7E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0159",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L7_F": {
+      "value": 344.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉腹下L7F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0160",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L7_G": {
+      "value": 345.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉腹下L7G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0161",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L7_H": {
+      "value": 346.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉腹下L7H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0162",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L8_A": {
+      "value": 347.01,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "炉腹上L8A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0163",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L8_B": {
+      "value": 348.01,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉腹上L8B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0164",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L8_C": {
+      "value": 349.01,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉腹上L8C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0165",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L8_D": {
+      "value": 350.01,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉腹上L8D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0166",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L8_E": {
+      "value": 351.01,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉腹上L8E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0167",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L8_F": {
+      "value": 352.01,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉腹上L8F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0168",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L8_G": {
+      "value": 353.01,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉腹上L8G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0169",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L8_H": {
+      "value": 337.01,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "炉腹上L8H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0170",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L9_A": {
+      "value": 355.52,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉腰L9A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0171",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L9_B": {
+      "value": 356.52,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉腰L9B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0172",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L9_C": {
+      "value": 357.52,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉腰L9C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0173",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L9_D": {
+      "value": 358.52,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉腰L9D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0174",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L9_E": {
+      "value": 359.52,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉腰L9E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0175",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L9_F": {
+      "value": 360.52,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉腰L9F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0176",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L9_G": {
+      "value": 344.52,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "炉腰L9G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0177",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L9_H": {
+      "value": 345.52,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "炉腰L9H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0178",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L10_A": {
+      "value": 351.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉身下L10A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0179",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L10_B": {
+      "value": 352.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉身下L10B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0180",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L10_C": {
+      "value": 353.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "炉身下L10C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0181",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L10_D": {
+      "value": 354.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "炉身下L10D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0182",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L10_E": {
+      "value": 355.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "炉身下L10E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0183",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L10_F": {
+      "value": 356.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉身下L10F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0184",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L10_G": {
+      "value": 357.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉身下L10G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0185",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L10_H": {
+      "value": 358.81,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉身下L10H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0186",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L11_A": {
+      "value": 360.59,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉身下L11A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0187",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L11_B": {
+      "value": 361.59,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "炉身下L11B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0188",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L11_C": {
+      "value": 362.59,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "炉身下L11C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0189",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L11_D": {
+      "value": 363.59,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "炉身下L11D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0190",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L11_E": {
+      "value": 364.59,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉身下L11E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0191",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L11_F": {
+      "value": 365.59,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉身下L11F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0192",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L11_G": {
+      "value": 366.59,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉身下L11G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0193",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L11_H": {
+      "value": 367.59,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉身下L11H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0194",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L12_A": {
+      "value": 368.85,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "炉身下L12A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0195",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L12_B": {
+      "value": 369.85,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "炉身下L12B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0196",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L12_C": {
+      "value": 370.85,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "炉身下L12C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0197",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L12_D": {
+      "value": 371.85,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉身下L12D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0198",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L12_E": {
+      "value": 372.85,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉身下L12E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0199",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L12_F": {
+      "value": 373.85,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉身下L12F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0200",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L12_G": {
+      "value": 374.85,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉身下L12G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0201",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L12_H": {
+      "value": 375.85,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉身下L12H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0202",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L13_A": {
+      "value": 377.12,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "炉身中下L13A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0203",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L13_B": {
+      "value": 378.12,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "炉身中下L13B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0204",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L13_C": {
+      "value": 379.12,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉身中下L13C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0205",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L13_D": {
+      "value": 380.12,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉身中下L13D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0206",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L13_E": {
+      "value": 381.12,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉身中下L13E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0207",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L13_F": {
+      "value": 382.12,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉身中下L13F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0208",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L13_G": {
+      "value": 383.12,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉身中下L13G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0209",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L13_H": {
+      "value": 384.12,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉身中下L13H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0210",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L14_A": {
+      "value": 385.38,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "炉身中L14A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0211",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L14_B": {
+      "value": 386.38,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉身中L14B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0212",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L14_C": {
+      "value": 387.38,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉身中L14C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0213",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L14_D": {
+      "value": 388.38,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉身中L14D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0214",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L14_E": {
+      "value": 389.38,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉身中L14E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0215",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L14_F": {
+      "value": 390.38,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉身中L14F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0216",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L14_G": {
+      "value": 391.38,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉身中L14G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0217",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L14_H": {
+      "value": 392.38,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "炉身中L14H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0218",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L15_A": {
+      "value": 393.65,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉身上L15A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0219",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L15_B": {
+      "value": 394.65,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉身上L15B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0220",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L15_C": {
+      "value": 395.65,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉身上L15C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0221",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L15_D": {
+      "value": 396.65,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉身上L15D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0222",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L15_E": {
+      "value": 397.65,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉身上L15E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0223",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L15_F": {
+      "value": 398.65,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉身上L15F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0224",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L15_G": {
+      "value": 399.65,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "炉身上L15G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0225",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L15_H": {
+      "value": 400.65,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "炉身上L15H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0226",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L16_A": {
+      "value": 401.92,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉身上L16A温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0227",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L16_B": {
+      "value": 402.92,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉身上L16B温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0228",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L16_C": {
+      "value": 403.92,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉身上L16C温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0229",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L16_D": {
+      "value": 404.92,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "炉身上L16D温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0230",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L16_E": {
+      "value": 405.92,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "炉身上L16E温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0231",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L16_F": {
+      "value": 406.92,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "炉身上L16F温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0232",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L16_G": {
+      "value": 407.92,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "炉身上L16G温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0233",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_body_L16_H": {
+      "value": 408.92,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "炉身上L16H温度",
+      "group": "BODY_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0234",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_throat_A": {
+      "value": 427.24,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "炉喉温度A",
+      "group": "THROAT_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0235",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_throat_B": {
+      "value": 428.24,
+      "unit": "℃",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "炉喉温度B",
+      "group": "THROAT_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0236",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_throat_C": {
+      "value": 429.24,
+      "unit": "℃",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "炉喉温度C",
+      "group": "THROAT_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0237",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_throat_D": {
+      "value": 430.24,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "炉喉温度D",
+      "group": "THROAT_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0238",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_top_A": {
+      "value": 200.0,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.25,
+      "cn": "顶温/上升管煤气温度A",
+      "group": "TOP_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0040",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_top_B": {
+      "value": 201.0,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "顶温/上升管煤气温度B",
+      "group": "TOP_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0064",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_top_C": {
+      "value": 185.0,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "顶温/上升管煤气温度C",
+      "group": "TOP_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0072",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_top_D": {
+      "value": 186.0,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "顶温/上升管煤气温度D",
+      "group": "TOP_TEMP",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0043",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_top": {
+      "value": 220.0,
+      "unit": "kPa",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "顶压平均",
+      "group": "TOP_PRESSURE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0034",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_top_gas_A": {
+      "value": 242.5,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "上升管煤气压力A",
+      "group": "TOP_PRESSURE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0067",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_top_gas_B": {
+      "value": 245.0,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "上升管煤气压力B",
+      "group": "TOP_PRESSURE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0068",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_top_gas_C": {
+      "value": 247.5,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "上升管煤气压力C",
+      "group": "TOP_PRESSURE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0069",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_top_gas_D": {
+      "value": 250.0,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "上升管煤气压力D",
+      "group": "TOP_PRESSURE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0070",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "L": {
+      "value": 2.28,
+      "unit": "m",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "雷达探尺/主料线",
+      "group": "STOCKLINE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0046",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "L_south": {
+      "value": 2.23,
+      "unit": "m",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "南探尺/南尺",
+      "group": "STOCKLINE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0075",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "L_north": {
+      "value": 2.32,
+      "unit": "m",
+      "status": "normal",
+      "z": 0.5,
+      "cn": "北探尺/北尺",
+      "group": "STOCKLINE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0076",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_static_20m35": {
+      "value": 222.5,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "静压力20.35m",
+      "group": "STATIC_PRESSURE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0152",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_static_23m49": {
+      "value": 242.5,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "静压力23.49m",
+      "group": "STATIC_PRESSURE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0153",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_static_28m98": {
+      "value": 222.5,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "静压力28.98m",
+      "group": "STATIC_PRESSURE",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0154",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_blast": {
+      "value": 1226.0,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "热风温度",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0006",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_blast": {
+      "value": 240.0,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "热风压力",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0149",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "P_blast_cold": {
+      "value": 247.5,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "冷风压力",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\RF\\SIO_GL02_RF_T0047",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "Q_blast": {
+      "value": 4304.0,
+      "unit": "Nm3/min",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "冷风管道流量/风量",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\RF\\SIO_GL02_RF_T0073",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "TFT": {
+      "value": 2180.0,
+      "unit": "℃",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "理论燃烧温度",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0104",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "O2_rate": {
+      "value": 39.2,
+      "unit": "%",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "富氧率",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0115",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "Q_O2": {
+      "value": 4328.0,
+      "unit": "Nm3/h",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "富氧流量",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\CX\\SIO_GL02_CX_T0288",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "PCI_rate": {
+      "value": 4296.0,
+      "unit": "t/h",
+      "status": "normal",
+      "z": 0.25,
+      "cn": "喷煤量/喷煤强度",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\PC\\SIO_GL02_PC_T0007",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "PCI_set": {
+      "value": 1.0,
+      "unit": "t/h",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "喷煤设定",
+      "group": "HOT_BLAST",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\PC\\SIO_GL02_PC_T0001",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "PI": {
+      "value": 0.0,
+      "unit": "",
+      "status": "normal",
+      "z": -1.0,
+      "cn": "透气性指数",
+      "group": "PROCESS_DIAGNOSTIC",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0101",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "DP_total": {
+      "value": 232.5,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 1.0,
+      "cn": "全炉压差",
+      "group": "PROCESS_DIAGNOSTIC",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0132",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "DP_lower": {
+      "value": 245.0,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "下部压差",
+      "group": "PROCESS_DIAGNOSTIC",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0102",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "DP_upper": {
+      "value": 210.0,
+      "unit": "kPa",
+      "status": "normal",
+      "z": 0.75,
+      "cn": "上部压差",
+      "group": "PROCESS_DIAGNOSTIC",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0135",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "GasUtil": {
+      "value": 38.0,
+      "unit": "%",
+      "status": "normal",
+      "z": 0.0,
+      "cn": "煤气利用率",
+      "group": "PROCESS_DIAGNOSTIC",
+      "tag": "\\冀南钢铁\\SIO\\CC\\GF2\\SIO_CC_GF2_T0115",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_taphole_1": {
+      "value": 1476.6,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.75,
+      "cn": "1#出铁口温度",
+      "group": "TAPHole",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0001",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    },
+    "T_taphole_2": {
+      "value": 1478.2,
+      "unit": "℃",
+      "status": "normal",
+      "z": -0.5,
+      "cn": "2#出铁口温度",
+      "group": "TAPHole",
+      "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0002",
+      "source": "preview_sample_replaceable_by_realtime_api"
+    }
+  },
+  "process": {
+    "active_tapholes": [
+      1,
+      2
+    ],
+    "tap_distribution": {
+      "1": 0.5,
+      "2": 0.5,
+      "3": 0.0
+    }
+  }
+}

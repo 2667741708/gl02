@@ -1,0 +1,6 @@
+**/__pycache__/
+**/*.pyc
+0[1-6]_*/data/*
+!0[1-6]_*/data/.gitkeep
+0[1-6]_*/results/*
+!0[1-6]_*/results/.gitkeep

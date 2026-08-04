@@ -1,0 +1,306 @@
+.bf3d-sim-panel {
+  position: absolute;
+  z-index: 15;
+  top: 10px;
+  right: 10px;
+  width: min(292px, calc(100% - 20px));
+  min-width: 0;
+  max-width: calc(100% - 20px);
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(108, 139, 142, .76);
+  border-radius: 6px;
+  background: rgba(27, 35, 37, .94);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .3);
+  color: #e5eceb;
+  font-family: SimSun, "宋体", serif;
+  pointer-events: auto;
+}
+
+/* Keep the production route bar above scrollable workbench content at short
+   and narrow viewports. This preserves the existing grid row and only fixes
+   the stacking context used by the mandatory route-click smoke tests. */
+.app > .main {
+  position: relative;
+  z-index: 1;
+}
+
+.app > .bottom-nav {
+  position: relative;
+  z-index: 30;
+  isolation: isolate;
+}
+
+.bf3d-sim-panel[hidden] {
+  display: none;
+}
+
+.bf3d-sim-head,
+.bf3d-sim-toolbar,
+.bf3d-sim-object-row,
+.bf3d-sim-legend {
+  display: flex;
+  align-items: center;
+}
+
+.bf3d-sim-head {
+  min-height: 35px;
+  gap: 7px;
+  padding: 0 9px;
+  border-bottom: 1px solid rgba(112, 144, 145, .34);
+  background: linear-gradient(90deg, rgba(52, 70, 71, .9), rgba(34, 43, 45, .86));
+}
+
+.bf3d-sim-title {
+  flex: 1;
+  min-width: 0;
+  color: #f4f7f5;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.bf3d-sim-mode {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid #7a8e8e;
+  border-radius: 3px;
+  color: #c8d4d3;
+  font-size: 10px;
+}
+
+.bf3d-sim-mode[data-mode="illustrative"] {
+  border-color: #c69a4d;
+  color: #f2cf87;
+}
+
+.bf3d-sim-collapse {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 1px solid #667779;
+  border-radius: 3px;
+  background: #303d3f;
+  color: #edf2f1;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.bf3d-sim-body {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  padding: 8px;
+}
+
+.bf3d-sim-panel[data-collapsed="true"] .bf3d-sim-body {
+  display: none;
+}
+
+.bf3d-sim-toolbar {
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.bf3d-sim-toolbar button {
+  flex: 1 0 auto;
+  min-width: 54px;
+  height: 27px;
+  padding: 0 7px;
+  border: 1px solid #647577;
+  border-radius: 4px;
+  background: #323f41;
+  color: #edf3f2;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.bf3d-sim-toolbar button:hover,
+.bf3d-sim-toolbar button:focus-visible {
+  border-color: #70b6a7;
+  background: #3a4f4b;
+  outline: none;
+}
+
+.bf3d-sim-toolbar button.active {
+  border-color: #d0a657;
+  background: #65522b;
+  color: #fff1cb;
+}
+
+.bf3d-sim-toolbar button:disabled {
+  border-color: #4d595a;
+  background: #2a3233;
+  color: #788484;
+  cursor: not-allowed;
+  opacity: .72;
+}
+
+.bf3d-sim-panel[data-charging-focus="true"] {
+  width: 168px;
+}
+
+.bf3d-sim-panel[data-charging-focus="true"] .bf3d-sim-object-list,
+.bf3d-sim-panel[data-charging-focus="true"] .bf3d-sim-legend,
+.bf3d-sim-panel[data-charging-focus="true"] .bf3d-sim-detail,
+.bf3d-sim-panel[data-charging-focus="true"] .bf3d-sim-toolbar button:not([data-sim-action="charging-focus"]) {
+  display: none;
+}
+
+.bf3d-charging-focus .furnace-callout-3d,
+.bf3d-charging-focus .furnace-layer-callouts,
+.bf3d-charging-focus .furnace-follow-lines,
+.bf3d-charging-focus .cad-layer-controls,
+.bf3d-charging-focus .cad-furnace-status {
+  visibility: hidden;
+}
+
+.furnace-wrap.is-3d.centered-cad.furnace-layer-wrap.bf3d-charging-focus
+  .furnace-stage-3d.cad-stage.layered-cad-stage
+  .cad-furnace-viewer {
+  inset: 1% 2% 2% 2% !important;
+  left: 2% !important;
+  right: 2% !important;
+  top: 1% !important;
+  bottom: 2% !important;
+}
+
+.bf3d-sim-object-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  max-width: 100%;
+  gap: 3px;
+}
+
+.bf3d-sim-object-row {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-height: 24px;
+  gap: 6px;
+  padding: 2px 6px;
+  border-left: 2px solid #667779;
+  background: rgba(55, 67, 68, .5);
+  font-size: 11px;
+}
+
+.bf3d-sim-object-row[data-state="measured"] {
+  border-left-color: #5fbd9e;
+}
+
+.bf3d-sim-object-row[data-state="interpolated"],
+.bf3d-sim-object-row[data-state="estimated"] {
+  border-left-color: #d1a852;
+}
+
+.bf3d-sim-object-row[data-state="simulated"] {
+  border-left-color: #8b9fd0;
+}
+
+.bf3d-sim-object-row[data-state="illustrative"] {
+  border-left-color: #b98855;
+}
+
+.bf3d-sim-object-row[data-state="stale"],
+.bf3d-sim-object-row[data-state="no-data"],
+.bf3d-sim-object-row[data-state="blocked"] {
+  border-left-color: #778083;
+  opacity: .78;
+}
+
+.bf3d-sim-object-name {
+  flex: 0 0 56px;
+  color: #edf3f1;
+}
+
+.bf3d-sim-object-status {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #b9c8c6;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bf3d-sim-evidence {
+  flex: 0 0 auto;
+  color: #d6b66f;
+  font-size: 10px;
+}
+
+.bf3d-sim-legend {
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #9fb2b0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.bf3d-sim-legend i {
+  width: 54px;
+  height: 5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #3869a9, #6a9bc0, #8a8f83, #d2a64c, #d25c3c);
+}
+
+.bf3d-sim-detail {
+  min-height: 31px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(111, 138, 140, .28);
+  color: #aebdbc;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1024px) {
+  .bf3d-sim-panel {
+    top: 6px;
+    right: 6px;
+    width: min(272px, calc(100% - 12px));
+  }
+
+  .bf3d-sim-panel[data-auto-compact="true"] .bf3d-sim-body {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .bf3d-sim-panel {
+    width: calc(100% - 12px);
+    max-width: calc(100% - 12px);
+  }
+
+  .bf3d-sim-head {
+    min-height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bf3d-sim-object-row {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    row-gap: 2px;
+  }
+
+  .bf3d-sim-object-name {
+    grid-column: 1 / 3;
+    grid-row: 1;
+  }
+
+  .bf3d-sim-evidence {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .bf3d-sim-object-status {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}

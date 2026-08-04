@@ -1,0 +1,114 @@
+/*
+ * REQ-BF3D-8093-FURNACE-SUMMARY-READABILITY-20260802
+ *
+ * 8093-only readability override for the seven process-summary callouts.
+ * This intentionally does not target the 121 physical-point Billboards or
+ * the left-side 28-variable panel.
+ */
+
+.layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-card {
+  box-sizing: border-box !important;
+  width: clamp(208px, 23%, 228px) !important;
+  padding: 8px 9px 8px 10px !important;
+}
+
+.layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-head {
+  height: 24px !important;
+  font-size: 16px !important;
+  line-height: 1.15 !important;
+}
+
+.layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-rows {
+  gap: 2px !important;
+}
+
+.layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-row {
+  grid-template-columns: minmax(78px, 1fr) max-content max-content !important;
+  gap: 5px !important;
+  min-height: 18px !important;
+  font-size: 13px !important;
+  line-height: 1.18 !important;
+}
+
+.layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-name,
+.layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-value,
+.layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-unit {
+  min-width: 0 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-unit {
+  display: inline !important;
+  font-size: 11px !important;
+}
+
+@media (min-width: 1500px) {
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-card {
+    width: clamp(220px, 23%, 242px) !important;
+    padding: 9px 10px 9px 11px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-head {
+    height: 26px !important;
+    font-size: 17px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-row {
+    grid-template-columns: minmax(84px, 1fr) max-content max-content !important;
+    min-height: 19px !important;
+    font-size: 13.5px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-unit {
+    font-size: 11.5px !important;
+  }
+}
+
+@media (max-width: 1366px), (max-height: 760px) {
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-card {
+    width: 198px !important;
+    padding: 7px 8px 7px 9px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-head {
+    height: 21px !important;
+    font-size: 14px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-row {
+    grid-template-columns: minmax(68px, 1fr) max-content max-content !important;
+    gap: 4px !important;
+    min-height: 16px !important;
+    font-size: 11.5px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-unit {
+    display: inline !important;
+    font-size: 10px !important;
+  }
+}
+
+@media (max-height: 680px) {
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-card {
+    width: 190px !important;
+    padding: 5px 6px 5px 7px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-head {
+    height: 18px !important;
+    font-size: 13px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-row {
+    grid-template-columns: minmax(64px, 1fr) max-content max-content !important;
+    min-height: 14px !important;
+    font-size: 10.5px !important;
+  }
+
+  .layered-cad-stage .furnace-layer-callouts.follow-model .furnace-layer-unit {
+    display: inline !important;
+    font-size: 9.5px !important;
+  }
+}

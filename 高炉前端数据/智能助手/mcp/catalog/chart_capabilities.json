@@ -1,0 +1,60 @@
+{
+  "catalog_version": "1.0.0",
+  "objects": [
+    {
+      "object_id": "sensor_trend_chart",
+      "object_type": "chart",
+      "display_name": "传感器趋势图",
+      "aliases": ["趋势图", "曲线图", "走势图", "多变量对比图"],
+      "unit": null,
+      "capabilities": ["line", "dual_axis", "small_multiples", "area", "step", "scatter"],
+      "status": "enabled",
+      "description": "绘制单个或多个传感器时间趋势",
+      "executor": {"service": "blast-furnace-gl02-data-mcp", "tools": ["plot_gl02_trends"]}
+    },
+    {
+      "object_id": "body_temperature_matrix_chart",
+      "object_type": "chart",
+      "display_name": "炉体温度热力趋势矩阵",
+      "aliases": ["热力矩阵", "炉体温度矩阵", "每格趋势", "炉身炉腹炉缸矩阵"],
+      "unit": "℃",
+      "capabilities": ["matrix", "sparkline", "current_value", "layer_sector"],
+      "status": "enabled",
+      "description": "按7-16层、A-H方位展示当前值和格内历史趋势",
+      "executor": {"service": "blast-furnace-gl02-data-mcp", "tools": ["plot_gl02_body_temperature_matrix"]}
+    },
+    {
+      "object_id": "correlation_chart",
+      "object_type": "chart",
+      "display_name": "相关性图表",
+      "aliases": ["相关散点图", "相关矩阵", "相关热力图", "关系图"],
+      "unit": null,
+      "capabilities": ["correlation_scatter", "correlation_heatmap"],
+      "status": "enabled",
+      "description": "计算相关系数并绘制散点图或相关矩阵",
+      "executor": {"service": "blast-furnace-gl02-data-mcp", "tools": ["plot_gl02_analysis"]}
+    },
+    {
+      "object_id": "distribution_chart",
+      "object_type": "chart",
+      "display_name": "数据分布图",
+      "aliases": ["分布图", "直方图", "频数分布"],
+      "unit": null,
+      "capabilities": ["distribution", "histogram"],
+      "status": "enabled",
+      "description": "展示一个或多个变量的数据分布",
+      "executor": {"service": "blast-furnace-gl02-data-mcp", "tools": ["plot_gl02_analysis"]}
+    },
+    {
+      "object_id": "boxplot_chart",
+      "object_type": "chart",
+      "display_name": "箱线图",
+      "aliases": ["箱线图", "箱型图", "盒须图"],
+      "unit": null,
+      "capabilities": ["boxplot", "outlier_summary"],
+      "status": "enabled",
+      "description": "展示变量分位数、离散程度和异常点",
+      "executor": {"service": "blast-furnace-gl02-data-mcp", "tools": ["plot_gl02_analysis"]}
+    }
+  ]
+}

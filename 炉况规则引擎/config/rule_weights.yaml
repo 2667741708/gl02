@@ -1,0 +1,80 @@
+# config/rule_weights.yaml
+# 基于现场实际数据表的权重配置。
+
+rules:
+  normal:
+    stable_top_pressure: 18
+    stable_delta_pressure: 18
+    stable_permeability: 18
+    stable_blast_pressure: 12
+    stable_top_temp_disp: 12
+    stable_body_temperature: 14
+    balanced_body_circumference: 10
+    stable_material_line: 8
+
+  lowline:
+    low_line_depth: 40
+    low_line_duration: 10
+    top_temp_rising: 15
+    upper_body_temperature_rising: 15
+    north_south_level_diff: 5
+    charging_fault: 15
+
+  edge:
+    body_upper_heat_load: 25
+    body_middle_lower_heat_load: 20
+    top_temp_rising: 15
+    hot_sector_bias: 15
+    top_temp_dispersion: 10
+    high_permeability: 10
+    low_gas_utilization: 5
+
+  center:
+    low_body_wall_temperature: 25
+    high_total_delta_p: 20
+    high_upper_delta_p: 15
+    high_blast_pressure: 15
+    low_permeability: 10
+    low_top_temperature: 10
+    static_pressure_unbalanced: 5
+
+  channel:
+    top_pressure_spike_freq: 10
+    pressure_oscillation: 40
+    hot_spot_jump: 20
+    top_temp_dispersion: 15
+    probe_abnormal: 10
+    low_gas_utilization: 5
+
+  cold:
+    top_temp_down_trend: 20
+    low_body_temperature: 20
+    low_taphole_temp_proxy: 15
+    low_blast_pressure: 15
+    high_permeability: 10
+    low_gas_utilization: 10
+    operation_heat_reduction: 10
+
+  hot:
+    top_temp_rising: 20
+    high_body_temperature: 20
+    high_taphole_temp_proxy: 15
+    high_total_delta_p: 15
+    low_permeability: 10
+    top_pressure_spikes: 10
+    operation_heat_increase: 10
+
+  column:
+    hang:
+      stall_duration: 35
+      total_delta_p_rise: 20
+      blast_pressure_rise: 15
+      pi_drop: 15
+      top_temp_rise: 10
+      upper_body_temp_rise: 5
+    slip:
+      drop_magnitude: 40
+      pressure_oscillation: 20
+      top_pressure_spike: 15
+      top_temp_dispersion: 15
+      north_south_level_diff: 10

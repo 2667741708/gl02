@@ -1,0 +1,196 @@
+{
+  "ok": true,
+  "tool": "plot_gl02_analysis",
+  "variables": [
+    "P_top",
+    "DP_total"
+  ],
+  "start_time": "2026-07-26T17:47:00+08:00",
+  "end_time": "2026-07-26T18:17:00+08:00",
+  "analysis_type_requested": "correlation_scatter",
+  "analysis_type_used": "correlation_scatter",
+  "scale": "raw",
+  "theme": "industrial",
+  "image_path": "D:\\文件\\冀南钢铁运行中第二版本\\高炉前端数据\\data\\mcp_charts\\gl02_correlation_scatter_20260726_181725_0ad00067.png",
+  "image_url": "/data/mcp_charts/gl02_correlation_scatter_20260726_181725_0ad00067.png",
+  "data_path": "D:\\文件\\冀南钢铁运行中第二版本\\高炉前端数据\\data\\mcp_charts\\gl02_correlation_scatter_20260726_181725_0ad00067.json",
+  "series": [
+    {
+      "requested_variable": "P_top",
+      "variable": {
+        "variable_name": "P_top",
+        "aliases": [
+          "顶压",
+          "炉顶压力",
+          "炉顶压",
+          "综合顶压",
+          "煤气顶压"
+        ],
+        "status": "physical",
+        "confidence": "high",
+        "source_branch": "LD",
+        "path_group": "LD",
+        "short_name": "SIO_GL02_LD_T0034",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0034",
+        "tag_long_name": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0034",
+        "tag": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0034",
+        "description": "2号炉炉顶_顶压平均",
+        "unit": "kPa",
+        "usage": "",
+        "notes": "",
+        "max_history_range": {
+          "status": "未探明"
+        }
+      },
+      "count": 30,
+      "summary": {
+        "count": 30,
+        "first": {
+          "ts": "2026-07-26T17:47:00",
+          "value": 255.560974,
+          "quality": null,
+          "value_type": null,
+          "aggregate": "PS_RAW_SAMPLE",
+          "interval_seconds": 60,
+          "source_server": "10.22.181.243:8889",
+          "collected_at": "2026-07-26T17:57:20"
+        },
+        "last": {
+          "ts": "2026-07-26T18:16:00",
+          "value": 255.65863037109375,
+          "quality": null,
+          "value_type": null,
+          "aggregate": "PS_RAW_SAMPLE",
+          "interval_seconds": 60,
+          "source_server": "10.22.181.243:8889",
+          "collected_at": "2026-07-26T18:17:22"
+        },
+        "avg": 256.4294861748047,
+        "min": 253.80046,
+        "max": 259.290924,
+        "stddev": 1.3640442038518195,
+        "slope_per_min": 0.02978998628119756,
+        "delta": 0.09765637109376257,
+        "trend": "上升"
+      },
+      "source": {
+        "profile": "database",
+        "engine": "bf_sensor_postgresql",
+        "database": {
+          "profile_name": "bf_sensor_postgresql",
+          "engine": "bf_sensor_postgresql",
+          "schema": "bf_sensor",
+          "tables": {
+            "one_minute_values": "one_minute_values"
+          },
+          "env": {
+            "host": "GL02_PGHOST",
+            "port": "GL02_PGPORT",
+            "database": "GL02_PGDATABASE",
+            "user": "GL02_PGUSER",
+            "password": "GL02_PGPASSWORD"
+          },
+          "defaults": {
+            "host": "10.30.220.12",
+            "port": 5432,
+            "database": "bf_trend"
+          }
+        }
+      }
+    },
+    {
+      "requested_variable": "DP_total",
+      "variable": {
+        "variable_name": "DP_total",
+        "aliases": [
+          "总压差",
+          "全炉压差",
+          "炉内压差",
+          "总体压差"
+        ],
+        "status": "physical",
+        "confidence": "high",
+        "source_branch": "BT",
+        "path_group": "BT",
+        "short_name": "SIO_GL02_BT_T0132",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0132",
+        "tag_long_name": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0132",
+        "tag": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0132",
+        "description": "2号炉本体_全炉压差",
+        "unit": "kPa",
+        "usage": "",
+        "notes": "",
+        "max_history_range": {
+          "status": "未探明"
+        }
+      },
+      "count": 30,
+      "summary": {
+        "count": 30,
+        "first": {
+          "ts": "2026-07-26T17:47:00",
+          "value": 190.08789,
+          "quality": null,
+          "value_type": null,
+          "aggregate": "PS_RAW_SAMPLE",
+          "interval_seconds": 60,
+          "source_server": "10.22.181.243:8889",
+          "collected_at": "2026-07-26T17:57:20"
+        },
+        "last": {
+          "ts": "2026-07-26T18:16:00",
+          "value": 188.80752563476562,
+          "quality": null,
+          "value_type": null,
+          "aggregate": "PS_RAW_SAMPLE",
+          "interval_seconds": 60,
+          "source_server": "10.22.181.243:8889",
+          "collected_at": "2026-07-26T18:17:22"
+        },
+        "avg": 189.1654923023763,
+        "min": 185.21054,
+        "max": 193.839508,
+        "stddev": 2.405123939872167,
+        "slope_per_min": 0.024056481467038166,
+        "delta": -1.2803643652343624,
+        "trend": "上升"
+      },
+      "source": {
+        "profile": "database",
+        "engine": "bf_sensor_postgresql",
+        "database": {
+          "profile_name": "bf_sensor_postgresql",
+          "engine": "bf_sensor_postgresql",
+          "schema": "bf_sensor",
+          "tables": {
+            "one_minute_values": "one_minute_values"
+          },
+          "env": {
+            "host": "GL02_PGHOST",
+            "port": "GL02_PGPORT",
+            "database": "GL02_PGDATABASE",
+            "user": "GL02_PGUSER",
+            "password": "GL02_PGPASSWORD"
+          },
+          "defaults": {
+            "host": "10.30.220.12",
+            "port": 5432,
+            "database": "bf_trend"
+          }
+        }
+      }
+    }
+  ],
+  "derived": {
+    "correlation": {
+      "left": "P_top",
+      "right": "DP_total",
+      "pearson_r": -0.11684243416150103,
+      "aligned_count": 30,
+      "linear_slope": -0.20602010902668066,
+      "linear_intercept": 241.99512300176525
+    }
+  },
+  "errors": [],
+  "notes": []
+}

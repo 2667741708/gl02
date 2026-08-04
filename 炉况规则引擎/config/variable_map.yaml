@@ -1,0 +1,219 @@
+# config/variable_map.yaml
+# 说明：
+# 本文件只配置现场 data 目录中实际存在的数据文件与规则引擎内部变量名的映射。
+# 不再写入当前 data 中不存在的变量，例如：
+# T_center, T_edge, O2, PCI, TFT, T_throat, P_shaft, HMTemp, Si, S, FeO_slag。
+# 这些变量若后续现场提供，再加入 mappings。
+
+mappings:
+
+  # =========================================================
+  # 1. 料线 / 布料 / 上料相关
+  # =========================================================
+
+  L:
+    tag: "雷达探尺.csv"
+    unit: "m"
+    type: "high_freq"
+    description: "主料线/雷达探尺，数值一般表示料面深度，用于低料线、悬料、崩滑料判断"
+
+  L_south:
+    tag: "南尺.csv"
+    unit: "m"
+    type: "high_freq"
+    description: "南侧探尺，用于判断料面偏斜、探尺停滞、南北料线差"
+
+  L_north:
+    tag: "北尺.csv"
+    unit: "m"
+    type: "high_freq"
+    description: "北侧探尺，用于判断料面偏斜、探尺停滞、南北料线差"
+
+  Hopper_weight:
+    tag: "罐重.csv"
+    unit: "t"
+    type: "high_freq"
+    description: "实际罐重，用于识别上料节奏、批重波动、是否亏料"
+
+  Hopper_weight_set:
+    tag: "罐重设定.csv"
+    unit: "t"
+    type: "high_freq"
+    description: "罐重设定值，用于和实际罐重对比，判断上料是否异常"
+
+
+  # =========================================================
+  # 2. 炉顶压力 / 炉顶温度
+  # =========================================================
+
+  P_top:
+    tag: "选择的炉顶压力.csv"
+    unit: "kPa"
+    type: "high_freq"
+    description: "炉顶压力，用于判断顶压平稳性、顶压尖峰、管道、悬料、炉热等"
+
+  T_top:
+    tag: "选择的炉顶温度.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "综合炉顶温度，用于判断低料线、炉凉、炉热、顶温趋势"
+
+  T_top_A:
+    tag: "顶温A.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "炉顶温度A点，用于计算多点顶温离散度和圆周温差"
+
+  T_top_B:
+    tag: "顶温B.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "炉顶温度B点，用于计算多点顶温离散度和圆周温差"
+
+  T_top_C:
+    tag: "顶温C.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "炉顶温度C点，用于计算多点顶温离散度和圆周温差"
+
+  T_top_D:
+    tag: "顶温D.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "炉顶温度D点，用于计算多点顶温离散度和圆周温差"
+
+  P_top_gas_A:
+    tag: "炉顶上升管煤气压力A.csv"
+    unit: "kPa"
+    type: "high_freq"
+    description: "上升管煤气压力A点，用于判断圆周压力不均和局部煤气流异常"
+
+  P_top_gas_B:
+    tag: "炉顶上升管煤气压力B.csv"
+    unit: "kPa"
+    type: "high_freq"
+    description: "上升管煤气压力B点，用于判断圆周压力不均和局部煤气流异常"
+
+  P_top_gas_C:
+    tag: "炉顶上升管煤气压力C.csv"
+    unit: "kPa"
+    type: "high_freq"
+    description: "上升管煤气压力C点，用于判断圆周压力不均和局部煤气流异常"
+
+  P_top_gas_D:
+    tag: "炉顶上升管煤气压力D.csv"
+    unit: "kPa"
+    type: "high_freq"
+    description: "上升管煤气压力D点，用于判断圆周压力不均和局部煤气流异常"
+
+
+  # =========================================================
+  # 3. 鼓风 / 热风 / 喷煤 / 富氧相关
+  # =========================================================
+
+  P_blast_cold:
+    tag: "冷压.csv"
+    unit: "kPa"
+    type: "high_freq"
+    description: "冷风压力。当前不直接等同于原规则中的风压P_blast，建议作为备用压力变量"
+
+  P_blast:
+    tag: "热压.csv"
+    unit: "kPa"
+    type: "high_freq"
+    description: "热风压力。第一版建议将其作为规则中的主风压 P_blast 使用"
+
+  T_blast:
+    tag: "风温.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "热风温度，用于判断热制度和参数建议"
+
+  Q_blast:
+    tag: "风量.csv"
+    unit: "m3/min"
+    type: "high_freq"
+    description: "风量，用于判断顺行、管道、悬料、崩滑料、调剂动作"
+
+  PCI_rate:
+    tag: "喷煤.csv"
+    unit: "t/h"
+    type: "high_freq"
+    description: "喷煤瞬时流量。原规则中的 PCI 不再表示 kg/t煤比，第一版使用 PCI_rate 表示喷煤强度"
+
+  Q_O2:
+    tag: "大流量氧气管流量.csv"
+    unit: "m3/h"
+    type: "high_freq"
+    description: "氧气流量。当前没有富氧率O2，第一版使用Q_O2作为富氧强度替代变量"
+
+  PI:
+    tag: "透指.csv"
+    unit: "m3/(min·kPa)"
+    type: "high_freq"
+    description: "透气性指数，用于判断炉况顺行、管道、炉凉、炉热、悬料"
+
+
+  # =========================================================
+  # 4. 出铁口温度
+  # =========================================================
+
+  T_taphole_1:
+    tag: "1#出铁口温度.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "1号出铁口温度。不是铁水化验温度HMTemp，只能作为出铁热状态辅助变量"
+
+  T_taphole_2:
+    tag: "2#出铁口温度.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "2号出铁口温度。不是铁水化验温度HMTemp，只能作为出铁热状态辅助变量"
+
+  T_taphole_3:
+    tag: "3#出铁口温度.csv"
+    unit: "℃"
+    type: "high_freq"
+    description: "3号出铁口温度。不是铁水化验温度HMTemp，只能作为出铁热状态辅助变量"
+
+
+  # =========================================================
+  # 5. 事件标志位
+  # 注意：当前这些不是CSV文件，而是规则程序内部生成或人工录入的事件字段。
+  # 如果 data 目录中没有对应CSV，则 loader 不应强制读取这些文件。
+  # =========================================================
+
+  charge_fault_flag:
+    tag: null
+    unit: "bool"
+    type: "event"
+    source: "derived_or_manual"
+    description: "上料故障标志。可由罐重异常、设定罐重与实际罐重偏差、上料日志生成"
+
+  probe_stall_flag:
+    tag: null
+    unit: "bool"
+    type: "event"
+    source: "derived"
+    description: "探尺停滞标志。由L、L_south、L_north在一定时间内变化过小生成"
+
+  tuyere_abnormal_flag:
+    tag: null
+    unit: "bool"
+    type: "event"
+    source: "manual_or_external"
+    description: "风口异常标志。当前data中没有风口图像或风口状态，第一版默认缺失"
+
+  high_pressure_flag:
+    tag: null
+    unit: "bool"
+    type: "event"
+    source: "derived"
+    description: "高压运行标志。可由P_top是否高于设定阈值生成"
+
+  TRT_running_flag:
+    tag: null
+    unit: "bool"
+    type: "event"
+    source: "manual_or_external"
+    description: "TRT运行状态。当前data中未见对应CSV，第一版默认缺失"

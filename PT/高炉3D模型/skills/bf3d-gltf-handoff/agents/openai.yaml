@@ -1,0 +1,4 @@
+interface:
+  display_name: "高炉GLB交付"
+  short_description: "安全导出验证并向Three.js交付完整保留语义节点的高炉GLB资产"
+  default_prompt: "使用 $bf3d-gltf-handoff 导出并验证高炉GLB。"

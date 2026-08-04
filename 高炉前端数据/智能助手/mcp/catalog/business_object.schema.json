@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jinan-steel:bf:mcp:business-object:1.0",
+  "title": "Blast furnace MCP business object",
+  "type": "object",
+  "required": [
+    "object_id",
+    "object_type",
+    "display_name",
+    "aliases",
+    "capabilities",
+    "status",
+    "executor"
+  ],
+  "properties": {
+    "object_id": {"type": "string", "minLength": 1},
+    "object_type": {
+      "type": "string",
+      "enum": [
+        "sensor",
+        "heat",
+        "hot_metal_analysis",
+        "slag_analysis",
+        "feed_chemistry",
+        "report",
+        "qa_history",
+        "calculation",
+        "chart"
+      ]
+    },
+    "display_name": {"type": "string", "minLength": 1},
+    "aliases": {"type": "array", "items": {"type": "string"}},
+    "unit": {"type": ["string", "null"]},
+    "capabilities": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["enabled", "disabled", "unavailable", "planned"]},
+    "description": {"type": "string"},
+    "metadata": {"type": "object"},
+    "executor": {
+      "type": "object",
+      "required": ["service", "tools"],
+      "properties": {
+        "service": {"type": "string", "minLength": 1},
+        "tools": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

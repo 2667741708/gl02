@@ -1,0 +1,70 @@
+{
+  "contract_id": "si_label_contract.v3",
+  "requirement_id": "REQ-SI-FORMAL-LABEL-CONTRACT-V3-20260726",
+  "furnace": "2#",
+  "identity": {
+    "field": "official_meltno",
+    "source": "public.t_qpes_inner_batch.heatno",
+    "master_join": "public.t_ipes_cond.meltno",
+    "required": true,
+    "sample_number_inference_allowed": false
+  },
+  "sample": {
+    "id_field": "batchno",
+    "sample_time_source": "public.t_qpes_inner_batch.takesampletime",
+    "result_time_source": "COALESCE(public.inner_batch_insp_bb.judgetime, public.t_qpes_inner_batch.judgetime)",
+    "result_time_as_sample_time_allowed": false,
+    "tank_no_source": "public.v_qpes_mat_final.thankno exact join on batchno",
+    "taphole_id_source": null,
+    "tapping_stage_rule": "derive only when actual takesampletime and heat open/close times are present"
+  },
+  "prediction_tasks": {
+    "heat_representative_si": {
+      "row_grain": "one row per official meltno",
+      "target": "median of all valid Si samples exactly joined to official meltno",
+      "prediction_cutoff": "public.t_ipes_cond.opentime",
+      "current_status": "ready_for_offline_experiment"
+    },
+    "next_sample_si": {
+      "row_grain": "one current sample to its next actual sample within official meltno",
+      "target": "next chronological actual sample Si",
+      "prediction_cutoff": "current actual takesampletime",
+      "required_fields": [
+        "current takesampletime",
+        "next takesampletime"
+      ],
+      "current_status": "blocked_missing_takesampletime"
+    },
+    "heat_si_distribution": {
+      "row_grain": "one row per official meltno",
+      "targets": [
+        "min",
+        "p10",
+        "p50",
+        "p90",
+        "max",
+        "std",
+        "spread"
+      ],
+      "minimum_samples_per_heat": 2,
+      "prediction_cutoff": "public.t_ipes_cond.opentime",
+      "current_status": "ready_for_offline_experiment"
+    }
+  },
+  "leakage_rules": {
+    "sensor_observation": "strictly earlier than prediction cutoff",
+    "previous_heat_si": "earlier official heat and result time no later than current cutoff",
+    "same_heat_split": "forbidden",
+    "post_cutoff_lab_or_sensor_fields": "forbidden"
+  },
+  "deployment_gate": {
+    "current_model_status": "experimental_offline_formal_contract",
+    "mcp_online_allowed": false,
+    "required_for_shadow": [
+      "rolling month backtest",
+      "sample-time source remediation",
+      "distribution calibration improvement",
+      "expert review"
+    ]
+  }
+}

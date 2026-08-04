@@ -1,0 +1,88 @@
+derived_variables:
+
+  T_top_multi:
+    inputs: ["T_top_A", "T_top_B", "T_top_C", "T_top_D"]
+    method: "array"
+    description: "四点顶温集合，用于计算顶温离散度、顶温圆周温差"
+
+  T_top_mean_4pt:
+    inputs: ["T_top_A", "T_top_B", "T_top_C", "T_top_D"]
+    method: "mean"
+    description: "四点顶温平均值。如果T_top缺失，可用该值替代T_top"
+
+  T_top_range_4pt:
+    inputs: ["T_top_A", "T_top_B", "T_top_C", "T_top_D"]
+    method: "max_minus_min"
+    description: "四点顶温最大值减最小值，用于判断炉顶煤气流分布是否不均"
+
+  DispTop_15:
+    inputs: ["T_top_A", "T_top_B", "T_top_C", "T_top_D"]
+    method: "rolling_cv_15min"
+    description: "最近15分钟四点顶温离散度"
+
+  P_top_gas_multi:
+    inputs: ["P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"]
+    method: "array"
+    description: "四点上升管煤气压力集合"
+
+  P_top_gas_range_15:
+    inputs: ["P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"]
+    method: "rolling_range_15min"
+    description: "最近15分钟四点上升管压力最大差"
+
+  L_diff_NS:
+    inputs: ["L_south", "L_north"]
+    method: "subtract_abs"
+    description: "南北探尺差值绝对值，用于判断偏料、料面不均"
+
+  L_effective:
+    inputs: ["L", "L_south", "L_north"]
+    method: "priority_or_mean"
+    description: "优先使用雷达探尺L；若L缺失，则使用南尺和北尺平均值"
+
+  L_slope_20:
+    inputs: ["L_effective"]
+    method: "linear_slope_20min"
+    description: "最近20分钟料线变化速度，用于悬料判断"
+
+  probe_stall_flag:
+    inputs: ["L_effective"]
+    method: "stall_detection"
+    params:
+      window_min: 20
+      max_abs_slope_m_per_min: 0.01
+    description: "最近20分钟料线几乎不变，则认为存在探尺停滞或下料停滞风险"
+
+  DeltaL:
+    inputs: ["L_effective"]
+    method: "minus_normal_stockline"
+    params:
+      L_normal_source: "config_or_baseline"
+    description: "当前有效料线与正常料线的差值"
+
+  PCI_intensity:
+    inputs: ["PCI_rate"]
+    method: "identity"
+    description: "当前只有喷煤流量t/h，不能直接当作煤比kg/t"
+
+  O2_intensity:
+    inputs: ["Q_O2"]
+    method: "identity"
+    description: "当前只有氧气流量m3/h，不能直接当作富氧率百分比"
+
+  T_taphole_mean:
+    inputs: ["T_taphole_1", "T_taphole_2", "T_taphole_3"]
+    method: "mean_available"
+    description: "三个出铁口温度可用值的平均，用于辅助判断热状态"
+
+  T_taphole_max:
+    inputs: ["T_taphole_1", "T_taphole_2", "T_taphole_3"]
+    method: "max_available"
+    description: "三个出铁口温度最大值，用于辅助判断出铁热状态"
+
+  high_pressure_flag:
+    inputs: ["P_top"]
+    method: "threshold"
+    params:
+      threshold_kpa: null
+    description: "阈值需由现场确认，例如炉顶压力超过某值视为高压运行"

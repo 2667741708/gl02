@@ -1,0 +1,1140 @@
+{
+  "schema": "gl02.bf3d.sensor_unit_mapping.v1",
+  "generated_at": "2026-07-25T10:36:11.178995+00:00",
+  "database_fact": "bf_sensor.sensor_registry 当前没有 unit 字段；本文件是显示、接口和3D标签的受控单位合同",
+  "definitions": {
+    "temperature_c": {
+      "quantity": "temperature",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "authority": "GL02受控单位契约"
+    },
+    "pressure_kpa": {
+      "quantity": "pressure",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "authority": "GL02受控单位契约"
+    },
+    "blast_flow_nm3_min": {
+      "quantity": "volumetric_flow",
+      "normalized_unit": "Nm³/min",
+      "display_unit": "Nm³/min",
+      "conversion": "identity",
+      "authority": "GL02受控单位契约"
+    },
+    "oxygen_flow_nm3_h": {
+      "quantity": "volumetric_flow",
+      "normalized_unit": "Nm³/h",
+      "display_unit": "Nm³/h",
+      "conversion": "identity",
+      "authority": "GL02受控单位契约"
+    },
+    "length_m": {
+      "quantity": "length",
+      "normalized_unit": "m",
+      "display_unit": "m",
+      "conversion": "identity",
+      "authority": "GL02受控单位契约"
+    },
+    "mass_flow_t_h": {
+      "quantity": "mass_flow",
+      "normalized_unit": "t/h",
+      "display_unit": "t/h",
+      "conversion": "identity",
+      "authority": "GL02受控单位契约"
+    },
+    "percent": {
+      "quantity": "percentage",
+      "normalized_unit": "%",
+      "display_unit": "%",
+      "conversion": "identity",
+      "authority": "GL02受控单位契约"
+    },
+    "ratio_to_percent": {
+      "quantity": "ratio",
+      "normalized_unit": "1",
+      "display_unit": "%",
+      "conversion": "display_value = source_value * 100",
+      "authority": "GL02受控单位契约"
+    },
+    "dimensionless": {
+      "quantity": "dimensionless",
+      "normalized_unit": "1",
+      "display_unit": "",
+      "conversion": "identity",
+      "authority": "GL02受控单位契约"
+    }
+  },
+  "counts": {
+    "mapped_points": 133,
+    "unique_unit_keys": 9
+  },
+  "points": [
+    {
+      "canonical_id": "DP_lower",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "DP_total",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "DP_upper",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "GasUtil",
+      "unit_key": "ratio_to_percent",
+      "normalized_unit": "1",
+      "display_unit": "%",
+      "conversion": "display_value = source_value * 100",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "L",
+      "unit_key": "length_m",
+      "normalized_unit": "m",
+      "display_unit": "m",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "L_north",
+      "unit_key": "length_m",
+      "normalized_unit": "m",
+      "display_unit": "m",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "L_south",
+      "unit_key": "length_m",
+      "normalized_unit": "m",
+      "display_unit": "m",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "O2_rate",
+      "unit_key": "percent",
+      "normalized_unit": "%",
+      "display_unit": "%",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "PCI_rate",
+      "unit_key": "mass_flow_t_h",
+      "normalized_unit": "t/h",
+      "display_unit": "t/h",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "PCI_set",
+      "unit_key": "mass_flow_t_h",
+      "normalized_unit": "t/h",
+      "display_unit": "t/h",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "PI",
+      "unit_key": "dimensionless",
+      "normalized_unit": "1",
+      "display_unit": "",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_blast",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_blast_cold",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_static_20m35",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_static_23m49",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_static_28m98",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_static_lower_A",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_lower_B",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_lower_C",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_lower_D",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_lower_E",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_lower_F",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_middle_A",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_middle_B",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_middle_C",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_middle_D",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_middle_E",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_middle_F",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_upper_A",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_upper_B",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_upper_C",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_upper_D",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_upper_E",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_static_upper_F",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "configured_kpa_source_metadata_blank_unconfirmed"
+    },
+    {
+      "canonical_id": "P_top",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_top_gas_A",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_top_gas_B",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_top_gas_C",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "P_top_gas_D",
+      "unit_key": "pressure_kpa",
+      "normalized_unit": "kPa",
+      "display_unit": "kPa",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "Q_O2",
+      "unit_key": "oxygen_flow_nm3_h",
+      "normalized_unit": "Nm³/h",
+      "display_unit": "Nm³/h",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "Q_blast",
+      "unit_key": "blast_flow_nm3_min",
+      "normalized_unit": "Nm³/min",
+      "display_unit": "Nm³/min",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "TFT",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_blast",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L10_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L10_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L10_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L10_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L10_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L10_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L10_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L10_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L11_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L11_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L11_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L11_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L11_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L11_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L11_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L11_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L12_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L12_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L12_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L12_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L12_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L12_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L12_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L12_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L13_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L13_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L13_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L13_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L13_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L13_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L13_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L13_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L14_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L14_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L14_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L14_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L14_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L14_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L14_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L14_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L15_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L15_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L15_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L15_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L15_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L15_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L15_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L15_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L16_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L16_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L16_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L16_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L16_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L16_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L16_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L16_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L7_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L7_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L7_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L7_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L7_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L7_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L7_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L7_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L8_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L8_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L8_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L8_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L8_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L8_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L8_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L8_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L9_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L9_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L9_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L9_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L9_E",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L9_F",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L9_G",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_body_L9_H",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_taphole_1",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_taphole_2",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_throat_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_throat_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_throat_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_throat_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_top_A",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_top_B",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_top_C",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    },
+    {
+      "canonical_id": "T_top_D",
+      "unit_key": "temperature_c",
+      "normalized_unit": "°C",
+      "display_unit": "℃",
+      "conversion": "identity",
+      "unit_status": "controlled_mapping_database_has_no_unit_column"
+    }
+  ]
+}

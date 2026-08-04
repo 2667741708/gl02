@@ -1,0 +1,34 @@
+{
+  "ok": true,
+  "generated_at": "2026-07-17",
+  "docx": "D:\\文件\\冀南钢铁运行中第二版本\\PT\\高炉3D模型\\高炉3D模型制作过程与内切面验收记录_20260717.docx",
+  "docx_bytes": 12201362,
+  "manifest": "D:\\文件\\冀南钢铁运行中第二版本\\PT\\高炉3D模型\\高炉3D模型制作过程图片清单_20260717.csv",
+  "source_image_count": 308,
+  "unique_source_sha256_count": 266,
+  "duplicate_source_file_count": 42,
+  "source_stage_counts": {
+    "P35": 6,
+    "P36": 6,
+    "P40": 106,
+    "P50": 170,
+    "QA": 20
+  },
+  "source_category_counts": {
+    "渲染输出": 117,
+    "视觉复核": 76,
+    "PBR贴图": 95,
+    "浏览器验收": 20
+  },
+  "docx_media_part_count": 241,
+  "inline_shape_count": 331,
+  "paragraph_count": 214,
+  "table_count": 49,
+  "section_count": 2,
+  "zip_bad_member": null,
+  "has_toc_field": true,
+  "has_page_fields": true,
+  "has_production_hash": true,
+  "all_catalogue_indices_present": true,
+  "proxy_image_count": 266
+}

@@ -1,0 +1,36 @@
+{
+  "catalog_version": "1.0.0",
+  "object_type": "sensor",
+  "dynamic_source": "bf_data_mcp_server.VARIABLES",
+  "defaults": {
+    "capabilities": ["latest", "history", "statistics", "plot", "correlation"],
+    "status": "enabled",
+    "executor": {
+      "service": "blast-furnace-gl02-data-mcp",
+      "tools": [
+        "get_latest_gl02_value",
+        "query_gl02_history",
+        "query_gl02_statistics",
+        "query_gl02_sensors",
+        "plot_gl02_trends",
+        "plot_gl02_analysis"
+      ]
+    }
+  },
+  "objects": [
+    {
+      "object_id": "P_top",
+      "object_type": "sensor",
+      "display_name": "炉顶压力",
+      "aliases": ["顶压", "炉顶煤气压力", "炉顶压", "综合顶压"],
+      "unit": "kPa",
+      "capabilities": ["latest", "history", "statistics", "plot", "correlation"],
+      "status": "enabled",
+      "description": "GL02炉顶平均压力",
+      "executor": {
+        "service": "blast-furnace-gl02-data-mcp",
+        "tools": ["query_gl02_sensors", "plot_gl02_trends", "plot_gl02_analysis"]
+      }
+    }
+  ]
+}

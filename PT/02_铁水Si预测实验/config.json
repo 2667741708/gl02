@@ -1,0 +1,1 @@
+{"time_column":"open_ts","target_column":"target__hot_metal_Si_median","test_ratio":0.2,"feature_prefixes":["sensor__","context__"],"forbidden_prefixes":["target__","diagnosis__"]}

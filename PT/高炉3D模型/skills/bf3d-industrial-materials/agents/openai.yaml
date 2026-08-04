@@ -1,0 +1,4 @@
+interface:
+  display_name: "高炉工业材质"
+  short_description: "制作哑光风化钢与氧化积灰水痕受热变色分层PBR材质"
+  default_prompt: "使用 $bf3d-industrial-materials 制作高炉工业PBR材质。"

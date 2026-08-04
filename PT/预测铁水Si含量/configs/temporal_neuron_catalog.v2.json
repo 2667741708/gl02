@@ -1,0 +1,66 @@
+{
+  "catalog_id": "gl02_si_temporal_neurons_v2",
+  "requirement_id": "REQ-SI-TEMPORAL-NEURONS-V2-20260726",
+  "status": "design_implemented_waiting_real_timeseries_materialization",
+  "unit_contract": {
+    "si": "% Si",
+    "primary_absolute_error_tolerance_percentage_points": 0.05,
+    "legacy_0_10_tolerance_status": "diagnostic_only_not_acceptance"
+  },
+  "source_contract": {
+    "registry": "bf_sensor.sensor_registry",
+    "series": "bf_sensor.one_minute_values",
+    "expected_physical_points": 130,
+    "actual_enabled_points_must_be_read_from_registry": true,
+    "future_observations_forbidden": true
+  },
+  "windows_minutes": [30, 60, 120, 240],
+  "per_sensor_temporal_micro_neurons": [
+    "count",
+    "latest",
+    "mean",
+    "median",
+    "min",
+    "max",
+    "range",
+    "std",
+    "iqr",
+    "mad",
+    "slope_per_minute",
+    "delta",
+    "early_late_delta",
+    "diff_mean",
+    "diff_std",
+    "total_variation",
+    "acf1",
+    "sign_change_rate",
+    "spike_rate",
+    "upper_excursion_fraction",
+    "lower_excursion_fraction",
+    "coverage_ratio",
+    "longest_missing_run",
+    "last_age_minutes"
+  ],
+  "physics_composite_neurons": [
+    "PCI_set_minus_actual_and_persistence",
+    "oxygen_intensity_and_oxygen_coal_ratio",
+    "blast_pressure_minus_top_pressure",
+    "upper_lower_total_pressure_drop_balance",
+    "north_south_stockline_difference_and_stall",
+    "top_four_point_temperature_range_and_bias",
+    "body_vertical_temperature_gradient",
+    "body_layer_circumference_cv_and_hot_sector",
+    "static_pressure_vertical_gradient_A_to_F",
+    "gas_utilization_level_trend_and_stability",
+    "taphole_temperature_difference",
+    "cross_sensor_lag_and_delayed_response"
+  ],
+  "selection_gates": [
+    "training_only_missingness_and_variance_filter",
+    "chronological_stability_selection",
+    "group_ablation_on_validation",
+    "retain_test_set_for_final_evaluation_only",
+    "expert_direction_review_before_shadow_status"
+  ],
+  "warning": "A temporal statistic is an interpretable micro-neuron input. It becomes a production semantic neuron only after stable time-out validation, direction review and calibrated contribution."
+}

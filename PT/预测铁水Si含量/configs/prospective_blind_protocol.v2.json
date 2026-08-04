@@ -1,0 +1,77 @@
+{
+  "protocol_id": "SI-PROSPECTIVE-BLIND-V2-HISTORYFIX-20260727",
+  "status": "invalidated_before_prospective_use",
+  "invalidated_reason": "无目标回放发现历史浮点神经元约1e-16的CSV解析差异可令V9 LightGBM跨越分裂阈值，V2未通过1e-10逐点一致性门槛。",
+  "superseded_by": "SI-PROSPECTIVE-BLIND-V3-HISTORYFIXR12-20260727",
+  "supersedes": "SI-PROSPECTIVE-BLIND-V1-20260727",
+  "supersession_reason": "V1候选使用的历史Si特征允许同一prediction_cutoff_ts炉次按排序先后进入历史；V2改为严格小于当前预测时点。",
+  "frozen_at": "2026-07-27T19:35:00+08:00",
+  "historical_data_max_prediction_cutoff": "2026-07-26T19:02:00+08:00",
+  "training_snapshot": {
+    "path": "../data/processed/formal_v3_historyfix_20260727",
+    "dataset_sha256": "4e48a320963ca06aa0d3dc4058b67872c1f8d7f4c9ab997f00e4860297ac7e9c",
+    "heat_targets_sha256": "58b57692fa0d2646dc9f854d0fc1f9b6fbc47d30449b712db7daea666c3751a3",
+    "history_contract": "prior_heat_prediction_cutoff_ts < current_prediction_cutoff_ts and prior_label_available_ts <= current_prediction_cutoff_ts",
+    "changed_history_heats_from_v1": 6
+  },
+  "prospective_eligibility": {
+    "prediction_cutoff_strictly_after": "2026-07-27T00:00:00+08:00",
+    "official_meltno_required": true,
+    "prediction_must_be_written_before_label_available_ts": true,
+    "sensor_feature_cutoff": "sensor_ts < prediction_cutoff_ts",
+    "minimum_completed_heats": 300,
+    "minimum_calendar_span_days": 30,
+    "evaluate_when": "both_minimums_are_satisfied",
+    "no_interim_model_selection": true
+  },
+  "frozen_candidates": [
+    {
+      "candidate_id": "V9_POINT_MAE_CHAMPION",
+      "role": "lowest_history_fixed_historical_point_mae",
+      "model_path": "../reports/experiments/EXP-SI-V9-MULTIMODEL-PARETO-8H-HISTORYFIX-003_20260727/models/selected_v9_ensemble.joblib",
+      "model_sha256": "c4f3b7c192c44aa11b3acb05d4fdf8217ae03a23321cbdfe6b8e0a9f474c5dae",
+      "pretest_robust_mae_score": 0.05846302791751231,
+      "historical_mae": 0.047161310251500325,
+      "historical_hit_rate_abs_le_002": 0.25872093023255816
+    },
+    {
+      "candidate_id": "V10_PRETEST_STABILITY_CHAMPION",
+      "role": "best_history_fixed_april_may_june_robust_score",
+      "model_path": "../reports/experiments/EXP-SI-V10-LAG-FIELD-8H-HISTORYFIX-002_20260727/models/selected_v10.joblib",
+      "model_sha256": "82cedd0ca31d82bbdce690351191e7ad0a77c67fc73328aab65aecdddc574870",
+      "pretest_robust_mae_score": 0.05797254755555052,
+      "historical_mae": 0.04786217324078788,
+      "historical_hit_rate_abs_le_002": 0.2703488372093023
+    }
+  ],
+  "locked_metrics": [
+    "mae",
+    "rmse",
+    "bias",
+    "hit_rate_abs_le_002",
+    "hit_rate_abs_le_003",
+    "hit_rate_abs_le_004",
+    "hit_rate_abs_le_005",
+    "p10_p90_coverage",
+    "mean_p10_p90_width"
+  ],
+  "stratification": [
+    "calendar_month",
+    "shift",
+    "taphole_id_when_available",
+    "sample_count",
+    "si_level_band",
+    "sensor_data_quality"
+  ],
+  "decision_rules": {
+    "primary": "lower_mae_with_paired_95pct_interval_excluding_zero",
+    "secondary": "higher_hit_rate_abs_le_002_without_worse_monthly_max_mae",
+    "goal_mae": 0.02,
+    "production_release_allowed": false,
+    "mcp_integration_allowed": false
+  },
+  "temperature_joint_head": {
+    "status": "blocked_no_true_hot_metal_temperature_label",
+    "taphole_temperature_is_proxy_only": true
+  }
+}

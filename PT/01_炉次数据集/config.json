@@ -1,0 +1,1 @@
+{"primary_key":"meltno","max_duration_minutes":360,"future_tolerance_minutes":5,"required":["meltno","open_ts","close_ts"]}

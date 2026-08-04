@@ -1,0 +1,1042 @@
+/*
+ * REQ-FRONT2-20260713
+ * Industrial visual layer for the isolated 8094 preview.
+ * Functional JSX, WebSocket contracts, API routes, and the original 8093 file stay unchanged.
+ */
+
+body.front2-app {
+  --f2-bg: #0b1014;
+  --f2-bg-deep: #080c10;
+  --f2-surface: #151c22;
+  --f2-surface-raised: #1a232a;
+  --f2-surface-soft: #11181e;
+  --f2-border: rgba(116, 140, 151, 0.48);
+  --f2-border-soft: rgba(116, 140, 151, 0.25);
+  --f2-text: #edf3f4;
+  --f2-text-secondary: #bcc9cd;
+  --f2-text-muted: #91a4aa;
+  --f2-accent: #4eb6aa;
+  --f2-accent-strong: #65cabd;
+  --f2-accent-soft: rgba(78, 182, 170, 0.18);
+  --f2-warning: #d7a64d;
+  --f2-danger: #df625f;
+  margin: 0;
+  color: var(--f2-text);
+  background: var(--f2-bg-deep);
+  font-family: SimSun, "宋体", serif;
+  font-synthesis: weight style;
+  text-rendering: optimizeLegibility;
+}
+
+body.front2-app,
+body.front2-app button,
+body.front2-app input,
+body.front2-app textarea,
+body.front2-app select,
+body.front2-app table {
+  font-family: SimSun, "宋体", serif;
+}
+
+body.front2-app .app {
+  background:
+    linear-gradient(90deg, rgba(126, 151, 162, 0.025) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(126, 151, 162, 0.02) 1px, transparent 1px),
+    var(--f2-bg) !important;
+  background-size: 44px 44px, 44px 44px, auto !important;
+}
+
+body.front2-app .main {
+  min-width: 0 !important;
+  padding: 10px 12px 9px !important;
+  background: linear-gradient(180deg, rgba(21, 29, 35, 0.42), rgba(8, 13, 17, 0.16)) !important;
+}
+
+body.front2-app .screen {
+  min-width: 0 !important;
+  gap: 12px !important;
+}
+
+/* Shared production panels: match the optimization workbench surface system. */
+body.front2-app .panel {
+  min-width: 0 !important;
+  border: 1px solid var(--f2-border) !important;
+  border-radius: 7px !important;
+  background: linear-gradient(180deg, rgba(22, 31, 40, 0.985), rgba(12, 19, 27, 0.985)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.032), 0 8px 22px rgba(0, 0, 0, 0.18) !important;
+}
+
+body.front2-app .panel-head {
+  height: 36px !important;
+  min-height: 36px !important;
+  flex-basis: 36px !important;
+  padding: 0 12px !important;
+  border-bottom: 1px solid rgba(125, 151, 170, 0.31) !important;
+  background: linear-gradient(90deg, rgba(43, 57, 68, 0.94), rgba(25, 35, 45, 0.88)) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .panel-title {
+  display: flex !important;
+  min-width: 0 !important;
+  align-items: center !important;
+  color: var(--f2-text) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+body.front2-app .panel-title::before {
+  content: "" !important;
+  width: 3px !important;
+  height: 14px !important;
+  flex: 0 0 3px !important;
+  margin: 0 8px 0 0 !important;
+  border-radius: 1px !important;
+  background: var(--f2-accent) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .panel-note {
+  height: auto !important;
+  max-width: 54% !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  color: var(--f2-text-muted) !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+body.front2-app .panel-body {
+  min-width: 0 !important;
+  padding: 10px !important;
+}
+
+body.front2-app .chart,
+body.front2-app .spark {
+  background-color: rgba(5, 10, 14, 0.2) !important;
+}
+
+body.front2-app .chart-empty,
+body.front2-app .qa-server-empty,
+body.front2-app .workbench-empty {
+  color: var(--f2-text-muted) !important;
+}
+
+/* Bottom workflow navigation. */
+body.front2-app .bottom-nav {
+  gap: 8px !important;
+  padding: 8px 14px 9px !important;
+  border-top: 1px solid rgba(116, 140, 151, 0.38) !important;
+  background: linear-gradient(180deg, rgba(17, 24, 30, 0.99), rgba(8, 13, 17, 0.995)) !important;
+  box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.16) !important;
+}
+
+body.front2-app .nav-btn {
+  min-height: 58px !important;
+  border: 1px solid rgba(111, 137, 149, 0.48) !important;
+  border-radius: 6px !important;
+  background: linear-gradient(180deg, rgba(31, 42, 50, 0.98), rgba(17, 24, 30, 0.98)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.026) !important;
+  color: #bdc9cd !important;
+  font-size: 17px !important;
+  text-shadow: none !important;
+}
+
+body.front2-app .nav-btn:hover,
+body.front2-app .nav-btn:focus-visible {
+  border-color: rgba(101, 202, 189, 0.8) !important;
+  background: rgba(41, 65, 64, 0.92) !important;
+  outline: 2px solid rgba(101, 202, 189, 0.24) !important;
+  outline-offset: 1px !important;
+}
+
+body.front2-app .nav-btn.active {
+  border-color: rgba(101, 202, 189, 0.88) !important;
+  background: linear-gradient(180deg, rgba(55, 103, 96, 0.96), rgba(31, 65, 62, 0.98)) !important;
+  box-shadow: inset 0 0 0 1px rgba(132, 221, 208, 0.12) !important;
+  color: #f1f7f5 !important;
+}
+
+body.front2-app .nav-icon {
+  color: #9fb2b7 !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+body.front2-app .nav-btn.active .nav-icon {
+  color: #83d8ca !important;
+}
+
+body.front2-app .app::before,
+body.front2-app .panel::before,
+body.front2-app .panel::after,
+body.front2-app .nav-btn::before {
+  opacity: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+/* Overview: three task zones with the same proportions as the workbench. */
+body.front2-app .overview-three-column-v12,
+body.front2-app .overview-grid.overview-cad-grid {
+  grid-template-columns: minmax(270px, 24fr) minmax(0, 48fr) minmax(310px, 28fr) !important;
+  gap: 12px !important;
+}
+
+body.front2-app .core-page-v7 .core-metric-tabs-v7 button {
+  border: 1px solid var(--f2-border) !important;
+  border-radius: 5px !important;
+  background: rgba(17, 25, 31, 0.96) !important;
+  color: var(--f2-text-secondary) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+body.front2-app .core-page-v7 .core-metric-tabs-v7 button.active {
+  border-color: rgba(101, 202, 189, 0.78) !important;
+  background: rgba(46, 83, 78, 0.94) !important;
+  color: var(--f2-text) !important;
+  box-shadow: inset 0 0 0 1px rgba(117, 213, 199, 0.1) !important;
+}
+
+body.front2-app .core-page-v7 .core-metric-tabs-v7 b,
+body.front2-app .core-group-title b {
+  color: #7fcdbf !important;
+}
+
+body.front2-app .core-group-title {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(32, 43, 50, 0.92) !important;
+  color: #dce5e6 !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .metric-row,
+body.front2-app .core-group-row {
+  border-color: rgba(116, 140, 151, 0.22) !important;
+  background: rgba(9, 15, 19, 0.24) !important;
+}
+
+body.front2-app .metric-row:hover,
+body.front2-app .core-group-row:hover {
+  background: rgba(55, 87, 83, 0.26) !important;
+}
+
+body.front2-app .metric-name,
+body.front2-app .metric-value {
+  color: #dce5e6 !important;
+}
+
+body.front2-app .overview-diagnosis-button-v11,
+body.front2-app .overview-suggestion-v11 {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(9, 16, 21, 0.32) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .overview-diagnosis-button-v11:hover,
+body.front2-app .overview-suggestion-v11:hover,
+body.front2-app .overview-diagnosis-button-v11:focus-visible,
+body.front2-app .overview-suggestion-v11:focus-visible {
+  border-color: rgba(101, 202, 189, 0.72) !important;
+  background: rgba(44, 75, 71, 0.42) !important;
+  outline: 2px solid rgba(101, 202, 189, 0.2) !important;
+}
+
+body.front2-app .overview-suggestion-index-v11,
+body.front2-app .overview-jump-arrow-v11 {
+  color: #69c8b9 !important;
+  text-shadow: none !important;
+}
+
+body.front2-app .overview-large-events-v8,
+body.front2-app .basis-item,
+body.front2-app .suggest-card,
+body.front2-app .time-row {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(9, 16, 21, 0.28) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .basis-item::before {
+  background: var(--f2-accent) !important;
+  box-shadow: none !important;
+}
+
+/* Diagnosis: keep semantic category/risk colors, remove toy-like chrome. */
+body.front2-app .diagnosis-grid {
+  grid-template-columns: minmax(286px, 27fr) minmax(330px, 34fr) minmax(400px, 39fr) !important;
+  gap: 12px !important;
+}
+
+body.front2-app .diag-bottom {
+  gap: 12px !important;
+}
+
+body.front2-app .diag-rank-card,
+body.front2-app .bf-diag-category-risk-card {
+  border-color: var(--f2-border-soft) !important;
+  border-left: 3px solid var(--diag-kind, var(--f2-accent)) !important;
+  border-radius: 5px !important;
+  background: rgba(12, 19, 25, 0.72) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .diag-medal {
+  border: 1px solid rgba(142, 161, 169, 0.46) !important;
+  border-radius: 4px !important;
+  background: rgba(50, 63, 72, 0.92) !important;
+  box-shadow: none !important;
+  color: #edf3f4 !important;
+}
+
+body.front2-app .diag-rank-bar,
+body.front2-app .bar {
+  background: rgba(104, 124, 133, 0.22) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .diag-rank-fill,
+body.front2-app .bar-fill {
+  box-shadow: none !important;
+}
+
+body.front2-app .diag-conclusion,
+body.front2-app .diag-rule-row,
+body.front2-app .diag-var-card,
+body.front2-app .diag-explain,
+body.front2-app .base-row,
+body.front2-app .rule-hit,
+body.front2-app .evidence-item {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(10, 17, 22, 0.46) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .diag-conclusion {
+  grid-template-columns: 134px minmax(0, 1fr) !important;
+  gap: 24px !important;
+  padding: 16px 26px !important;
+  border-color: rgba(116, 140, 151, 0.34) !important;
+  background: linear-gradient(90deg, rgba(12, 19, 24, 0.94), rgba(9, 15, 19, 0.72)) !important;
+}
+
+body.front2-app .diag-mini-furnace-industrial {
+  width: 118px !important;
+  height: 164px !important;
+  display: block !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  padding: 3px !important;
+  border: 1px solid rgba(116, 140, 151, 0.28) !important;
+  border-radius: 2px !important;
+  background: #0b1116 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.018) !important;
+  filter: saturate(0.72) contrast(1.06) brightness(0.94) !important;
+  opacity: 0.96 !important;
+}
+
+body.front2-app .diag-condition-furnace {
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  border: 1px solid rgba(100, 139, 158, 0.46);
+  border-radius: 3px;
+  background: #071018;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.34);
+}
+
+body.front2-app .diag-conclusion-lines {
+  min-width: 0 !important;
+  padding-left: 22px !important;
+  border-left: 1px solid rgba(116, 140, 151, 0.24) !important;
+}
+
+@media (max-width: 1500px) {
+  body.front2-app .diag-conclusion {
+    grid-template-columns: 82px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 10px 12px !important;
+  }
+
+  body.front2-app .diag-mini-furnace-industrial {
+    width: 78px !important;
+    height: 118px !important;
+  }
+
+  body.front2-app .diag-conclusion-lines {
+    padding-left: 12px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  body.front2-app .diag-conclusion {
+    grid-template-columns: 66px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+
+  body.front2-app .diag-mini-furnace-industrial {
+    width: 62px !important;
+    height: 94px !important;
+  }
+
+  body.front2-app .diag-conclusion-lines {
+    padding-left: 8px !important;
+  }
+}
+
+body.front2-app .diag-rule-row:hover,
+body.front2-app .diag-var-card:hover,
+body.front2-app .base-row:hover {
+  background: rgba(48, 78, 74, 0.25) !important;
+}
+
+body.front2-app .diag-check {
+  background: #458b78 !important;
+  box-shadow: none !important;
+  color: #f3fbf8 !important;
+}
+
+body.front2-app .diag-note,
+body.front2-app .diag-var-meta,
+body.front2-app .base-row {
+  color: var(--f2-text-secondary) !important;
+}
+
+/* Trend controls and evidence tables. */
+body.front2-app .trend-grid.vertical-analysis {
+  grid-template-columns: minmax(0, 68fr) minmax(360px, 32fr) !important;
+  gap: 12px !important;
+}
+
+body.front2-app .toolbar,
+body.front2-app .trend-toolbar {
+  border: 1px solid var(--f2-border) !important;
+  border-radius: 6px !important;
+  background: rgba(23, 32, 39, 0.97) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .seg button,
+body.front2-app .forecast-btn,
+body.front2-app .forecast-badge,
+body.front2-app .trend-toolbar select {
+  border-color: rgba(116, 140, 151, 0.48) !important;
+  border-radius: 4px !important;
+  background: rgba(14, 21, 26, 0.88) !important;
+  color: var(--f2-text-secondary) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .seg button.active,
+body.front2-app .forecast-btn:hover,
+body.front2-app .forecast-btn:focus-visible {
+  border-color: rgba(101, 202, 189, 0.78) !important;
+  background: rgba(53, 99, 92, 0.96) !important;
+  color: #f2f8f6 !important;
+  outline: none !important;
+}
+
+body.front2-app .forecast-btn:disabled {
+  border-color: rgba(116, 140, 151, 0.32) !important;
+  background: rgba(38, 48, 54, 0.72) !important;
+  color: #829399 !important;
+}
+
+body.front2-app .table,
+body.front2-app .trend-table,
+body.front2-app .focus-table {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(8, 14, 18, 0.25) !important;
+}
+
+body.front2-app .table th,
+body.front2-app .focus-head {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(42, 54, 62, 0.92) !important;
+  color: #dce5e6 !important;
+}
+
+body.front2-app .table td,
+body.front2-app .table th,
+body.front2-app .focus-row {
+  border-color: rgba(116, 140, 151, 0.2) !important;
+}
+
+body.front2-app .table tbody tr:hover,
+body.front2-app .focus-row:not(.focus-head):hover {
+  background: rgba(48, 78, 74, 0.24) !important;
+}
+
+body.front2-app .trend-insights .evidence-item {
+  border-left: 3px solid rgba(78, 182, 170, 0.72) !important;
+}
+
+/* Knowledge assistant: low-decoration, table/workflow-first industrial shell. */
+body.front2-app .qa-server-shell,
+body.front2-app .qa-project-shell {
+  grid-template-columns: 292px minmax(0, 1fr) !important;
+  gap: 0 !important;
+  border: 1px solid var(--f2-border) !important;
+  border-radius: 7px !important;
+  background: var(--f2-surface-soft) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18) !important;
+}
+
+body.front2-app .qa-server-side,
+body.front2-app .qa-project-nav {
+  border-right: 1px solid var(--f2-border-soft) !important;
+  background: #151c20 !important;
+}
+
+body.front2-app .qa-server-panel,
+body.front2-app .qa-server-chat,
+body.front2-app .qa-sources-panel {
+  border-color: var(--f2-border-soft) !important;
+  border-radius: 0 !important;
+  background: var(--f2-surface) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .qa-server-panel-head,
+body.front2-app .qa-server-chat-head,
+body.front2-app .qa-sources-head,
+body.front2-app .qa-project-head {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(31, 42, 49, 0.96) !important;
+  color: var(--f2-text) !important;
+}
+
+body.front2-app .qa-server-session,
+body.front2-app .qa-server-quick,
+body.front2-app .qa-project-item,
+body.front2-app .qa-conversation-item,
+body.front2-app .qa-source-item,
+body.front2-app .qa-context-chip {
+  border-color: transparent !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--f2-text-secondary) !important;
+}
+
+body.front2-app .qa-server-session:hover,
+body.front2-app .qa-server-quick:hover,
+body.front2-app .qa-project-item:hover,
+body.front2-app .qa-conversation-item:hover,
+body.front2-app .qa-source-item:hover {
+  border-color: rgba(101, 202, 189, 0.24) !important;
+  background: rgba(55, 87, 83, 0.34) !important;
+}
+
+body.front2-app .qa-server-session.active,
+body.front2-app .qa-project-item.active,
+body.front2-app .qa-conversation-item.active,
+body.front2-app .qa-nav-tab.active {
+  border-color: rgba(101, 202, 189, 0.36) !important;
+  background: rgba(55, 103, 96, 0.52) !important;
+  box-shadow: inset 3px 0 0 var(--f2-accent) !important;
+}
+
+body.front2-app .qa-server-new,
+body.front2-app .qa-server-send,
+body.front2-app .qa-small-plain,
+body.front2-app .qa-project-button,
+body.front2-app .qa-source-action {
+  border: 1px solid rgba(116, 140, 151, 0.54) !important;
+  border-radius: 4px !important;
+  background: rgba(35, 47, 54, 0.96) !important;
+  box-shadow: none !important;
+  color: #dce5e6 !important;
+}
+
+body.front2-app .qa-server-new:hover,
+body.front2-app .qa-server-send:hover,
+body.front2-app .qa-small-plain:hover,
+body.front2-app .qa-project-button:hover,
+body.front2-app .qa-source-action:hover {
+  border-color: rgba(101, 202, 189, 0.76) !important;
+  background: rgba(55, 103, 96, 0.86) !important;
+}
+
+body.front2-app .qa-server-chat {
+  background: #12181d !important;
+}
+
+body.front2-app .qa-server-msg.assistant .qa-server-bubble {
+  border-left: 3px solid rgba(78, 182, 170, 0.84) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--f2-text) !important;
+}
+
+body.front2-app .qa-server-msg.user .qa-server-bubble {
+  border: 1px solid rgba(101, 202, 189, 0.42) !important;
+  background: rgba(49, 90, 84, 0.72) !important;
+  box-shadow: none !important;
+  color: #f3f8f6 !important;
+}
+
+body.front2-app .qa-server-compose,
+body.front2-app .qa-context-basket {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(17, 24, 29, 0.96) !important;
+}
+
+body.front2-app .qa-server-compose textarea,
+body.front2-app .qa-context-edit textarea,
+body.front2-app .qa-section-input textarea,
+body.front2-app .qa-project-row input,
+body.front2-app .qa-context-chip select {
+  border: 1px solid rgba(116, 140, 151, 0.48) !important;
+  border-radius: 5px !important;
+  background: #20282e !important;
+  color: var(--f2-text) !important;
+  box-shadow: none !important;
+}
+
+body.front2-app .qa-server-compose textarea:focus,
+body.front2-app .qa-context-edit textarea:focus,
+body.front2-app .qa-section-input textarea:focus,
+body.front2-app .qa-project-row input:focus {
+  border-color: var(--f2-accent-strong) !important;
+  outline: 2px solid rgba(101, 202, 189, 0.18) !important;
+  outline-offset: 1px !important;
+}
+
+/* Injected automation monitor uses the same front2 surface language. */
+body.front2-app #bf-auto-monitor,
+body.front2-app #bf-sw-chat {
+  border-color: rgba(116, 140, 151, 0.58) !important;
+  border-radius: 6px !important;
+  background: rgba(17, 24, 30, 0.97) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28) !important;
+  color: var(--f2-text-secondary) !important;
+}
+
+body.front2-app .bf-auto-head,
+body.front2-app .bf-sw-chat-head {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(37, 49, 57, 0.98) !important;
+}
+
+body.front2-app .bf-auto-card,
+body.front2-app .bf-auto-item,
+body.front2-app .bf-sw-msg {
+  border-color: var(--f2-border-soft) !important;
+  background: rgba(10, 17, 22, 0.64) !important;
+}
+
+/* Keep 1280px as a real desktop breakpoint when the viewport is tall enough. */
+@media (min-width: 1280px) and (min-height: 821px) {
+  body.front2-app {
+    overflow: hidden !important;
+  }
+
+  body.front2-app .app {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100vh !important;
+    min-height: 0 !important;
+    grid-template-rows: 92px minmax(0, 1fr) 82px !important;
+    overflow: hidden !important;
+  }
+
+  body.front2-app .main {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.front2-app .screen {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Preserve the source page's scroll-safe compact desktop layout. */
+@media (min-width: 1280px) and (max-height: 820px) {
+  body.front2-app {
+    overflow: hidden !important;
+  }
+
+  body.front2-app .app {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100vh !important;
+    min-height: 0 !important;
+    grid-template-rows: 72px minmax(0, 1fr) 64px !important;
+    overflow: hidden !important;
+  }
+
+  body.front2-app .topbar.branded-topbar {
+    height: 72px !important;
+    grid-template-columns: minmax(500px, 1fr) auto 48px !important;
+    grid-template-rows: 42px 30px !important;
+  }
+
+  body.front2-app .branded-topbar .brand {
+    height: 42px !important;
+    padding-left: 20px !important;
+  }
+
+  body.front2-app .branded-topbar .brand-title {
+    font-size: 30px !important;
+  }
+
+  body.front2-app .brand-pack {
+    height: 40px !important;
+    min-width: 520px !important;
+    padding: 5px 10px !important;
+    grid-template-columns: auto 1px 142px 132px !important;
+    gap: 10px !important;
+  }
+
+  body.front2-app .brand-subtitle {
+    font-size: 20px !important;
+  }
+
+  body.front2-app .brand-logo {
+    height: 30px !important;
+  }
+
+  body.front2-app .steel-logo {
+    width: 142px !important;
+  }
+
+  body.front2-app .ysu-logo {
+    width: 132px !important;
+  }
+
+  body.front2-app .branded-topbar .status-strip {
+    height: 30px !important;
+    padding-left: 320px !important;
+    grid-template-columns: repeat(6, minmax(96px, auto)) !important;
+    gap: 4px !important;
+  }
+
+  body.front2-app .branded-topbar .top-item {
+    height: 26px !important;
+    padding: 0 5px !important;
+    font-size: 12px !important;
+  }
+
+  body.front2-app .main {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 6px 8px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  body.front2-app .screen {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body.front2-app .screen.diagnosis-grid {
+    height: auto !important;
+    min-height: 724px !important;
+    grid-template-rows: minmax(420px, 1.35fr) minmax(288px, 0.85fr) !important;
+    align-content: start !important;
+  }
+
+  body.front2-app .diag-bottom {
+    min-height: 288px !important;
+  }
+
+  body.front2-app .diag-bottom > .panel .panel-body {
+    overflow: auto !important;
+  }
+
+  body.front2-app .bottom-nav {
+    gap: 8px !important;
+    padding: 5px 14px 6px !important;
+  }
+
+  body.front2-app .nav-btn {
+    min-height: 50px !important;
+    gap: 10px !important;
+    font-size: 18px !important;
+  }
+
+  body.front2-app .nav-icon {
+    font-size: 26px !important;
+  }
+}
+
+@media (max-width: 1500px) {
+  body.front2-app .main {
+    padding: 8px 10px 7px !important;
+  }
+
+  body.front2-app .screen,
+  body.front2-app .overview-three-column-v12,
+  body.front2-app .overview-grid.overview-cad-grid,
+  body.front2-app .diagnosis-grid,
+  body.front2-app .diag-bottom,
+  body.front2-app .trend-grid.vertical-analysis {
+    gap: 10px !important;
+  }
+
+  body.front2-app .panel-head {
+    height: 32px !important;
+    min-height: 32px !important;
+    flex-basis: 32px !important;
+  }
+
+  body.front2-app .panel-title {
+    font-size: 15px !important;
+  }
+
+  body.front2-app .panel-body {
+    padding: 8px !important;
+  }
+
+  body.front2-app .nav-btn {
+    min-height: 54px !important;
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 1279px) {
+  body.front2-app {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  body.front2-app .app {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    max-height: none !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    overflow: visible !important;
+  }
+
+  body.front2-app .main {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  body.front2-app .screen {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.front2-app .overview-three-column-v12,
+  body.front2-app .overview-grid.overview-cad-grid,
+  body.front2-app .diagnosis-grid,
+  body.front2-app .trend-grid.vertical-analysis {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+  }
+
+  body.front2-app .overview-three-column-v12 > *,
+  body.front2-app .overview-grid.overview-cad-grid > *,
+  body.front2-app .diagnosis-grid > *,
+  body.front2-app .trend-grid.vertical-analysis > * {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  body.front2-app .diag-bottom {
+    grid-column: 1 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+  }
+
+  body.front2-app .qa-server-shell,
+  body.front2-app .qa-project-shell {
+    grid-template-columns: 260px minmax(0, 1fr) !important;
+    min-height: 720px !important;
+  }
+
+  body.front2-app .bottom-nav {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 30 !important;
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  body.front2-app .nav-btn {
+    flex: 0 0 164px !important;
+    min-height: 50px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.front2-app .bottom-nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    overflow: hidden !important;
+  }
+
+  body.front2-app .nav-btn {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: none !important;
+    padding: 0 5px !important;
+    gap: 5px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  body.front2-app .main {
+    padding: 6px !important;
+  }
+
+  body.front2-app .screen,
+  body.front2-app .diag-bottom {
+    gap: 8px !important;
+  }
+
+  body.front2-app .panel-head {
+    height: 34px !important;
+    min-height: 34px !important;
+    flex-basis: 34px !important;
+    padding: 0 9px !important;
+  }
+
+  body.front2-app .panel-title {
+    font-size: 15px !important;
+  }
+
+  body.front2-app .panel-note {
+    max-width: 46% !important;
+    font-size: 11px !important;
+  }
+
+  body.front2-app .panel-body {
+    padding: 7px !important;
+  }
+
+  body.front2-app .qa-server-shell,
+  body.front2-app .qa-project-shell {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: 980px !important;
+  }
+
+  body.front2-app .qa-server-side,
+  body.front2-app .qa-project-nav {
+    min-height: 360px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--f2-border-soft) !important;
+  }
+
+  body.front2-app .qa-server-chat {
+    min-height: 560px !important;
+  }
+
+  body.front2-app .qa-server-compose {
+    grid-template-columns: minmax(0, 1fr) 64px !important;
+  }
+
+  body.front2-app .bottom-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+    padding: 4px !important;
+    overflow: hidden !important;
+  }
+
+  body.front2-app .nav-btn {
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 50px !important;
+    flex: none !important;
+    flex-direction: column !important;
+    gap: 1px !important;
+    padding: 2px !important;
+    font-size: 11.5px !important;
+  }
+
+  body.front2-app .nav-icon {
+    font-size: 18px !important;
+  }
+
+  body.front2-app #bf-auto-monitor {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.front2-app *,
+  body.front2-app *::before,
+  body.front2-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Decision cockpit: parameter optimization route. Keeps real-time content compact and scanable. */
+body.front2-app .optimization-cockpit{height:100%;display:grid;grid-template-rows:minmax(0,1fr) 270px;gap:12px;min-width:0;overflow:hidden}
+body.front2-app .opt-cockpit-top{min-height:0;display:grid;grid-template-columns:minmax(205px,23%) minmax(460px,50%) minmax(300px,27%);gap:12px}
+body.front2-app .opt-state-column,body.front2-app .opt-decision-column,body.front2-app .opt-monitor-column{min-height:0}
+body.front2-app .opt-monitor-column{display:grid;grid-template-rows:minmax(0,60%) minmax(0,40%);gap:12px}
+body.front2-app .opt-state-column .panel,body.front2-app .opt-decision-column .panel,body.front2-app .opt-monitor-column .panel,body.front2-app .opt-cockpit-bottom{height:100%}
+body.front2-app .cockpit-state-list{height:calc(100% - 36px);display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:8px}
+body.front2-app .cockpit-state{min-height:0;display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(74,134,176,.4);border-radius:5px;background:linear-gradient(100deg,rgba(8,44,78,.68),rgba(2,22,44,.48))}
+body.front2-app .cockpit-state span{color:var(--f2-text-muted);font-size:14px}body.front2-app .cockpit-state b{color:#e8f5ff;font-size:18px}.cockpit-update{margin-top:10px;padding-top:10px;border-top:1px solid rgba(68,134,174,.36);color:var(--f2-text-muted);font-size:12px}
+body.front2-app .cockpit-decision{height:100%;display:grid;grid-template-rows:auto auto auto minmax(100px,1fr) auto;gap:10px;padding:4px 2px}.cockpit-decision-title{text-align:center;font-size:clamp(28px,3.1vw,52px);line-height:1.08;font-weight:900;letter-spacing:1px;padding:6px 4px 2px}.cockpit-decision-title.good{color:#66e48b;text-shadow:0 0 18px rgba(80,215,126,.28)}.cockpit-decision-title.warn{color:#ffd066;text-shadow:0 0 18px rgba(255,181,46,.18)}
+body.front2-app .cockpit-decision-meta{display:flex;justify-content:center;align-items:center;gap:32px;padding:9px;border-top:1px solid rgba(49,129,186,.3);border-bottom:1px solid rgba(49,129,186,.3);color:#c9dcf0;font-size:15px}.cockpit-decision-meta b{color:#46bfff;font-size:22px;margin-left:8px}.cockpit-subhead{display:flex;justify-content:space-between;color:#e9f6ff;font-weight:900;font-size:15px}.cockpit-subhead span{color:#8bc5ee;font-size:12px;font-weight:400;border:1px solid rgba(38,132,202,.5);border-radius:4px;padding:2px 7px}
+body.front2-app .cockpit-evidence-grid{min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.cockpit-evidence-card{min-width:0;display:grid;grid-template-rows:auto auto auto minmax(28px,1fr);padding:9px;border:1px solid rgba(55,132,196,.55);border-radius:5px;background:rgba(4,29,56,.74);color:#bdd5ea;font-size:12px}.cockpit-evidence-card b{margin-top:4px;color:#f2f9ff;font-family:Consolas,"Courier New",monospace;font-size:clamp(18px,1.6vw,28px)}.cockpit-evidence-card strong{margin-top:3px;font-size:14px}.cockpit-spark{width:100%;min-height:30px;height:100%}.cockpit-why{padding:8px 10px;border-left:3px solid var(--f2-accent);border-radius:4px;background:rgba(7,38,70,.58);color:#c9dced;font-size:13px;line-height:1.45}.cockpit-why b{color:#f1f8ff}.cockpit-why p{margin:4px 0 0}
+body.front2-app .cockpit-metric-table{height:100%;display:grid;grid-template-rows:28px repeat(5,minmax(0,1fr))}.cockpit-metric-head,.cockpit-metric-row{display:grid;grid-template-columns:minmax(0,1.35fr) .62fr .76fr 56px;align-items:center;gap:7px;border-bottom:1px solid rgba(66,126,170,.28)}.cockpit-metric-head{color:#a7c4dd;background:rgba(10,47,83,.72);font-size:12px}.cockpit-metric-row{color:#c9dcec;font-size:12px}.cockpit-metric-row b{color:#f0f7ff;font-family:Consolas,"Courier New",monospace;font-size:14px;text-align:right}.cockpit-metric-row strong{font-family:Consolas,"Courier New",monospace;font-size:12px;text-align:right}.cockpit-metric-head span,.cockpit-metric-row span{min-width:0;padding-left:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cockpit-table-spark{width:54px;height:26px}
+body.front2-app .cockpit-risk-list{height:100%;display:grid;grid-template-rows:repeat(2,minmax(0,1fr))}.cockpit-risk-row{display:grid;grid-template-columns:11px minmax(0,1fr) 62px;align-items:center;gap:9px;padding:6px 2px;border-bottom:1px solid rgba(66,126,170,.28)}.cockpit-risk-row i{width:10px;height:10px;border-radius:999px;background:#ffd05a;box-shadow:0 0 8px rgba(255,195,55,.55)}.cockpit-risk-row i.good{background:#49db77;box-shadow:0 0 8px rgba(73,219,119,.55)}.cockpit-risk-row i.bad{background:#ff6b76;box-shadow:0 0 8px rgba(255,107,118,.55)}.cockpit-risk-row b{display:block;color:#e5f2ff;font-size:13px}.cockpit-risk-row span{display:block;margin-top:2px;color:#9dbad4;font-size:11px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cockpit-risk-spark{width:62px;height:28px}
+body.front2-app .opt-cockpit-bottom .panel-body{min-height:0;padding:8px 10px}.cockpit-bottom{height:100%;display:grid;grid-template-columns:58% 42%;gap:16px}.cockpit-trend-grid{min-width:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.cockpit-trend-card{min-width:0;display:grid;grid-template-rows:auto minmax(0,1fr);border-right:1px solid rgba(64,127,174,.28);padding-right:8px}.cockpit-trend-card:last-child{border-right:0}.cockpit-trend-card>div{display:flex;justify-content:space-between;gap:4px;color:#caddef;font-size:12px}.cockpit-trend-card b{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.cockpit-trend-card span{color:#ffb84a;white-space:nowrap}.cockpit-trend-chart{width:100%;min-height:96px;height:100%}
+body.front2-app .cockpit-candidates{min-width:0;border-left:1px solid rgba(64,127,174,.4);padding-left:14px;display:grid;grid-template-rows:27px repeat(4,minmax(0,1fr)) 30px}.cockpit-candidate-head,.cockpit-candidate{display:grid;grid-template-columns:44px minmax(105px,1fr) minmax(90px,1.2fr) 52px;align-items:center;gap:8px}.cockpit-candidate-head{color:#9fbdd8;font-size:12px;border-bottom:1px solid rgba(62,126,170,.36)}.cockpit-candidate{width:100%;border:0;border-bottom:1px solid rgba(62,126,170,.25);background:transparent;color:#c8dbea;cursor:pointer;text-align:left;padding:3px 0}.cockpit-candidate:hover,.cockpit-candidate.selected{background:rgba(27,97,151,.17)}.cockpit-candidate em{width:25px;height:25px;display:grid;place-items:center;justify-self:center;border-radius:999px;background:#1766b1;color:#eef8ff;font-style:normal;font-weight:900}.cockpit-candidate:nth-of-type(2) em{background:#2c9255}.cockpit-candidate:nth-of-type(3) em{background:#bd7118}.cockpit-candidate b{display:block;color:#edf7ff;font-size:13px}.cockpit-candidate small{display:block;margin-top:1px;color:#8db1ce;font-size:10px}.cockpit-candidate>div{height:7px;overflow:hidden;border-radius:8px;background:#123558}.cockpit-candidate>div i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#47baff,#2b7ac8)}.cockpit-candidate strong{color:#eef7ff;font-family:Consolas,"Courier New",monospace;font-size:12px;text-align:right}.cockpit-selected-detail{display:flex;align-items:center;gap:8px;min-width:0;color:#9fbddb;font-size:11px}.cockpit-selected-detail b{color:#dff0ff;white-space:nowrap}.cockpit-selected-detail span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+@media(max-width:1500px){body.front2-app .optimization-cockpit{grid-template-rows:minmax(0,1fr) 238px;gap:8px}.opt-cockpit-top{grid-template-columns:minmax(0,23fr) minmax(0,50fr) minmax(0,27fr);gap:8px}.opt-monitor-column{gap:8px}.cockpit-decision-title{font-size:34px}.cockpit-decision-meta{gap:18px;font-size:13px}.cockpit-evidence-card{padding:7px}.cockpit-evidence-card b{font-size:20px}.cockpit-bottom{gap:10px}.cockpit-trend-grid{gap:6px}.cockpit-candidates{padding-left:10px}.cockpit-candidate-head,.cockpit-candidate{grid-template-columns:34px minmax(78px,1fr) minmax(66px,1fr) 42px;gap:5px}}
+@media(max-width:1279px){body.front2-app .optimization-cockpit{height:auto;grid-template-rows:auto auto;overflow:visible}.opt-cockpit-top{grid-template-columns:1fr}.opt-monitor-column{grid-template-columns:1fr 1fr;grid-template-rows:310px}.opt-state-column .panel,.opt-decision-column .panel,.opt-monitor-column .panel,.opt-cockpit-bottom{min-height:310px}.cockpit-bottom{grid-template-columns:1fr}.cockpit-candidates{min-height:230px;border-left:0;border-top:1px solid rgba(64,127,174,.4);padding:10px 0 0}}
+/* Empty miniature trends must remain legible in the narrow monitoring column. */
+.cockpit-table-spark .chart-empty,.cockpit-risk-spark .chart-empty{font-size:0!important;white-space:nowrap}.cockpit-table-spark .chart-empty:after,.cockpit-risk-spark .chart-empty:after{content:'--';font-size:11px;color:#84a6c3}
+
+/* The legacy canvas shell installs a 1040px screen floor on narrow devices.  The
+   cockpit is intentionally a readable, vertically scrollable workflow there. */
+@media(max-width:1279px){
+  html:has(.optimization-cockpit),body:has(.optimization-cockpit),#root:has(.optimization-cockpit){width:100%!important;min-width:0!important;height:auto!important}
+  body.front2-app:has(.optimization-cockpit){overflow:auto!important}
+  body.front2-app:has(.optimization-cockpit) .app{width:100%!important;min-width:0!important;height:auto!important;min-height:100vh!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto minmax(0,1fr) auto!important;overflow:visible!important}
+  body.front2-app:has(.optimization-cockpit) .main,body.front2-app:has(.optimization-cockpit) .screen{width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:0!important;overflow:visible!important}
+  body.front2-app .optimization-cockpit .opt-cockpit-top{width:100%!important;min-width:0!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto!important}
+  body.front2-app .optimization-cockpit .opt-state-column,body.front2-app .optimization-cockpit .opt-decision-column,body.front2-app .optimization-cockpit .opt-monitor-column{width:100%!important;min-width:0!important}
+  body.front2-app .optimization-cockpit .opt-monitor-column{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto!important}
+}
+@media(max-width:900px){
+  body.front2-app:has(.optimization-cockpit) .topbar,body.front2-app:has(.optimization-cockpit) .topbar.branded-topbar{height:58px!important;grid-template-columns:minmax(0,1fr) 42px!important;grid-template-rows:58px!important}
+  body.front2-app:has(.optimization-cockpit) .brand,body.front2-app:has(.optimization-cockpit) .branded-topbar .brand{grid-column:1!important;grid-row:1!important;height:58px!important;padding-left:12px!important;background:none!important}
+  body.front2-app:has(.optimization-cockpit) .brand:after,body.front2-app:has(.optimization-cockpit) .brand-pack,body.front2-app:has(.optimization-cockpit) .status-strip{display:none!important}
+  body.front2-app:has(.optimization-cockpit) .brand-title,body.front2-app:has(.optimization-cockpit) .branded-topbar .brand-title{font-size:18px!important;letter-spacing:0!important;white-space:nowrap!important}
+  body.front2-app:has(.optimization-cockpit) .refresh{grid-column:2!important;grid-row:1!important;font-size:23px!important}
+  body.front2-app:has(.optimization-cockpit) .bottom-nav{position:sticky!important;bottom:0!important;z-index:20!important;min-width:0!important;width:100%!important;gap:4px!important;padding:5px!important}
+  body.front2-app:has(.optimization-cockpit) .nav-btn{min-height:46px!important;font-size:0!important;gap:0!important}
+  body.front2-app:has(.optimization-cockpit) .nav-icon{font-size:23px!important}
+  body.front2-app:has(.optimization-cockpit) .nav-btn span:last-child{display:none!important}
+}

@@ -1,0 +1,149 @@
+{
+  "schema_version": "bf3d.r2u.section_cap_controlled.v4",
+  "requirement_id": "REQ-BF3D-R2U-SECTION-CAP-CONTROLLED-V4-20260720",
+  "asset_id": "GL02_SECTION_CAP_CONTROLLED_V4",
+  "status": "candidate_ready_for_independent_visual_and_spec_review",
+  "next_stage_allowed": false,
+  "approval_granted": false,
+  "evidence": "E/illustrative",
+  "reference_status": "REF-PENDING",
+  "not_for_construction": true,
+  "scope": {
+    "material_group": "5 complete R2J shells; V3 material/PBR source logic reused",
+    "section_group": "10 closed positive-volume physical half-section objects",
+    "runtime_clipping_required": false,
+    "layer_thickness_scale": 1.0,
+    "controlled_change": "Section cap topology only"
+  },
+  "outputs": {
+    "main_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_review.v4.glb",
+      "bytes": 4275268,
+      "sha256": "e46508bcecc8fef76510a0b889e0598ad3cb2289cc00f6b99566c78e3ed3afd2"
+    },
+    "material_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_material_review.v4.glb",
+      "bytes": 993224,
+      "sha256": "6ad5e9dc51a10259d41d0f4d55391bddc262e482da36e4a9a082e268e27e93f6"
+    },
+    "structural_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_structural_review.v4.glb",
+      "bytes": 3558868,
+      "sha256": "3299bfeceaceea51559c3b41cfc7782dfa3fa61d33501fa80e6d5590ee679d47"
+    },
+    "direct_open_blend": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_review.v4.blend",
+      "bytes": 37073211,
+      "sha256": "86bce712181ac0771ed460806f54b072659fd8f854334bd0a1ddf73b4e15c9c1"
+    }
+  },
+  "hard_gates": {
+    "material_objects": 5,
+    "section_objects": 10,
+    "all_sections_closed_positive": true,
+    "boundary_edge_count_total": 0,
+    "non_manifold_edge_count_total": 0,
+    "cross_object_cap_overlap_pairs": 0,
+    "cross_object_cap_overlap_area_m2": 0.0,
+    "factory_import_three_glbs": true,
+    "formal_v1_v2_v3_assets_unchanged": true,
+    "verifier_negative_cases_nonzero": true
+  },
+  "validation_reports": {
+    "input_gate_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/input_gate_validation.json",
+      "bytes": 495,
+      "sha256": "4789c9ecae72a7c459a52a362530b4af9d412f96b7e1cb2d509e2b985642a8b8"
+    },
+    "boolean_difference_report.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/boolean_difference_report.json",
+      "bytes": 1325,
+      "sha256": "e157f5d408840de04a53fd34250343c61a99e0ced73a8fc58981753ff5aa79a2"
+    },
+    "cap_ownership_resolution_report.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/cap_ownership_resolution_report.json",
+      "bytes": 57384,
+      "sha256": "7942cbbe6cda767890f6fc559a251a1b7835431f01d3cffcebf175bd6a73923c"
+    },
+    "texture_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/texture_validation.json",
+      "bytes": 12537,
+      "sha256": "ee1d608441dcbc93d0e178182babee583c6bc5ae8e1db27330484e4f51686805"
+    },
+    "uv_texcoord_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/uv_texcoord_validation.json",
+      "bytes": 8368,
+      "sha256": "7aa995cd413bfd226849497ec866a42d4b4255ce29aaac247f8763c780a391f7"
+    },
+    "section_scale_cap_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/section_scale_cap_validation.json",
+      "bytes": 31850,
+      "sha256": "a7af2656d1a024b667a88958d7bb6aa5a030050e072672d76eddc38b8819a225"
+    },
+    "section_topology_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/section_topology_validation.json",
+      "bytes": 9222,
+      "sha256": "0038158ad5a037309101fce9a5cb155725f0feea7203a8fac2971f5d501ccd1b"
+    },
+    "section_cap_overlap_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/section_cap_overlap_validation.json",
+      "bytes": 33571,
+      "sha256": "e93b4b5884bc168c6a2a8261d086173eb0a6711eb5d19a21c86557e0a3b7a534"
+    },
+    "glb_channel_texcoord_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/glb_channel_texcoord_validation.json",
+      "bytes": 33664,
+      "sha256": "16e67755b5e272adad7fd3fa81a4ce4401cd7fdbf0056944de51c74e08b057cb"
+    },
+    "role_forbidden_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/role_forbidden_validation.json",
+      "bytes": 945,
+      "sha256": "a5513713df1815ebdf099dda518f9692989879e343cb809e461a00a891d92fe4"
+    },
+    "build_report.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/build_report.json",
+      "bytes": 161689,
+      "sha256": "095790d224f06a4175c3a887641492de11dbfe1690f55e05926b9d49be82f7bd"
+    },
+    "visual_manifest.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/visual_manifest.json",
+      "bytes": 10524,
+      "sha256": "fb1bee1c4030f29fa5c91afdfd3691e520c9d4e9a28cb6d745e06c455ce5f4b9"
+    },
+    "blend_reopen_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/blend_reopen_validation.json",
+      "bytes": 48303,
+      "sha256": "daa061ed73b0bc39447377b297ae2cc63962ff1154369fb42ea641a4bd3a663b"
+    },
+    "factory_import_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/factory_import_validation.json",
+      "bytes": 4708,
+      "sha256": "9c41d0ad81ab85e76cc9b3e805c773f9620f54ca1235093f5db1c1b5dad8ea50"
+    },
+    "derived_glb_factory_import_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/derived_glb_factory_import_validation.json",
+      "bytes": 4708,
+      "sha256": "9c41d0ad81ab85e76cc9b3e805c773f9620f54ca1235093f5db1c1b5dad8ea50"
+    },
+    "verifier_topology_report.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/verifier_topology_report.json",
+      "bytes": 46443,
+      "sha256": "b5d59d0925a80578bfe6ce7a5e40d2e691927b938b0c53b8a2d6808eec173194"
+    },
+    "verifier_negative_self_test.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/verifier_negative_self_test.json",
+      "bytes": 763,
+      "sha256": "dec7edaf1187b1b5d2e79ab576595dcfe4edcfc96857496be891175bade6a22d"
+    }
+  },
+  "pending": {
+    "p50": "pending",
+    "p60": "pending",
+    "p70": "pending",
+    "qa70": "pending",
+    "three_blender_photometric_equivalence": "pending_not_approved",
+    "visual_review": "pending_independent_review",
+    "spec_review": "pending_independent_review"
+  },
+  "historical_assets_overwritten": false
+}

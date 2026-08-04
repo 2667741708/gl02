@@ -1,0 +1,67 @@
+{
+  "schema_version": "bf3d_internal_simulation_config.v1",
+  "furnace_id": "GL02",
+  "coordinate_frame": "GL02_LOCAL_YUP_M",
+  "asset_version": "web-runtime-2026.07.19",
+  "tuyere_count": 26,
+  "stockline_gate": {
+    "enabled": false,
+    "zero_datum_m": null,
+    "positive_direction": null,
+    "valid_range_m": null,
+    "south_north_tilt_enabled": false,
+    "status": "blocked_pending_field_confirmation"
+  },
+  "freshness": {
+    "sensor_warn_after_ms": 180000,
+    "sensor_hard_expire_after_ms": 600000,
+    "status": "candidate_runtime_thresholds_pending_source_freeze"
+  },
+  "pressure": {
+    "height_m": [20.35, 23.488, 28.976],
+    "azimuth_labels": ["A", "B", "C", "D", "E", "F"],
+    "orientation_status": "relative_only",
+    "legend_mode": "baseline_deviation_kpa",
+    "legend_min": -12,
+    "legend_max": 12
+  },
+  "performance": {
+    "desktop_surface_segments": 64,
+    "mobile_surface_segments": 36,
+    "desktop_surface_particle_count": 320,
+    "mobile_surface_particle_count": 144,
+    "pci_points_per_tuyere_max": 12,
+    "droplet_point_count": 96
+  },
+  "burden_fx": {
+    "enabled": true,
+    "evidence": "illustrative",
+    "random_seed": 20260719,
+    "chute_height_m": 35.2,
+    "chute_length_m": 2.45,
+    "cycle_duration_ms": 14000,
+    "discharge_start_ratio": 0.12,
+    "discharge_end_ratio": 0.7,
+    "settle_end_ratio": 0.9,
+    "high_particle_capacity_per_type": 180,
+    "medium_particle_capacity_per_type": 108,
+    "low_particle_capacity_per_type": 56,
+    "high_dust_capacity": 180,
+    "medium_dust_capacity": 96,
+    "low_dust_capacity": 48,
+    "what_if_default_enabled": false,
+    "live_motion_gate": {
+      "enabled": false,
+      "require_event_time": true,
+      "require_motion_parameters": true,
+      "require_mass_balance": true,
+      "status": "blocked_pending_chute_program_and_event_semantics"
+    }
+  },
+  "illustrative_scenario": {
+    "scenario_version": "GL02-TEACHING-2026.07",
+    "random_seed": 20260719,
+    "cohesive_shape": "inverted_v",
+    "charge_interval_ms": 14000
+  }
+}

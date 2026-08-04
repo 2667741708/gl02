@@ -1,0 +1,233 @@
+{
+  "schema_version": "bf3d.r2v.gltf_portability_tangent_budget.v5",
+  "requirement_id": "REQ-BF3D-R2V-GLTF-PORTABILITY-TANGENT-BUDGET-20260720",
+  "stage_id": "WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET",
+  "asset_id": "GL02_GLTF_PORTABLE_TANGENT_COMPLETE_V5",
+  "status": "r2v_static_review_scope_passed_release_gates_pending",
+  "r2v_scope_passed": true,
+  "next_controlled_work_allowed": true,
+  "next_release_stage_allowed": false,
+  "approval_granted": false,
+  "production_integration_allowed": false,
+  "evidence": "E/illustrative",
+  "reference_status": "REF-PENDING",
+  "not_for_construction": true,
+  "scope": {
+    "material_group": "5 R2J complete shell objects",
+    "section_group": "10 R2J/R2K closed physical half-section objects",
+    "review_modes": [
+      "纯材质审查",
+      "结构剖面"
+    ],
+    "material_subviews": [
+      "外表面",
+      "内部层近景"
+    ],
+    "forbidden_review_content": [
+      "传感器",
+      "数据引线",
+      "黄色轮廓",
+      "工艺粒子",
+      "旧固定圆环",
+      "装饰性竖线或流线"
+    ],
+    "controlled_changes": [
+      "10 section meshes deterministically triangulated",
+      "4 local absolute provenance values converted to relative POSIX paths",
+      "3 undefined tangent vertices repaired in each affected GLB using the exported normal"
+    ],
+    "explicit_non_changes": [
+      "V4 vertex positions, bounds, material slots and UV bounds",
+      "V4 embedded image payloads and material contracts",
+      "formal production GLB",
+      "P50/P60/P70/QA70 approval state"
+    ]
+  },
+  "outputs": {
+    "main_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_review.v5.glb",
+      "bytes": 4663220,
+      "sha256": "0ac031e626c9eaa0b0cdd8192cf9fda712324af174a4285f563a97309451ed3c"
+    },
+    "material_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_material_review.v5.glb",
+      "bytes": 994372,
+      "sha256": "652be1b2c9147d5a7392497c7ae4964d19bdd7095b5435b87c105f9eb3fb66bc"
+    },
+    "structural_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_structural_review.v5.glb",
+      "bytes": 3945984,
+      "sha256": "e5c77d3834c631e2513209a690f6328d1c63dba2c8d489b2d2dbe17645465f71"
+    },
+    "direct_open_blend": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_review.v5.blend",
+      "bytes": 37121148,
+      "sha256": "3e6df5fb02d3734d14923d4432739a5918ac8249d6a3c8ad1415395429b27e3a"
+    }
+  },
+  "hard_gates": {
+    "material_objects": 5,
+    "section_objects": 10,
+    "all_sections_closed_positive": true,
+    "boundary_edge_count_total": 0,
+    "non_manifold_edge_count_total": 0,
+    "cross_object_cap_overlap_pairs": 0,
+    "cross_object_cap_overlap_area_m2": 0.0,
+    "geometry_equivalence_objects": 10,
+    "absolute_path_count": 0,
+    "normal_mapped_primitives_without_tangent": 0,
+    "invalid_explicit_tangent_accessors": 0,
+    "unique_undefined_tangent_vertices": 3,
+    "glb_tangent_vector_writes": 6,
+    "nonzero_tangent_vectors_renormalized": 0,
+    "khronos_errors": 0,
+    "khronos_warnings": 0,
+    "factory_import_three_glbs": true,
+    "protected_assets_unchanged": true
+  },
+  "web_matrix": {
+    "engines": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "stability_iterations": 2,
+    "total_viewport_runs": 34,
+    "passed_viewport_runs": 34,
+    "failed_viewport_runs": 0,
+    "total_screenshot_captures": 102,
+    "error_totals": {
+      "console": 0,
+      "page": 0,
+      "http": 0,
+      "external": 0,
+      "request_failed": 0
+    },
+    "protected_files_unchanged": true,
+    "status": "full_matrix_passed_illustrative_only"
+  },
+  "texture_memory_boundary": {
+    "decoded_rgba8_mib_all_three_assets": 720.0,
+    "decoded_rgba8_full_mips_mib_all_three_assets": 959.999942779541,
+    "disposition": "measured_not_optimized_mobile_and_field_performance_pending"
+  },
+  "independent_review": {
+    "visual_blender": "CONDITIONAL_PASS_R2V_ONLY",
+    "visual_threejs": "PASS_R2V_ONLY",
+    "spec": "CONDITIONAL_R2V_PASS_RELEASE_BLOCKED",
+    "frontend": "PASS_IN_ISOLATED_V5_SCOPE_RELEASE_BLOCKED",
+    "root": "R2V_V5_ISOLATED_STATIC_REVIEW_ACCEPTED_RELEASE_GATES_BLOCKED"
+  },
+  "validation_reports": {
+    "input_gate_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/input_gate_validation.json",
+      "bytes": 1973,
+      "sha256": "1a839982d33465df76da6485094f3030304d8b30b03caa554bf2287276f24405"
+    },
+    "scene_provenance_sanitization.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/scene_provenance_sanitization.json",
+      "bytes": 1769,
+      "sha256": "6b8c81384befae7ff2266d6db2c57266a57a7ae8def2fbd9cf417ea6e1e9ecab"
+    },
+    "geometry_equivalence_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/geometry_equivalence_validation.json",
+      "bytes": 47847,
+      "sha256": "493a9760b8c62784a232e9bc1eec8ed400652eb14bea23f5c6edbbdea57bf50b"
+    },
+    "tangent_preflight_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/tangent_preflight_validation.json",
+      "bytes": 3432,
+      "sha256": "ead643eedade6cba2c04f6c903b321f4869d7c903ec35ba0c30446b02baccb67"
+    },
+    "glb_tangent_vector_sanitization.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/glb_tangent_vector_sanitization.json",
+      "bytes": 36545,
+      "sha256": "15b3f1b5155c0de49220cafe1b80392a7be543e3a0aaf055b56a4d216a321b07"
+    },
+    "section_topology_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/section_topology_validation.json",
+      "bytes": 9232,
+      "sha256": "c46c827e6bda7fce57f43035508142b3e276607d69ae708e21d5528d138a870c"
+    },
+    "section_cap_overlap_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/section_cap_overlap_validation.json",
+      "bytes": 33582,
+      "sha256": "8f5fc69e01e4614f4106ae02b91ab8577662674f028fc74eacbd52f888460750"
+    },
+    "material_identity_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/material_identity_validation.json",
+      "bytes": 836,
+      "sha256": "597c2374bdb8db0b553f53daa0f9b6c9eec705b127269d45bece58e8fc201aaf"
+    },
+    "glb_portability_export_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/glb_portability_export_validation.json",
+      "bytes": 2101,
+      "sha256": "524c76cd6c119a879841e1fa2520e063ddf0de0f681c4aff40431ae24a5d5636"
+    },
+    "build_report.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/build_report.json",
+      "bytes": 146212,
+      "sha256": "9c69130a507bb166c9d0cf945619643c0045245ef2da57a46d934d40cb1c6e54"
+    },
+    "visual_manifest.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/visual_manifest.json",
+      "bytes": 2316,
+      "sha256": "b6f4d60d8e38e540bda4d90bfb6de7bec40cb5d461e219a5ef83375142ecb277"
+    },
+    "blend_reopen_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/blend_reopen_validation.json",
+      "bytes": 51905,
+      "sha256": "fc3052865f4f44f67e194adb217c47df6db0839656075a79b4febbb11b9c3d99"
+    },
+    "factory_import_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/factory_import_validation.json",
+      "bytes": 4786,
+      "sha256": "9b79c9bf3958470ae6d8a743739381f52404c079bedaf3119c14979473a3b8a1"
+    },
+    "derived_glb_factory_import_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/derived_glb_factory_import_validation.json",
+      "bytes": 4786,
+      "sha256": "9b79c9bf3958470ae6d8a743739381f52404c079bedaf3119c14979473a3b8a1"
+    },
+    "khronos_gltf_validator_v5.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/khronos_gltf_validator_v5.json",
+      "bytes": 36906,
+      "sha256": "b3f304bb5698d620758ac49707adc0bd5b042d7a129d7b580483bacf837298e5"
+    },
+    "web_review_build_report.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/web_review_build_report.json",
+      "bytes": 7065,
+      "sha256": "77749cd90666c5b3604d885f9d11f0a863e57b071eb97ef8f7b806032603ee43"
+    },
+    "v5_portability_audit.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/v5_portability_audit.json",
+      "bytes": 28449,
+      "sha256": "069bfe74a260cd3e97bbb8eaddcfe2f43e109dbf5905e923f07c2e6ae7c93141"
+    },
+    "bf3d_review_v5_preview_report.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/bf3d_review_v5_preview_report.json",
+      "bytes": 745721,
+      "sha256": "040a943f79f900075566b2f65e55e9547541bda205a47f688b92bbbdfaac749f"
+    },
+    "independent_review_decisions.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/independent_review_decisions.json",
+      "bytes": 6970,
+      "sha256": "0c4c5972230f7c67216512c1492caaf174681e749227714eff6afc2e4edbf387"
+    }
+  },
+  "pending": {
+    "exterior_ao_consumption_and_p50": "pending",
+    "p60": "pending",
+    "p70": "pending",
+    "qa70": "pending",
+    "three_blender_photometric_equivalence": "pending_not_approved",
+    "production_8092_integration": "pending_not_approved",
+    "field_edge_and_mobile_memory_performance": "pending"
+  },
+  "historical_assets_overwritten": false,
+  "formal_glb": {
+    "path": "高炉前端数据/models/gl02_blast_furnace.glb",
+    "bytes": 4314736,
+    "sha256": "808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6"
+  }
+}

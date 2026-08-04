@@ -1,0 +1,24 @@
+services:
+  bf-postgres:
+    image: postgres:16
+    container_name: bf-v3-local-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bf_trend
+      POSTGRES_USER: gl02_sync
+      POSTGRES_PASSWORD: gl02_local_sync
+      TZ: Asia/Shanghai
+    ports:
+      - "15432:5432"
+    volumes:
+      - bf-v3-postgres-data:/var/lib/postgresql/data
+      - ./db_sync_storage/schema/postgresql_required_points.sql:/docker-entrypoint-initdb.d/01-required-points.sql:ro
+      - ./auto_diagnosis_service/schema.sql:/docker-entrypoint-initdb.d/02-auto-diagnosis.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gl02_sync -d bf_trend"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  bf-v3-postgres-data:

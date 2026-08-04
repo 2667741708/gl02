@@ -1,0 +1,115 @@
+# Project-level ignore rules for gl02
+# Keep source, tests, deploy scripts and small static assets in Git.
+
+# Local instructions and credentials
+AGENTS.md
+**/.env
+**/.env.*
+!**/*.env.example
+!**/*.env.sample
+!PT/external_sources.local.env.example
+PT/imes_vastbase.local.env
+PT/external_sources.local.env
+**/*.pem
+**/*.key
+**/*.pfx
+**/*credentials*
+**/*secrets*
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Python, Node and local tooling caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+node_modules/
+.npm-cache/
+.python_packages/
+.tmp/
+.tmp_pylibs/
+
+# Local services, generated output and operational evidence
+logs/
+output/
+renders/
+reports/
+backups/
+db_sync_storage/
+提交技术报告/
+docs/.ppt_build_*/
+docs/.ppt_self_learning_*/
+docs/.self_learning_diagrams_*/
+docs/运行视频/
+docs/assets/
+*.log
+*.pid
+*.sqlite
+*.sqlite3
+*.db
+*.cache
+*.bak
+*.bak_*
+
+# Training data, experiment output and Blender working files
+PT/**/data/
+PT/**/results/
+PT/**/reports/
+PT/**/work/
+PT/**/models/
+PT/高炉3D模型/模型资产库/**
+*.blend
+*.blend1
+*.step
+*.hdr
+*.exr
+*.tif
+*.tiff
+*.joblib
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.parquet
+*.csv
+
+# Release/report archives and other large deliverables
+PT.zip
+**/*.zip
+**/*.7z
+**/*.rar
+**/*.tar
+**/*.tar.gz
+**/*.tgz
+**/*.pptx
+**/*.docx
+**/*.pdf
+**/*.mp4
+
+# Generated screenshots at the project root
+/center.png
+/channel.png
+/cold.png
+/column.png
+/edge.png
+/hot.png
+/lowline.png
+/normal.png
+
+# Keep the one GLB used by the 8093 review harness when the source asset is present.
+!PT/高炉3D模型/模型资产库/09_高炉本体133点Billboard_cn/
+!PT/高炉3D模型/模型资产库/09_高炉本体133点Billboard_cn/GL02_FURNACE_BODY_R1.glb

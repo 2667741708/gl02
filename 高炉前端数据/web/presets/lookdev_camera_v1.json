@@ -1,0 +1,504 @@
+{
+  "schema_version": "bf3d.lookdev_camera.v1",
+  "preset_id": "VB-LOOK-002",
+  "requirement_id": "REQ-BF3D-VISUAL-BIBLE-001",
+  "visual_bible_version": "v1.1",
+  "furnace_id": "GL02",
+  "updated_at": "2026-07-18",
+  "status": "controlled_parameter_baseline",
+  "scope_statement": "P40 Blender LookDev and seven cameras are approved for their recorded review scope. The Web values describe the audited current runtime and the controlled convergence target; existence of this file does not mean the Web runtime consumes it.",
+  "approval_boundaries": {
+    "p40_lookdev": "approved",
+    "p40_candidate_sha256": "8b603ef296445f01ed357335ceb268c5175cfdb079f5903dba9b3ba2aa2f4b7e",
+    "p40_approved_blend_sha256": "03635cf6608a54c4a671fb4d84adcb9451a36fe47cea7b564af2d4d3b69b2256",
+    "p50_material": "KEEP_P50_PENDING_NOT_APPROVED",
+    "p60_asset": "not_granted_preflight_only",
+    "formal_glb_replaced": false,
+    "formal_glb_sha256": "808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6",
+    "golden_images_approved": false,
+    "web_runtime_connected_to_this_preset": false
+  },
+  "source_evidence": [
+    {
+      "path": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/P40_LOOKDEV_APPROVED.blend",
+      "sha256": "03635cf6608a54c4a671fb4d84adcb9451a36fe47cea7b564af2d4d3b69b2256",
+      "role": "approved_blender_scene"
+    },
+    {
+      "path": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/p40_fixed_lookdev_candidate.json",
+      "role": "camera_and_render_evidence"
+    },
+    {
+      "path": "../../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/p40_visual_review.json",
+      "sha256": "5906292e4afa2d2cd432a63c3f953c0bb43f5f2007b60214b89dea9926592358",
+      "role": "human_approval_record"
+    },
+    {
+      "path": "../../skills/bf3d-light-render/scripts/p40_fixed_lookdev_candidate.py",
+      "sha256": "1f7dca16e39bc3b854f5f777b6afe7d348b7b68be4c5f15985062b55b3659e8c",
+      "role": "deterministic_rig_source"
+    }
+  ],
+  "coordinate_contract": {
+    "authoring_space": "Blender asset-local space",
+    "length_unit": "m",
+    "camera_rotation_order": "XYZ Euler radians",
+    "camera_forward_axis": "-Z",
+    "camera_up_axis": "+Y",
+    "web_rule": "Apply the glTF world transform and coordinate-basis conversion before comparing cameras. Do not paste Blender Euler values directly into a Three.js camera.",
+    "comparison_rule": "Silhouette, projected landmarks and framing must agree within the tolerances in this preset."
+  },
+  "blender": {
+    "application": "Blender",
+    "version": "5.2.0 LTS",
+    "review_resolution_px": {
+      "eevee": [
+        960,
+        540
+      ],
+      "cycles": [
+        640,
+        360
+      ]
+    },
+    "render_engines": {
+      "interactive_review": "BLENDER_EEVEE",
+      "path_traced_cross_check": "CYCLES",
+      "cycles_samples": 48,
+      "cycles_denoising": true,
+      "cycles_device_used_in_p40": "OPTIX"
+    },
+    "color_management": {
+      "view_transform": "AgX",
+      "display": "sRGB",
+      "sequencer": "sRGB",
+      "neutral": {
+        "look": "AgX - Medium Low Contrast",
+        "exposure_ev": 0.0,
+        "world_color_linear_rgba": [
+          0.12,
+          0.12,
+          0.12,
+          1.0
+        ],
+        "world_strength": 0.72
+      },
+      "presentation": {
+        "look": "AgX - Medium High Contrast",
+        "exposure_ev": 0.38,
+        "world_color_linear_rgba": [
+          0.01,
+          0.015,
+          0.021,
+          1.0
+        ],
+        "world_strength": 0.52
+      }
+    },
+    "light_rigs": {
+      "neutral": {
+        "collection": "P40_LOOKDEV_NEUTRAL",
+        "approved_for_p40_scope": true,
+        "lights": [
+          {
+            "name": "P40_NEUTRAL_KEY",
+            "type": "SUN",
+            "location_m": [
+              46.132336,
+              -46.132336,
+              49.166168
+            ],
+            "rotation_euler_rad": [
+              0.955317,
+              0.0,
+              0.785398
+            ],
+            "color_linear_rgb": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "energy": 2.25,
+            "sun_angle_deg": 8.0
+          },
+          {
+            "name": "P40_NEUTRAL_FILL",
+            "type": "SUN",
+            "location_m": [
+              -46.132336,
+              -11.533084,
+              19.180149
+            ],
+            "rotation_euler_rad": [
+              1.243461,
+              0.0,
+              -1.325818
+            ],
+            "color_linear_rgb": [
+              0.96,
+              0.98,
+              1.0
+            ],
+            "energy": 1.05,
+            "sun_angle_deg": 8.0
+          },
+          {
+            "name": "P40_NEUTRAL_RIM",
+            "type": "SUN",
+            "location_m": [
+              11.533084,
+              46.132336,
+              49.166168
+            ],
+            "rotation_euler_rad": [
+              0.800552,
+              0.0,
+              2.896614
+            ],
+            "color_linear_rgb": [
+              0.9,
+              0.95,
+              1.0
+            ],
+            "energy": 1.35,
+            "sun_angle_deg": 8.0
+          },
+          {
+            "name": "P40_NEUTRAL_TOP",
+            "type": "AREA_DISK",
+            "location_m": [
+              0.0,
+              0.0,
+              60.699253
+            ],
+            "rotation_euler_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "color_linear_rgb": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "power_w": 3921.248535,
+            "size_m": 34.599251
+          }
+        ]
+      },
+      "presentation": {
+        "collection": "P40_PRESENTATION_INDUSTRIAL",
+        "approved_for_p40_scope": true,
+        "lights": [
+          {
+            "name": "P40_PRESENT_KEY_WARM",
+            "type": "SUN",
+            "location_m": [
+              46.132336,
+              -46.132336,
+              49.166168
+            ],
+            "rotation_euler_rad": [
+              0.955317,
+              0.0,
+              0.785398
+            ],
+            "color_linear_rgb": [
+              1.0,
+              0.8,
+              0.64
+            ],
+            "energy": 2.9,
+            "sun_angle_deg": 8.0
+          },
+          {
+            "name": "P40_PRESENT_FILL",
+            "type": "SUN",
+            "location_m": [
+              -46.132336,
+              -11.533084,
+              19.180149
+            ],
+            "rotation_euler_rad": [
+              1.243461,
+              0.0,
+              -1.325818
+            ],
+            "color_linear_rgb": [
+              0.9,
+              0.95,
+              1.0
+            ],
+            "energy": 1.22,
+            "sun_angle_deg": 8.0
+          },
+          {
+            "name": "P40_PRESENT_RIM_COOL",
+            "type": "SUN",
+            "location_m": [
+              11.533084,
+              46.132336,
+              49.166168
+            ],
+            "rotation_euler_rad": [
+              0.800552,
+              0.0,
+              2.896614
+            ],
+            "color_linear_rgb": [
+              0.48,
+              0.7,
+              1.0
+            ],
+            "energy": 2.05,
+            "sun_angle_deg": 8.0
+          },
+          {
+            "name": "P40_PRESENT_TOP_SOFT",
+            "type": "AREA_DISK",
+            "location_m": [
+              0.0,
+              0.0,
+              58.392635
+            ],
+            "rotation_euler_rad": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "color_linear_rgb": [
+              1.0,
+              0.95,
+              0.88
+            ],
+            "power_w": 4244.174805,
+            "size_m": 27.679401
+          },
+          {
+            "name": "P40_PRESENT_FRONT_FILL",
+            "type": "AREA_DISK",
+            "location_m": [
+              0.0,
+              -46.132336,
+              6.72442
+            ],
+            "rotation_euler_rad": [
+              1.490966,
+              0.0,
+              0.0
+            ],
+            "color_linear_rgb": [
+              0.88,
+              0.94,
+              1.0
+            ],
+            "power_w": 3136.998779,
+            "size_m": 28.602049
+          }
+        ]
+      }
+    }
+  },
+  "environment_assets": {
+    "neutral_review": {
+      "type": "procedural_world",
+      "hdri": null,
+      "status": "approved_for_p40_scope"
+    },
+    "p40_presentation": {
+      "type": "procedural_world",
+      "hdri": null,
+      "status": "approved_for_p40_scope",
+      "note": "The approved P40 presentation renders did not use an HDRI."
+    },
+    "industrial_sunset_candidate": {
+      "asset_id": "HDRI_INDUSTRIAL_SUNSET_2K_V1",
+      "path": "../../source/references/hdri/industrial_sunset_2k.hdr",
+      "source_url": "https://polyhaven.com/a/industrial_sunset",
+      "author": "Sergej Majboroda",
+      "license": "CC0",
+      "bytes": 6523872,
+      "sha256": "2a411097d65fcebfe00275641bd80350f95c7a1dbfc53b2260df85b296d2b990",
+      "status": "candidate_asset_registered_not_visual_approved",
+      "blender_strength_candidate": 0.35,
+      "web_pmrem_required": true,
+      "web_runtime_connected": false
+    }
+  },
+  "web_runtime_audit": {
+    "source": "../../../../高炉前端数据/frontend_dashboard_v3.server.html",
+    "three_revision": "160",
+    "renderer_output_color_space": "THREE.SRGBColorSpace",
+    "tone_mapping": "THREE.ACESFilmicToneMapping",
+    "tone_mapping_exposure": 1.05,
+    "scene_environment_pmrem": "not_implemented",
+    "hdri_connected": false,
+    "current_status": "partial",
+    "convergence_target": {
+      "load_this_preset": true,
+      "generate_pmrem_once": true,
+      "reuse_environment_texture": true,
+      "dispose_pmrem_and_source_on_teardown": true,
+      "keep_sensor_emissive_legible": true,
+      "cross_engine_visual_tolerance": {
+        "silhouette_edge_p95_px_at_1920x1080": 3.0,
+        "landmark_projection_px": 4.0,
+        "middle_gray_delta_e2000": 3.0,
+        "material_patch_delta_e2000": 5.0,
+        "luminance_relative_percent": 8.0
+      }
+    }
+  },
+  "cameras": {
+    "CAM_GLOBAL_FRONT": {
+      "role": "global_front",
+      "type": "ORTHO",
+      "location_m": [
+        42.369736,
+        -102.289749,
+        3.033833
+      ],
+      "rotation_euler_rad": [
+        1.570796,
+        0.0,
+        0.392699
+      ],
+      "ortho_scale_m": 94.315002,
+      "clip_start_m": 0.05,
+      "clip_end_m": 1000.0
+    },
+    "CAM_GLOBAL_BACK": {
+      "role": "global_back",
+      "type": "ORTHO",
+      "location_m": [
+        -42.369736,
+        102.289749,
+        3.033833
+      ],
+      "rotation_euler_rad": [
+        1.570796,
+        0.0,
+        -2.748894
+      ],
+      "ortho_scale_m": 94.315002,
+      "clip_start_m": 0.05,
+      "clip_end_m": 1000.0
+    },
+    "CAM_GLOBAL_LEFT": {
+      "role": "global_left",
+      "type": "ORTHO",
+      "location_m": [
+        -102.289749,
+        -42.369736,
+        3.033833
+      ],
+      "rotation_euler_rad": [
+        1.570796,
+        0.0,
+        -1.178098
+      ],
+      "ortho_scale_m": 94.315002,
+      "clip_start_m": 0.05,
+      "clip_end_m": 1000.0
+    },
+    "CAM_GLOBAL_RIGHT": {
+      "role": "global_right",
+      "type": "ORTHO",
+      "location_m": [
+        102.289749,
+        42.369736,
+        3.033833
+      ],
+      "rotation_euler_rad": [
+        1.570796,
+        0.0,
+        1.963495
+      ],
+      "ortho_scale_m": 94.315002,
+      "clip_start_m": 0.05,
+      "clip_end_m": 1000.0
+    },
+    "CAM_DETAIL_SHELL": {
+      "role": "shell_material_closeup",
+      "type": "ORTHO",
+      "location_m": [
+        0.0,
+        -35.0,
+        8.5
+      ],
+      "rotation_euler_rad": [
+        1.561303,
+        0.0,
+        0.0
+      ],
+      "target_m": [
+        0.0,
+        -3.4,
+        8.2
+      ],
+      "ortho_scale_m": 6.2,
+      "clip_start_m": 0.05,
+      "clip_end_m": 1000.0
+    },
+    "CAM_DETAIL_TUYERE": {
+      "role": "tuyere_detail",
+      "type": "ORTHO",
+      "location_m": [
+        5.4,
+        -32.200001,
+        1.8
+      ],
+      "rotation_euler_rad": [
+        1.139001,
+        0.0,
+        0.185657
+      ],
+      "target_m": [
+        0.0,
+        -3.449,
+        -11.68
+      ],
+      "ortho_scale_m": 2.0,
+      "clip_start_m": 0.05,
+      "clip_end_m": 1000.0
+    },
+    "CAM_DETAIL_TAPHOLE": {
+      "role": "taphole_detail",
+      "type": "ORTHO",
+      "location_m": [
+        0.0,
+        -33.600449,
+        -17.24
+      ],
+      "rotation_euler_rad": [
+        1.570796,
+        0.0,
+        0.0
+      ],
+      "target_m": [
+        0.0,
+        -3.60045,
+        -17.24
+      ],
+      "ortho_scale_m": 2.4,
+      "clip_start_m": 0.05,
+      "clip_end_m": 1000.0
+    }
+  },
+  "determinism": {
+    "render_percentage": 100,
+    "film_transparent": false,
+    "camera_numeric_tolerance": 0.000001,
+    "light_numeric_tolerance": 0.0001,
+    "random_seed_policy": "Golden View files must name every random seed. Existing P40 evidence predates this bundle and is not retroactively claimed deterministic beyond its recorded scene hash.",
+    "live_data_in_material_review": false,
+    "animated_effects_in_material_review": false
+  },
+  "release_gates": [
+    "The P40 approved Blender file and human review record must still match their hashes.",
+    "P50 and P60 must retain their pending/preflight-only approval states until separately signed.",
+    "Any HDRI must have source, licence and SHA-256 and must pass cross-engine visual review.",
+    "The Web runtime must prove it loaded this preset; a matching handwritten value is not sufficient.",
+    "Golden images remain unapproved until baseline PNGs, hashes, reviewer and tolerance results are recorded."
+  ]
+}

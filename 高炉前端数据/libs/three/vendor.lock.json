@@ -1,0 +1,96 @@
+{
+  "guardrails": {
+    "automatic_hash_update_allowed": false,
+    "latest_or_master_allowed": false,
+    "production_capture_allowed_on_mismatch": false,
+    "source_byte_rewrite_allowed": false,
+    "unverified_cdn_allowed": false
+  },
+  "licenses": {
+    "selfshadow_ltc_bsd_style_with_citation": {
+      "paper_citation_required": true,
+      "path": "高炉前端数据/libs/three/LICENSE-ltc_code-5c0770b.txt",
+      "redistribution_notice_required": true
+    },
+    "three_r160_mit": {
+      "path": "高炉前端数据/libs/three/LICENSE-three-r160.txt",
+      "redistribution_notice_required": true
+    }
+  },
+  "requirement_id": "REQ-BF3D-R2T-P40-PHOTOMETRIC-CALIBRATION-20260720",
+  "runtime_contract": {
+    "expected_ltc_textures": [
+      "LTC_FLOAT_1",
+      "LTC_FLOAT_2",
+      "LTC_HALF_1",
+      "LTC_HALF_2"
+    ],
+    "expected_texture_size": [
+      64,
+      64
+    ],
+    "import_specifier": "three/addons/lights/RectAreaLightUniformsLib.js",
+    "init_call": "RectAreaLightUniformsLib.init()",
+    "init_exactly_once_per_three_module_instance": true,
+    "rect_area_shadow_supported": false,
+    "resolved_path": "高炉前端数据/libs/three/lights/RectAreaLightUniformsLib.js",
+    "same_three_esm_instance_required": true,
+    "supported_materials": [
+      "THREE.MeshStandardMaterial",
+      "THREE.MeshPhysicalMaterial"
+    ],
+    "webgl_extension_failure_policy": "fail_closed"
+  },
+  "schema_version": "bf3d.three_r160.rect_area_ltc_vendor_lock.v1",
+  "selfshadow_ltc": {
+    "commit": "5c0770b74114b5dd38e9dae1b93f8486af7eac1b",
+    "paper_citation_required": true,
+    "reference_data_bytes": 315547,
+    "reference_data_sha256": "21071160163defd419b8f754ab604a8e60c44fcf539bfff9916e0e8e82316c1d",
+    "reference_data_url": "https://raw.githubusercontent.com/selfshadow/ltc_code/5c0770b74114b5dd38e9dae1b93f8486af7eac1b/fit/results/ltc.js"
+  },
+  "status": "vendor_sources_locked",
+  "three": {
+    "annotated_tag_object": "643680ed5fc73ba27e32a6529d59cae8c8b3825c",
+    "core": {
+      "bytes": 1272972,
+      "path": "高炉前端数据/libs/three/three.module.js",
+      "revision": "160",
+      "sha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495"
+    },
+    "npm_git_head": "d04539a76736ff500cae883d6a38b3dd8643c548",
+    "npm_integrity": "sha512-DLU8lc0zNIPkM7rH5/e1Ks1Z8tWCGRq6g8mPowdDJpw1CFBJMU7UoJjC6PefXW7z//SSl0b2+GCw14LB+uDhng==",
+    "npm_shasum_sha1": "cd1e4dbd01aee0719280a9086d75545db52b7a8f",
+    "npm_tarball": "https://registry.npmjs.org/three/-/three-0.160.0.tgz",
+    "peeled_commit": "d04539a76736ff500cae883d6a38b3dd8643c548",
+    "revision": "160",
+    "tag": "r160",
+    "version": "0.160.0"
+  },
+  "vendored_files": [
+    {
+      "bytes": 313854,
+      "id": "three_r160_rect_area_light_uniforms_lib",
+      "license_id": "three_r160_mit",
+      "path": "高炉前端数据/libs/three/lights/RectAreaLightUniformsLib.js",
+      "sha256": "08085bc942253cd54948bf936fecb66b54514a135872656e475a1cab09b55214",
+      "source_url": "https://raw.githubusercontent.com/mrdoob/three.js/d04539a76736ff500cae883d6a38b3dd8643c548/examples/jsm/lights/RectAreaLightUniformsLib.js"
+    },
+    {
+      "bytes": 1081,
+      "id": "three_r160_license",
+      "license_id": "three_r160_mit",
+      "path": "高炉前端数据/libs/three/LICENSE-three-r160.txt",
+      "sha256": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d",
+      "source_url": "https://raw.githubusercontent.com/mrdoob/three.js/d04539a76736ff500cae883d6a38b3dd8643c548/LICENSE"
+    },
+    {
+      "bytes": 1718,
+      "id": "selfshadow_ltc_code_license",
+      "license_id": "selfshadow_ltc_bsd_style_with_citation",
+      "path": "高炉前端数据/libs/three/LICENSE-ltc_code-5c0770b.txt",
+      "sha256": "692a54e97fcadd0f04b14027386e53809c1dcf96de3e15b15af15731b15c1e94",
+      "source_url": "https://raw.githubusercontent.com/selfshadow/ltc_code/5c0770b74114b5dd38e9dae1b93f8486af7eac1b/LICENSE"
+    }
+  ]
+}

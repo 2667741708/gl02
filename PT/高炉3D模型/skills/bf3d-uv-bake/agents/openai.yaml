@@ -1,0 +1,4 @@
+interface:
+  display_name: "高炉UV与烘焙"
+  short_description: "为高炉建立可审计的UV图集并烘焙浏览器标准PBR贴图"
+  default_prompt: "使用 $bf3d-uv-bake 为高炉建立UV并烘焙Web贴图。"

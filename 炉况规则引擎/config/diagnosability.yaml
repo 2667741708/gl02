@@ -1,0 +1,32 @@
+diagnosability:
+  normal:
+    status: "strong"
+    reason: "有风压、顶压、风量、透指、顶温、料线"
+
+  lowline:
+    status: "strong"
+    reason: "有雷达探尺、南尺、北尺、顶温"
+
+  channeling:
+    status: "strong"
+    reason: "有风压、顶压、透指、四点顶温、料线"
+
+  cold_furnace:
+    status: "medium"
+    reason: "缺少铁水温度、Si、S、FeO，只能用风压、透指、顶温、风温、出铁口温度辅助判断"
+
+  hot_furnace:
+    status: "medium"
+    reason: "缺少铁水温度、Si、TFT，只能用风压、透指、顶温、风温、出铁口温度辅助判断"
+
+  column_instability:
+    status: "strong"
+    reason: "有雷达探尺、南北探尺、顶压、风压、透指"
+
+  edge_development:
+    status: "weak"
+    reason: "缺少中心温度和边缘温度，只能用四点顶温不均、上升管压力不均、透指和风压辅助判断"
+
+  center_overblow:
+    status: "weak"
+    reason: "缺少中心温度和边缘温度，只能用四点顶温不均、上升管压力不均、顶压尖峰、风压升高辅助判断"

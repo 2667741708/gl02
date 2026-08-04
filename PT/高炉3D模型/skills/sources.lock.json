@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "locked_at": "2026-07-16T00:00:00+08:00",
+  "policy": {
+    "mode": "semantic-adaptation",
+    "raw_upstream_skills_active": false,
+    "reason": "Upstream skills contain Claude-specific frontmatter and incompatible MCP tool names; project skills are concise Codex/Windows adaptations.",
+    "verification": "Clone the repository at the locked commit and compare each selected file SHA-256."
+  },
+  "local_sources": [
+    {"path": "D:/文件/pythonCAD/src/geometry/visual_glb.py", "bytes": 45266, "sha256": "261debdf11e9afce9b1046198e70003a11e71b8a3c094924876c9d1d27f11017"},
+    {"path": "D:/文件/pythonCAD/src/generate_gl02_cad.py", "bytes": 15165, "sha256": "13b41cdd1e47c6eee5728563ff0b88775ed2672c7b76d9f828c4598056082251"},
+    {"path": "D:/文件/pythonCAD/input/furnace_profile.gl02.yaml", "bytes": 2158, "sha256": "39e3739d7a73563b48eab5a5e75aa51826b45e9dff258d65cab50342de215172"},
+    {"path": "D:/文件/pythonCAD/input/sensor_layout.gl02.115.yaml", "bytes": 9896, "sha256": "ff65f0ffc328f96548a1a3a0be517ada9030b2f47207fb995c8e27d91dc661ef"},
+    {"path": "高炉前端数据/models/gl02_blast_furnace.glb", "bytes": 4314736, "sha256": "808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6"},
+    {"path": "高炉前端数据/models/gl02_blast_furnace.manifest.json", "bytes": 1171, "sha256": "fead9b8512e910624a7e025ec38bc35844021c718d36dc72ee9b5de2d46e8740"}
+  ],
+  "repositories": [
+    {
+      "id": "ahujasid-blender-mcp",
+      "url": "https://github.com/ahujasid/blender-mcp.git",
+      "ref": "main",
+      "commit": "6641189231caf3752302ae20591bc87fda85fc4e",
+      "tree": "216cfcdb0958c6be17c82e8264664468dc7da29c",
+      "commit_date": "2026-07-14T16:05:33+05:30",
+      "license": "MIT",
+      "role": "optional execution runtime; not vendored or installed",
+      "selected_files": [
+        {"path": "src/blender_mcp/server.py", "sha256": "11ff304072456fbe82dff03a12fee9d83ab6fc3665cd02cb92fd87481dae2f95"},
+        {"path": "addon.py", "sha256": "3a517c6ba6ec3168c021a1a5d5f5f3f993eb64b1d2dbfe8927e28464efe8ac36"},
+        {"path": "LICENSE", "sha256": "7fa5ccde7c1c5fde266ff4f393c9ed2f7050866a4cee26fcf51d458553e14e2d"}
+      ]
+    },
+    {
+      "id": "cc-blender-skill",
+      "url": "https://github.com/RobLe3/cc-blender-skill.git",
+      "ref": "main",
+      "commit": "11016c9a5847897491dde935c346571bd7548e3d",
+      "tree": "2090082544fa148ecae8b1b9df6900db18bd9419",
+      "commit_date": "2026-05-01T12:34:31+02:00",
+      "license": "MIT",
+      "role": "primary workflow source",
+      "selected_files": [
+        {"path": "plugin/skills/blender-pro-workflow/SKILL.md", "sha256": "317b58ddc92f66938cfe82f6d48f1777d828e418596850ec698e22502675d0c9"},
+        {"path": "plugin/skills/blender-modeling/SKILL.md", "sha256": "f628ad5a920c5ecc3a9822e20e7f61f84d8b9816f35a1458b506ed66ae49bc1a"},
+        {"path": "plugin/skills/blender-uv-texturing/SKILL.md", "sha256": "7711cf9395e18d1b88e90388b13bb36828b366edd7c25058408b3256d563b878"},
+        {"path": "plugin/skills/closed-surface-uv-coverage/SKILL.md", "sha256": "403cdbab329e7d435c6deb60b998feaa4ea61c3fec848fae7e7306fc6697c3a2"},
+        {"path": "plugin/skills/blender-materials/SKILL.md", "sha256": "3c6e0ff5c659729c6f0d2aa74111331ecfc002178a971b3577f88331efb30a61"},
+        {"path": "plugin/skills/blender-lighting/SKILL.md", "sha256": "4c3db60eea4416be3bae59316159d06ae6da562d3e74117a1054d6e2b2af65e6"},
+        {"path": "plugin/skills/blender-rendering/SKILL.md", "sha256": "68da918fd2fe2e93fb771cb5f3eeaf872265b9ffd98d90b7dc28435319ba298f"},
+        {"path": "plugin/skills/blender-export/SKILL.md", "sha256": "f0a3c7b4384e2d9a51bd64e0c3827cd8a7c170ddf26e778adbd86cba02a510a5"},
+        {"path": "plugin/skills/reference-look-calibration/SKILL.md", "sha256": "d50d73bfd79a90de72c593cd20eb044407f3725f94f2bba0c209aac78be842d5"},
+        {"path": "plugin/skills/quality-refinement-autoloop/SKILL.md", "sha256": "3034e83979650bf841512ed4993c3f6776cce71fc76184171e22076d3f7f3cee"},
+        {"path": "LICENSE", "sha256": "8be4e2777ce93cd8007c83d209e96016cbe7d9dba8b46cffb99e0d514774404e"}
+      ]
+    },
+    {
+      "id": "blender-claude-plugin",
+      "url": "https://github.com/ra100/blender-claude-plugin.git",
+      "ref": "master",
+      "commit": "78e9151fdc9e01ce37f1d16a9b677c3047411885",
+      "tree": "28c0e6a0e6f32a239403ba80c8d40693239060ca",
+      "commit_date": "2026-04-29T19:40:37+02:00",
+      "license": "MIT",
+      "role": "Blender 5.x API correctness reference",
+      "selected_files": [
+        {"path": "skills/blender-modeling-modifiers/SKILL.md", "sha256": "c751221f1af729ec4fa3c5ec4fe5a4f1977b682cbc74f482604b26e25c03cba5"},
+        {"path": "skills/blender-shader-nodes/SKILL.md", "sha256": "134fc9d2b2cf9106305ad59d22cddd15c2f00f0faabc949fbac5f84287391c33"},
+        {"path": "skills/blender-scene-rendering/SKILL.md", "sha256": "691a21cf732c37c0d09dcc224ad3185562a53d042fb049fb0eac710a46df967f"},
+        {"path": "LICENSE", "sha256": "32914cfaefeb87ddcf301d7564be6053de1c2e6ca78af6157c5f0567c6d69d90"}
+      ]
+    },
+    {
+      "id": "blendops",
+      "url": "https://github.com/ThanhNguyxnOrg/blendops.git",
+      "ref": "main",
+      "commit": "cf43f70eb636e5174e7c88d47288f0d25806c82d",
+      "tree": "bfe5e8692c41b4b7c830b3ba997af4613f8d1583",
+      "commit_date": "2026-06-28T23:04:27Z",
+      "license": "MIT",
+      "role": "quality and handoff reference; upstream status is draft",
+      "selected_files": [
+        {"path": "skills/blender-checklist-driven-workflow/SKILL.md", "sha256": "93a9a852593d533309df303c06a63a03325b2f3b6dd0cf419fb15ff6de5ee2e8"},
+        {"path": "skills/material-quality-checker/SKILL.md", "sha256": "40ada2764c2bde91f2972a64aaf3b3f486ac42b7a52542bfbc7a031d28d3b852"},
+        {"path": "skills/color-management-decision/SKILL.md", "sha256": "bfc461ae2735fa065ebe682ae4d9e029a0b72a8b05529cd9e58d563fa2fc9ed3"},
+        {"path": "skills/lighting-quality-checker/SKILL.md", "sha256": "404de28cfffc4817577a507543716bf7708638f7a58f4a829d09777ae55a8ff7"},
+        {"path": "skills/glb-web-handoff/SKILL.md", "sha256": "42ab65de88a0163713fea034bf8eb89d4d5e42d0c26df848be21d23de908a258"},
+        {"path": "skills/glb-mobile-performance-budget/SKILL.md", "sha256": "0075a559b45137a90f1d2720c74d80e822b4cf2f97a97856a024121e3739f9b3"},
+        {"path": "skills/pre-handoff-verification/SKILL.md", "sha256": "9a83c3f360b06af49e7a017725ee156d5567ae35ac4d095357bc82eefde7374a"},
+        {"path": "skills/render-export-evidence/SKILL.md", "sha256": "c67896d6f63bdc1eefe5f7e66f16ce7184fdb22872d76ae2229392b49cdb399a"},
+        {"path": "skills/blender-scene-quality-checker/SKILL.md", "sha256": "639ce5f0c94d3d63f279a8aa4a0f58bc175b52f3ca62bbd4214f3eb550d96283"},
+        {"path": "skills/composition-quality-checker/SKILL.md", "sha256": "3b5aed029aecc83ee8c8899b4e4dd1b72b8809bb163cdb1547df3ff44083bf5a"},
+        {"path": "LICENSE", "sha256": "e41cce9edcc3e81db17c3414f17df89e58c3403566db3fdbebc2dfe1ef6076d0"}
+      ]
+    },
+    {
+      "id": "jithinolickal-blender",
+      "url": "https://github.com/jithinolickal/blender.git",
+      "ref": "main",
+      "commit": "6bfca4973e7086696b08b108bfe6aae62ede33c0",
+      "tree": "eb8e5a6aead527a1b99addfa045443010a343717",
+      "commit_date": "2026-03-16T13:43:10+05:30",
+      "license": "Apache-2.0",
+      "role": "visual checkpoint discipline; concepts rewritten and marked modified",
+      "selected_files": [
+        {"path": "skills/blender/SKILL.md", "sha256": "628b5773b3cc2e370e75372c25a00d9d004992f8705dd336d084edb92a6d1c97"},
+        {"path": "LICENSE", "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"}
+      ]
+    },
+    {
+      "id": "dcc-mcp-blender",
+      "url": "https://github.com/dcc-mcp/dcc-mcp-blender.git",
+      "ref": "main",
+      "commit": "9052c4b2d69297c776f6f1ac7f842f3b1feaa81e",
+      "tree": "a17e0f1bcff443a39777c83ad9a5a1d80041979b",
+      "commit_date": "2026-07-15T11:39:41+08:00",
+      "license": "MIT",
+      "role": "optional structured MCP runtime and tool-schema reference",
+      "selected_files": [
+        {"path": "src/dcc_mcp_blender/skills/blender-uv-ops/SKILL.md", "sha256": "ded5b6cb21853eb41a485376516c66184059bdc8ff4722ff5c16991e3f0f0678"},
+        {"path": "src/dcc_mcp_blender/skills/blender-texture-bake/SKILL.md", "sha256": "6de121d7f153b33e960d2a2c60ab5712086166fe8a477d8755482a9d3fc81288"},
+        {"path": "src/dcc_mcp_blender/skills/blender-shader-nodes/SKILL.md", "sha256": "bacd4c284685b0994cadff631a2b58da1be146f49ec709ea1a5f85fa92e87639"},
+        {"path": "src/dcc_mcp_blender/skills/blender-export-preset/SKILL.md", "sha256": "41106046dce989b7dc77c71627e1ef6b92b7b76e22b9d9b89d72e7951abca007"},
+        {"path": "src/dcc_mcp_blender/skills/blender-validation/SKILL.md", "sha256": "5d51e967a06af5cfb61e89ec66d68e937e91cda03be53bfea132bcf99b652f82"},
+        {"path": "src/dcc_mcp_blender/server.py", "sha256": "25fd4971f385700c6be0c3d4971039353d10cd103075b13de46af469f02e2679"},
+        {"path": "LICENSE", "sha256": "b6e4ed87de81bb0e8d49bcfc5d97b2f116a0f16116b404ed65462d00a58eb499"}
+      ]
+    }
+  ],
+  "excluded_references": [
+    {
+      "id": "vladmdgolam-agent-skills",
+      "commit": "0872d44b6e426603a9a74b6307a7c874b17b4ea5",
+      "url": "https://github.com/vladmdgolam/agent-skills.git",
+      "reason": "Repository claims MIT in README but has no LICENSE file; concepts were independently rewritten and no source text was vendored."
+    }
+  ]
+}

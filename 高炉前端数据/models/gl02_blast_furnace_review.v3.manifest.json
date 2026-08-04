@@ -1,0 +1,113 @@
+{
+  "schema_version": "bf3d.r2q.internal_material_lookdev.v3",
+  "requirement_id": "REQ-BF3D-R2Q-INTERNAL-MATERIAL-LOOKDEV-V3-20260719",
+  "asset_id": "GL02_INTERNAL_MATERIAL_LOOKDEV_V3",
+  "status": "candidate_ready_for_independent_visual_and_spec_review",
+  "next_stage_allowed": false,
+  "approval_granted": false,
+  "evidence": "E/illustrative",
+  "reference_status": "REF-PENDING",
+  "not_for_construction": true,
+  "scope": {
+    "material_group": "5 complete R2J shells",
+    "section_group": "10 physical half-section objects: 5 steel shells, backfill, copper cooling, cast cooling, hotface, refractory",
+    "runtime_clipping_required": false,
+    "layer_thickness_scale": 1.0
+  },
+  "outputs": {
+    "main_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_review.v3.glb",
+      "bytes": 4380396,
+      "sha256": "7e4b3b95343103784500aba354a124262ecf593fe89a3f0aa98348692152574b"
+    },
+    "material_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_material_review.v3.glb",
+      "bytes": 993260,
+      "sha256": "87c2bbe632d71113e69c4b5ac95ad35c12e7a03f17f7b74a1cb8b25661df4c09"
+    },
+    "structural_glb": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_structural_review.v3.glb",
+      "bytes": 3663988,
+      "sha256": "8490f56bddeba24f2819adfc3013d96aca448264e09b43793e0f2d7d2744f41a"
+    },
+    "direct_open_blend": {
+      "path": "高炉前端数据/models/gl02_blast_furnace_review.v3.blend",
+      "bytes": 37087638,
+      "sha256": "9da11f583ab081451ae61ac185bc8567223f72b0292215bf6eeccf7701d36f32"
+    }
+  },
+  "validation_reports": {
+    "input_gate_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/input_gate_validation.json",
+      "bytes": 495,
+      "sha256": "4789c9ecae72a7c459a52a362530b4af9d412f96b7e1cb2d509e2b985642a8b8"
+    },
+    "texture_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/texture_validation.json",
+      "bytes": 12537,
+      "sha256": "fddc6c4a30f002869845a4bfe8d2c04cb1da32eff9cccd72bb79d3e8719ba8b4"
+    },
+    "texture_seam_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/texture_seam_validation.json",
+      "bytes": 703,
+      "sha256": "14a15a45b84c08529e66e93a9f0a31be08916ee6297b58321d861488494f2ac8"
+    },
+    "orm_disk_error_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/orm_disk_error_validation.json",
+      "bytes": 455,
+      "sha256": "054cd1e51abfdc530c8cba3be0a91d84a96e49ac5502bba0e32bb2c436c1ae21"
+    },
+    "uv_texcoord_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/uv_texcoord_validation.json",
+      "bytes": 8048,
+      "sha256": "e00aabbdd7ddc8bc4f08336f5f012fbda0250a8e86eadd7a036ead4b4169798c"
+    },
+    "section_scale_cap_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/section_scale_cap_validation.json",
+      "bytes": 4464,
+      "sha256": "a943540e1fd5af3263e5f28b2559f232712a18426a013b85fc011d993eafc4e6"
+    },
+    "glb_channel_texcoord_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/glb_channel_texcoord_validation.json",
+      "bytes": 31274,
+      "sha256": "63737d73252b0a439faaac6cd701832733fd2e8391bd5043d700ebfcc3cf573b"
+    },
+    "role_forbidden_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/role_forbidden_validation.json",
+      "bytes": 945,
+      "sha256": "3a25ae231e1991eb3bc88ca2888265ef42af4073bd7c6f28ceb8864fa6d99e6d"
+    },
+    "build_report.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/build_report.json",
+      "bytes": 46045,
+      "sha256": "a631aafc34e61af5ac9e92b7ea6b3a1a57a0ae4ab6ffa8c20ffcfc6a6859ec32"
+    },
+    "visual_manifest.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/visual_manifest.json",
+      "bytes": 9931,
+      "sha256": "18dd2386a4e3028f97e9e5e3ac96e1d46144096422227fe86fdfff840b92a9ee"
+    },
+    "blend_reopen_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/blend_reopen_validation.json",
+      "bytes": 1962,
+      "sha256": "0b1efccb8c2aa592ab5a4d29ecd43eeb1186d4dc2a078274da0b66dd93c16904"
+    },
+    "factory_import_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/factory_import_validation.json",
+      "bytes": 4708,
+      "sha256": "a72d11d63ee91ad9b81f7782a02a4919ad9834b020a1b18d60a35e40e337b4fa"
+    },
+    "derived_glb_factory_import_validation.json": {
+      "path": "PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/derived_glb_factory_import_validation.json",
+      "bytes": 4708,
+      "sha256": "a72d11d63ee91ad9b81f7782a02a4919ad9834b020a1b18d60a35e40e337b4fa"
+    }
+  },
+  "pending": {
+    "cycles_vs_eevee_ab": "pending_independent_review",
+    "threejs_vs_eevee_ab": "pending_independent_review",
+    "visual_review": "pending_independent_review",
+    "spec_review": "pending_independent_review"
+  },
+  "historical_assets_overwritten": false
+}

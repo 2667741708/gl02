@@ -1,0 +1,107 @@
+version: 1
+timezone: Asia/Shanghai
+
+database:
+  host_env: GL02_PGHOST
+  port_env: GL02_PGPORT
+  database_env: GL02_PGDATABASE
+  user_env: GL02_PGUSER
+  password_env: GL02_PGPASSWORD
+  default_host: 10.30.220.12
+  default_port: 5432
+  default_database: bf_trend
+  schema: bf_sensor
+  connect_timeout_seconds: 10
+
+diagnosis:
+  # core19: only the declared 19 core variables.
+  # full115: all enabled physical variables in sensor_registry, including body-temperature arrays.
+  # Machine/user env GL02_RULE_PROFILE overrides this value for scheduled tasks.
+  rule_profile: full115
+  baseline_days: 30
+  window_minutes: 60
+  diagnosis_interval_minutes: 5
+  startup_backfill_hours: 24
+  min_window_coverage_ratio: 0.75
+  enforce_sync_barrier: true
+  repair_invalid_snapshots: true
+  sync_wait_timeout_seconds: 600
+  sync_wait_poll_seconds: 15
+  max_source_lag_minutes_ok: 5
+  max_source_lag_minutes_warn: 10
+
+zero_value_policy:
+  enabled: true
+  # Any zero read from one_minute_values is treated as missing unless pSpace
+  # confirms the same tag/minute is still zero in bf_sensor.zero_value_audits.
+  # The auditor follows the sync source mode in 数据库同步和存取/config/sync_config.json
+  # so raw sample rows are verified by the same raw sample rule, not processed averages.
+  require_pspace_audit: true
+  audit_table: zero_value_audits
+  verified_status: verified_zero
+  epsilon: 1.0e-9
+
+source:
+  type: local_pg
+  database: bf_trend
+  schema: bf_sensor
+  table: one_minute_values
+  read_policy: local_database_primary
+
+paths:
+  rule_engine_dir: rule_engine
+  runtime_dir: 自动诊断服务/runtime
+  sync_config: 数据库同步和存取/config/sync_config.json
+
+deployment_paths:
+  production_22012:
+    host: 10.30.220.12
+    role: production_scheduler
+    root_dir: 'F:\高炉炼铁项目-real-sensor-v2_V3'
+    auto_diagnosis_dir: 'F:\高炉炼铁项目-real-sensor-v2_V3\auto_diagnosis_service'
+    auto_diagnosis_entry: 'F:\高炉炼铁项目-real-sensor-v2_V3\auto_diagnosis_service\run_auto_diagnosis_once.ps1'
+    sync_dir: 'F:\高炉炼铁项目-real-sensor-v2_V3\数据库同步和存取'
+    sync_watchdog_entry: 'F:\高炉炼铁项目-real-sensor-v2_V3\数据库同步和存取\run_sync_watchdog.ps1'
+    auto_diagnosis_task: '\GL02AutoDiagnosis\RunOnce'
+    sync_watchdog_task: '\GL02SensorSync\Watchdog'
+    postgres_endpoint: '127.0.0.1:5432'
+    status_checked_at: '2026-05-13 20:49'
+    status_summary: '220.12 正在运行生产计划任务：RunOnce 与 Watchdog 最近结果均为 0；数据库已写入最新传感器、基线、诊断和队列。'
+    code_sync_note: '2026-05-13 已补传生产诊断组件，今日最新诊断 source.rule_profile=full115；旧 AUTO_PREVIEW 诊断写库任务已禁用，避免旧口径污染生产库。'
+  preview_22012:
+    host: 10.30.220.12
+    role: staging_preview
+    root_dir: 'F:\高炉炼铁项目-real-sensor-v2_V3_AUTO_PREVIEW'
+    sync_dir: 'F:\高炉炼铁项目-real-sensor-v2_V3_AUTO_PREVIEW\数据库同步和存取'
+    note: 'Preview/staging copy; current production scheduled tasks do not run from this root.'
+  local_backup:
+    host: local_windows
+    role: local_backup_and_debug
+    root_dir: 'D:\文件\服务器实际运行版V3'
+    auto_diagnosis_dir: 'D:\文件\服务器实际运行版V3\auto_diagnosis_service'
+    auto_diagnosis_entry: 'D:\文件\服务器实际运行版V3\auto_diagnosis_service\run_auto_diagnosis_once.ps1'
+    sync_dir: 'D:\文件\服务器实际运行版V3\数据库同步和存取'
+    sync_watchdog_entry: 'D:\文件\服务器实际运行版V3\数据库同步和存取\run_sync_watchdog.ps1'
+    local_postgres_endpoint: '127.0.0.1:15432'
+    remote_read_endpoint: '10.30.220.12:5432'
+    local_programs_exist: true
+    local_scheduled_tasks_installed: true
+    local_task_installer: 'D:\文件\服务器实际运行版V3\install_local_autoguard_tasks.ps1'
+    local_task_env_scope: User
+    local_task_run_as: current_windows_user_interactive
+    local_task_window_policy: 'Settings.Hidden=true；Action 使用 wscript.exe //B //Nologo tools/run_hidden_ps1.vbs 隐藏启动 PowerShell；PowerShell 内部使用 -WindowStyle Hidden -NoProfile -NonInteractive -ExecutionPolicy Bypass。'
+    local_run_note: '本机有完整备份/调试版程序文件；2026-05-14 已安装本机 Windows 计划任务，连接本地 Docker PostgreSQL 127.0.0.1:15432，并按隐藏窗口策略运行。'
+    task_check_note: '2026-05-14 本机已安装 \GL02AutoDiagnosis\RunOnce、\GL02SensorSync\Watchdog；未安装旧 \GL02SensorSync\Realtime 和一次性 \GL02SensorSync\History90d。'
+
+pspace_reconcile:
+  enabled: true
+  interval_minutes: 60
+  sample_variables:
+    - PI
+    - DP_total
+    - P_top
+    - T_top_A
+    - T_top_B
+    - T_top_C
+    - T_top_D
+    - GasUtil

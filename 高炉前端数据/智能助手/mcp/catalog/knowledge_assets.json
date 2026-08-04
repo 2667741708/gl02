@@ -1,0 +1,33 @@
+{
+  "catalog_version": "1.0.0",
+  "objects": [
+    {
+      "object_id": "production_report",
+      "object_type": "report",
+      "display_name": "生产日报与报表",
+      "aliases": ["日报", "生产日报", "最近报告", "报表"],
+      "unit": null,
+      "capabilities": ["list", "filter_by_date", "read_excerpt"],
+      "status": "enabled",
+      "description": "检索报告目录并读取受控摘要",
+      "executor": {
+        "service": "blast-furnace-gl02-data-mcp",
+        "tools": ["list_recent_reports", "read_report_excerpt"]
+      }
+    },
+    {
+      "object_id": "qa_history",
+      "object_type": "qa_history",
+      "display_name": "历史问答记录",
+      "aliases": ["之前问过", "历史问题", "问答记录", "以前的问题"],
+      "unit": null,
+      "capabilities": ["keyword_search", "recent_messages"],
+      "status": "enabled",
+      "description": "只读检索已保存的问答消息",
+      "executor": {
+        "service": "blast-furnace-gl02-data-mcp",
+        "tools": ["search_qa_messages"]
+      }
+    }
+  ]
+}

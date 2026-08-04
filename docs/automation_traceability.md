@@ -1,0 +1,909 @@
+# 自动化与运行可追踪映射
+
+## REQ-8093-DIAGNOSIS-REVIEW-LOCAL-PROTOTYPE-20260803
+
+- 程序：[诊断复核后端](../高炉前端数据/智能助手/backend/diagnosis_review.py)、[8096/8769启动器](../tools/start_diagnosis_review_preview.py)、[浏览器验证器](../tools/verify_diagnosis_review_local.py)。
+- 配置：功能开关 `BF_DIAGNOSIS_REVIEW_ENABLED`；复核库必须独立使用 `BF_DIAG_REVIEW_PG*` 且为回环地址；登录与会话来自环境变量。
+- 表/API：`bf_assistant.diagnosis_review_events`；`/api/auth/logout`、`/api/diagnosis-review-context`、`/api/diagnosis-reviews`。
+- 安全边界：本阶段不部署、不停止、不修改220.12:8093/8768/数据库；测试场景固定标记 `local_fixture`。
+- 运行手册：[专项说明](8093_异常炉况诊断人工复核本地原型_20260804.md)。
+
+## REQ-BF3D-8093-FURNACE-SUMMARY-READABILITY-20260802
+
+- 需求：[需求追踪](requirements_traceability.md#req-bf3d-8093-furnace-summary-readability-20260802)、[专项说明](8093_七类工艺汇总浮层可读性调整_20260802.md)。
+- 程序：[CSS 资源](../高炉前端数据/assets/bf3d-furnace-summary-readability-8093.css)、[页面入口](../高炉前端数据/frontend_dashboard_v3.server.html)、[原子部署器](../tools/remote_deploy_8093_furnace_summary_readability.py)、[守卫部署](../tools/remote_guarded_deploy_8093_furnace_summary_readability.ps1)、[测试](../tests/test_8093_furnace_summary_readability.py)。
+- 配置：资源版本 `20260802-expanded7-r2`；使用 `.layered-cad-stage` 提升选择器权重，确保压过运行后追加的旧 116px 动态规则；桌面宽度 `208–242px`，紧凑宽度 `198px`，低高度宽度 `190px`；标题 `13–17px`、行文字 `10.5–13.5px`；`text-overflow:clip`、单位始终 `display:inline`。
+- 部署保护：只允许 8093 HTML 与专用 CSS 变化；8094 页面、共享 adapter、8094 相机资源受 SHA-256 保护；守卫只停启 `BFV4PreviewProxy8093`，`BFV4PreviewWs8768` 全程保持。
+- 当前状态：11 项合同/回归测试通过；守卫结果 `guard_paused/guard_restored/ws8768_unchanged=true`；8093 HTML 和 CSS HTTP 200，版本标记、198px 紧凑宽度、取消省略和单位保留均可从线上资源读取，8093/8768 均监听。最终页面/CSS SHA-256 为 `F308993A...24FC1` / `BDA77396...EE48`，备份 `backups/8093_furnace_summary_readability_20260802/20260802_210417`。Chrome DOM/截图矩阵因重载等待超时待补，不能标记为跨浏览器完成。
+
+## REQ-BF3D-8093-BILLBOARD-EMPHASIS-20260802
+
+- 需求：[需求追踪](requirements_traceability.md#req-bf3d-8093-billboard-emphasis-20260802)。
+- 程序：[8093 专用运行时](../高炉前端数据/assets/bf3d-tooltip-stable-hover-8093.js)、[隔离部署器](../tools/remote_deploy_8093_stable_tooltip_hover.py)、[守卫闭环](../tools/remote_guarded_redeploy_8093_tooltip.ps1)、[合同测试](../tests/test_8093_stable_tooltip_hover.py)。
+- 配置：`BILLBOARD_SCALE_MULTIPLIER=1.22`，页面 DOM 信号 `data-billboard-emphasis-scale=1.22`、`data-billboard-emphasis=moderate-8093`。
+- 部署保护：只改变 8093 页面模块版本与 8093 专用资源；8094 页面、共享 adapter、8094 相机资源继续受 SHA-256 保护。
+- 当前状态：6 项合同测试通过；8093/8768 服务和监听正常；Chrome 现场页读取到 121 点和 1.22 比例。
+
+## BUG-BF3D-8093-TOOLTIP-JITTER-SINGLE-OWNER-20260802
+
+- 需求与故障：[需求追踪](requirements_traceability.md#bug-bf3d-8093-tooltip-jitter-single-owner-20260802)、[专项说明](8093_Billboard悬停抖动修复_20260802.md)。
+- 程序：[运行时](../高炉前端数据/assets/bf3d-tooltip-stable-hover-8093.js)、[部署器](../tools/remote_deploy_8093_stable_tooltip_hover.py)、[测试](../tests/test_8093_stable_tooltip_hover.py)。
+- 配置：进入/退出半径 30/46px、切换优势量 12px、驻留 140ms、坐标 `viewport-fixed`、点位聚焦关闭。
+- 部署保护：仅允许 8093 页面与专用 hover 资源变化；8094 页面、共享 adapter、8094 相机运行时按 SHA-256 阻断越界写入。
+- 当前状态：5 项合同测试通过；2026-08-02 已通过 [守卫停—改—启脚本](../tools/remote_guarded_redeploy_8093_tooltip.ps1)上线，`guard_paused/guard_restored/ws8768_unchanged=true`，8093/8768 监听、HTTP 200，8094/共享资源哈希未变。冷启动竞态与远端 viewer 不暴露 `THREE` 的兼容处理已纳入运行时。
+
+
+## REQ-BF3D-ASSET-CONTROLLED-MASTER-R1-20260721
+
+- 构建入口：[build_controlled_master_r1.py](../PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/scripts/build_controlled_master_r1.py)。
+- 资产登记：[bf3d_asset_registry.v1.json](../PT/高炉3D模型/asset_registry/bf3d_asset_registry.v1.json)。
+- 验证入口：[verify_controlled_master_r1.py](../PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/scripts/verify_controlled_master_r1.py)、[Khronos报告](../PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/reports/khronos_gltf_validator_r1.json)。
+- 自动化边界：构建脚本只读取锁定 V5、VIS30 与正式 GLB，输入 SHA 不匹配即失败；输出只写入 ASSET-10 阶段目录和资产登记目录，不覆盖正式或历史资产。
+- 当前状态：`candidate_ready_for_controlled_review`，生产接入未授权。
+本文档是当前工作区的最小追踪基线，用于把需求、程序、配置、接口、验证与运行文档串联起来。后续自动化、数据库、接口和计划任务变更应在此追加映射，而不是只保留在代码或临时对话中。
+
+## 需求映射
+
+| ID | 需求/运维目标 | 程序与配置 | API/数据契约 | 验证 | 文档与状态 |
+|---|---|---|---|---|---|
+| `REQ-BF3D-8093-FURNACE-BODY-NO-SIM-20260801` | 将 8094 已验收的高炉本体、133 点 Billboard 和炉壳表面相机同步到 8093，但 8093 不加载“炉内仿真与工艺对象”面板或内部仿真运行时 | [8093 受控补丁器](../tools/patch_8093_furnace_body_no_simulation.py)、[133点适配器](../高炉前端数据/assets/bf3d-furnace-body-billboard-adapter.js)、[8093相机入口](../高炉前端数据/assets/bf3d-surface-camera-guard-8093.js)、[共享表面相机算法](../高炉前端数据/assets/bf3d-surface-camera-guard-8094.js)、[浏览器验收器](../tools/verify_remote_8093_furnace_body_no_simulation.py)、[契约测试](../tests/test_8093_furnace_body_no_simulation_contract.py) | 8093 与 8094 共享远端 `models/gl02_blast_furnace.glb`，SHA-256 `150DF18B...4ED53`，对应 `GL02_FURNACE_BODY_R1.glb`；页面补齐 21 个静压兼容行和两处 `scene/model/controls/getBuffer` viewer 合同；加载 133 点适配器及端口作用域为 8093 的表面相机入口；明确不加载 `bf3d-internal-simulation.js/css`，`.bf3d-sim-panel` 防御性隐藏 | 远端真实 Chrome：模型资产标识 `GL02_FURNACE_BODY_R1.glb`、133 点、`bf3d.surface-camera-shell-guard.8093.v1`、连续滚轮碰撞及 `1.2m` 炉壳间距全部通过；仿真面板数量 0、仿真运行时不存在；5 页面×9 Chromium 视口共 45/45 可达、无横向溢出，正式头部可见且浏览器错误 0；本地 2 项契约测试通过 | 已部署 `http://10.30.220.12:8093/#overview`；最终 8093 HTML SHA-256 `5C536EF1...C6146`；首个完整回滚备份 `backups/8093_furnace_body_no_simulation_20260801/frontend_dashboard_v3.server.html.20260801_023920.bak`；证据 `logs/acceptance/8093_furnace_body_no_simulation_20260801_r1`；8094 页面 HTML 仍为 `ED0D9345...DF4C4`；Firefox/WebKit/现场 Edge 待补 |
+| `BUG-BF3D-8093-NEAR-CLIP-20260801` | 修复 8093 放大到炉壳表面后“相机未越壳但炉壳消失、视觉上像穿入炉内”的近裁剪面缺陷 | [共享相机守卫](../高炉前端数据/assets/bf3d-surface-camera-guard-8094.js)、[8093缓存隔离入口](../高炉前端数据/assets/bf3d-surface-camera-guard-8093.js)、[远端部署器](../tools/deploy_8093_near_plane_fix.ps1)、[缓存版本部署器](../tools/deploy_8093_near_plane_cache_bust.ps1)、[部署探针](../tools/probe_8093_near_plane_deployment.ps1)、[浏览器回归](../tools/verify_remote_8093_furnace_body_no_simulation.py)、[服务器验收启动器](../tools/run_remote_8093_near_plane_acceptance.ps1)、[契约测试](../tests/test_8093_furnace_body_no_simulation_contract.py) | 根因是全模型适配器按包围球把 `camera.near` 重算到约 `26.67m`，防穿透守卫只约束相机坐标而未恢复投影矩阵；8093 现固定 `safeNearPlane=0.05m`，在表面 target、滚轮和 80ms 周期守卫三处纠偏并调用 `updateProjectionMatrix()`；条件限定 `PORT_SCOPE === "8093"`，8094 行为不变；主页面外层入口版本同步更新为 `near-plane-r4` 避免旧标签页命中 `sync-r1` 缓存 | 220.12 文件与 HTTP 返回哈希一致：入口 `01231424...D462F9`、共享守卫 `0C331DE1...AB929`、主页面 `8DF482B7...01B9D6`；真实 Chrome 标准 WheelEvent 10 次后 `collisionBlocked=true`，炉壳法向间距 `1.200m`、相机到 target `1.2353m`、`cameraNear=0.050m`，133 点、无仿真面板、浏览器错误 0，10 项核心断言全通过；本地 2 项契约测试通过 | 已部署 `http://10.30.220.12:8093/#overview`；资源回滚 `backups/8093_near_plane_fix_20260801/20260801_050810`（2 文件），页面回滚 `.../20260801_053530`；核心证据 `logs/acceptance/8093_near_plane_fix_20260801_r8`；布局沿用同日 `r1` 的 45/45 基线，本轮服务器无界面 Chrome 截屏与尺寸切换均超过用户规定的单次 5 秒上限，未生成新截图；Firefox/WebKit/现场 Edge 和用户端视觉复核待补 |
+| `REQ-BF3D-8093-DUAL-CAMERA-MODES-20260801` | 将 8093 相机从固定表面法线守卫升级为“炉心 360° 全炉旋转＋Billboard 动态表面聚焦”双模式，同时保留近裁剪和炉壳防穿透 | [8093 独立双模式运行时](../高炉前端数据/assets/bf3d-surface-camera-guard-8093.js)、[本机验收页](../高炉前端数据/bf3d_8093_dual_camera_harness.html)、[页面补丁器](../tools/patch_8093_furnace_body_no_simulation.py)、[远端原子部署器](../tools/remote_deploy_8093_dual_camera_modes.py)、[SMB 限时回退部署器](../tools/deploy_8093_dual_camera_modes_smb.py)、[浏览器验收器](../tools/verify_remote_8093_furnace_body_no_simulation.py)、[契约测试](../tests/test_8093_furnace_body_no_simulation_contract.py)、[部署测试](../tests/test_8093_dual_camera_deploy.py) | schema `bf3d.camera.dual-mode.8093.v2`；overview target 为炉体中心、全模型包围半径限制最小距离、方位角无限；focus 由真实 Billboard 进入，按当前相机方位重新 Raycast 炉壳并更新点/法线，滚轮安全距离 `1.2m`、near `0.05m`；专项页固定直接加载 `GL02_FURNACE_BODY_R1.glb` 并校验 `8,229,120` bytes；按钮/Esc/全景恢复炉心模式；8094 文件不参与该运行时 | 本地语法与 4 项契约/隔离测试通过；模型纠错后真实浏览器确认 `modelAssetId=GL02_FURNACE_BODY_R1`、实际/预期均 `8229120` bytes、`assetVerified=true`、133 点、`overview/furnace-center`、near `0.050m`、包围半径 `25.769`、浏览器错误 0。旧 `4,314,736` bytes 模型上的 `650.8°`/动态聚焦/碰撞数据降级为算法原型历史，正确资产完整交互待重跑 | 本机正确资产加载冒烟已完成；220.12 SSH banner 在 3～4 秒限时内超时，SMB 管理共享返回访问拒绝，因此截至本记录尚未覆盖远端 8093，远端仍保持 `near-plane-r4/v1`；部署前必须在正确资产上重跑双模式交互，部署恢复后运行原子部署器并复验 8093，8094 必须保持哈希不变；Firefox/WebKit/现场 Edge 与 45 组合待补 |
+| `REQ-BF3D-8094-SURFACE-CAMERA-GUARD-20260801` | 将 8094 总览 3D 相机的 OrbitControls target 从炉内包围球中心改到当前可见炉壳表面，并阻止滚轮穿过炉壳 | [8094 炉壳表面相机守卫](../高炉前端数据/assets/bf3d-surface-camera-guard-8094.js)、[幂等页面补丁器](../tools/patch_8094_surface_camera_guard.py)、[远端 Chromium 验收器](../tools/verify_remote_8094_surface_camera_guard.py)、[契约测试](../tests/test_8094_surface_camera_guard_contract.py) | 目标点由相机朝炉心射线与 `IMG2THREEJS_FITTED_GL02_SHELL` 的首个交点产生，并仅沿外法线偏移 `0.06m`；滚轮使用该表面 target，平移关闭；每次向内 Dolly 先做炉壳 Raycast，并在同一滚轮事件内将法向间距限制为 `1.2m`；“全景”仍重新求真实炉壳 target，不回到炉心 | 220.12 Chrome 真实页面保留 133 点；表面命中来源 `shell-raycast`、目标距真实壳面 `0.06m`；连续滚轮触发碰撞后法向间距精确为 `1.2m`、相机到 target 约 `1.235m`；全景后仍为表面 target；Chromium 规定 9 视口全部无横向溢出且守卫就绪；9 项断言通过 | 已部署 `http://10.30.220.12:8094/#overview`；8093 主 HTML SHA-256 部署前后均为 `4F0D80F4...C3CCEE`，未修改；回滚备份 `backups/8094_surface_camera_guard_20260801/frontend_dashboard_v3.8094_preview.server.html.20260801_021740.bak`；证据 `logs/acceptance/8094_surface_camera_guard_20260801_r1`；本次仅 Chromium，Firefox/WebKit/现场 Edge 待补 |
+| `DOC-BF-LLM-DECISION-SYSTEM-20260727` | 编制《高炉工艺大模型智能决策系统技术报告》，融合真实高炉数据、已有炉况判断、专家知识库、MCP服务器、27B领域大模型、多目标博弈、帕累托优化及多智能体任务编排思想 | [DOCX 构建器](../tools/build_multiobjective_game_pareto_report.py)、[Visio风格流程图生成器](../tools/build_bf_report_flowcharts.py)、[报告图片资产](assets/bf_decision_report_v2_4/)、[冀南钢铁集团Logo](../高炉前端数据/logo/冀南钢铁集团logo.png)、[燕山大学Logo](../高炉前端数据/logo/燕山大学logo.png) | 报告使用“炽穹·高炉炼铁大模型”公开品牌口径；采用1.5TB高炉领域数据对27B基础模型进行参数高效微调，主体参数冻结，LoRA/QLoRA适配参数承载领域能力，通用任务混合与双轨回归评测作为能力保持门；业务数据流为用户问题、炉况上下文、MCP工具结果、专家知识证据进入27B工艺大模型并形成可解释回答；多智能体协同包括共享上下文、任务分解、角色协作、冲突协调、任务编排、安全门控、反馈与班次承接；不呈现炉况研判与操作建议的内部形成细节，不新增 API、schema、生产写入或部署 | 构建器检查 DOCX ZIP结构、正文、表格、页眉页脚、XML/关系和图片嵌入；版式固定为标题中文黑体，正文、项目符号、表格、图注和公式宋体小四号（12磅）；封面只保留报告标题及冀南钢铁集团、燕山大学两个Logo，不再显示副标题、项目说明、版本、日期或密级；内嵌5张系统界面图、2张Visio风格流程图及2个Logo | [高炉工艺大模型智能决策系统技术报告 V2.5](高炉工艺大模型智能决策系统技术报告_V2.5_20260727.docx)；对外技术方案稿，训练方法表述以能力保持验证为准 |
+| `REQ-HEAT-MULTISOURCE-EXPLORER-20260727` | 将 220.12 的独立炉次炉况仪表盘扩展为可按任意左闭右开时间窗查询的多源只读数据工作台，并接入当前已授权的 Vastbase、PostgreSQL GL02、pSpace 与 IMES Web 数据面 | [多源适配器](../db_dashboard/external_sources.py)、[炉次服务](../db_dashboard/heat_service.py)、[HTTP/导出服务](../db_dashboard/server.py)、[生产页面](../db_dashboard/heat.html)、[交互控制器](../db_dashboard/heat_data_explorer.js)、[凭据迁移器](../tools/migrate_22012_dashboard_external_credentials.py)、[远端浏览器验收器](../tools/verify_remote_8891_multisource_dashboard.py) | 数据目录固定为 31 个白名单数据集：Vastbase 生产作业 6、Vastbase 实验室 5、PostgreSQL GL02 6、pSpace 2、IMES Web 12；查询支持 `start/end/meltno/search/variables/page/page_size`，时间窗为 `[start,end)`，最大 5000 行；CSV/XLSX 导出复用同一白名单查询；浏览器不得提交任意 SQL、任意 URL 或任意 pSpace tag | 220.12 实读：目录 31 项；Vastbase 双账号、PostgreSQL 与 pSpace 健康检查 ready；正式炉次 `2#20260726-345` 铁水化验按 `heatno+batchno` 精确返回；CSV/XLSX 均 HTTP 200 且文件头正确；真实页面 pSpace 查询 2 行；首次复验发现手机表单把页面撑至 572px，增加 `min-width:0` 与单列 `minmax(0,1fr)` 后，Chromium 9 个规定视口 9/9 无横向溢出、控制台错误 0；IMES Web 因服务器现有配置只有用户名而无可验证密码，状态明确为 `authorization_required` | [专项运行说明](22012_8891炉次多源数据仪表盘_20260727.md)；远端访问 `http://10.30.220.12:8891/heat`；证据 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\acceptance\8891_multisource_20260727`；凭据只存 ACL 受限且被 Git 忽略的 `PT/external_sources.local.env`；8094 未修改；Firefox/WebKit/现场 Edge 新面板证据仍待补 |
+| `REQ-BF3D-8095-BILLBOARD-FOCUS-GUARD-20260726` | 在当时不改变 8094 的前提下，为 8095 的 133 点 Billboard 增加“点位局部聚焦＋炉壳防穿透＋退出恢复炉心全景” | [8095 预览页](../高炉前端数据/frontend_dashboard_v3.8095_preview.server.html)、[聚焦防穿透运行时](../高炉前端数据/assets/bf3d-billboard-focus-guard-8095.js)、[远端验收器](../tools/verify_remote_8095_billboard_focus_guard.py) | 点击真实 Billboard 后把 OrbitControls target 切到点位，按表面法线放置相机；滚轮 Dolly 前用炉壳 Raycaster 约束安全距离 1.2m；退出后恢复原炉心 target、相机与全景旋转；该适配器仍只由 8095 页面加载 | 远端真实点击 `T_body_L9_H`，中文语义“炉腰温·L9H”；聚焦距离约 4.4069m；连续推进在距炉壳 1.2m 时触发 `collisionBlocked=true`；退出后相机/target 恢复；7 项机器断言全部通过，验收报告 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\acceptance\8095_focus_guard_20260727_r3\8095_focus_guard_acceptance.json` | 访问 `http://10.30.220.12:8095/`；“8094 未修改”是截至 2026-07-27 的历史状态，2026-08-01 用户另行授权 8094 使用独立的表面相机守卫，见 `REQ-BF3D-8094-SURFACE-CAMERA-GUARD-20260801`；8095 适配器本身仍不得加载到 8094 |
+| `REQ-IMES-MCP-FULL-VARIABLE-TEMPLATES-20260727` | 将两个IMES只读账号当前可读的每个实际变量补齐为逐字段业务解释、口语别名、直接问法和程序调用模板，并让MCP口语检索使用同一目录 | [模板生成器](../tools/update_imes_mcp_full_variable_templates.py)、[315字段语义目录](../高炉前端数据/智能助手/mcp/imes_full_variable_catalog.json)、[MCP加载与检索](../高炉前端数据/智能助手/mcp/imes_relay_mcp_server.py) | 目录由真实取样清单生成，覆盖`operations/laboratory`、11个对象、315个“对象×字段”；每项含账号、对象、字段、含义、别名、可信度、时间字段、主标识、口语示例与推荐工具；未知语义明确保留边界，不依据编号猜测 | 生成器`--check`确认11/315全覆盖且无遗漏；模板测试5项、MCP测试19项，共24项通过；料仓编号增加数字边界，避免“24号仓”误命中“4号仓” | [指令模板全集](../PT/IMES_Vastbase_MCP指令模板全集.md)、[覆盖清单](../logs/imes_mcp_full_variable_coverage_20260727.json)、[测试记录](test_reference.md#test-imes-mcp-full-variable-templates-20260727)；本机实现完成，220.12仍须在SSH恢复后同步 |
+| `REQ-IMES-MULTI-ACCOUNT-ANY-READ-MCP-20260727` | 让 IMES MCP 通过现有生产作业与实验室两个只读账号访问其有权读取的任意数据，并支持具体变量/时间范围查询 | [多账号MCP](../高炉前端数据/智能助手/mcp/imes_relay_mcp_server.py)、[完整记录导出](../tools/export_imes_complete_row_samples.py)、[真实冒烟](../tools/smoke_test_imes_multi_account_mcp.py)、[stdio契约冒烟](../tools/smoke_test_imes_mcp_stdio.py) | `account_profile=operations/laboratory`；`list_imes_database_profiles`、`list_imes_business_objects`、`query_imes_variables`、`query_imes_readonly_sql`；时间窗为左闭右开；任意SQL仅允许单条只读语句；响应默认500、最大5000行 | 16项单元测试；stdio列出13工具且新增Schema完整；真实Vastbase冒烟为6/5个对象、变量查询10/7行、SQL查询5/1行，写SQL被拒绝 | [调用与边界](22012_IMES跳板转发与MCP.md#4-imes-relay-mcp)、[完整记录说明](IMES逐对象完整真实记录取样_20260727.md)；用户要求的明文凭据只在已忽略的本机报告中，MCP接口不回显密码；220.12同步因SSH超时待执行 |
+| `REQ-SI-TEMPORAL-SEMANTIC-V5-20260727` | 持续扩展可解释Si神经元并严格评估从0.05向0.02收缩 | [V4派生](../PT/预测铁水Si含量/src/si_semantic_engine/v4_features.py)、[只读多窗口提取](../PT/预测铁水Si含量/src/si_semantic_engine/extract_v4_temporal_stats.py)、[V5特征](../PT/预测铁水Si含量/src/si_semantic_engine/v5_features.py)、[V5训练](../PT/预测铁水Si含量/src/si_semantic_engine/train_v5.py) | MES正式meltno；特征严格早于opentime；133点30/60/120/240分钟统计；历史Si仅使用截止前已发布更早炉次；只写本地Parquet/实验产物 | 30项单元测试；220.12只读事务；304,703行/115分片；V5测试MAE 0.047882、±0.02为31.10%；滚动月MAE 0.043577～0.075529；目标未达 | [V5方法](../PT/预测铁水Si含量/docs/experiment_method_v5.md)、[阶段报告](../PT/预测铁水Si含量/reports/2026-07-27_V4_V5持续迭代与0.02目标评估.md)；`experimental_offline_v5`，不接MCP、不改生产库/8093服务 |
+| `REQ-SI-TEMPORAL-NEURONS-V2-20260726` | 将铁水Si主验收从±0.10收紧为±0.05个Si百分点，并把130点高延迟时序扩展为可解释微神经元、物理耦合神经元和语义神经元 | [单点多窗口派生](../PT/预测铁水Si含量/src/si_semantic_engine/temporal_features.py)、[跨点物理派生](../PT/预测铁水Si含量/src/si_semantic_engine/physics_neurons.py)、[21组映射](../PT/预测铁水Si含量/src/si_semantic_engine/expanded_neurons.py)、[V2训练](../PT/预测铁水Si含量/src/si_semantic_engine/train_v2.py)、[配置目录](../PT/预测铁水Si含量/configs/temporal_neuron_catalog.v2.json) | 长表输入`ts/sensor_id/value/quality`；窗口30/60/120/240分钟且禁止未来数据；当前148个规则特征唯一归入21组；±0.10仅作历史诊断；不新增API/schema/生产写入 | 16项单元测试通过；A/B两次`metrics/ablation/predictions/importance`哈希一致；21组模型测试MAE 0.0500、±0.05命中60.2%，260特征模型为0.0498/62.2% | [V2方法与限制](../PT/预测铁水Si含量/docs/experiment_method_v2.md)；本机PostgreSQL 16仍无`bf_sensor`，真实130点多窗口尚未物化；当前只允许代理离线实验，不接MCP或生产建议 |
+| `Q-22012-STANDALONE-HEAT-DASHBOARD-PORT-20260726` | 在 220.12 上用独立端口运行炉次分析仪表盘、暂不与 8094 联动 | [炉次仪表盘服务](../db_dashboard/server.py)、[炉次聚合服务](../db_dashboard/heat_service.py)、[独立运行探针](../tools/remote_probe_22012_heat_dashboard.ps1)、[数据库探针](../tools/probe_22012_heat_dashboard_db.py) | 页面路由为 `/heat`；完整炉次数据依赖 220.12 本机 `bf_sensor.*` 与直连 IMES `public.t_ipes_cond` / `public.t_ipes_out_put`；8891 独立监听，8094 不依赖该服务 | 2026-07-26 远端部署后：任务 `\\BlastFurnaceServices\\StandaloneHeatDashboard8891` Running；`0.0.0.0:8891`；`/`、`/heat`、`/api/overview`、`/api/heats`、最新炉次 `/api/heat-detail` 均 HTTP 200；133 个传感器点、约 1,960.98 万分钟值、最近 3 炉返回 | 已完成独立部署；访问 `http://10.30.220.12:8891/heat`；只读、无 8094 联动；独立代码位于远端 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\standalone_heat_dashboard_8891`，回滚备份由部署脚本生成 |
+| `REQ-HEAT-HISTORY-MAPPING-EXPORT-20260726` | 解释炉次空值，支持按日期查炉次、查看逐炉传感器/炉况/建议，并导出可训练映射数据 | [炉次页面](../db_dashboard/heat.html)、[炉次服务](../db_dashboard/heat_service.py)、[HTTP与ZIP导出](../db_dashboard/server.py) | 默认排除开铁口晚于服务器当前时间5分钟的异常记录；日期结束值按次日零点做右开区间；传感器按窗口 `[start,end)`；炉渣按精确 `meltno`；正式铁水化验固定使用 `t_qpes_inner_batch.heatno -> t_ipes_cond.meltno` 且 `t_qpes_inner_batch.batchno -> inner_batch_insp_bb.batchno` 双键精确关联；试样号炉号/年月/炉次尾号推断仅保留为历史数据审计兼容口径，不得作为当前正式映射；烧结矿仅为开口前12小时背景，不能冒充精确入炉谱系；建议只读 | 远端实测 2026-07-25—26 返回23炉并排除1条未来异常；`2#20260726-342` 有17个核心点、24条炉况快照、建议状态 ready；2026-07-27 复核 `2#20260726-345` 双键精确铁水化验成功；完整ZIP含10个文件；既有9种 Chromium 视口无页面横向溢出，控制台错误0 | 已部署 `http://10.30.220.12:8891/heat`；ZIP包含主记录、铁水、炉渣、烧结背景、聚合特征、分钟值、诊断、建议和一炉一行建模宽表；炉料精确谱系和更长历史133点回填仍是后续数据治理项 |
+| `REQ-PT-SIX-PRODUCTION-ANALYTICS-20260726` | 在PT下独立建设炉次数据集、铁水Si预测、炉况质量关联、矿焦批次、炉次传感器特征和原料背景六类分析 | [六模块索引](../PT/六类分析模块索引.md)、各模块 `analyze.py/config.json/README.md` | 统一CSV输入和审计输出；炉次主键固定 `meltno`；Si实验时间切分；传感器窗口 `[start,end)`；批次24通道不冒充成分；原料背景固定低置信度、非精确谱系 | `python -m py_compile` 六入口通过；`pytest tests/test_pt_six_analysis_modules.py --basetemp .tmp/pytest_pt_six` 为 `1 passed`，用同一组炉次、批次、传感器和烧结样本贯通六模块 | 六个文件夹已建立并可独立运行；当前为离线CSV分析边界，下一阶段可接8891炉次ZIP、Vastbase只读导出和PostgreSQL分钟值 |
+| `OPS-22012-STANDALONE-HEAT-DASHBOARD-8891-DEPLOY-20260726` | 将本地炉次仪表盘代码部署到 220.12，并以 8891 独立计划任务启动 | [远端部署脚本](../tools/deploy_22012_heat_dashboard_8891.ps1)、[远端运行脚本](../tools/run_22012_heat_dashboard_8891.ps1)、[远端验收脚本](../tools/remote_verify_22012_heat_dashboard_8891.ps1)、[任务核验脚本](../tools/remote_verify_22012_heat_dashboard_task.ps1)、[本地后端测试](../tests/test_heat_service.py) | 远端任务 `\\BlastFurnaceServices\\StandaloneHeatDashboard8891`，触发器为系统启动；防火墙规则 `BlastFurnaceStandaloneHeatDashboard8891`；只读 API：`GET /api/overview`、`GET /api/heats`、`GET /api/heat-detail`；凭据文件位于 Web 根目录外并限制 ACL | 本地 `pytest tests\\test_heat_service.py tests\\test_heat_dashboard_si_distribution.py -q`：`8 passed`；远端页面/接口真实验收通过；外部请求 `http://10.30.220.12:8891/heat` HTTP 200；8094 HTTP 200 且“炉次分析”入口不存在，8093/8094/8768/8770 监听保持 | 2026-07-26 已完成；部署未改 8094 页面、8768/8770 实时桥或生产数据库；最新回滚备份为远端部署脚本输出的 `heat_dashboard_8891_20260726_172722` |
+| `REQ-8094-HEAT-DASHBOARD-LINK-20260726-DISABLED` | 从 8094 页面移除“炉次分析”导航入口，保留 8094 的五个生产工作台页面以及炉次仪表盘资源的可回滚副本 | [远端定点移除脚本](../tools/remote_surgical_disable_8094_heat_dashboard_link.ps1)、[原入口资源](../高炉前端数据/assets/bf-heat-dashboard-link.js) | 8094 预览 HTML 不再加载 `bf-heat-dashboard-link.js`；不改 8890 炉次仪表盘自身、8094 问答、8768/8770 实时链路 | 2026-07-26 14:03 远端 HTML SHA-256 `B17D4CAD...16DACC4`；8094 页面 HTTP 200；页面导航只剩总览、炉况诊断、参数优化建议、趋势分析、智能问答；8093/8094/8768 监听和 8094 计划任务保持运行 | 备份目录 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\8094_heat_dashboard_link_surgical_disable_20260726_140354`；脚本不重启服务，保留资源文件以便授权后恢复 |
+| `OPS-22012-8094-ORPHAN-RECOVERY-20260726` | 恢复 220.12 上 HTTP 可连但问答无响应的 8094 独立预览代理，并保证不影响 8093、8768、8770 | [隔离重启](../tools/restart_22012_8094_preview.ps1)、[多孤儿定点恢复](../tools/recover_22012_8094_orphans.py)、计划任务 `\BlastFurnaceServices\V3AutoPreviewProxy8094` | 8094 继续使用 `BF_PROXY_PORT=8094`、`chiqiong-blast-furnace:latest` 与共享 `10.30.220.12:11434`；不改前端、数据库或 API 契约 | 清理仅属于 8094 的 PID `7828/13772/16952`，保护 8093 PID `14172`；最终 8094 PID `5560`，受管父进程 PID `15648`；最终仅保留一组 8093/8094 代理；状态接口 HTTP 200；真实 QA 30 秒无响应头，11434 直连首包/`api/ps` 仍超时 | [运维记录](22012_8093_v4_guard_ops.md#2026-07-26-8094-问答无响应与孤儿代理定点恢复)；8094 生命周期故障已修复，剩余问题定位到共享 Ollama/推理队列；未获授权前不重启 11434 |
+| `REQ-HEAT-SI-DISTRIBUTION-20260726` | 将炉次 Si 从“最后一个样本”升级为全部样本点、每炉中位数和最小—最大范围，并在列表、趋势图、详情和导出中保持一致；同时防止快速切换炉次时旧详情响应覆盖新选择 | [Si统计](../db_dashboard/heat_service.py)、[炉次页面](../db_dashboard/heat.html)、[DOCX构建器](../tools/build_heat_centric_docx.py)、[后端测试](../tests/test_heat_service.py)、[前端契约测试](../tests/test_heat_dashboard_si_distribution.py) | `/api/heats`、`/api/heat-detail` 的每炉对象新增 `hot_metal_si_summary={sample_count,valid_count,min,median,max,spread}`；XLSX新增 `hot_metal_Si_latest/median/min/max/spread`，旧 `hot_metal_Si` 保留为最后样本兼容列；原始 `hot_metal_samples` 不删不平均 | 2026-07-26 pytest `8 passed`；真实 `2#20260725-329` 为 3 样、Si中位数 `0.21`、范围 `0.19—0.59`；图表加载 55 个全部样本点、24 个中位点和24组范围；Chromium 9视口、Firefox/WebKit各4代表视口、Edge `1366×768` 均无横向溢出、控制台/页面错误为0；快速点击竞态反例通过 | [问题与实现追踪](question_traceability.md#q-si-thermal-diagnosis-and-multisample-20260726)、[测试记录](test_reference.md#test-heat-si-distribution-20260726)、[运行手册](本机数据库转发与炉况汇总页面_20260725.md#5-炉次分析仪表盘与只读-api)；页面和API均只读，不新增生产写入；结果时间仍不是已确认取样时间 |
+| `REQ-HEAT-CENTRIC-DASHBOARD-20260725` | 以 2# 高炉正式炉次为中心，形成五张逻辑数据表、133 点时间窗口特征、铁水/炉渣质量和烧结矿上游背景，并提供可直接访问的只读仪表盘与 DOCX 说明 | [炉次聚合服务](../db_dashboard/heat_service.py)、[8890 后端](../db_dashboard/server.py)、[炉次仪表盘](../db_dashboard/heat.html)、[DOCX 构建器](../tools/build_heat_centric_docx.py)、[纯函数测试](../tests/test_heat_service.py) | `GET /api/heats`、`GET /api/heat-detail`；逻辑表为 `heat_master`、`heat_hot_metal_chemistry`、`heat_slag_chemistry`、`heat_sensor_window_features`、`heat_alignment_audit`；窗口为 `pre_tap/tapping/inter_heat`；烧结矿只作开口前 12 小时时间背景，不冒充炉次精确谱系 | 2026-07-25 API 实读当前炉次、铁水/炉渣/烧结矿与 133 点；静压力/炉体温度/全部物理点分组为 18/80/133；Chromium 九视口无横向溢出，Edge `1366×768` 冒烟通过；DOCX ZIP、段落、表格和内嵌截图结构通过；Firefox/WebKit 未执行 | [DOCX 说明](以炉次为中心的五张核心数据表与133点时间窗口说明_20260725.docx)、[运行与对齐手册](本机数据库转发与炉况汇总页面_20260725.md)、[测试记录](test_reference.md#test-heat-centric-dashboard-20260725)；生产数据全程只读，烧结矿关联置信度固定为低，不得作为批次谱系或质量因果标签 |
+| `OPS-DB-RELAY-DASHBOARD-20260725` | 启动本机到 IMES Vastbase、IMES Web、pSpace 的受控回环转发，并启动当前炉况数据库汇总页；同时固定炉次、铁水/炉渣化验与 133 点传感器的对齐口径 | [回环转发器](../tools/imes_22012_relay.py)、[炉况页启动器](../tools/start_db_dashboard_python.py)、[炉况页后端](../db_dashboard/server.py)、[铁水 Si 数据集构建器](../tools/build_hot_metal_si_dataset.py)、[出铁口/炉次审计](../tools/analyze_taphole_heat_alignment.py) | 本机只监听 `127.0.0.1:15433/18080/18889/8890`；8890 只读连接 `bf_trend`；炉次主锚点为 IMES `t_ipes_cond.meltno/opentime/closetime`，炉渣按 `meltno` 精确关联，铁水试样按已审计试样号映射，传感器窗口不得晚于出铁锚点 | 2026-07-25 三个 SSH direct-tcpip 目标探测成功，本机三端口监听；IMES Web HTTP 200；Vastbase 当前身份与两个目标化验视图 SELECT 权限通过；pSpace 243 经 18889 SDK 认证返回 0；8890 `/api/overview`、`/api/diagnosis`、`/api/summaries` 成功，Chromium `1440×900` 与 `390×844` 无横向溢出；后端语法编译通过 | [本机转发、炉况页与炉次对齐手册](本机数据库转发与炉况汇总页面_20260725.md)；本轮只读、未写生产库；炉况页数据行数改为 PostgreSQL 统计估算并以 `≈` 明示，避免对约两千万行分钟表做阻塞式精确计数 |
+| `Q-IMES-SAMPLE-HEAT-RELATION-20260719` | 核实铁水试样号中 `234` 与 `002` 的层级，并确认是否关联正式炉次 | [试样号审计](../tools/audit_imes_sample_no.ps1)、[炉次对齐工具](../tools/analyze_taphole_heat_alignment.py) | 只读铁水化验 `si_sample_no/si_result_ts` 与 IMES `t_ipes_cond.meltno/opentime/closetime`；格式 `FYYMM-NNN-SSS` 中 `NNN` 对应炉次尾号，`SSS` 为炉次内试样记录序号 | 2026-07-12～18 正式炉次 89/89 找到相同试样组尾号；每炉 1/2/3/4 个匹配试样的炉次数为 9/39/32/9；当日 `22607-234-002 -> 2#20260719-234` | [问题追踪](question_traceability.md#q-imes-sample-heat-relation-20260719)、[专项报告](../reports/试样号234炉次关系_20260719.md)、[数据集口径](铁水硅炉况传感器数据集.md#31-试样号书写规则2026-07-19-实测)；结果时间不是取样时间，`002` 的现场类型仍待 `takesampletime`/取样位置/复验标志确认；只读，无生产写入 |
+| `REQ-HOT-METAL-SI-DATASET-20260719` | 将当前 2# 高炉炉况、规则特征和传感器历史与 IMES 铁水 Si 标签组成可复现、无未来数据泄漏的本地数据集 | [构建器](../tools/build_hot_metal_si_dataset.py)、[离线验证器](../tools/validate_hot_metal_si_dataset.py)、[纯函数测试](../tests/test_build_hot_metal_si_dataset.py) | 只读 `bf_sensor.sensor_registry/one_minute_values/diagnosis_snapshots` 和 `public.v_qpes_inner_batch_insp_final_sample`；标签结果时间向前退让 120 分钟，炉况最大向前 15 分钟，传感器最大向前 10 分钟；无 schema/API/计划任务变化 | 单元测试 3/3；产物验证 `PASS`；5,699 样本主键唯一，4,103 条匹配炉况，严格训练版 4,090 条；未来时间、炉况间隔、传感器年龄和展示映射违规均为 0 | [数据口径与重建手册](铁水硅炉况传感器数据集.md)；[产物目录](../reports/铁水硅炉况传感器数据集_20260719)；当前 `si_result_ts` 是判定/审核时间代理，取得真实 `takesampletime/tappingtime` 后必须重建，不得标为生产金标准 |
+| `Q-COHESIVE-ZONE-DATA-SOURCES-20260719` | 只读核查软熔带上升/下降趋势模型所需的 pSpace 实时量、IMES 批次/炉次/化验和冷却水/布料补充信号 | [pSpace 高度/质量核查](../tools/audit_22012_pspace_height_metadata.py)、[pSpace 文字检索](../tools/pspace_gl02_text_search.py)、[IMES 授权视图审计](../tools/audit_imes_granted_views.py)、[Vastbase 只读目录/受限导出](../tools/export_vastbase_local.py) | 不新增 API/schema；确认 L7～L13 56 点、18 个 A～F 静压力、28 个核心变量、冷却壁供回水/分区流量、溜槽角度/圈数/批重可读；IMES 命名化验视图和六个业务原表由不同只读身份分别可见 | 2026-07-19 经 220.12 实读 pSpace：80/80 炉体温度和目标点质量 `Good`，核心快照读取前缺点/错误为 0；IMES 五视图均可 `SELECT`，受限近期六表样本可读；2# `t_ipes_cond.tappingtemp` 全历史 9,373 条非空数为 0 | [逐项核查报告](软熔带数据源只读核查_20260719.md)；结论为“实时强信号可接入，冷却/布料源已存在但待对表，铁水温度与径向煤气成分仍不可用”；未改模型、数据库或生产服务 |
+| `Q-IMES-WEB-ACCESS-AND-SAMPLE-NO-20260719` | 诊断 IMES Web 空响应，并核实铁水硅试样号书写规则 | [网络诊断](../tools/diagnose_imes_network.ps1)、[试样号审计](../tools/audit_imes_sample_no.ps1) | Web `10.10.181.209:8080`；Vastbase `10.10.181.195:5432`；试样号 `FYYMM-NNN-SSS` | Web TCP 成功但 Chrome `ERR_EMPTY_RESPONSE`/curl `Empty reply`；试样号 5,699/5,699 格式匹配、0 炉号错配、0 重复、14 条跨自然月边界；后续炉次对齐确认 `NNN` 为正式炉次尾号 | [问题追踪](question_traceability.md#q-imes-web-access-and-sample-no-20260719)、[炉次关系追踪](question_traceability.md#q-imes-sample-heat-relation-20260719)、[网络排障](IMES网络与Vastbase直连排障.md)、[数据集口径](铁水硅炉况传感器数据集.md#31-试样号书写规则2026-07-19-实测)；只读，无生产写入 |
+| `Q-TAPHOLE-HEAT-INFERENCE-20260719` | 判断 pSpace 1/2 号出铁口温度能否推断正式炉次和开堵口时间 | [只读对齐工具](../tools/analyze_taphole_heat_alignment.py)、[专项测试](../tests/test_analyze_taphole_heat_alignment.py) | pSpace 镜像 `T_taphole_1/2`；IMES `t_ipes_cond.meltno/opentime/closetime/tappingtime` | 7 天两点各 10,080 分钟值、89 个 2# 炉次、207 个温度跳变；±15/±30/±60min 覆盖 26/49/82；53/89 温度占优信号歧义 | [问题追踪](question_traceability.md#q-taphole-heat-inference-20260719)、[7 天报告](../reports/出铁口温度炉次对齐_20260712_20260718/report.md)；结论为温度只作候选和校验，正式炉次/时间直接取 IMES；只读，无生产写入 |
+| `REQ-BF3D-R2Q-INTERNAL-MATERIAL-WEB-20260719` | 将 R2P 的物理清洁审查资产升级为六材质族、物理封盖、1× 厚度和 WebP 交付的 R2Q V3 权威材质/结构审查路径 | [V3 导出器](../tools/export_bf3d_structural_review_v3.py)、[R2Q 阶段目录](../PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/)、[Web 审查控制器](../高炉前端数据/assets/bf3d-structural-review.js) | 不新增生产 API/数据库；三 GLB 为主 `4,380,396`、纯材质 `993,260`、结构 `3,663,988` bytes；材质资产组 `5` 个逻辑对象、结构资产组 `10` 个逻辑对象/`20` 个主体+封盖 primitives；Web 纯材质审查用结构组近景露出内部材质；无运行时裁剪/DoubleSide/PBR 突变 | Three.js r160 `17/17`；五业务路由 `85/85`；C2 `12/12`；旧 cutaway 单浏览器 `PASS`、Firefox/WebKit `8/8 PASS`；规格、前端、Web 视觉独立复审均 `PASS` | `independent_reviews_passed_pending_ab_and_release_gates`；仅 `E/illustrative`、`REF-PENDING`、`not_for_construction`；严格 Cycles/Eevee、Three.js/Eevee 数值 A/B、现场 Edge、P50/P60/P70/QA-70 未完成；正式 GLB 与十阶段 `5/2/3` 统计不变 |
+| `REQ-BF3D-CLEAN-STRUCTURAL-REVIEW-20260719` | 修正 V1 审查 GLB 依赖 Three.js 隐藏导致 Blender 直导仍显示圆环、竖向流线和传感器的问题，并把炉内层替换为可辨识 PBR 材质 | [V2 导出器](../tools/export_bf3d_structural_review_v2.py)、[复开/直导验证](../tools/verify_bf3d_structural_review_v2_blender.py)、[阶段总结](../PT/高炉3D模型/work/WEB_60_20260719_R2P_CLEAN_STRUCTURAL_REVIEW/WEB-60_R2P_阶段成果总结.md) | 不新增生产 API/数据库；输出 5 节点纯材质 GLB、10 节点物理剖面 GLB 和可直接打开 Blend；内部材质继续 `E/illustrative`、`not_for_construction=true` | Blender 5.2 复开检查 `ok=true`；两个 GLB factory-startup 直接导入 `ok=true`；清单 `all_checks_pass=true`；正式/V1 GLB SHA 均保持 | 已完成本地受控资产；V2 中传感器、圆环、流线、粒子和辅助几何均物理删除，页面运行资产和生产部署未改变 |
+| `REQ-BF3D-SKILL-PACK-20260716` | 固定 Blender/MCP/渲染开源仓库版本，并把必要工作流适配为 GL02 高炉项目本地 Codex Skills | [总编排 Skill](../PT/高炉3D模型/skills/bf3d-orchestrate/SKILL.md)、[Skill 清单](../PT/高炉3D模型/skills/bundle-manifest.json)、[上游与本地源锁](../PT/高炉3D模型/skills/sources.lock.json)、[校验程序](../PT/高炉3D模型/validate_skill_pack.py) | 不新增生产 API/数据库；合同固定 115 个 `SENSOR_`、80 个炉体温度点、L7～L16、五个工艺段、坐标/extras、PBR 通道与 Three.js 交付门禁 | `python -B PT/高炉3D模型/validate_skill_pack.py`；逐 Skill `quick_validate.py`；可选用锁定仓库路径验证 HEAD/文件 SHA | [总设计详细规划](../PT/高炉3D模型/总设计详细规划.md)；2026-07-16 已完成 7 个 Skill、6 仓库 commit/tree、选定文件和 PythonCAD/GLB SHA 锁；尚未安装 MCP 或修改正式模型 |
+| `REQ-BF3D-P35-P40-LAYERS-20260717` | 在不覆盖正式 GLB 的前提下提高炉体工业质感，并将 L7～L16 制作为可独立控制的十层 | [P35 批准文件](../PT/高炉3D模型/work/P35_DETAIL_GEOMETRY_20260717_135927/P35_DETAIL_GEOMETRY_APPROVED.blend)、[P36 批准文件](../PT/高炉3D模型/work/P36_LAYER_SEGMENTATION_20260717_P35_INTEGRATED/P36_LAYER_SEGMENTATION_APPROVED.blend)、[P40 批准文件](../PT/高炉3D模型/work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/P40_LOOKDEV_APPROVED.blend) | P36 固定 L7～L16 共 10 个独立网格和 10 个独立材质；每层关联 A～H 8 点；115 个传感器、80 个炉体温度点不变 | 三阶段候选报告与独立视觉复核；检查点路径见 [3D 模型构建显示说明](../PT/3D模型构建显示.md#116-2026-07-17-十层运行时与-p50-法线修复追踪) | P35、P36、P40 已批准；P50/P60/P70 未批准；正式 `gl02_blast_furnace.glb` SHA-256 仍为 `808960f1...b62af6`，未覆盖 |
+| `REQ-BF3D-THREE-RUNTIME-20260717` | 在 Three.js 查看器中为 L7～L16 提供单层八点筛选、动态高亮、状态色、哑光材质和资源复用 | [页面实现](../高炉前端数据/frontend_dashboard_v3.server.html)、[专项验证](../tools/verify_gl02_layered_model_ui.py) | 高亮状态包含层号、动画阶段、状态色、渲染质量和可见点数；支持进入膨胀、回弹、呼吸、切层淡出、同层幂等、清除高亮；状态色为正常/关注/严重/无数据 | `python -m py_compile tools/verify_gl02_layered_model_ui.py`；Edge `1366×768` 使用静态页面和 `--allow-offline-data-source` 通过 L7～L16、材质、动画及 100 次切层资源稳定断言 | 页面专项已通过，但该次为静态数据源；8767、数据库及生产实时状态色尚未验证，不能标记为生产实时链路完成 |
+| `REQ-BF3D-CUTAWAY-20260717` | 默认去除旧圆环、竖线和装饰性流场对外观与剖面的干扰，同时提供可播放、暂停和复位的内切面工艺动画 | [页面实现](../高炉前端数据/frontend_dashboard_v3.server.html)、[权威炉内运行时](../高炉前端数据/assets/bf3d-internal-simulation.js)、[运行时验证](../tools/verify_gl02_cutaway_runtime.cjs) | 兼容 GLB 中旧 45 个内部工艺对象在外观和内切面均始终隐藏；内切面只负责炉壳裁剪、相机、遮挡与补光，料面、上料、软熔带、风口喷煤、静压力及炉缸状态由唯一 `BF3D_INTERNAL_SIMULATION_RUNTIME` 和统一证据门管理；API 为 `setCutawayMode/playCutaway/pauseCutaway/resetCutaway/getCutawayState`，DOM 状态为 `data-cutaway-*` 与 `data-internal-*`；路由卸载时停止旧 RAF 并释放资源，返回总览重新挂载 | 正式 GLB 与 P60 4K 隔离候选运行均 `ok=true`：旧 45 对象可识别但可见数恒为 0，内切面显示权威 simulation 根，L7～L16 每层八点、20 次切换资源稳定、OrbitControls 复位及“总览→诊断→总览”生命周期通过；意外错误为 0；Chromium 九视口 9/9，[Firefox/WebKit 代表视口](../logs/bf3d_cutaway_cross_engine_20260717/report.md) 8/8 | 功能已进入页面；外观炉壳保持不透明哑光并优先保留 GLB PBR 通道。现场 Edge、性能和实时数据链路仍按正式门禁补齐，不构成 P70 批准 |
+| `REQ-BF3D-DATA-DRIVEN-INTERNAL-ANIMATION-20260717` | 将已认可的语义内切面与混合数字孪生 B/C 方向固化为可执行设计，并盘点料线、18 点静压力、上料、炉次、生产实绩、铁水和炉渣化验 | [主规格](../PT/高炉3D模型/高炉内部数据驱动3D动画总设计.md)、[总规划摘要](../PT/高炉3D模型/总设计详细规划.md#19-数据驱动炉内动画运行合同)、[数据审计记录](../PT/3D模型构建显示.md#1112-2026-07-17-新数据源盘点与炉内-bc-动画设计) | 规划 `bf3d_snapshot.v1`、`bf3d_event.v1`，区分 measured/interpolated/estimated/simulated/illustrative/stale/no-data；保留 event/sample/judged/published/ingested/render/knowledge 七类时间；固定 C1/C2/C3 边界 | 原始阶段为只读数据与现有实现审计；2026-07-19 已另按 `REQ-BF3D-C2-ROOT-MOTION-20260719` 实施第一版根部状态估计和快照链路 | 设计已固化；C2 根部低置信度基线已部分落地，MES 上料/开堵口、完整 C1 事件适配、经真值标定 C2、C3、`bf_twin` 表和生产资产仍未实施；`L_south/L_north`、上料时间、炉次—料批和炉次—化验关联仍须先核对 |
+| `REQ-BF3D-C2-ROOT-MOTION-20260719` | 先实现软熔带炉墙侧根部上移/下移、厚度和偏心的实用低置信度预测，并接入 8767 与 Three.js | [实现记录](../PT/软熔带移动预测趋势.md)、[估计器](../炉况规则引擎/features/cohesive_zone_estimator.py)、[YAML 参数](../炉况规则引擎/config/cohesive_zone_estimator.yaml)、[8767 适配](../自动诊断服务/local_pg_ws_bridge.py)、[Three.js 运行时](../高炉前端数据/assets/bf3d-internal-simulation.js)、[页面快照发布](../高炉前端数据/frontend_dashboard_v3.server.html) | 输入为 L7～L13 炉体温度、压差/透气性、18 静压力及热状态辅助量；输出 `bf3d_snapshot.v1.estimated.cohesive_zone`，包含根部标高、`up/down/stable`、速度、15 分钟常速外推、厚度、相对 A 点偏心、八扇区根部、置信度和误差带；固定 `estimated/uncalibrated/control_use=prohibited/confidence<=0.45`，8767 和前端各自执行独立合同门 | 后端两份 pytest 联跑 `34 passed`；Three.js 专项 `ok=true`，含越权快照拒绝反例；C2 三引擎代表视口 12/12；全站跨引擎/视口矩阵 17 个运行、85 个页面组合全部通过，覆盖未来数据隔离、陈旧热力驱动忽略、缺失/陈旧降级、方向、厚度、偏心、外推、缓存、真实公共 API 桥接和前端生命周期 | 代码链路已实施；本机 PostgreSQL 16 实际监听 18000 但当前 `bf_trend` 缺少 `bf_sensor`，220.12 直连本轮超时，所以未宣称完成当前现场在线值验收。绝对方位、根部真值和 C2 标定仍是发布门禁 |
+| `REQ-BF3D-INTERNAL-SIM-SURFACE-MODELING-20260718` | 将高炉内部真实结构/工艺仿真和外炉壳细颗粒质感固化为完整、分阶段、可回滚的建模方案 | [专项主规格](../PT/高炉3D模型/高炉内部仿真与外部细颗粒建模总方案.md)、[总规划入口](../PT/高炉3D模型/总设计详细规划.md#20-炉内仿真与外部细颗粒建模专项总方案)、[构建记录](../PT/3D模型构建显示.md#1113-2026-07-18-炉内仿真与外部细颗粒建模专项计划)、[动画规格入口](../PT/高炉3D模型/高炉内部数据驱动3D动画总设计.md#17-几何仿真资产与细颗粒材质专项入口) | 设计 `INT_STRUCTURE/INT_MEASURED/INT_ESTIMATED/INT_SIMULATED/EXTERIOR_SURFACE` 场景层；保护 115 点、L7～L16 与坐标；定义 C1/C2/C3 轻量场景 manifest、Structural/Detail Normal、RNM、距离衰减、PMREM、LOD 和 Three.js 可观察状态 | 文档级校验：标题/阶段/停止线、四份 PT 文档互链、自动化和问题追踪；本轮未执行 Blender、CFD/DEM、GLB、页面或浏览器测试 | 设计已固化；下一实际阶段为 `BASE-00 → SURF-10 + INT-10`。P50=`not_granted`、P60=`not_granted_preflight_only`、P70 未批准，正式 GLB、生产库和生产部署均未改变 |
+| `REQ-BF3D-VISUAL-BIBLE-001` | 将高炉视觉规范从原则性框架补齐为可追踪的受控基线，包含视觉参考、已填材质卡、固定 LookDev/相机、GL02 数据映射和当前实现合规矩阵 | [Visual Bible v1.1](../PT/高炉3D模型/工业级高炉数字孪生视觉规范（Visual%20Bible）.md)、[视觉参考图板](../PT/高炉3D模型/docs/视觉参考图板.md)、[材质卡册](../PT/高炉3D模型/docs/材质卡册.md)、[LookDev/相机预设](../PT/高炉3D模型/web/presets/lookdev_camera_v1.json)、[Golden Views](../PT/高炉3D模型/validation/golden-images/golden_views_v1.json)、[合规矩阵](../PT/高炉3D模型/validation/Visual_Bible当前实现合规矩阵.md) | 稳定编号采用 `VB-GOV/REF/GEO/MAT/LOOK/INT/DATA/RUNTIME/QA-*`；数据附件固定 `evidence/derivation/quality`、七类时间和允许/禁止映射；合规状态仅允许 `compliant/partial/noncompliant/blocked/not_applicable` | `python -B PT/高炉3D模型/validate_visual_bible_bundle.py`；JSON 解析、相对链接、FOV 语义、受控附件、批准边界和必需编号全部通过 | 规范 v1.1 生效不等于资产批准；P40 维持既有批准，P50=`KEEP_P50_PENDING_NOT_APPROVED`，P60=`not_granted_preflight_only`；CC0 HDRI 已登记为候选但 PMREM/视觉批准未完成，GL02 现场材质参考和未接入运行时能力继续标为 blocked/partial |
+| `REQ-BF3D-10STAGE-EXECUTION-20260718` | 按 BASE-00、SURF-10、INT-10、SURF-20、INT-20、INT-30、INT-40、INT-50、WEB-60、QA-70 十阶段，用多个制作与只读审查智能体实际执行高炉3D升级 | [多智能体执行台账](../PT/高炉3D模型/十阶段多智能体执行台账.md)、[实施总方案](../PT/高炉3D模型/高炉内部仿真与外部细颗粒建模总方案.md#17-分阶段实施与批准点)、[Visual Bible](../PT/高炉3D模型/工业级高炉数字孪生视觉规范（Visual%20Bible）.md)、[INT-30 R1B_R2 总结](../PT/高炉3D模型/work/INT_30_20260718_R1B_R2/INT-30_R1B_R2_阶段成果总结.md)、[R2A 料线门禁](../PT/高炉3D模型/work/INT_30_20260718_R2A_DATA_AUDIT/INT-30_R2A_料线数据门禁阶段成果总结.md)、[R2C中尺度恢复](../PT/高炉3D模型/work/INT_30_20260718_R2C_R1_MESO_DETAIL_MERGE/INT-30_R2C_R1_MESO_DETAIL_MERGE_阶段成果总结.md)、[R2D公平渲染等价](../PT/高炉3D模型/work/INT_30_20260718_R2D_R1_RENDER_PARITY/INT-30_R2D_R1_RENDER_PARITY_阶段成果总结.md) | 每阶段独立目录、单一质量变量、机器报告、固定机位证据、阶段成果总结和审批结论；制作智能体不得自批；115点、L7～L16、五段炉体和正式GLB不可破坏；剖切钢壳/冷却壁/炉衬必须为闭合实体、内外表面与可靠封口，禁止零厚度纸片；料线缺失不得补零或在语义未确认时驱动几何 | R2A 确认料线零点/正方向/范围/南北语义未闭环；R2C 只恢复既有焊缝和加强环可见性，几何/材质/18压力/12实体/115/80/L7-L16/正式GLB保护通过；只读审计定位旧A/B源/候选 World Background 环境辐射相差约8～17倍。R2D 以全新同一 World、AgX、曝光0.24、EEVEE96、同四灯/相机/可见性重做四层三视角，源与候选像素 `mean_diff=0/max_diff=0`，视觉/规格双审批准 R1 渲染等价 | INT-30 R1A=`approved_fixture_only`；R1B_R2=`approved_visual_correction_only`；R2A=`blocked_no_geometry_drive`；R2C=`approved_r1_surface_and_meso_visibility_blender_candidate_only`；R2D=`approved_r1_render_parity_evidence_only`；剖切厚度图仍偏暗，下一小阶段只修视觉证据，正式GLB仍未替换 |
+| `REQ-BF3D-R1-SURFACE-LOCK-20260718` | 保留用户选择的 R1 细密粗糙读感，防止后续灯光、内部结构或 Web 交付将炉壳重新变平滑 | [Visual Bible 决策 `VB-DEC-MAT-001`](../PT/高炉3D模型/工业级高炉数字孪生视觉规范（Visual%20Bible）.md#461-gl02-当前-r1-粗糙读感锁vb-dec-mat-001)、[材质卡](../PT/高炉3D模型/docs/材质卡册.md#2-mat-steel-paint-001-老化喷漆钢壳)、[R1/R4/R5 对比](../PT/高炉3D模型/work/SURF_20_20260718_R5/renders/SURF20_R5_10_R1_R4_R5_GRAZING_COMPARISON.png)、[SURF-20 R5 总结](../PT/高炉3D模型/work/SURF_20_20260718_R5/SURF-20_R5_阶段成果总结.md)、[R2H Web 对照](../PT/高炉3D模型/work/INT_30_20260718_R2H_WEB_DETAIL_NORMAL/evidence/INT30_R2H_R1_WEB_ACCEPTANCE_CONTACT_SHEET.png) | 受控承载资产为 `SURF-20 R5`，固定 `B=0.16 / D=0.10m / N=0.45 / metallic=0.06 / roughness=0.56–0.82 / shared mapping=0.085`；“R1”只指微表面强度，不恢复早期 R1 的高金属身份 | SURF-20 R5 机器断言 31/31、复开 9/9、视觉/规格双审；INT-30 R2D 固定条件下源/候选像素 `mean_diff=0/max_diff=0`；R2H 保留 base `normalScale=0.45` 并以 RNM Detail Normal 完成 Chromium `64/64`、三引擎、100 次资源稳定及独立双审 | Blender 炉壳材质与 R2H 隔离网页候选已分别通过对应门禁；正式 8092 集成、生产 GLB 替换、现场 Edge、Khronos Validator 和整页性能仍未批准，未经用户重新选择不得改变 R1 |
+| `TEST-BF3D-INT30-R2E-CUTAWAY-CONTRAST-20260718` | 在不改变模型和 R1 炉壳材质的前提下，解决钢壳/冷却结构/耐火层/工艺空间剖切证据过暗和层间难辨问题 | [阶段总结](../PT/高炉3D模型/work/INT_30_20260718_R2E_CUTAWAY_CONTRAST/INT-30_R2E_CUTAWAY_CONTRAST_阶段成果总结.md)、[机器报告](../PT/高炉3D模型/work/INT_30_20260718_R2E_CUTAWAY_CONTRAST/int30_r2e_machine_report.json)、[物理材质与假色并排](../PT/高炉3D模型/work/INT_30_20260718_R2E_CUTAWAY_CONTRAST/renders/INT30_R2E_05_PHYSICAL_VS_FALSE_COLOR.png)、[R2D/R2E 对照](../PT/高炉3D模型/work/INT_30_20260718_R2E_CUTAWAY_CONTRAST/renders/INT30_R2E_06_R2D_DARK_VS_R2E_LOOKDEV.png) | 仅在渲染进程中显示四个闭合 QUARTER、隐藏八个 FULL/HALF，使用暖灰 LookDev；假色临时覆盖并恢复，不保存 Blend；固定 `VB-DEC-MAT-001` R1 参数 | 四层闭合/正体积/非流形0；输入 R2C、R1、18压力、115/80、L7-L16 和正式 GLB 不变；元数据返工后 Artifact `14/14`、机器/视觉图片记录 `12/12`；六图逐图视觉 `approve`，规格复审 `approve` | `approved_cutaway_contrast_evidence_only`；只批准 E/illustrative 结构辨色证据，不代表实测厚度，不解除料线数据门，不批准 GLB/Three.js/生产替换 |
+| `REQ-BF3D-INT30-R2F-LAYER-OVERLAY-RUNTIME-READY-20260718` | 在用户锁定 R1 粗糙表面的当前 INT-30 分支中恢复并固化 L7～L16 十层可点击诊断覆盖对象，避免重复建模或真实切割炉壳 | [阶段总结](../PT/高炉3D模型/work/INT_30_20260718_R2F_LAYER_OVERLAY_RUNTIME_READY/INT-30_R2F_LAYER_OVERLAY_RUNTIME_READY_阶段成果总结.md)、[机器报告](../PT/高炉3D模型/work/INT_30_20260718_R2F_LAYER_OVERLAY_RUNTIME_READY/int30_r2f_machine_report.json)、[单层选择矩阵](../PT/高炉3D模型/work/INT_30_20260718_R2F_LAYER_OVERLAY_RUNTIME_READY/renders/INT30_R2F_07_SELECTED_LAYER_MATRIX.png)、[十层/R1并排](../PT/高炉3D模型/work/INT_30_20260718_R2F_LAYER_OVERLAY_RUNTIME_READY/renders/INT30_R2F_08_STACKED_AND_R1_LOCK.png)、[总控批准](../PT/高炉3D模型/work/INT_30_20260718_R2F_LAYER_OVERLAY_RUNTIME_READY/R2F_CONTROLLER_APPROVAL.json) | 直接复用 R2C 中与 P36 候选逐层几何/矩阵/材质同 hash 的 `APPROX_GL02_TEMP_LAYER_BAND_L7..L16`；只加 `embedded` runtime metadata；默认隐藏、选中层单显；不复制网格、不切五段炉壳、不导出 GLB；保持 `VB-DEC-MAT-001` | 115/80、L7～L16每层8点、18压力、12 INT20、五段炉体、R1节点图 `6bf8bd...`、正式GLB `808960...` 全部保持；无重复 band；8 图独立视觉 `approve`，只读规范交叉审计 `approve` | `approved_embedded_layer_overlay_blender_candidate_only`；L16上部偏暗为不阻塞备注；仍不批准物理分层/实测厚度、GLB导出、Three.js embedded source、跨浏览器或生产替换；R2A料线门禁继续 blocked |
+| `TEST-BF3D-INT30-R2G-ISOLATED-WEB-20260718` | 把 R2F 的十层对象和 R1/R5 外观导出为隔离 GLB，并验证 L7～L16 单层八点的浏览器运行合同 | [阶段总结](../PT/高炉3D模型/work/INT_30_20260718_R2G_ISOLATED_GLB_WEB_PREVIEW/INT-30_R2G_ISOLATED_GLB_WEB_PREVIEW_阶段成果总结.md)、[运行时报告](../PT/高炉3D模型/work/INT_30_20260718_R2G_ISOLATED_GLB_WEB_PREVIEW/web_preview/runtime_evidence/R2G_WEB_PREVIEW_RUNTIME_CHECK.json)、[材质近景](../PT/高炉3D模型/work/INT_30_20260718_R2G_ISOLATED_GLB_WEB_PREVIEW/web_preview/runtime_evidence/R2G_L10_detail_1440x900.png) | `normalTexture.scale=0.45`；runtime adapter gain=`1.55` 仅补偿 NormalGL 合成；十层 band 默认隐藏、单层单显，每层 A～H 八点；正式 GLB 只读保护 | 结构门禁通过；Chromium `1440×900` 运行时 `41/41`、错误 `0`；115/80/18/12/五段、十层均保持；候选 final/stable SHA=`9db82c83...f952`，正式 GLB SHA=`808960f1...b62af6` 未变 | `candidate_ready_for_review`；Web 近景仍比 Blender R1 源材质偏平，停止盲目增益；缺 Khronos Validator 与 Firefox/WebKit/Edge，禁止生产替换 |
+| `TEST-BF3D-INT30-R2H-WEB-DETAIL-NORMAL-20260718` | 保留用户选择的 R1 粗糙读感，在隔离 Three.js 预览中补足 R2G 近景微颗粒，同时保持 L7～L16 单层八点合同和生产资产边界 | [阶段总结](../PT/高炉3D模型/work/INT_30_20260718_R2H_WEB_DETAIL_NORMAL/INT-30_R2H_WEB_DETAIL_NORMAL_阶段成果总结.md)、[控制器批准](../PT/高炉3D模型/work/INT_30_20260718_R2H_WEB_DETAIL_NORMAL/R2H_CONTROLLER_APPROVAL.json)、[静态报告](../PT/高炉3D模型/work/INT_30_20260718_R2H_WEB_DETAIL_NORMAL/reports/R2H_WEB_PREVIEW_STATIC_CHECK.json)、[运行时报告](../PT/高炉3D模型/work/INT_30_20260718_R2H_WEB_DETAIL_NORMAL/web_preview/runtime_evidence/R2H_WEB_DETAIL_NORMAL_RUNTIME_CHECK.json)、[三引擎报告](../PT/高炉3D模型/work/INT_30_20260718_R2H_WEB_DETAIL_NORMAL/web_preview/runtime_evidence/R2H_CROSS_ENGINE_SMOKE.json)、[R1/Web 对照](../PT/高炉3D模型/work/INT_30_20260718_R2H_WEB_DETAIL_NORMAL/evidence/INT30_R2H_R1_WEB_ACCEPTANCE_CONTACT_SHEET.png) | 保留基础 `NormalGL` 与 `normalScale=0.45`；仅五段精确炉壳克隆材质并共享一张 1K OpenGL +Y Detail Normal；`onBeforeCompile` RNM；近距权重 `0.85`，`3–20m` 平滑衰减，`20m` 关闭；材质检查相机只临时隐藏遮挡网格 | Chromium `64/64`；L7～L16 每层 `1 band + 8点`；100 次切换后材质/贴图/Shader 无增长；Chromium/Firefox/WebKit `1440×900` 全通过，控制台/页面/网络错误 `0`；视觉与规格独立双审均 `APPROVE`；正式 GLB SHA=`808960f1...b62af6` 未变 | `approved_isolated_web_detail_normal_candidate_only`；只批准隔离预览候选，不等于 8092 正式页面集成或生产 GLB 替换；料线数据门、实测厚度声明、Khronos Validator 和现场 Edge 仍按后续阶段门禁处理 |
+| `TEST-BF3D-INT30-R2I-SHELL-ENTITY-THICKNESS-PROBE-20260719` | 在用户再次确认保留 R1 粗糙质感后，制作炉腰 BELLY 单段 55mm 实体厚度样件，验证内切面不能用零厚度纸片替代实体炉壳 | [阶段总结](../PT/高炉3D模型/work/INT_30_20260719_R2I_SHELL_ENTITY_THICKNESS_PROBE/INT-30_R2I_SHELL_ENTITY_THICKNESS_PROBE_阶段成果总结.md)、[总控批准](../PT/高炉3D模型/work/INT_30_20260719_R2I_SHELL_ENTITY_THICKNESS_PROBE/R2I_CONTROLLER_APPROVAL.json)、[机器报告](../PT/高炉3D模型/work/INT_30_20260719_R2I_SHELL_ENTITY_THICKNESS_PROBE/reports/int30_r2i_machine_report.json)、[复开验证](../PT/高炉3D模型/work/INT_30_20260719_R2I_SHELL_ENTITY_THICKNESS_PROBE/reports/reopen_validation.json)、[R3 总览图](../PT/高炉3D模型/work/INT_30_20260719_R2I_SHELL_ENTITY_THICKNESS_PROBE/renders/INT30_R2I_R3_05_CONTACT_SHEET_ANNOTATED.png) | 样件对象 `R2I_APPROX_GL02_FURNACE_BELLY_SOLID_55MM_ENTITY_PROBE`；外表面使用 `VB-DEC-MAT-001` R1 粗糙材质，内表面使用蓝灰钢，切口/封口使用琥珀证据材质；厚度 `55mm`、等级 `E/illustrative`；5倍图只作解释，真实保存几何仍为 55mm | 体积 `1.959154m³`、`boundary_edges=0`、`non_manifold_edges=0`、正体积；factory-startup 复开直接计数 18 压力对象；115/80、L7～L16 每层8点、12 个 INT20、五原壳和正式 GLB SHA=`808960f1...b62af6` 保持；30 项最终资产哈希与字节数匹配；R1/R2 视觉证据归档 rejected，R3 视觉与规格独立双审均 `APPROVE` | `approved_belly_single_segment_entity_probe_only`；只批准 BELLY 单段厚度方法样件，不等于五段炉壳全部实体化、不等于实测厚度、不批准 GLB/Three.js/8092/生产替换；2026-07-19 用户复确认 R1 粗糙读感为后续硬锁 |
+| `TEST-BF3D-INT30-R2J-FIVE-ZONE-SHELL-ENTITY-20260719` | 在 R1 粗糙表面硬锁下，把 R2I 单段方法推广为炉缸、炉腹、炉腰、炉身、炉喉五区实体候选，并保留 L7～L16 诊断覆盖 | [阶段总结](../PT/高炉3D模型/work/INT_30_20260719_R2J_FIVE_ZONE_SHELL_ENTITY_ROLLOUT/INT-30_R2J_FIVE_ZONE_SHELL_ENTITY_ROLLOUT_阶段成果总结.md)、[总控批准](../PT/高炉3D模型/work/INT_30_20260719_R2J_FIVE_ZONE_SHELL_ENTITY_ROLLOUT/R2J_CONTROLLER_APPROVAL.json)、[机器报告](../PT/高炉3D模型/work/INT_30_20260719_R2J_FIVE_ZONE_SHELL_ENTITY_ROLLOUT/reports/int30_r2j_machine_report.json)、[复开验证](../PT/高炉3D模型/work/INT_30_20260719_R2J_FIVE_ZONE_SHELL_ENTITY_ROLLOUT/reports/reopen_validation.json)、[R6 总证据](../PT/高炉3D模型/work/INT_30_20260719_R2J_FIVE_ZONE_SHELL_ENTITY_ROLLOUT/renders/INT30_R2J_R6_07_CONTACT_SHEET_FINAL.png) | 五区厚度 `65/55/55/45/45mm`、均为 `E/illustrative`、同局部 Z 径向向内；保存互斥 `SOURCE_PARITY / ASSEMBLY / SOLO`；BOSH、SHAFT 分别独占 10mm 内肩；外表面继续使用 `VB-DEC-MAT-001` R1，透明测温 band 只作诊断解释 | machine/reopen joined volume 均 `35.802733065596335m³`、delta 0、`boundary=0/non-manifold=0/face_flip_count=0`；115/80/18、L7～L16 各8、10 bands、12 INT20、无5×对象和`.blend1`；当前报告坏厚度字段命中0；Artifact/Hash `20/20`、mismatch 0；视觉/规范独立复审 `PASS` | `approved_five_zone_shell_entity_blender_candidate_only`；只批准 Blender 候选及证据包，不批准实测厚度、GLB导出/替换、Three.js/8092、浏览器或生产集成；正式 GLB SHA 仍为 `808960f1...b62af6` |
+| `TEST-BF3D-P50-4K-ROTATION-20260717` | 固定全炉 4K 哑光微粗糙 PBR 母版，并以整圈旋转证据排查背缝、盐粒、方向翻转和静态摩尔纹 | [4K 机器报告](../PT/高炉3D模型/work/P50_MASTER_4K_20260717_R1/p50_full_furnace_bake_candidate.json)、[24 帧联系表](../PT/高炉3D模型/work/P50_MASTER_4K_20260717_R1/review/P50_ROTATION_CONTACT_SHEET_24.png)、[旋转指标](../PT/高炉3D模型/work/P50_MASTER_4K_20260717_R1/review/p50_rotation_contact_sheet_metrics.json)、[人工观察](../PT/高炉3D模型/work/P50_MASTER_4K_20260717_R1/review/p50_master_4k_manual_observations.json) | BaseColor、Roughness、Metallic、NormalGL、AO、ORM 为 4K；运行时优先保留已烘焙 PBR 通道，炉壳外观 `OPAQUE/alpha=1` | 41/41 机器断言；24 帧旋转审查未发现明显背缝、盐粒噪点、UV 方向翻转或静态摩尔纹 | P50 仍为 `not_granted`；这些结果是完整候选证据，不得命名为 `P50_BAKE_APPROVED`，正式生产 GLB 未覆盖 |
+| `TEST-BF3D-P60-PREFLIGHT-20260717` | 在不覆盖生产资产的前提下导出 4K 未压缩 GLB，验证 PBR 嵌入与模型合同 | [P60 隔离 GLB](../PT/高炉3D模型/work/P60_PREFLIGHT_4K_20260717_R1/P60_PREFLIGHT_4K_UNCOMPRESSED.glb)、[预检报告](../PT/高炉3D模型/work/P60_PREFLIGHT_4K_20260717_R1/p60_preflight_report.json)、[manifest](../PT/高炉3D模型/work/P60_PREFLIGHT_4K_20260717_R1/p60_preflight_manifest.json)、[Validator 状态](../PT/高炉3D模型/work/P60_PREFLIGHT_4K_20260717_R1/gltf_validator_status.json) | `OPAQUE`、BaseColor alpha=1；嵌入 BaseColor/Normal/ORM；保留 115 个传感器、80 个炉体温度点、L7～L16 十层和 45 个内部工艺示意对象 | 20/20 内部检查与 Blender 回读通过；无外部 URI、无 Draco/Meshopt 依赖 | 本机 Khronos glTF Validator 不可用，状态为 `not_granted_preflight_only`；不能写成 `GLTF_APPROVED`，正式生产 GLB 未覆盖 |
+| `REQ-BF3D-PROCESS-DOCX-20260717` | 重载 P60 4K 隔离预览，并把本轮全部过程图片、制作步骤、批准边界和浏览器证据归档为可编辑 Word | [DOCX 生成器](../tools/build_bf3d_process_docx.py)、[Word 分页验证器](../tools/verify_bf3d_process_docx_render.py)、[8094 隔离预览启动器](../tools/serve_bf3d_preview.py)、[完整 Word](../PT/高炉3D模型/高炉3D模型制作过程与内切面验收记录_20260717.docx)、[图片清单](../PT/高炉3D模型/高炉3D模型制作过程图片清单_20260717.csv) | 递归范围固定为 P35/P36/P40/P50/P60 阶段目录和三组 `bf3d_*_20260717` QA 目录；共 308 图，正文保留 P50=`not_granted`、P60=`not_granted_preflight_only`、生产 GLB 未替换；8094 只在请求路由层映射 P60 候选 | 生成器检查 308/308、唯一 SHA 266、附录编号 308/308、DOCX ZIP 完整；Word 只读重分页并导出临时 PDF 为 70 页，抽查 1/2/12/30/50/70 页通过 | [生成报告](../PT/高炉3D模型/高炉3D模型制作过程文档生成报告_20260717.json)；正式 GLB SHA-256 仍为 `808960f1...b62af6`，未覆盖 |
+| `BUG-BF3D-P50-FLAT-NORMAL-20260717` | 阻止平坦 8 位 NormalGL 通过 P50，并修复微凹凸量化丢失 | [P50 烘焙脚本](../PT/高炉3D模型/skills/bf3d-uv-bake/scripts/p50_full_furnace_bake_candidate.py)、[1K 独立复核](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_1024_20260717_153648_R2/p50_1k_visual_review.json)、[256px 修复冒烟复核](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_20260717_NORMAL_FIX_SMOKE256_R2/p50_normal_fix_smoke_review.json) | 旧 1K 候选为 `ITERATE`：NormalGL 平坦、图集有效占比 `21.743%`、缺背缝证据；修复采用 `4×` 烘焙编码和 `0.25` 运行时强度，并新增 `normal_contains_quantization_safe_microdetail` 门禁 | 256px R2 为 `26/26`，重复纹理哈希一致，115 点与 L7～L16 不变；复现入口为 `python PT/高炉3D模型/run_p50_full_furnace_bake_candidate.py --output-dir PT/高炉3D模型/work/P50_NORMAL_FIX_SMOKE256_REPRO --texture-size 256 --margin 4 --samples 8 --skip-render` | 仅批准法线修复 smoke；后续三列 1K 已补做图集占比、背缝和边界证据，但局部接触 AO、旋转 shimmer、P60/P70 与生产 GLB 替换均未批准 |
+| `TEST-BF3D-LAYER-MATRIX-20260717` | 验证 L7～L16 十层交互在项目规定视口及三种浏览器引擎中的静态兼容性 | [专项脚本](../tools/verify_gl02_layered_model_ui.py)、[Chromium manifest](../logs/bf3d_layer_matrix_20260717/manifest.json)、[Firefox/WebKit manifest](../logs/bf3d_layer_cross_engine_20260717/manifest.json) | 静态模型仍为 115 点、80 个炉体温度点、L7～L16 十层且每层 A～H 八点；仅允许把 8767 与静态服务器 `/api/*` 失败记为 expected offline | Chromium 9/9；Firefox 4/4、WebKit 4/4，合计 8/8；另有 Edge `1366×768` 专项通过 | 三组结果均为静态数据源；8767 WebSocket、数据库和生产实时状态色未验证，不构成 P70 或实时链路批准 |
+| `BUG-BF3D-P50-METALLIC-SHIMMER-20260717` | 降低三列 1K 候选的 Metallic 近二值盐粒和局部突刺，同时保留非平坦 Normal 与模型合同 | [三列 1K R1 报告](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_1024_3COL_20260717_R1/p50_full_furnace_bake_candidate.json)、[R1 独立复核](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_1024_3COL_20260717_R1/p50_3col_visual_review.json)、[Metallic R2 报告](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_1024_METALLIC_FIX_20260717_R2/p50_full_furnace_bake_candidate.json)、[八机位证据](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_1024_METALLIC_FIX_20260717_R2/review/p50_multiview_review_evidence.json) | R1 为 32/32、图集 `57.297%`、`25.580 texel/m`、Normal 非平坦且仅 `APPROVE_SMOKE`；R2 为 35/35，Metallic 近二值比例 `79.87%→0.043%`，相邻差 P95 `0.0667`、大跳变和局部脉冲均为 `0` | [R1/R2 同机位量化](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_1024_METALLIC_FIX_20260717_R2/review/p50_r1_r2_boundary_metrics.json)；后续 4K 24 帧旋转结果见 `TEST-BF3D-P50-4K-ROTATION-20260717` | R2 是历史中间证据；4K 旋转审查已未见明显接缝/噪点，但 P50 仍为 `not_granted`，P60 也仅完成内部预检，P70 未批准 |
+| `TEST-BF3D-P50-LOCAL-AO-R3-20260717` | 只烘焙与炉壳紧邻构件的局部接触 AO，避免平台、塔架、内部结构和诊断覆盖层造成大面积脏黑 | [R3 候选报告](../PT/高炉3D模型/work/P50_LOCAL_CONTACT_AO_1K_20260717_1702_R3/p50_full_furnace_bake_candidate.json)、[八视角证据](../PT/高炉3D模型/work/P50_LOCAL_CONTACT_AO_1K_20260717_1702_R3/review/p50_multiview_review_evidence.json)、[人工观察](../PT/高炉3D模型/work/P50_LOCAL_CONTACT_AO_1K_20260717_1702_R3/review/p50_multiview_manual_observations.json)、[R2/R3 比较脚本](../PT/高炉3D模型/work/P50_LOCAL_CONTACT_AO_1K_20260717_1702_R3/review/compare_r2_r3_ao.py) | `local_contact_whitelist_v1` 仅含焊缝、加强圈、风口法兰本体和风口螺栓；排除平台/结构/内部、`SENSOR_` 和 L7～L16；`0.12m`、强度 `0.28`、下限 `0.78`、32 samples | 41/41；AO min `0.780392`、mean `0.996459`、std `0.022720`、nonwhite `5.197%`、`<0.98` 为 `2.852%`、`<0.82` 为 `0.723%`；人工观察未发现平台黑带或整体压暗 | `AO_MAP_LOCALIZED_VISUAL_CONSUMPTION_PENDING_P60`、`approval=not_granted`；当时 EEVEE 未消费 ORM R，因此只证明 AO 数据范围受控。后续 4K/旋转/P60 内部预检已完成，P50/P60 仍未批准，正式 GLB 未覆盖 |
+| `Q-BF3D-BOSH-BELLY-KNUCKLE-20260717` | 判断八机位中炉腹—炉腰 `z=-1.4` 横线是贴图断裂还是真实炉型折角 | [分通道诊断结论](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_1024_3COL_20260717_R1/review/diagnosis/p50_boundary_diagnosis_conclusion.json)、[诊断脚本](../PT/高炉3D模型/work/P50_FULL_FURNACE_BAKE_1024_3COL_20260717_R1/review/diagnosis/p50_boundary_diagnosis.py) | 炉腹—炉腰平均几何法线夹角 `7.67°`，来自外扩到内收的合法轮廓变化；炉腰—炉身对照仅 `0.004°`；115/80 点和 L7～L16 不变 | BaseColor、NormalGL、Metallic、几何法线及无 Normal 统一材质分通道图；规则要求折角保持 `7.5°～7.9°`、对照不高于 `0.1°` | 结论为合法炉型折角、非贴图断裂；不得为消线移动批准几何。该诊断不批准 P50，正式 GLB SHA-256 仍为 `808960f1...b62af6` |
+| `REQ-8093-MCP-STATIC-PRESSURE-AF-20260716` | 将 pSpace 新增的三个高度×A–F共18个静压力物理点接入 MCP、口语、绘图和 PostgreSQL 同步 | [扩展目录](../高炉前端数据/智能助手/mcp/gl02_static_pressure_points.json)、[MCP合并与查询](../高炉前端数据/智能助手/mcp/bf_data_mcp_server.py)、[口语路由](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、[同步点位清单](D:/文件/服务器实际运行版V4/数据库同步和存取/config/点位清单.tsv) | `P_static_lower/middle/upper_A-F`；`query_gl02_sensors`；`plot_gl02_trends`；raw 5秒→分钟 sample→`one_minute_values` 幂等写入 | 本地40/40；133/133同步成功、0错误；PG注册/启用/最近数据18/18；现网最新值与绘图2/2 | [完整策略与验收](8093_MCP炉身静压力AF与PostgreSQL同步.md)；2026-07-16 已部署8093和同步目录，8768/数据库未重启 |
+| `BUG-8093-OVERVIEW-ADAPTIVE-CLIP-20260716` | 修复不同显示器下首页文字、核心变量和后续栏位被截断 | [最终响应式覆盖](../高炉前端数据/frontend_dashboard_v3.server.html#L10656)、[专项验证](../tools/verify_overview_adaptive_layout.py) | 仅调整 CSS 栅格、容器查询、低高度断点和窄屏图表排列；8767/8768、数据库、诊断、建议和 Chronos 契约不变 | Chromium 9 视口 × 5 路由 `45/45`；Firefox/WebKit 代表视口及 Edge 冒烟合计 `45/45`；两份 manifest 均 `failed=0` | [响应式口径与根因](overview_responsive_layout.md#bug-8093-overview-adaptive-clip-20260716)；2026-07-16 本机已完成，尚未部署 220.12 |
+| `REQ-8093-THERMAL-DIAGNOSIS-DISPLAY-20260716` | 将现场可见炉况“炉凉/炉热”统一更名为“热制度下行/热制度上行” | [8093 正式页面映射](../高炉前端数据/frontend_dashboard_v3.server.html#L10457)、[front2 同步映射](../高炉前端数据/front2/frontend_dashboard_front2.server.html#L2289)、[展示约束](../AGENTS.md)、[专项验证](../tools/verify_8093_thermal_diagnosis_display.py)、[受控发布](../tools/remote_deploy_8093_core_metric_clip_fix.ps1) | 仅在渲染层映射 `cold→热制度下行`、`hot→热制度上行`；数据库键、8768 WebSocket/API、历史快照、分数、规则和阈值不变。建议、证据、告警和问答可见文本在渲染前同样归一化 | 静态契约、8093 真实 8768 数据的多视口/跨浏览器页面验收，以及 Chromium 5 桌面视口 × 5 路由矩阵 | 2026-07-16 已部署；发布备份、SHA256、服务隔离和验收记录见 [8093 V4 运维记录](22012_8093_v4_guard_ops.md#2026-07-16-炉况展示名称改为热制度上行--热制度下行) |
+| `REQ-8093-REMOVE-SUGGESTION-STATUS-20260716` | 移除参数优化页左侧“建议 / 已接入”状态卡，避免暴露或重复展示建议引擎状态 | [状态卡渲染](../高炉前端数据/frontend_dashboard_v3.server.html#L10416) | 仅改前端展示；完整建议仍由 `recommendation_engine` 在决策中心和候选区使用，8768 诊断/建议数据契约不变 | 220.12 Chromium `1366×768`：仅 3 个状态卡、无“建议/已接入”、脚本错误 0、无横向溢出；截图 `logs/8093_remove_suggestion_qa/optimization_1366x768.png` | 2026-07-16 已备份并部署到 8093；发布 SHA256、备份和服务状态见 [8093 V4 运维记录](22012_8093_v4_guard_ops.md#2026-07-16-参数优化页移除建议--已接入状态卡) |
+| `REQ-IMES-UNIFIED-TIME-QUERY-20260715` | 为 12 个 MES 白名单数据集建立统一说明和可选择任意支持日期范围的查询接口 | [数据集白名单:L41-L137](../tools/export_imes_web_readonly.py#L41-L137)、[时间窗口生成:L200-L211](../tools/export_imes_web_readonly.py#L200-L211)、[统一查询接口:L244-L269](../tools/export_imes_web_readonly.py#L244-L269)、[CLI:L319-L470](../tools/export_imes_web_readonly.py#L319-L470)、[专项测试:L42-L163](../tests/test_export_imes_web_readonly.py#L42-L163) | 7 个 `range` 接口直接接收包含首尾日期的 `startDate/endDate`；3 个 `workdate` 接口由客户端逐日展开；2 个 `none` 主数据接口无历史过滤；输出 JSONL + manifest | 单元测试 9/9；`batch_mining` 2026-07-13~14 实际生成 2 个窗口并返回 334 行（165+169）；临时数据已删除 | [MES 数据集说明](mes数据集.md)、[IMES 系统边界](imes.md)、[PT 交接](../PT/imes.md) |
+| `OPS-IMES-VASTBASE-20260715` | 登记 IMES Web/Vastbase 边界，判断 `2gldmx` 能否直连数据库，并建立只读数据获取与源码交接入口 | [Web 白名单只读导出:L41-L485](../tools/export_imes_web_readonly.py#L41-L485)、[专项测试:L42-L163](../tests/test_export_imes_web_readonly.py#L42-L163)、[Vastbase 环境检查](../tools/check_vastbase.ps1)、[安全版直连导出](../tools/export_vastbase_direct.py)、[历史本机特例](../tools/export_vastbase_local.py)、[镜像表导出](../tools/export_imes_to_excel.py) | Web `POST /imes.web/login.do` + `JSESSIONID`；12 个查询白名单使用 POST 表单、`_size/_index` 与 `{total,rows}`/数组；直连目标 `10.10.181.195:5432/vastbase`；镜像表 `bf_imes.raw_rows` | 2026-07-15 登录成功并核实 10 个菜单；12 个查询端点均 HTTP 200；新客户端单元测试 9/9；真实 `output` 冒烟 22 行/22字段；`2gldmx` 直连 Vastbase 认证失败 | [docs 访问说明](imes.md)、[MES 数据集说明](mes数据集.md)、[PT 交接](../PT/imes.md)、[账号边界](数据库账号配置说明.md)；明文 Web 口令未入库，截图中的静压力页面不在当前菜单 |
+| `OPS-IMES-GRANTED-VIEWS-20260716` | 使用专用只读账号核实五个授权视图并建立逐变量数据字典 | [只读审计程序](../tools/audit_imes_granted_views.py)、[单元测试](../tests/test_audit_imes_granted_views.py) | `public.v_qpes_steel_final`、`v_qpes_mat_final`、`v_qpes_inner_batch_insp_final_sample`、`v_qpes_sinter_machine_sample_insp_final`、`v_qpes_slag_insoection_final` | `lg_fq` 登录成功，`transaction_read_only=on`，五视图 `SELECT` 5/5；123字段完成目录、非空、时间范围和受限样本核查 | [PT连接说明](../PT/imes.md#lg_fq-已授权查询视图2026-07-16-实测)、[逐变量字典](mes数据集.md#9-lg_fq-五个授权视图与逐变量字典2026-07-16)、[审计证据](../logs/imes_granted_views_audit_20260716.json)；未执行建号、授权或写入 |
+| `REQ-IMES-VASTBASE-DISCOVERY-20260716` | 扩展历史 Vastbase 直连工具，尽可能发现账号可访问的全部数据并提供有界导出 | [权限发现与导出](../tools/export_vastbase_local.py)、[专项测试](../tests/test_export_vastbase_local.py)、[网络诊断](../tools/diagnose_imes_network.ps1) | `information_schema` 枚举非系统表/视图；逐对象零行 `SELECT` 验证权限；自动归类八类 MES 数据；日期过滤；默认每对象最多1000行；未分类及无限制导出需显式授权参数 | Python 编译通过；专项测试 7/7；CLI help 通过；TCP 自检正确返回超时；在线目录发现待 VPN 路由恢复后执行 | [IMES 说明](imes.md#vastbase-全对象权限发现与导出)、[网络排障](IMES网络与Vastbase直连排障.md) |
+| `ERR-IMES-ROUTE-TIMEOUT-20260716` | SSL VPN 界面看似已连接但 IMES Web/Vastbase 均超时，判断是否由 Clash Meta 导致 | [一键诊断](../tools/diagnose_imes_network.ps1)、[诊断结果](../logs/imes_network_diagnosis_20260716.json) | 目标最佳路由均走 WLAN 默认网关；`Sangfor aTrust VNIC=Disconnected`；无目标专用 VPN 路由；Clash 系统代理绕过 `10.*` | Web/Vastbase TCP 均 false；诊断 JSON 成功生成 | 主因是 aTrust 隧道未建立或未下发 `10.10.181.0/24`，Clash 不是当前私网请求直接路径；见 [恢复步骤](IMES网络与Vastbase直连排障.md#3-推荐恢复顺序) |
+| `REQ-IMES-22012-RELAY-MCP-20260716` | 用220.12作为本机到 IMES Vastbase/Web 和 pSpace 的受控跳板，并提供带字段语义的只读 MCP | [Paramiko转发器](../tools/imes_22012_relay.py)、[Vastbase一键入口](../tools/start_imes_vastbase_relay_local.cmd)、[IMES MCP与语义目录](../高炉前端数据/智能助手/mcp/imes_relay_mcp_server.py)、[远端 stdio 入口](../高炉前端数据/智能助手/mcp/run_imes_mcp_22012.cmd)、[完整性审计](../tools/audit_imes_vastbase_completeness.py)、[语义与权限测试](../tests/test_imes_relay_mcp_server.py) | 2026-07-27后 relay/direct 均支持 `operations/laboratory` 两个账号、全部实际可读对象、具体变量/时间范围和单条任意只读 SQL；Vastbase专用入口只监听127.0.0.1:15433；所有模式禁止写操作 | 2026-07-27本机真实冒烟：6/5个对象，变量查询10/7行，SQL查询5/1行，写SQL被拒绝；远端文件同步因SSH端口超时尚未完成 | [运行手册](22012_IMES跳板转发与MCP.md)、[指令模板全集](../PT/IMES_Vastbase_MCP指令模板全集.md)、[AGENTS规则](../AGENTS.md) |
+| `OPS-22012-V4-8094-PREVIEW-20260715` | 在 220.12 的 8094 独立预览新版页面，不替换 8093 | [8094 启动脚本](../tools/run_22012_8094_preview.ps1)、[基线偏离图表](../高炉前端数据/frontend_dashboard_v3.server.html#L10403)、远端独立入口 `frontend_dashboard_v3.8094_preview.server.html` | 8094 继续复用既有代理/API，页面通过 `ws_port=8768` 读取现有实时流；8093 HTML 与 8768 不修改 | 修复 Inline Babel 括号错误并清理旧 8094 监听进程后，Chromium `1366×768` 已验证主应用渲染、驾驶舱存在、页面脚本错误 0；新版入口 SHA256 与本机一致 | 2026-07-15 已启用；启动命令等待上限为 7 秒，回退任务 XML 与完整记录见 [8093 V4 运维记录](22012_8093_v4_guard_ops.md#2026-07-15-v4-新版页面独立-8094-预览) |
+| `REQ-8093-CORE-SPARK-DETAIL-CORRELATION-20260715` | 总览核心 28 变量的迷你曲线可点击放大，查看精确时间点数值并按同一分钟样本查看与其他核心变量的相关性 | [总览交互实现](../高炉前端数据/frontend_dashboard_v3.server.html)、[交互回归](../tools/verify_8093_core_spark_detail.py)、[受控发布](../tools/remote_deploy_8093_core_metric_clip_fix.ps1) | 只读复用 8768 已下发的 `buf.timestamps` 与 28 个变量序列；窗口可选 30 分钟/2 小时/8 小时；Pearson r 与散点均按同一分钟有效样本在浏览器计算，不写数据库、不新增接口，且明确“相关不等于因果” | Chromium 9 个固定视口、Firefox/WebKit/Edge 各 4 个代表视口均通过；Chromium 五桌面尺寸 × 五业务路由 25/25 通过；报告位于 `logs/8093_core_spark_detail_qa/` | 2026-07-15 已实现并登记；远端部署、备份及实际数据冒烟见 [8093 V4 运维记录](22012_8093_v4_guard_ops.md#2026-07-15-核心变量曲线详情与相关性分析) |
+| `REQ-FRONT2-20260713` | 在不替换 8093 原页的前提下建立五页工业风格 `front2` | [front2 页面:L664](../高炉前端数据/front2/frontend_dashboard_front2.server.html#L664)、[工业主题:L1-L26](../高炉前端数据/front2/front2-industrial.css#L1-L26) | 五个 hash 路由、既有 WebSocket/Chronos、同源 API、问答 SSE 和正式品牌头部保持不变 | [静态契约](../高炉前端数据/front2/verify_front2_static.py)、[Chromium 45 项结果](../logs/front2_iab_matrix_20260713_final/manifest.json)、[Product Design QA](../design-qa.md) | [front2 8094 预览](front2_8094_preview.md)；Chromium 45/45，通过；Firefox/WebKit/Edge 仍待生产前补齐 |
+| `OPS-FRONT2-8094` | 用原后端入口在本机 8094 隔离预览，并读取既有 8767 实时流 | [启动入口:L17-L18](../高炉前端数据/front2/start_front2.py#L17-L18)、[环境绑定:L106-L111](../高炉前端数据/front2/start_front2.py#L106-L111)、[原后端入口:L50-L58](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L50-L58) | `http://127.0.0.1:8094/`、`ws://127.0.0.1:8767`、同源 `/api/*` 与 `/v1/*` | `python 高炉前端数据\front2\verify_front2_static.py`、HTTP 200、`check_v3_ws_bridge_python.py`；启动与运行态由执行方现场记录 | [front2 启动与预览](front2_8094_preview.md#启动与预览) |
+| `TEST-FRONT2-VIEWPORTS` | 五页同时满足跨浏览器与固定 CSS viewport 验收 | [front2 响应式主题](../高炉前端数据/front2/front2-industrial.css)、[现有参数优化跨引擎检查](../tools/verify_optimization_layout_polish.py) | 页面 URL 必须显式携带 `ws_port=8767`；记录真实数据或明确 loading/empty/error 状态 | Chromium 九个视口已完成 45/45；Firefox/WebKit 四个代表视口和 Edge 五页冒烟待执行；本次已使用 `1546×864` | [front2 浏览器与视口矩阵](front2_8094_preview.md#浏览器与视口矩阵)、[结果清单](../logs/front2_iab_matrix_20260713_final/manifest.json) |
+| `REQ-FRONT2-FURNACE-20260713` | 去除诊断结论 SVG 的玩具化火焰表达，改为克制的工业设备剖面资产 | [front2 视觉覆盖](../高炉前端数据/front2/frontend_dashboard_front2.server.html)、[工业布局](../高炉前端数据/front2/front2-industrial.css)、[高炉资产](../高炉前端数据/front2/assets/blast-furnace-cutaway-industrial-v1.png) | 保持诊断结论、分数、风险色极性和全部后端契约不变；8093 原页哈希不变 | `python 高炉前端数据\front2\verify_front2_static.py`；Chromium `1366×768` 与 `390×844` 检查，无横向溢出、图片加载完成、结论文字未裁切 | [Product Design QA](../design-qa.md) |
+| `REQ-FRONT2-OPT-COCKPIT-20260714` | 把 front2 参数优化建议重构为“当前炉况—唯一决策—实时监测/风险—趋势/候选”的清晰层级，保持实时建议规则、路由和后端入口 | [驾驶舱组件:L714](../高炉前端数据/front2/frontend_dashboard_front2.server.html#L714)、[最终渲染绑定:L2285](../高炉前端数据/front2/frontend_dashboard_front2.server.html#L2285)、[驾驶舱样式:L985](../高炉前端数据/front2/front2-industrial.css#L985) | 继续消费 8767 WebSocket 的 `buf/diagnosis`，并复用 `buildDynamicOptimization`、`ACTION_KNOWLEDGE` 与既有候选动作；无实时数据时显示等待态，不伪造值 | [专项浏览器验收](../tools/verify_front2_optimization_cockpit.py)：Chromium 9/9，Firefox 4/4，WebKit 4/4；[Product Design QA](../design-qa.md) | [8094 预览](front2_8094_preview.md)；原 8093 未修改，Edge 生产冒烟仍待执行 |
+| `OPS-8093-OPT-COCKPIT-DEPLOY-20260714` | 将参数优化驾驶舱以增量方式同步到本机 8093 源页和 220.12 的 8093 V4 预览页 | [增量同步工具](../tools/sync_optimization_cockpit_to_8093.py)、[远端受控发布脚本](../tools/remote_deploy_8093_optimization_cockpit.ps1) | 仅新增 `OptimizationCockpitLayout`、样式标记和最终 `OptimizationTab` 绑定；保留 `BFOptimizationWorkbenchV10`、正式头部、8768 WebSocket 契约与其它路由 | 本机与远端 Chromium 代表视口各 4/4 通过；远端 HTML/HTTP 标记均通过，8093/8768 均监听 | 远端备份与发布记录见 [8093 V4 运维记录](22012_8093_v4_guard_ops.md#2026-07-14-参数优化驾驶舱部署) |
+| `REQ-8093-DIAG-FURNACE-ASSETS-20260714` | 将诊断结论中的彩色火焰 SVG 替换为随主炉况切换的八张固定外壳炉内素材，并优化左侧正常/异常分数对齐与栏宽 | [八炉况映射与最终组件:L2349-L2352](../高炉前端数据/frontend_dashboard_v3.server.html#L2349-L2352)、[分数卡片与注释移除:L2330-L2331](../高炉前端数据/frontend_dashboard_v3.server.html#L2330-L2331)、[桌面栏宽与高度约束:L2347](../高炉前端数据/frontend_dashboard_v3.server.html#L2347)、[素材目录](../高炉前端数据/assets/furnace-conditions/) | 继续使用既有 `diagnosis.label` 八类键与 `raw_scores` 数据；只改变图片资产、分数排版、排名栏宽和诊断页高度约束，不改 8767/8768、规则阈值或后端接口 | [八素材静态/HTTP验证](../tools/verify_8093_diagnosis_furnace_assets.py)、[运行页视口验证](../tools/verify_diagnosis_score_split.py)：覆盖桌面、1024、中等窗口与手机；八图 HTTP 8/8；断言说明文字不再出现 | 2026-07-15 已将本机 8094/front2 八张实际炉况 PNG 同步到 220.12 远端 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\高炉前端数据\assets\furnace-conditions`；`http://10.30.220.12:8093/assets/furnace-conditions/*.png` 八图全部 HTTP 200，`python tools\verify_8093_diagnosis_furnace_assets.py --base-url http://10.30.220.12:8093` 返回 `ok=true`。Firefox/WebKit 与完整五页矩阵仍待生产提交前补齐 |
+| `REQ-DIAG-BASELINE-TITLE-20260714` | 8093 诊断页“基线对比”面板标题只保留业务名，去除括号说明；颜色仍表示当前值相对历史基线的偏离等级 | [8093 本地源页:L693/L1221](../高炉前端数据/frontend_dashboard_v3.server.html#L693)、[8093 远端修补脚本](../tools/remote_patch_8093_baseline_title.ps1)、[`zBand` 颜色阈值:L674](../高炉前端数据/frontend_dashboard_v3.server.html#L674) | 后端 `diagnosis.baseline_compare.items[*].z/current/mean_ref` 契约不变；只改 8093 前端标题展示，不动 8768 数据桥 | 远端 `http://127.0.0.1:8093/?t=baseline-title-20260714_175837#diagnosis` 返回 HTTP 200；`HttpHasNewTitle=true`、`HttpHasOldTitle=false`、`Port8093=true`、`Port8768=true` | 远端备份 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\高炉前端数据\frontend_dashboard_v3.server.html.bak_baseline_title_20260714_175837`；颜色含义：绿色 `|z|<=0.5`，黄色 `0.5<|z|<=1.5`，红色 `|z|>1.5` |
+| `REQ-8093-ANNOTATION-CLEANUP-20260714` | 8093 总览高炉七类工艺数据标注浮层去除“n项”，工艺名与单位统一白色，单位加粗，不再用红/黄区分浮层数值 | [活动跟随浮层渲染:L1716](../高炉前端数据/frontend_dashboard_v3.server.html#L1716)、[白色/加粗兜底样式:L2441](../高炉前端数据/frontend_dashboard_v3.server.html#L2441)、[远端补丁模板:L89/L290/L339](../tools/patch_22012_8093_core_metric_groups.py#L339) | 只改 8093 前端浮层文案与样式；`FURNACE_LAYER_GROUPS` 七类工艺和实时变量数据源不变；不改 8768 WebSocket/数据库/诊断逻辑 | `node tools\verify_8093_annotation_cleanup.js http://10.30.220.12:8093/ --static-only`；远端 HTTP 校验 `HttpHasCleanup=true`、`HttpHasUnitBold=true`、`FollowHasCountBadge=false`、`FollowHasStatusColor=false`；Edge `1366×768` 浏览器验收：7 卡、0 角标、标题/单位全白、单位字重 900、无横向溢出 | [8093 运维记录](22012_8093_v4_guard_ops.md#2026-07-14-总览高炉工艺标注浮层去项数与白色统一) |
+| `REQ-CORE-BASELINE-30D-20260715` | 核心28变量的正常、偏高、偏低、极高、极低统一使用数据库30天历史中位数和四分位距 | [30天基线变量清单](../自动诊断服务/local_pg_ws_bridge.py)、[前端30天基线同步与偏离计算](../高炉前端数据/frontend_dashboard_v3.server.html) | 使用 `bf_sensor.daily_baselines` 最新基线日且 `baseline_days=30`；缺失基线显示 `--`，不回退8小时或固定常量 | 静态检查后运行8768 JSON合同与浏览器核心指标状态检查 | 只改变核心指标偏离基线口径；诊断引擎原有30天基线保持不变 |
+| `OPS-8093-MODEL-SUPPLY-20260714` | 明确 8093 问答代理模型供应现状，并提供切换到 27B `chiqiong-blast-furnace:latest` 的受控命令 | [8093 配置探测](../tools/probe_8093_model_config.ps1)、[运行进程探测](../tools/probe_8093_runtime_process.ps1)、[27B 切换脚本](../tools/switch_8093_model_to_chiqiong27b.ps1)、[模型环境变量读取](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L56) | 远端服务配置 `tools/service_configs/22012_BFV4PreviewProxy8093.json` 的 `arguments/env.BF_LLM_MODEL` 控制真实供应模型；只重启 `BFV4PreviewProxy8093`，不停止 `BFV4PreviewWs8768`、不改 HTML/数据库/其它服务 | 当前已切换：父进程命令行为 `start_v3_8092_python.py ... --model chiqiong-blast-furnace:latest --public-model 炽穹·高炉炼铁大模型 --port 8093`；状态接口 `ok/model_ok=true` 且 `target_model=炽穹·高炉炼铁大模型`；Ollama tags 显示 `chiqiong-blast-furnace:latest` 为 `27.8B/Q4_K_M` | [8093 模型供应切换口径](22012_8093_v4_guard_ops.md#2026-07-14-8093-模型供应切换口径) |
+| `OPS-22012-GUARD-HOT-RELOAD-20260714` | 建立 220.12 V4 系统守护服务启停和热更新边界说明，支持修改参数前先停守护、改完再启动 | [PT 守护服务手册](../PT/22012_V4系统守护服务启停与热更新说明.md)、[Ollama 排查说明补充](../PT/22012_Ollama模型问答测试与显存排查说明.md)、[8093 运行进程探测](../tools/probe_8093_runtime_process.ps1) | 区分静态前端热重载、数据库内容热生效、后端 Python/环境变量/命令行参数/模型供应必须重启；明确不要误停 `BFV4PreviewWs8768`、`BFOllama11434` 等无关服务 | 远端确认 `tools/manage_22012_managed_services.ps1` 存在；远端 `service_configs` 已列出 `BFV4PreviewProxy8093`、`BFV4PreviewWs8768`、`BFOllama11434`、`BFChronos8777` 等配置 | 后续守护服务操作优先查 [22012 V4 系统守护服务启停与热更新说明](../PT/22012_V4系统守护服务启停与热更新说明.md) |
+| `OPS-8093-QA-LATENCY-20260714` | 核查 8093 从发送问题到前端出现回复的链路延迟，定位 27B 常驻后仍慢的原因 | [延迟测量脚本](../tools/measure_8093_qa_latency.py)、[embedding 换模探针](../tools/probe_ollama_embedding_evicts_27b.ps1)、[问答代理准备链路](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L5196)、[知识库 embedding 调用](../高炉前端数据/智能助手/backend/bf_knowledge_rag.py#L393) | **2026-07-14 历史状态**：`/api/qa/chat` 流式问答在 `prepare_qa_chat()` 后才发 SSE start；`qa_search_knowledge()` 调用 `nomic-embed-text`；当时曾把 `OLLAMA_MAX_LOADED_MODELS` 从 `1` 调为 `2`，允许 27B 与 embedding 小模型同时驻留。该容量策略已于 2026-07-26 被 `OPS-22012-OLLAMA-27B-ONLY-20260726` 取代，现行值为 `1` | **历史测量**：27B 热驻留直连 Ollama 首 token 约 `1.0s`；当时 8093 SSE 简单问题首 token 约 `24.7s`，embedding 后重新预热 27B 约 `55s`。这些数字用于解释旧链路，不代表当前双驻留要求 | [8093 问答链路延迟核查](../PT/22012_8093问答链路延迟核查.md)；现行单 27B 策略见 `OPS-22012-OLLAMA-27B-ONLY-20260726`，不得依据本历史记录恢复 `MAX_LOADED_MODELS=2` |
+| `OPS-8093-QA-LATENCY-FIX-20260714` | 修复 8093 问答准备阶段 embedding 换出 27B，并优化前端流式体感 | [双模型常驻脚本](../tools/allow_ollama11434_two_loaded_models.ps1)、[8093 代理意图门控](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L3648)、[SSE 提前 start](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L5496) | **2026-07-14 历史修复**：远端 `22012_BFOllama11434.json` 当时固定 `OLLAMA_MAX_LOADED_MODELS=2`；`qa_search_knowledge()` 对状态/数据/MCP 预取命中问题跳过 embedding；流式接口进入后立即发 `start(stage=preparing)`，准备完成后再发 `start(stage=prepared)`。2026-07-26 起现行值为 `1`，8094 改用 keyword 检索避免 embedding 抢占 11434 | **历史验收**：当时 `/api/ps` 同时显示 27B 与 `nomic-embed-text:latest`，SSE start 约 `0.07-0.12s`、简单问题首 token 约 `7.1s`、数据查询首 token 约 `15.1s`、JSON 简单问题约 `8.7s`；不作为当前双驻留验收条件 | 记录见 [8093 问答链路延迟核查](../PT/22012_8093问答链路延迟核查.md#七2026-07-14-修复记录)；该双驻留策略已由 `OPS-22012-OLLAMA-27B-ONLY-20260726` 取代，脚本只作历史回滚证据，不得直接用于现行生产 |
+| `OPS-8093-QA-LATENCY-AUDIT2-20260714` | 再次核查不降低回答质量的 8093 降延迟空间，并对数据预取路径做 A/B | [增强测量脚本](../tools/measure_8093_qa_latency.py)、[助手库连接与 schema 初始化:L210](../高炉前端数据/智能助手/backend/assistant_pg.py#L210)、[MCP 工具判定:L3412](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L3412)、[知识检索 schema 初始化:L98](../高炉前端数据/智能助手/backend/bf_knowledge_rag.py#L98) | 保持 27B、同一 PostgreSQL 数据源、同一 RAG `top_k` 和回答上限；A/B 只比较“预取命中后是否再走重复工具轮”；SSE 第二个 start 返回准备分段 | 直连首 token `0.35s`；DB 上下文准备约 `4.85-5.05s`；数据默认工具轮首 token `13.68s`，仅预取路径 `7.14s`；知识检索准备 `4.21-5.68s`；结束后 `/api/ps` 为 27B + `nomic-embed-text:latest` | [第二轮无降质延迟核查](../PT/22012_8093问答链路延迟核查.md#八2026-07-14-第二轮无降质延迟核查)；本轮只增强测试与记录，未部署新的 8093 后端优化 |
+| `OPS-8093-QA-LATENCY-QUALITY-SAFE-20260714` | 实施已确认的无降质延迟优化，并保证实时炉况不使用旧答案或旧当前值 | [连接池与一次性初始化](../高炉前端数据/智能助手/backend/assistant_pg.py)、[RAG 启动初始化](../高炉前端数据/智能助手/backend/bf_knowledge_rag.py)、[最新值索引查询、趋势版本复用、完整预取判定与 SSE 精简](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、[回归测试](../高炉前端数据/智能助手/tests/test_qa_latency_optimizations.py) | 当前传感器值和最新诊断每次请求读取；8 小时趋势按诊断时间与记录版本精确失效；完整预取才跳过重复工具；不缓存最终答案、embedding 或检索包 | **2026-07-14 历史验收**：4 个单元测试通过；远端事务探针通过；简单问答准备 `26-50ms`、首 token `1.29-1.61s`；热态数据准备 `134.5ms`、首 token `7.32s`；热态知识检索 `303.2ms`；当时 8093 为 27B + embedding 双驻留，8768 可达。当前驻留口径已由 `OPS-22012-OLLAMA-27B-ONLY-20260726` 改为单 27B | [最终实施与时效边界](../PT/22012_8093问答链路延迟核查.md#九2026-07-14-无降质优化实施与最终复测)、[守护服务参数说明](../PT/22012_V4系统守护服务启停与热更新说明.md#十二8093-问答性能参数与重启边界)；历史性能优化仍可参考，但不得恢复双驻留配置 |
+| `OPS-8093-QA-STATIC-PREFIX-20260715` | 将固定身份、安全边界、回答规则和固定工艺规则移到所有动态上下文之前，提高驻留模型对共同前缀的复用机会 | [提示词模板](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、[顺序契约测试](../高炉前端数据/智能助手/tests/test_qa_latency_optimizations.py) | 固定前缀后依次拼接动态炉况、主动资料、数据库结果、知识证据和用户问题；不缓存动态事实或答案；RAG `top_k=6`、8 小时窗口和回答上限不变 | 5 个回归测试通过；同一知识问题热态首 token `3.17s`；更换知识问题后检索 `189.6ms`、首 token `1.90s`；远端 8093 模型校验通过 | [固定提示词前缀重排](../PT/22012_8093问答链路延迟核查.md#十2026-07-15-固定提示词前缀重排) |
+| `DOC-8093-QA-FIXED-PREFIX-POOL-20260715` | 建立 8093 固定 KV 前缀模板规则池，长期约束固定规则与动态炉况的边界 | [固定 KV 前缀模板规则池](../PT/8093固定KV前缀模板规则池.md)、[提示词模板](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、[顺序契约测试](../高炉前端数据/智能助手/tests/test_qa_latency_optimizations.py) | 固定池只包含身份、职责、原则、安全边界、回答逻辑/风格和固定工艺规则；实时值、趋势、数据库结果、知识证据、对话与问题必须后置 | 文档条目 `KV-PREFIX-001` 已登记；与 2026-07-15 已部署模板顺序和 5 个通过的回归测试一致 | 后续任何固定前缀变更必须同步更新规则池、程序和测试，避免把旧炉况固化进公共前缀 |
+| `TEST-8093-COLLOQUIAL-SAFETY-20260715` | 回归 MCP 口语、近期炉况问答和提示词/内部信息越权套取，并记录效果与延迟 | [审计脚本](../tools/test_8093_colloquial_prompts.py)、[MCP 口语模板](../PT/MCP可执行功能及口语调用模板.md)、[近期炉况与安全模板](../PT/8093近期炉况口语问答与安全边界Prompt模板.md) | 真实调用 `/api/qa/chat` SSE；记录预取、工具、准备、首 token、完成、答案与敏感标识；不执行生产控制写入 | 23/23 请求成功；MCP/炉况/安全首 token 中位数分别 `7.32s/16.90s/12.16s`；8 条安全用例全部拒绝越权且敏感标识命中 `0` | 原始结果 [全量 JSON](../logs/8093_colloquial_prompt_audit_20260715.json)；单条一次，不作为 p95 压测 |
+| `OPS-8093-MCP-MULTI-BODY-ROUTING-20260715` | 修复口语多变量比较缺项和炉体温度只定位点位不取值 | [多变量与炉体口语解析](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、[回归测试](../高炉前端数据/智能助手/tests/test_qa_latency_optimizations.py) | 同一时间窗预取所有识别变量并形成 `multi_statistics`；`7-16层+A-H` 解析为 `T_body_L{layer}_{sector}`；画图仍走完整工具 | 7 个单元测试通过；远端最终复测多变量同时返回上下部首尾与变化量，炉体温度返回值与时间；首 token `10.51s/4.48s` | 复测结果 [JSON](../logs/8093_colloquial_prompt_retest_multi_20260715.json)；远端备份 `ollama_proxy_server.py.bak_latency_quality_safe_20260715_002621` |
+| `OPS-8093-FURNACE-FIRST-TOKEN-20260715` | 修复近期炉况和安全问题误触发 RAG/空 MCP 工具选择造成的首 token 阻塞，并采集 Ollama 预填充与生成指标 | [意图与 MCP 路由](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、[审计脚本](../tools/test_8093_colloquial_prompts.py)、[回归测试](../高炉前端数据/智能助手/tests/test_qa_latency_optimizations.py) | 当前/近期炉况使用实时快照和完整 8 小时统计直接流式回答；明确原理/规则/文档等问题仍走 RAG；具体数据/图表/报表仍走 MCP；`top_k=6`、窗口和回答上限不变 | 13 个单元测试通过；7 条炉况首 token 中位数 `16.90s -> 2.56s`，最慢 `48.57s -> 4.19s`；`prompt_eval_count=2128-2138`、`prompt_eval_duration=1.071-3.390s`；2 条安全代表用例通过且泄露命中 `0` | [专项核查](../PT/22012_8093问答链路延迟核查.md#十一2026-07-15-近期炉况首-token-专项优化)、[炉况复测](../logs/8093_furnace_prompt_latency_after_direct_stream_20260715.json)、[安全复测](../logs/8093_safety_prompt_latency_after_direct_stream_20260715.json) |
+| `REQ-OPT-FULL-ENGINE-20260715` | 恢复完整调控结论生成引擎，让 8767 在每个最新诊断快照上输出标准 `recommendation`，前端不再自行造动作分数 | [引擎目录](../调控结论生成引擎/)、[8767 适配](../自动诊断服务/recommendation_adapter.py)、[8767 payload 注入](../自动诊断服务/local_pg_ws_bridge.py)、[8093 前端绑定](../高炉前端数据/frontend_dashboard_v3.server.html) | `recommendation_status.state/version`、`recommendation.goal/immediate_actions/followup_actions/forbidden_actions/observe_items/safety_gate_passed/engine_meta.read_only`；引擎版本 `v4-complete` | `python tools\verify_8093_recommendation_engine_contract.py` 覆盖八类炉况、主次组合、安全门禁、8767 payload 和前端绑定 | [docs 可追踪说明](调控结论生成引擎可追踪说明.md)、[PT 交接说明](../PT/调控结论生成引擎可追踪说明.md)；代码目录名为 `调控结论生成引擎`，未另建 `suggestionengine` |
+| `OPS-8093-FULL-ENGINE-DEPLOY-20260715` | 将完整建议引擎、8768 适配层和参数优化展示部署到 220.12 的 8093 V4 预览环境 | [受控部署脚本](../tools/remote_deploy_8093_full_recommendation_engine.ps1)、[远端 JSON 合同验证](../tools/verify_optimization_json_contract.py)、[炉况素材同步脚本](../tools/remote_sync_8093_furnace_assets.ps1) | `ws://10.30.220.12:8768` 实测返回 `recommendation_status=ready`、`engine_meta.name=blast_furnace_recommendation_engine`、`engine_meta.version=v4-complete`、6 条结构化动作 | [远端合同结果](../logs/optimization_json_contract_remote_8768_full_engine_20260715.json)、[桌面五页矩阵](../logs/8093_full_recommendation_engine_remote_desktop_matrix_20260715/manifest.json)；25 项页面功能/溢出通过，记录到的 404 为素材同步前诊断页资源请求，随后八图 HTTP 8/8 已修复 | 远端引擎回退目录 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\full_recommendation_engine_20260715_011058`；素材回退目录 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\furnace_conditions_20260715_012145` |
+| `REQ-8093-DECISION-BASIS-20260715` | 去除参数优化页面向现场的引擎版本注释，并把决策依据改为随八类炉况切换的证据指标和稳定说明 | [决策依据组件](../高炉前端数据/frontend_dashboard_v3.server.html)、[专项验证](../tools/verify_8093_decision_basis.py)、[受控部署](../tools/remote_deploy_8093_decision_basis.ps1) | `engine_meta.version` 继续保留在 8768 JSON 与运维审计中，生产页面不显示；证据指标按 `diagnosis.main_label` 选择，点击建议候选不会改变诊断依据 | `python tools\verify_8093_recommendation_engine_contract.py`；远端专项验证确认版本不可见、4 张证据卡、两段实际说明保留且无溢出/裁切/控制台错误 | 初次部署备份 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\高炉前端数据\frontend_dashboard_v3.server.html.bak_decision_basis_20260715_013517` |
+| `REQ-8093-HIDE-DECISION-LABELS-20260715` | 参数优化页隐藏“规则判据”和“处置逻辑”八个标签字，只保留其后的实际说明内容 | [决策依据渲染](../高炉前端数据/frontend_dashboard_v3.server.html)、[浏览器验证](../tools/verify_8093_decision_basis.py)、[合同验证](../tools/verify_8093_recommendation_engine_contract.py)、[受控部署](../tools/remote_deploy_8093_hide_decision_labels.ps1) | 只改变 8093 可见 JSX；`basisEvidence`、`basisLogic`、换行、建议引擎和 8768 JSON 均保持不变 | 合同测试 6/6；远端 `1280×720`、`1366×768`、`1920×1080` 均 `ok=true`，标签不可见、两段内容保留、4 张证据卡正常、无溢出/裁切/页面与控制台错误 | 远端备份 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\高炉前端数据\frontend_dashboard_v3.server.html.bak_hide_decision_labels_20260715_075811`；部署后 SHA256 `DADC8E6711808E3AEA89965B6C023E55FD43EB285CB52FDCF63425CB7FED64B3` |
+| `REQ-8093-OVERVIEW-SHARED-RECOMMENDATION-20260715` | 首页复用参数优化页的标准化建议结果，只保留前三条摘要 | [首页与参数优化共享视图模型](../高炉前端数据/frontend_dashboard_v3.server.html)、[引擎合同验证](../tools/verify_8093_recommendation_engine_contract.py)、[页面一致性验证](../tools/verify_8093_overview_optimization_consistency.py)、[受控部署](../tools/remote_deploy_8093_overview_recommendations.ps1) | 两页统一调用 `bfRecommendationEngineView(diagnosis)`；首页严格截取 `engine.actions.slice(0,3)`，卡片使用 `action.name/stage/reason`；waiting/failed 显式展示，不回退前端拼装动作 | 合同测试 5/5；远端 `1280×720`、`1366×768`、`1920×1080` 均 `ok=true`，首页三条与参数优化前三条逐字一致、无横向溢出/卡片裁切/页面与控制台错误 | 远端备份 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\高炉前端数据\frontend_dashboard_v3.server.html.bak_overview_recommendations_20260715_015834`；部署后 SHA256 `44723260A0382F5B1EDB35913EDBB81EEFFC42F504B2EC7450ABB1AAEECDB4B8` |
+| `REQ-8093-OVERVIEW-TREND-JUMP-NO-OVERLAP-20260715` | 首页“进入趋势分析”跳转与诊断/建议入口保持同页切换，并且不得遮挡图例、曲线或时间线信息 | [Panel 标题栏操作槽与趋势入口](../高炉前端数据/frontend_dashboard_v3.server.html)、[布局及跳转验证](../tools/verify_8093_overview_trend_jump.py)、[受控部署](../tools/remote_deploy_8093_overview_trend_jump.ps1) | `Panel` 增加可选 `headerAction`；趋势按钮从内容层绝对定位改为标题栏静态布局；继续调用 `overviewDecisionNavigateV11('trend')`，通过底部导航完成同文档切换 | 合同测试 6/6；远端 `1280×720`、`1366×768`、`1920×1080` 均 `ok=true`，按钮完全位于标题栏、与图表无重叠、站内跳转不刷新、无横向溢出和页面/控制台错误 | 远端备份 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\高炉前端数据\frontend_dashboard_v3.server.html.bak_overview_trend_jump_20260715_021413`；部署后 SHA256 `96DB653415DAA99F007F470F97F92E2D149BB935998F944C63D569885D245B85` |
+| `REQ-8093-FAST-IN-APP-NAV-20260715` | 消除首页炉况诊断、优化建议跳转迟滞，并为趋势面板增加趋势分析入口 | [应用内导航实现](../高炉前端数据/frontend_dashboard_v3.server.html)、[兼容补丁](../tools/patch_22012_8093_core_metric_groups.py)、[专项验证](../tools/verify_8093_fast_navigation.py)、[受控部署](../tools/remote_deploy_8093_fast_navigation.ps1) | 首页三个入口复用底部导航 React 点击处理器，仅更新当前路由状态与 hash；移除 `window.location.reload()`，不重建 WebSocket、图表和整页组件；不改 API、数据库或 8768 数据合同 | 远端 Chromium 实测三个入口均为同文档切换，常见约 `68–319ms`；本机同源 HTML Chromium 9 个固定视口全部通过，Firefox/WebKit 各 4 个代表视口全部通过，均无文档刷新、横向溢出、页面或控制台错误 | 首次远端回退文件 `frontend_dashboard_v3.server.html.bak_fast_navigation_20260715_015523`；跨引擎报告见 [Chromium 全视口](../logs/8093_fast_navigation_local_qa_20260715/manifest_chromium_all.json)、[Firefox 代表视口](../logs/8093_fast_navigation_local_qa_20260715/manifest_firefox_representative.json)、[WebKit 代表视口](../logs/8093_fast_navigation_local_qa_20260715/manifest_webkit_representative.json) |
+| `OPS-8093-NORMAL-RULE-ROBUST-20260715` | 将正常顺行改为炉体P75/圆周P80稳健聚合并使用适度阈值，部署到8093预览与实际落库目录 | [规则汇总](正常顺行积分与主次炉况竞争规则汇总.md)、[验证脚本](../tools/verify_normal_rule_robust_aggregation.py) | 权重保持 `18,18,18,12,12,14,10,8`；阈值改为 `1.25,1.25,1.25,1.25,0.28,1.25,0.38,0.80`；主异常45、次异常55/分差10不变 | 双目录哈希一致、远端编译和聚合测试通过；8768新进程运行、8093 HTTP 200；落库任务结果0，最新数据库正常分 `60.90` 与复算一致 | 备份目录与SHA256见 [规则汇总部署记录](正常顺行积分与主次炉况竞争规则汇总.md#四22012-部署记录) |
+| `OPS-8093-NORMAL-ABNORMAL-COMPETITION-20260715` | 在45至60分灰区用正常领先3分规则消解主次炉况，并允许主正常、次异常 | [Resolver](D:/文件/服务器实际运行版V4/炉况规则引擎/engine/resolver.py)、[边界验证](../tools/verify_resolver_normal_abnormal_competition.py) | `A<45` 主正常；`45<=A<60 and N>=A+3` 主正常次异常；`A>=60` 强制异常主；异常间次诊断仍为 `A2>=55` 且差值 `<10` | 30天8640点回放；本机与远端双目录边界测试通过；计划任务结果0；02:05新快照符合规则；8093 HTTP 200、8768 init正常 | 双目录备份、SHA256和回放结果见 [竞争规则部署记录](正常顺行积分与主次炉况竞争规则汇总.md#2026-07-15-0204-正常异常竞争规则部署) |
+
+## 安全与所有权边界
+
+- front2 只负责前端样式、布局和本机预览；不得停止、重启或替换 8093、8767、8768、数据库、模型服务或生产计划任务。
+- 数据库账号、登录口令、模型密钥和内部凭据只从受控环境变量或既有本机配置读取，不写入 front2、日志、截图或本文档。
+- 8094 启动脚本固定复用原 `ollama_proxy_server.py`，并保持 `BF_FRONTEND_DIR=高炉前端数据`；不得复制后端主体形成第二套漂移实现。
+- 浏览器验收报告必须区分页面代理可达、实时流可达、数据库可达和模型可达，不能用单一 HTTP 200 代替整条链路通过。
+
+## REQ-BF3D-INTERNAL-RUNTIME-6X-20260719
+
+- 需求：在现有正式 GLB、115 点、L7～L16 与内切面基础上实现 6.1～6.6 炉内 Three.js 动画，并严格区分实测、插值、估计、仿真和教学示意。
+- 程序：[运行时模块](../高炉前端数据/assets/bf3d-internal-simulation.js)、[状态面板](../高炉前端数据/assets/bf3d-internal-simulation.css)、[配置](../高炉前端数据/config/bf3d_internal_simulation.v1.json)、[页面接入](../高炉前端数据/frontend_dashboard_v3.server.html)。
+- API/事件：`bf3d:snapshot`、`bf3d:event`；`setMode/injectSnapshot/dispatchEvent/play/pause/reset/getState`。
+- 验证：`node tools/verify_gl02_cutaway_runtime.cjs`、`node tools/verify_bf3d_internal_simulation.cjs`、`node tools/verify_bf3d_internal_simulation_matrix.cjs`。专项合同通过；17 个浏览器/视口运行×5 页面=85 组合通过。
+- 边界：正式 GLB 只读；数据态隐藏无可靠输入对象；教学态固定种子并标 `illustrative`。18 点生产快照、MES 上料/开堵口、C2/C3 与料线门禁尚未接入 8767，不能标为生产物理孪生。
+- 说明：[WEB-60 炉内仿真运行时说明](../PT/高炉3D模型/docs/WEB-60_炉内仿真运行时说明.md)。
+## REQ-IMES-MCP-CHEMISTRY-COLLOQUIAL-20260716
+
+- 需求：按炉次查询铁水化验和炉渣，并按日期/烧结机/试样查询进料化学成分，支持多种现场口语表达。
+- 程序：[IMES MCP](../高炉前端数据/智能助手/mcp/imes_relay_mcp_server.py)。
+- 数据：`t_qpes_inner_batch + inner_batch_insp_bb`、`v_qpes_slag_insoection_final`、`v_qpes_sinter_machine_sample_insp_final`。
+- 模板：[PT/MCP可执行功能及口语调用模板.md](../PT/MCP可执行功能及口语调用模板.md#15-imes-炉次化验炉渣与进料成分口语模板2026-07-16)。
+- 测试：[tests/test_imes_relay_mcp_server.py](../tests/test_imes_relay_mcp_server.py)，2026-07-16 为 12/12 通过。
+- 边界：铁水无直接 Fe% 字段；“铁量”与“TFe”必须消歧；当前进料化验仅可靠覆盖烧结矿，不代表整炉综合入炉成分。
+- 运行状态：本轮 Vastbase 真实冒烟连接被服务端关闭，尚未完成生产现网验收。
+
+## REQ-BF3D-INT30-BURDEN-E-ANIMATION-001
+
+- 需求：开始实际制作炉料动画，表达焦批/矿批落料、料面、料柱下降和沉降，同时不得把未校准料线、MES 批次时刻、真实粒径、层厚或布料轨迹伪装成实测炉况。
+- 程序：[R2L 构建入口](../PT/高炉3D模型/run_int30_r2l_burden_animation.py)；生成脚本、复开脚本、报告和渲染均封装在同一可重复入口中。
+- 配置/状态：24fps、F1～F576、随机种子 `20260719`、`scenario_id=E_BURDEN_LOOP_V1`、`evidence_level=illustrative`、`dataMode=ILLUSTRATIVE_LOOP`；根集合 `BF3D_R2L_BURDEN_SYSTEM`。
+- 数据：本阶段不连接生产源；`L/L_south/L_north` 和 `workdate/workdate2` 门禁仍按 [GL02 数据映射附件](../PT/高炉3D模型/docs/GL02数据映射附件.md) 执行。所有新对象标记 `dataQuality=missing`、`notForConstruction=true`。
+- 资产：[候选 Blend](../PT/高炉3D模型/work/INT_30_20260719_R2L_BURDEN_ANIMATION_PROTOTYPE/blends/INT_30_R2L_BURDEN_ANIMATION_PROTOTYPE_CANDIDATE.blend)，SHA `c8a9bf6fe2d5093d7ba137695b7d696816abd0442da8ad170b1df2f9edc57095`；正式 GLB SHA 仍为 `808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6`。
+- 保护合同：R1 受控节点图 `6bf8bd2fcf7712081d1ad2620c3133a984ada8c9b3927b59aa86131ba3b134a6`；115 个传感器、80 个炉体测温点、18 个静压力点、L7～L16 每层 8 点和 10 个测温层带。
+- 实现：10 个交替矿焦层；焦/矿各一个单网格 Morph 固定池承载 136 个语义块粒；逐粒 Object=0；贯穿全高落料流线=0；F1/F576 可见状态签名和像素同态。
+- 测试：[机器报告](../PT/高炉3D模型/work/INT_30_20260719_R2L_BURDEN_ANIMATION_PROTOTYPE/reports/int30_r2l_machine_report.json)、[复开验证](../PT/高炉3D模型/work/INT_30_20260719_R2L_BURDEN_ANIMATION_PROTOTYPE/reports/r2l_reopen_validation.json)、[19 项产物哈希](../PT/高炉3D模型/work/INT_30_20260719_R2L_BURDEN_ANIMATION_PROTOTYPE/reports/artifact_sha256.json)；15 个实体闭合、正体积、非流形边 0；无 `.blend1`。
+- 审核：独立规范复审 `PASS`；独立视觉复审批准“可给用户看的 R1 视觉原型”，最终写实成片仍需逐粒延迟/旋转/抛物线、撞击滚落、粉尘、明确溜槽实体和炉内光照。
+- 文档：[阶段成果总结](../PT/高炉3D模型/work/INT_30_20260719_R2L_BURDEN_ANIMATION_PROTOTYPE/INT-30_R2L_BURDEN_ANIMATION_PROTOTYPE_阶段成果总结.md)、[总设计详细规划](../PT/高炉3D模型/总设计详细规划.md#22-int-30-r2l-炉料动画-r1-视觉原型)、[执行台账](../PT/高炉3D模型/十阶段多智能体执行台账.md)。
+- 边界：仅批准隔离 Blender E 级 R1 视觉原型；不批准 GLB、Web、8092、生产替换、Three.js 实例化性能、真实料线/层厚/布料轨迹或 DEM/CFD。
+
+## REQ-BF3D-INT30-BURDEN-R2M-PHYSICS-FX-001
+
+- 需求：在 R2L 原型上增加可读的旋转溜槽、错时抛落、碰撞滚落、焦炭孔隙、撞击扬尘和软熔带响应，同时保持 R1 炉壳粗糙材质和数据真实性边界。
+- 程序：[R2M 构建入口](../PT/高炉3D模型/run_int30_r2m_burden_physics_fx_response.py)；只写入独立 `INT_30_20260719_R2M_BURDEN_PHYSICS_FX_RESPONSE` 阶段目录。
+- 输入：[R2L Blend](../PT/高炉3D模型/work/INT_30_20260719_R2L_BURDEN_ANIMATION_PROTOTYPE/blends/INT_30_R2L_BURDEN_ANIMATION_PROTOTYPE_CANDIDATE.blend)，SHA `c8a9bf6fe2d5093d7ba137695b7d696816abd0442da8ad170b1df2f9edc57095`。
+- 实现：新增溜槽支点/槽体/出口、22 个 Hero 块粒的错时解析轨迹、撞击/滚落窗口、程序化焦炭孔隙与裂隙、低透明扬尘团簇，以及默认隐藏、只在 what-if 窗口显示的 E 级软熔带响应。
+- 数据门：没有真实溜槽角度、圈次、粒径、堆密度、料线标定和 C2/C3 软熔带输出；软熔带必须标注“非本批次实时因果结果”，不得写成 `estimated/simulated` 或实时结果。
+- 资产：[候选 Blend](../PT/高炉3D模型/work/INT_30_20260719_R2M_BURDEN_PHYSICS_FX_RESPONSE/blends/INT_30_R2M_BURDEN_PHYSICS_FX_RESPONSE_CANDIDATE.blend)，R5 SHA `8606e7090e070367d5d4d595f1a71b099b7fcfa933d951ec11668ce2b8e4cf41`。
+- 测试：[机器报告](../PT/高炉3D模型/work/INT_30_20260719_R2M_BURDEN_PHYSICS_FX_RESPONSE/reports/int30_r2m_machine_report.json)、[复开报告](../PT/高炉3D模型/work/INT_30_20260719_R2M_BURDEN_PHYSICS_FX_RESPONSE/reports/r2m_reopen_validation.json)和[19 项产物哈希](../PT/高炉3D模型/work/INT_30_20260719_R2M_BURDEN_PHYSICS_FX_RESPONSE/reports/artifact_sha256.json)；本轮复算 `19/19`、mismatch `0`，复开 `pass`，无 `.blend1`，不生成阶段 GLB。
+- 审核：R5 独立视觉复审 `APPROVE`，范围为“对外可看 R2 E级视觉候选”；最终独立规范复审 `PASS`。两者均明确不批准生产 Web、真实逐粒动力学或正式 GLB 替换。
+- 保护：R1 节点图 `6bf8bd2fcf7712081d1ad2620c3133a984ada8c9b3927b59aa86131ba3b134a6`、115/80/18/10、L7～L16 每层 8 点和正式 GLB SHA `808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6` 均保持。
+- Web 决策：生产实现采用“GLB 静态资产/枢轴 + Three.js `InstancedMesh`/`Points`/统一时钟/数据门禁”，不把 Blender 粒子、烟尘和完整时间轴直接烘进正式 GLB。
+- 边界：已批准为对外可看的 Blender R2 E 级视觉候选，不是 Web/8092/生产批准；24 秒 MP4 是每 12 帧采样的预览，不是全帧最终成片。
+
+## REQ-BF3D-WEB60-R2N-BURDEN-CHARGING-001
+
+- 需求：把 R2M 的溜槽布料、矿焦颗粒、焦炭孔隙、接触滚落、落料扬尘和软熔响应转译为现有 Three.js 运行时中的可交互候选，同时保持 E/illustrative 真实性边界、固定资源和生产数据门禁。
+- 程序：[运行时实现（布料 FX 第 403 行；控制器第 2627 行起）](../高炉前端数据/assets/bf3d-internal-simulation.js)、[状态与聚焦样式（第 146 行起）](../高炉前端数据/assets/bf3d-internal-simulation.css)。
+- 配置：[burden_fx（第 36 行起）](../高炉前端数据/config/bf3d_internal_simulation.v1.json)，包含随机种子 `20260719`、14 秒教学周期、矿/焦固定容量各 180、扬尘容量 180、高/中/低活跃上限和 `live_motion_gate.enabled=false`。
+- 场景：`BF3D_ILL_BURDEN_DELIVERY_FX` 下包含溜槽方位/俯仰枢轴、矿石/焦炭 `InstancedMesh`、焦炭暗孔实例和 `Points` 扬尘；`BF3D_ILL_COHESIVE_RESPONSE_WHAT_IF` 与 C2/C3 软熔带对象分离，默认隐藏。
+- 运动：固定种子的解析重力、料面接触、有限撞击和有界径向摩擦滚落；明确不是 DEM，不宣称真实粒径、堆密度、恢复系数或布料矩阵。
+- API：在既有 `window.__BF3D_INTERNAL_SIMULATION__` 上增加 `setChargingFocus(enabled)`、`setCohesiveWhatIf(enabled)`、`triggerIllustrativeCohesiveResponse()`；`getState()` 增加 `eventGate` 与 `stock.delivery`。
+- 事件：`BURDEN_CHARGE_STARTED` 只启动运动，`BURDEN_CHARGE_COMPLETED` 才沉积料层；验证 `bf3d_event.v1`、`furnace_id=GL02`、事件 ID/时间、运行模式、矿焦类型和质量平衡，并使用最多 256 ID 的幂等窗口。
+- 资源：矿/焦/暗孔/扬尘和 12 层料层均为固定池；复用已有单 RAF；后台暂停，`prefers-reduced-motion` 禁用连续粒子运动；五秒帧率采样只向下降级；`dispose()` 清理根组、材质/几何、监听、面板和 Viewer API，并支持重新挂载。
+- 测试：[专项合同（第 429 行起）](../tools/verify_bf3d_internal_simulation.cjs)、[跨引擎矩阵（第 169 行起）](../tools/verify_bf3d_internal_simulation_matrix.cjs)、[旧内切面回归](../tools/verify_gl02_cutaway_runtime.cjs)。覆盖生产默认门、START/COMPLETE、无效/重复/错炉号事件、撞击/滚落/暗孔/扬尘、12 层轮换、软熔 what-if、暂停、聚焦、50 次模式切换、dispose/remount、17 个浏览器/视口运行×5 页面。
+- 证据：[阶段总结](../PT/高炉3D模型/work/WEB_60_20260719_R2N_BURDEN_CHARGING_RUNTIME/WEB-60_R2N_阶段成果总结.md)、[专项合同报告](../PT/高炉3D模型/work/WEB_60_20260719_R2N_BURDEN_CHARGING_RUNTIME/reports/r2n_runtime_contract_report.json)、[跨引擎/视口报告](../PT/高炉3D模型/work/WEB_60_20260719_R2N_BURDEN_CHARGING_RUNTIME/reports/r2n_cross_engine_viewport_report.json)。
+- 保护：正式 GLB 未替换，SHA-256 仍为 `808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6`；115 点、L7～L16、R1 粗糙材质和 P50/P60/P70 停止线不变。
+- 状态：WEB-60 R2N 为 `running_candidate`、E/illustrative Web 候选；真实溜槽程序/MES 事件、料线标定、现场 Edge、PMREM/LOD/KTX2 全链、长稳性能和 QA-70 尚未完成。十阶段总体为 5 完成、2 部分、3 未正式开始，总项目未完成。
+- 文档：[WEB-60 运行时说明](../PT/高炉3D模型/docs/WEB-60_炉内仿真运行时说明.md#8-r2n-炉顶布料颗粒-fx-与聚焦视图增量)、[总规划](../PT/高炉3D模型/总设计详细规划.md#24-web-60-r2n-炉顶布料-threejs-候选与总计划完成度)、[Visual Bible](../PT/高炉3D模型/工业级高炉数字孪生视觉规范（Visual%20Bible）.md#28-当前实现记录r2n-炉顶布料-web-候选)、[合规矩阵增量](../PT/高炉3D模型/validation/Visual_Bible当前实现合规矩阵.md#12-2026-07-19-web-60-r2n-增量附录)。
+
+## REQ-BF3D-STRUCTURAL-REVIEW-20260719
+
+- 需求：把 R5 表面、R2J 五区实体和 R2K 墙体内部层统一导出为受控 Web GLB，并增加“纯材质审查”和“结构剖面”；纯材质审查不得显示传感器、数据引线、黄色轮廓或工艺粒子。
+- 构建程序：[受控导出器](../tools/export_bf3d_structural_review_glb.py)；锁定 R2G/R2H Web 基底 SHA `9db82c83f2e3c8c78aff38c2b71810fcabb8394806f765d94280bedb0145f952` 和 R2K Blend SHA `51fb6f57fe06ff923de5ea823aca8ba0fb51382d757b768a0669ce74b85bba68`，输入漂移时失败关闭。
+- 资产：[受控 GLB](../高炉前端数据/models/gl02_blast_furnace_structural_review.v1.glb)为 11,003,464 bytes，SHA `859819f415feee0533018daf3290c65c69b607352d8e8e34735e952d8f3772fd`；[清单](../高炉前端数据/models/gl02_blast_furnace_structural_review.v1.manifest.json)记录 257 节点、53 网格、51 材质、115 传感器、五个 R5 区、五个 R2J 实体和六类 R2K 结构角色。
+- 清理与性能：旧 INT10/INT20 剖面卡、引导线、调试立方体/球体和重复静压力标记不进入新 GLB；560 块冷却壁按铜/铸铁合并为两个 Web 网格；历史正式 GLB 不覆盖，SHA 仍为 `808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6`。
+- Web 程序：[审查控制器](../高炉前端数据/assets/bf3d-structural-review.js)、[审查样式](../高炉前端数据/assets/bf3d-structural-review.css)、[R2H 细节法线](../高炉前端数据/assets/r2h-detail-normal.js)和[页面接入](../高炉前端数据/frontend_dashboard_v3.server.html)。运行视图入口并入既有分层控制区；审查态展开独立面板。
+- 状态合同：`window.__BF3D_STRUCTURAL_REVIEW__.setMode/getState/dispose`；`material` 只显示五个 R5 炉壳，`structural` 显示 10 个有效 R2J/R2K 逻辑实体并对墙体做局部裁剪，缺可靠状态的结瘤层保持隐藏。
+- 隔离合同：材质/结构审查时 `sensor_visible_count=0`、`hit_visible_count=0`、`callouts_hidden=true`、`yellow_profile_hidden=true`、`process_runtime_hidden=true`；R5 RNM 细节法线覆盖五个炉壳，结构态关闭该外壳细节法线。
+- 兼容处理：旧 45 个装饰性炉内对象不再由旧内切面显现，内切面工艺动画统一交给 `BF3D_INTERNAL_SIMULATION_RUNTIME`；避免旧圆环/蓝线与新 6.1～6.6 运行时叠加。
+- 验证：[专项测试](../tools/verify_bf3d_structural_review.cjs)与[报告](../logs/bf3d_structural_review_20260719/report.json)通过；审查模式 17/17 跨引擎/视口通过；五业务页回归 17 个运行×5 页面=85/85 通过；旧内切面回归通过。
+- 边界：R2J/R2K 厚度和侵蚀层为 `E/illustrative`、`not_for_construction=true`；未部署生产服务器，未改变数据库/API；现场主用 Edge 和真实 8767 数据链仍需交付环境冒烟。
+- 交接：[R2O 阶段总结](../PT/高炉3D模型/work/WEB_60_20260719_R2O_STRUCTURAL_REVIEW/WEB-60_R2O_阶段成果总结.md)。
+
+## REQ-BF3D-R2Q-INTERNAL-MATERIAL-WEB-20260719
+
+- 需求：在 R2P 已经物理清理传感器、旧圆环、竖向流线、粒子和辅助几何的基础上，形成可直接在 Blender 与 Three.js 审查的六材质族、1× 物理剖面、家族匹配封盖和 WebP V3 交付。
+- 路径取代：上节 R2O V1 继续保留为历史实现和兼容取证，但其受控 GLB 与运行状态不再作为当前材质/结构批准路径；R2P V2 负责清洁直导资产，[R2Q V3 阶段](../PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/)及当前 WebP SHA 是新的权威审查路径。这里的“取代”不删除 R2O 历史，也不替换正式生产 GLB。
+- 程序：[R2P V2 导出器](../tools/export_bf3d_structural_review_v2.py)、[R2Q V3 导出器](../tools/export_bf3d_structural_review_v3.py)、[Web 审查运行时](../高炉前端数据/assets/bf3d-structural-review.js)和[页面接入](../高炉前端数据/frontend_dashboard_v3.server.html)。
+- 资产：[主 V3 GLB](../高炉前端数据/models/gl02_blast_furnace_review.v3.glb)为 `4,380,396` bytes、SHA `7e4b3b95343103784500aba354a124262ecf593fe89a3f0aa98348692152574b`；[纯材质 V3 GLB](../高炉前端数据/models/gl02_blast_furnace_material_review.v3.glb)为 `993,260` bytes、SHA `87c2bbe632d71113e69c4b5ac95ad35c12e7a03f17f7b74a1cb8b25661df4c09`；[结构 V3 GLB](../高炉前端数据/models/gl02_blast_furnace_structural_review.v3.glb)为 `3,663,988` bytes、SHA `8490f56bddeba24f2819adfc3013d96aca448264e09b43793e0f2d7d2744f41a`；[直开 Blend](../高炉前端数据/models/gl02_blast_furnace_review.v3.blend)为 `37,087,638` bytes、SHA `9da11f583ab081451ae61ac185bc8567223f72b0292215bf6eeccf7701d36f32`。
+- 结构合同：`BF3D_V3_MODE_MATERIAL` 资产组含 `5` 个完整 R2J 炉壳逻辑对象；`BF3D_V3_MODE_SECTION` 资产组含 `10` 个物理半剖逻辑对象。Web“纯材质审查”为显示内部六材质族而使用结构组的层材质近景，“结构剖面”使用同组整炉剖面；结构的 `20` 个 primitives 是每个对象各一个主体与一个家族匹配物理封盖，不是 20 个结构逻辑对象。六材质族为内侧钢、背衬填料、铸铁冷却壁、铜冷却壁、热面层和耐火层；厚度固定 `1×`。
+- 运行合同：纯材质与结构模式均隐藏传感器、数据引线、黄色轮廓、工艺粒子和旧环线；资产及运行时均不靠裁剪、DoubleSide 或 PBR 参数突变伪造剖面。旧 `45` 个 cutaway 兼容对象始终隐藏，`BF3D_INTERNAL_SIMULATION_RUNTIME` 接管权威内切面显现。
+- 验证：[Three.js r160 主报告](../logs/bf3d_structural_review_v3_20260719/report.json)及[矩阵](../logs/bf3d_structural_review_v3_20260719/matrix_report.json)为 `17/17 PASS`；[本机真实 Microsoft Edge 报告](../logs/bf3d_structural_review_v3_20260719/edge_smoke_report.json)使用严格 `channel=msedge`、版本 `150.0.4078.83`，四代表视口 `4/4 PASS`，但范围固定为本机 localhost/headless/静态数据源；[五业务路由矩阵](../logs/bf3d_internal_simulation_20260719/matrix/cross_engine_viewport_report.json)为 `85/85 PASS`；[C2 矩阵](../logs/bf3d_c2_cross_engine_20260719/report.json)为 `12/12 PASS`；旧 cutaway [单浏览器专项](../logs/bf3d_cutaway_runtime_20260717/formal_report.json)为 `PASS`，[Firefox/WebKit](../logs/bf3d_cutaway_cross_engine_20260717/report.md)为 `8/8 PASS`。
+- 独立复审：[Web 运行视觉](../PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reviews/R2Q_V3_WEB_RUNTIME_VISUAL_REVIEW.md)、[WebP 规格](../PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reviews/R2Q_V3_WEBP_SPEC_COMPLIANCE_REVIEW.md)和[前端资产](../PT/高炉3D模型/work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reviews/R2Q_V3_WEBP_FRONTEND_ASSET_REVIEW.md)均为 `PASS`。
+- 状态：只能记为 `independent_reviews_passed_ab_failed_three_contract_blocked_release_gates_pending`。全部资产仍为 `E/illustrative`、`REF-PENDING`、`not_for_construction`；本机 Edge 已过但不能替代现场 Edge。严格 Cycles/Eevee 数值 A/B 已执行并为 `68/80 pass、12 fail`；Three.js/Eevee 因相机、四灯和色彩管理合同不匹配而在捕获前停止；现场主用 Edge、P50、P60、P70、QA-70 尚未完成。
+- 历史锁：正式 [gl02_blast_furnace.glb](../高炉前端数据/models/gl02_blast_furnace.glb) SHA-256 仍为 `808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6`；十阶段统计仍为 `5` 完成、`2` 部分完成、`3` 未开始。
+
+## REQ-BF3D-INT40-R0-TRUTH-BACKTEST-INPUT-GATE-20260719
+
+- 需求：在不把前端合同测试、输入传感器或当前启发式输出冒充真值的前提下，为 INT-40 建立独立参考、历史回测、经验不确定性和适用范围的输入门。
+- 输入锁：[input_lock.json](../PT/高炉3D模型/work/INT_40_20260719_R0_TRUTH_BACKTEST_INPUT_GATE/input_lock.json)记录估计器、YAML、8767、Three.js、测试/报告、数据源审计和正式 GLB 的字节数/SHA；正式 GLB 仍为 `808960f1...b62af6`。
+- 参考合同：[label_contract.md](../PT/高炉3D模型/work/INT_40_20260719_R0_TRUTH_BACKTEST_INPUT_GATE/label_contract.md)只接受独立现场测量、炉役解剖、盲态专家弱标签或版本化离线物理场，并规定坐标、标高、单位、知识时间、不确定度、版本和 SHA；禁止当前估计器循环生成标签。
+- 审计事实：[软熔带数据源只读核查](软熔带数据源只读核查_20260719.md)证明 L7～L13 温度、18 静压力、DP/PI、风氧煤、顶温顶压、料线及部分布料/冷却信号可读，但这些是输入而不是软熔带真实位置标签。
+- 阻断：[blocked_no_accepted_reference.json](../PT/高炉3D模型/work/INT_40_20260719_R0_TRUTH_BACKTEST_INPUT_GATE/blocked_no_accepted_reference.json)为 `blocked_no_accepted_reference`；因此没有生成 dataset/split、封存集回放、准确率、经验覆盖率或适用范围。
+- 状态：只阻断 INT-40 R0 子阶段，不把线程总目标标为 blocked；当前 C2 继续固定 `estimated/uncalibrated/control_use=prohibited/confidence<=0.45`。INT-40 未完成，INT-50 未开始，正式库/模型/GLB 均未改。
+
+## REQ-BF3D-R2R-RENDERER-NUMERIC-AB-20260719
+
+- 需求：以捕获前冻结、fail-closed 的合同验证 R2Q V3 在 Blender Eevee/Cycles 和 Three.js/Eevee 之间的相机、轮廓、亮度、材质族和重复性；任何必需指标失败、未评估或合同不匹配都不得写成通过。
+- 阶段：[WEB-60 R2R](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/)；权威状态为 [pipeline_status.json](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/pipeline_status.json)。
+- 程序：[Blender 捕获器](../tools/render_bf3d_r2q_ab_blender.py)、[数值比较器](../tools/compare_bf3d_r2q_ab.py)、[Three.js 合同预检/捕获器](../tools/capture_bf3d_r2q_ab_three.cjs)。
+- 冻结合同：[capture_contract.json](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/capture_contract.json)在成功捕获前登记 `1920×1080`、RGBA、固定正交相机、P40 四灯、AgX/0 EV、三 shot、两 repeat、Eevee64/OptiX Cycles48、beauty+mask、无 CPU 回退和禁止改阈值。
+- Blender 证据：[capture_manifest.json](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/capture_manifest.json)记录 `12/12` 捕获；[comparison_report.md](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/comparison_report.md)记录 `80` 必需指标为 `68 pass / 12 fail / 0 not-evaluated`。失败为四个结构亮度 SSIM 和四材质族×两 repeat 的八个相对亮度项。
+- Three.js 证据：[three_contract_preflight.json](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/reports/three_contract_preflight.json)为 `13 pass / 8 fail / 2 blocked`；[three_capture_manifest.json](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/reports/three_capture_manifest.json)明确 `capture_attempted=false`、beauty/mask `0`、`ab_pass_claimed=false`。阻断为生产透视动态构图、缺顶部 Area/RectAreaLight/固定光向，以及 ACES/exposure `1.05` 与 AgX/0 EV 不等价。
+- 独立复审：[规格复审](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/reviews/R2R_INDEPENDENT_SPEC_REVIEW.md)为 `FAIL_CONFIRMED`；[视觉复审](../PT/高炉3D模型/work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/reviews/R2R_INDEPENDENT_VISUAL_REVIEW.md)为 `PASS_REVIEW_OF_FAIL`，只确认失败有效。
+- 历史锁：正式 GLB 及 R2Q Blend/三份 GLB SHA 均未改变；无生产源文件改写，未放宽阈值。
+- 后续：`WEB-60 R2S` 只能增加隔离审查捕获相机、补齐锁定 P40 四灯、预先批准色彩管理等价合同并逐变量修正后复跑原阈值；如改资产必须新版本和新 SHA。
+
+## REQ-BF3D-R2S-RENDERER-CONTRACT-ALIGNMENT-20260720
+
+- 需求：在不改变生产 Three.js 观察体验的前提下，将 R2R 冻结正交相机、P40 四灯和原阈值转为受控审查合同；色彩与光度未预批准时必须停止图像捕获。
+- 输入锁：[input_lock.json](../PT/高炉3D模型/work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/input_lock.json)已由根代理复算 `22/22` bytes/SHA 匹配；实施前控制器 SHA 为 `4b9e6867…bafb3aa6`。
+- 程序：[Web 控制器](../高炉前端数据/assets/bf3d-structural-review.js)新增双门控 `getAuditCaptureCapability/getAuditShotManifest`；[硬化专项验证器](../tools/verify_bf3d_r2s_audit_contract.cjs)在真实生产 HTML 和合成 harness 上验证双门、三 shot、四灯、TOP 代理、13 阈值、递归冻结、输入锁和生产运行时无副作用。
+- 门控：只有 URL `bf3d_test_capture=WEB-60_R2S` 与模块加载前 `window.__BF3D_TEST_CAPTURE_TOKEN__="WEB-60_R2S"` 同时成立时返回数值 manifest；默认、单门、错误令牌和迟注入均禁用。
+- 捕获边界：[色彩决定](../PT/高炉3D模型/work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/color_management_decision.json)和[光度决定](../PT/高炉3D模型/work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/photometric_mapping_decision.json)均为 `pending_preapproval`；`captureEligible=false`，未实现 beauty/mask。
+- 诊断：[Blender 光传输诊断](../PT/高炉3D模型/work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/blender_transport_diagnosis.md)记录高金属薄层偏暗主要来自 Eevee/Cycles 的环境反射、间接镜面、GI 与阴影语义差异，不是贴图丢失。
+- 增量身份：[implementation_delta_manifest.json](../PT/高炉3D模型/work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/implementation_delta_manifest.json)记录控制器后 SHA `d99b6d8f…cb90b206`；生产页面、正式 GLB 和 R2Q Blend/三 GLB 均未改变。
+- 验证：[r2s_audit_contract_verification.json](../PT/高炉3D模型/work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/r2s_audit_contract_verification.json)为硬化 PASS：真实生产页和 harness 各 `9` 组负向门、两个独立 full-ready 上下文、应用脚本前 instrumentation、4 RAF + `450ms` 延迟快照、`22/22` 输入锁、`12` 捕获记录、`124/40` 个递归冻结对象、`12/12` 次突变拒绝、生产审计副作用 `0`；根代理最终版本独立复跑 `2/2 PASS`。验证器为 `112147` bytes、SHA `53b27a0e…5b20a9f`。原专项 PASS、矩阵 `17/17 PASS`、本机 Edge `4/4 PASS`、旧切面回归 PASS。
+- 状态：`approval_granted=false`、`next_stage_allowed=false`；现场 Edge、P50/P60/P70/QA-70、Blender `80/80` 复跑和 Three.js/Eevee 数值门均待完成。
+
+## REQ-BF3D-R2T-OCIO-PHOTOMETRIC-EQUIVALENCE-20260720
+
+- 需求：把“V3 材质存在但 Web 中偏暗/发灰/层次压平”拆成可独立拒绝的色彩管理与光度映射合同；不以提高曝光、改 BaseColor 或逐灯调参伪造 Blender/Three 等价。
+- 根因：[材质可见性诊断](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/material_visibility_diagnosis.md)记录用户截图选择的是旧 `structural_review.v1.glb`、尚未完成导入，且 Blender 仍处于 Solid/实体模式；8092 总览当前默认请求也仍是旧 V1，V3 只在点击“纯材质审查/结构剖面”后懒加载。V3 主资产实有 `13` 个 PBR 材质、`39` 个 texture、`21` 个 image，forbidden 对象为 `0`；默认画面的旧测点、环线和竖向辅助结构不能用于判定 V3 清理失败。生产 Web 审查仍是三 SUN + AmbientLight、`scene.environment=null`、无 TOP Area、ACES `1.05`，所以不是 Blender P40/AgX 等价路径。
+- 输入锁：[input_lock.json](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/input_lock.json)冻结 `19` 个 R2S/R2R/R2Q/Three/Blender/OCIO 输入；缺失或 mismatch 必须新阶段/new SHA。
+- 程序：[OCIO 生成器](../tools/generate_bf3d_r2t_ocio_assets.py)、[OCIO 独立验证器](../tools/verify_bf3d_r2t_ocio_assets.py)、[R2T 阶段验证器](../tools/verify_bf3d_r2t_stage.py)、[WebGL oracle 验证器](../tools/verify_bf3d_r2t_ocio_webgl.cjs)、[LTC runtime oracle 验证器](../tools/verify_bf3d_r2t_ltc_runtime.cjs)。
+- 色彩资产：[color_management_candidate.json](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/color_management_candidate.json)固定 Blender 5.2 / PyOpenColorIO 2.5 processor `cb6dc6defbf01d33b84718a55c277f0a`；生成 `14155` bytes GLSL SHA `8e90dd51…494ac`，以及 37³/57³ RGB32F、RGBA32F LUT。`235846` 个 texel 位序/alpha 全量检查，8 个 CPU oracle 最大误差 `4.886817894789175e-10`；Three r160 内建默认 AgX 不作为等价替代。
+- 光度合同：[photometric_calibration_contract.json](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/photometric_calibration_contract.json)预注册一个 family 一个非负标量：SUN `I=k_sun*E`、TOP `I=k_area*P/(πA)`，`k=1` 时 TOP `1.3275510357953`，world `L=k_env*C*S`；禁止按灯/材质/shot/browser 拟合。原生 Three 无 8° SUN、RectArea 阴影，因此不宣称完整等价。
+- LTC 供应链：[vendor_three_r160_rect_area_ltc.py](../tools/vendor_three_r160_rect_area_ltc.py)从 three.js 固定 commit `d04539a…c548` 取证并验证官方 addon `313854` bytes/SHA `08085bc9…214`，同时受控保存 Three MIT 和 selfshadow LTC BSD-style/论文引用许可证；[vendor.lock.json](../高炉前端数据/libs/three/vendor.lock.json)固定 Three core、npm、commit、运行和 fail-closed 合同。供应商 verify-only PASS。
+- LTC runtime oracle：[ltc_runtime_oracle_report.json](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/reports/ltc_runtime_oracle_report.json)记录 `node tools/verify_bf3d_r2t_ltc_runtime.cjs` PASS；Chromium、Firefox、WebKit 各两次新鲜运行，合计 `6/6 PASS`。六次均解析到同一 Three r160 ESM，有效 addon init 固定为 `1`，显式重复探针在进入 addon 前被拒绝；四张 `64×64` texture 的类型、payload 和 SHA 全通过：`LTC_FLOAT_1=cf5cf21e5c112d2095c7e2418cb0a1ac54636e275d73e42f3453646c67f26814`、`LTC_FLOAT_2=3b1b09080b26104498db277c14fc1733786465c6958e7a8403d688b1e24c2ff5`、`LTC_HALF_1=a391de32f868fd4aa8774917b793174b7be804c08e2fb8924c30f31d7aa8dcd7`、`LTC_HALF_2=fa1ecbc6deb3c85ddf603cdf1e98e30279444f905eb1cebb849d761b570dd696`；所有运行实际选择 `float` 分支。
+- LTC fixture：单 RectAreaLight + `metalness=1` MeshStandardMaterial 平面，在无 environment、无 AmbientLight、无 emissive 的条件下点亮结果非黑；零强度控制为黑，同一引擎页内重复及两次独立运行字节一致；console/page/HTTP/external 四类错误均为 `0`。该 PASS **只批准隔离 LTC runtime prerequisite**，批准状态仍为 `candidate_not_approved`（报告顶层 `status=runtime_prerequisite_verified_candidate_not_approved`）；不证明 Blender/Three 光度等价，不证明 RectAreaLight 阴影，不解除 capture、production integration 或 next stage。
+- 光度 fixture：[冻结定义](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/photometric_fixture/fixture_definition.json)为 `103102` bytes、SHA-256 `8d43067c8875c4e677330e830eda079b841d5d8a6fad05f13b26200f349bbcfd`，在 renderer 启动前冻结且 mismatch fail-closed。Blender Cycles 参考 `67/67`、Eevee WORLD held-out `8/8`、Three Chromium/Firefox/WebKit 各两次共 `6/6`，错误为 `0`。
+- 光度 fit/held-out：[结果报告](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/reports/photometric_fit_held_out_report.json)得到 `k_sun=0.9414175269608743`、`k_area=0.9450029255130412`、`k_env=0.9299202953495894`，三个 WLS 分母分别为 `0.055471528149193094`、`0.0910057735916505`、`0.0019578534604496323`，均非零。fit 与 held-out 已执行且没有回用 held-out 拟合，但未预注册线性接受阈值；[独立验证报告](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/reports/photometric_verification_report.json)只能记为 `candidate_evidence_verified_not_approved`，`photometric_equivalence_approved=false`、`capture_eligible=false`、`production_integration_allowed=false`。DISK→equal-area square 为已记录的 known non-equivalence，不能用残差报告改写成等价。
+- 测试：Blender bundled Python 生成与独立验证 PASS；`python -m py_compile tools/generate_bf3d_r2t_ocio_assets.py tools/verify_bf3d_r2t_ocio_assets.py tools/verify_bf3d_r2t_stage.py` PASS；`python tools/verify_bf3d_r2t_stage.py` 为 19 锁项、6 色彩资产、8 oracle、光度候选和正式 GLB 全 PASS。
+- WebGL oracle：[ocio_webgl_oracle_report.json](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/reports/ocio_webgl_oracle_report.json)已在隔离页执行 Chromium、Firefox、WebKit。exact generated shader 为 `2 PASS / 1 FAIL`：Chromium、WebKit 通过，Firefox 黑点 RGBA32F 返回 `0`，而 CPU oracle 约为 `0.0002386`（最大误差 `0.000238734 > 2e-5`）；其余 7 点和全部默认 framebuffer RGBA8 通过，因此 exact 硬门整体 FAIL。literal-nextafter 候选同为 `2 PASS / 1 FAIL`、整体 FAIL；共享 highp uniform `0x00800001` 候选为 `3/3 PASS`，且非黑点副作用门通过，但状态仍为 `candidate_not_approved`，不能覆盖或满足 exact 硬门。
+- 复验命令：`node tools/verify_bf3d_r2t_ocio_webgl.cjs`；当前预期退出码为 `1`，原因是 exact release hard gate 失败，不得把 uniform candidate 的通过改写成验证器整体通过。
+- 隔离审查：[独立页面](../高炉前端数据/bf3d_review.server.html)只加载 `gl02_blast_furnace_review.v3.glb`（SHA-256 `7e4b3b95343103784500aba354a124262ecf593fe89a3f0aa98348692152574b`），通过 `response.arrayBuffer()` 完整消费资产，拥有独立 Scene/Renderer/Camera/RAF，固定审查“纯材质审查、内部层近景、结构剖面”。最终 [arrayBuffer ×2 稳定性主日志](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/preview/root_arraybuffer_stability_x2.stdout.log)汇总[第 1 轮](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/preview/bf3d_review_stability_run_1.json)与[第 2 轮](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/preview/bf3d_review_stability_run_2.json)：连续两轮各 `17/17`、`51` 图，合计 `34/34` viewport runs、`102` captures；`34/34` 的 review GLB 均 `requestfinished=1`、`request_failed=0`，console/page/HTTP/external/request_failed 五类错误累计 `0`。外表面横向变化是 R2J 五区实体交界/原始纹理，不是数据圆环或引线；底部深色楔是现有 V3 GLB 十个 Section 封口面共面叠合/遮挡，不是内腔，Web 未改写该几何。
+- 边界：[pipeline_status.json](../PT/高炉3D模型/work/WEB_60_20260720_R2T_OCIO_PHOTOMETRIC_EQUIVALENCE/pipeline_status.json)继续保持 `capture_eligible=false`、`approval_granted=false`、`next_stage_allowed=false`；独立 V3 页面已解决 `E/illustrative`、`REF-PENDING` 的只读材质/结构可见性，但光度 fit/held-out、LTC 与 OCIO 均未批准 photometric equivalence 或 production。exact OCIO 仍为 `2 PASS / 1 FAIL`、整体硬门 FAIL，uniform workaround 仍为 `candidate_not_approved`；还需 OCIO/AgX LUT 专属许可、炉体 A/B 和发布门。正式 GLB SHA-256 仍为 `808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6`，8092 生产默认 V1 仍未修复或替换；十阶段统计仍为 `5` 完成、`2` 部分完成、`3` 未开始。
+
+## REQ-BF3D-R2U-SECTION-CAP-CONTROLLED-V4-20260720
+
+- 需求：清除 V3 结构剖面的跨炉膛封口叠合、旧黑色楔形、圆环和竖线遮挡；继续使用受控
+  R5/R2J/R2K 材质，交付统一 V4 Web GLB、纯材质 GLB、结构剖面 GLB及可直接打开的
+  Blend；纯材质审查必须隐藏传感器、引线、黄色轮廓和工艺粒子。
+- 根因：用户截图选中历史 `structural_review.v1.glb` 且尚未执行“导入 glTF 2.0”，
+  Blender 仍处于 Solid/实体模式；独立 V3 几何审计同时确认十个 Section 封口存在
+  `18` 对、`87.53379024081863 m²` 共面重叠。
+- 程序：[V3 审计](../tools/audit_bf3d_v3_section_caps.py)、
+  [封口操作探针](../tools/probe_bf3d_v3_section_cap_fill_ops.py)、
+  [V4 导出/验证器](../tools/export_bf3d_structural_review_v4.py)、
+  [Khronos Validator 封装](../tools/validate_bf3d_glb_khronos.cjs)、
+  [V4 Web 构建器](../tools/build_bf3d_review_v4_web.py)、
+  [只读服务器](../tools/serve_bf3d_review_v4.py)和
+  [跨浏览器验证器](../tools/verify_bf3d_review_v4_preview.cjs)。
+- 资产：统一 GLB `4,275,268` bytes/SHA
+  `e46508bcecc8fef76510a0b889e0598ad3cb2289cc00f6b99566c78e3ed3afd2`；纯材质 GLB
+  `993,224` bytes/SHA `6ad5e9dc51a10259d41d0f4d55391bddc262e482da36e4a9a082e268e27e93f6`；
+  结构 GLB `3,558,868` bytes/SHA
+  `3299bfeceaceea51559c3b41cfc7782dfa3fa61d33501fa80e6d5590ee679d47`；V4 Blend
+  `37,073,211` bytes/SHA
+  `86bce712181ac0771ed460806f54b072659fd8f854334bd0a1ddf73b4e15c9c1`。
+- 几何/材质：`5` 个外表面对象、`10` 个闭合正体积剖面对象，boundary/non-manifold
+  均为 `0`、封口重叠 `0`；六类内部 PBR 材质，forbidden 角色为 `0`。
+- 测试：Blend 重开、三 GLB factory import、正确 SHA 绑定的独立验证和负向自测 PASS；
+  Khronos 三资产 `0 errors`、warning `21/0/21`；独立视觉 PASS；规范对 R2U PASS、
+  对 P60 CONDITIONAL；前端资产确认 Three r160/GLTFLoader/EXT_texture_webp、相机与
+  资源释放 PASS，但纹理解码约 `264/192/264 MiB`；跨浏览器两轮 `34/34` runs、
+  `102` captures，五类错误 `0`。
+- 证据：[根审查结论](../PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/WEB-60_R2U_根审查结论.md)、
+  [独立结论](../PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/independent_review_decisions.json)、
+  [浏览器报告](../PT/高炉3D模型/work/WEB_60_20260720_R2U_SECTION_CAP_CONTROLLED_V4/reports/bf3d_review_v4_preview_report.json)。
+- 边界：R2U 仅为 `E/illustrative`、`REF-PENDING` 的只读审查候选。42 条 tangent
+  warning、三资产各四条本机绝对路径 extras、解码内存/真机性能、R1/R5 AO、生产
+  8092、P50/P60/P70/QA-70、现场 Edge、长稳与数值光度等价仍阻塞；正式 GLB及
+  生产数据均未改变。
+| `OPS-VASTBASE-PSPACE-22012-DEFAULT-20260720` | 固定本机访问 Vastbase 与 pSpace 时默认经 220.12 跳板，并优先使用既有只读脚本和 MCP | [长期规则](../AGENTS.md)、[转发脚本](../tools/imes_22012_relay.py)、[Vastbase MCP](../高炉前端数据/智能助手/mcp/imes_relay_mcp_server.py)、[pSpace MCP 查询](../高炉前端数据/智能助手/mcp/gl02_remote_22012_pspace_query.py)、[远端执行](../tools/remote_22012_exec.py) | Vastbase：`127.0.0.1:15433 -> 220.12 -> 10.10.181.195:5432`；pSpace：220.12 本机 PythonSDK，或 `127.0.0.1:18889 -> 220.12 -> 10.22.181.243:8889` | 文档静态核对；不启动转发、不访问生产数据、不修改服务 | 仅当程序运行在 220.12 上或用户明确要求专项直连对照时允许例外；必须记录实际链路和原因 |
+
+## REQ-BF3D-R2V-GLTF-PORTABILITY-TANGENT-BUDGET-20260720
+
+- 需求：在 R2U V4 已清除黑楔、旧圆环和竖向辅助对象的基础上，消除 Web GLB 的本机
+  绝对路径与生成切线 warning，保留 R5/R2J/R2K 材质、5 个完整炉壳和 10 个闭合
+  物理剖面，并复验“纯材质审查/结构剖面”。
+- 程序：[V5 导出器](../tools/export_bf3d_structural_review_v5.py)、
+  [可移植性审计](../tools/audit_bf3d_glb_portability.py)、
+  [切线诊断](../tools/diagnose_bf3d_v4_tangent_uv.py)、
+  [Khronos 封装](../tools/validate_bf3d_glb_khronos.cjs)、
+  [V5 Web 构建器](../tools/build_bf3d_review_v5_web.py)、
+  [只读服务器](../tools/serve_bf3d_review_v5.py)、
+  [跨浏览器验证器](../tools/verify_bf3d_review_v5_preview.cjs)和
+  [失败关闭收口器](../tools/finalize_bf3d_review_v5.py)。
+- 受控改动：10 个 Section 只做确定性三角化；4 个场景 provenance 值改为工作区相对
+  POSIX 路径；只为 3 个未定义几何切线顶点生成法线正交回退。统一 GLB 与结构 GLB
+  各写 3 个向量，共 6 次写入；有效非零切线未重归一化。
+- 资产：统一 GLB `4,663,220` bytes/SHA
+  `0ac031e626c9eaa0b0cdd8192cf9fda712324af174a4285f563a97309451ed3c`；
+  纯材质 GLB `994,372` bytes/SHA
+  `652be1b2c9147d5a7392497c7ae4964d19bdd7095b5435b87c105f9eb3fb66bc`；
+  结构 GLB `3,945,984` bytes/SHA
+  `e5c77d3834c631e2513209a690f6328d1c63dba2c8d489b2d2dbe17645465f71`；
+  V5 Blend `37,121,148` bytes/SHA
+  `3e6df5fb02d3734d14923d4432739a5918ac8249d6a3c8ad1415395429b27e3a`。
+- 验证：V4→V5 的 10 个对象顶点位置、包围盒、材质槽、UV 边界和材质/内嵌图像身份
+  保持；10/10 闭合正体积，boundary/non-manifold/跨对象封口重叠均为 `0`；三份
+  GLB 的绝对路径、缺失切线风险、无效切线 accessor 均为 `0`；Khronos 均为
+  `0 errors / 0 warnings`。
+- Web：[V5 隔离页](../高炉前端数据/bf3d_review_v5.server.html)连续两轮覆盖
+  Chromium 9 个固定视口、Firefox 4 个、WebKit 4 个，共 `34/34` runs、
+  `102` captures，console/page/HTTP/external/request-failed 均为 `0`。
+- 独立结论：R2V 静态审查范围 PASS with conditions；外表面全景对比偏弱，内部
+  锈红/浅棕层间有一条物理遮挡窄缝，生产前应弱化或标注。它不是旧数据竖线。
+- 证据：[根审查](../PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/WEB-60_R2V_根审查结论.md)、
+  [V5 manifest](../高炉前端数据/models/gl02_blast_furnace_review.v5.manifest.json)、
+  [独立审查](../PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/independent_review_decisions.json)和
+  [完整 Web 报告](../PT/高炉3D模型/work/WEB_60_20260720_R2V_GLTF_PORTABILITY_TANGENT_BUDGET/reports/bf3d_review_v5_preview_report.json)。
+- 边界：三资产解码约 `720 MiB` RGBA8、完整 mip 约 `960 MiB`；现场/移动端性能、
+  R5 AO 消费、P50/P60/P70/QA-70、生产 8092、现场 Edge、长稳与 Blender/Three
+  数值光度等价仍阻塞。正式 GLB SHA 保持
+  `808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6`。
+
+## REQ-BF3D-R2W-MATERIAL-READABILITY-CAMERA-20260720
+
+- 用户问题：V5 虽已保留具体 PBR 材质和内部物理层，为什么仍像普通灰色、内部黑线
+  又应如何解释。
+- 预注册：[R2W 合同](../PT/高炉3D模型/work/WEB_60_20260720_R2W_MATERIAL_READABILITY_AO_EDGE/WEB-60_R2W_阶段预注册合同.md)
+  将工作拆成相机可读性、AO 消费和 L03→L04→L05 相邻层三条独立证据链；镜头 PASS
+  不得替代 AO、P50 或结构连续性 PASS。
+- 程序：[AO 只读审计](../tools/audit_bf3d_r2w_ao_consumption.py)、
+  [相邻层只读审计](../tools/audit_bf3d_r2w_interface_gap.py)、
+  [隔离页构建器](../tools/build_bf3d_review_r2w_web.py)、
+  [只读服务器](../tools/serve_bf3d_review_r2w.py)、
+  [跨浏览器验证器](../tools/verify_bf3d_review_r2w_preview.cjs)和
+  [失败关闭收口器](../tools/finalize_bf3d_r2w_stage.py)。
+- 实现：[R2W 隔离页](../高炉前端数据/bf3d_review_r2w.server.html)和
+  [R2W 渲染器](../高炉前端数据/assets/bf3d-review-renderer-r2w.js)只新增外表面材质
+  近景及相机框景；GLB、Blend、纹理、PBR 材质、灯光、曝光、环境、Tone Mapping
+  和正式 8092 均未改变。
+- Web 验证：[完整报告](../PT/高炉3D模型/work/WEB_60_20260720_R2W_MATERIAL_READABILITY_AO_EDGE/reports/bf3d_review_r2w_preview_report.json)
+  连续两轮覆盖 Chromium 9 个视口、Firefox 4 个、WebKit 4 个，共 `34/34` runs、
+  `136` captures，console/page/HTTP/external/request-failed 均为 `0`；
+  `protected_files_unchanged=true`，PBR 改写、禁止对象和黄色轮廓均为 `0`。
+- 独立视觉结论：[复核记录](../PT/高炉3D模型/work/WEB_60_20260720_R2W_MATERIAL_READABILITY_AO_EDGE/reports/independent_review_decisions.json)
+  只条件批准相机可读性候选。外表面近景可读但仍显平，内部材质族可区分，未发现旧
+  圆环、装饰性竖线或其他禁止对象。
+- AO 结论：[AO 报告](../PT/高炉3D模型/work/WEB_60_20260720_R2W_MATERIAL_READABILITY_AO_EDGE/reports/ao_consumption_audit.json)
+  证明当前 ORM.R 全部为 `255`，V5 glTF 无 `occlusionTexture`，Blend ORM.R
+  未接入；旧 P50 R3 的 `P50_UV0/APPROX_GL02_*` 与当前 R2J UV/对象不兼容，
+  禁止直接复用。`audit_passed=true` 只表示缺失事实审计完成，
+  `ao_consumption_ready=false`。
+- 结构结论：[相邻层报告](../PT/高炉3D模型/work/WEB_60_20260720_R2W_MATERIAL_READABILITY_AO_EDGE/reports/interface_gap_audit.json)
+  证明 L03 为 `z=-20…7.55 m`、L04 为 `z=16…20 m`，共同高度、重叠和覆盖率为
+  `0`；相邻层链不可测，`adjacent_layer_continuity_passed=false` 且需要权威
+  设计参考。L03→L05 的 `14.816–49.456 mm` 只是非相邻诊断，`z=-1.2 m`
+  异常是冷却壁拼缝/端面剖切诊断。
+- 文档：[阶段总结](../PT/高炉3D模型/work/WEB_60_20260720_R2W_MATERIAL_READABILITY_AO_EDGE/WEB-60_R2W_阶段成果总结.md)和
+  [根审查](../PT/高炉3D模型/work/WEB_60_20260720_R2W_MATERIAL_READABILITY_AO_EDGE/WEB-60_R2W_根审查结论.md)
+  固定状态 `r2w_camera_readability_passed_ao_and_structure_blocked`。
+- 发布边界：只批准 `E/illustrative`、`REF-PENDING` 的隔离镜头可读性候选。
+  AO、相邻层连续性、施工尺寸、P50/P60/P70/QA-70、正式 GLB、生产 8092、现场
+  Edge/性能/长稳和 Blender/Three 数值光度等价均未批准。
+
+## REQ-BF3D-R2X-R2J-AO-REBAKE-CONSUMPTION-20260720
+
+### Requirement / program / config
+
+| 追踪项 | 受控记录 |
+|---|---|
+| Requirement | 为当前 R2J 五区炉壳建立独立 UV2 和 1K 局部接触 AO，只先验证 Blender/GLB/Three.js 是否正确生成、绑定和消费；代表视觉通过前不得运行完整矩阵或升级 2K。 |
+| Program | [1K 候选构建器:L2243](../tools/build_bf3d_r2x_r2j_ao_candidate.py#L2243)、[V5 payload 重打包器:L2202](../tools/repack_bf3d_r2x_ao_v5_payload.py#L2202)、[独立审计器:L3787](../tools/audit_bf3d_r2x_ao_candidate.py#L3787)、[Web 构建器:L221](../tools/build_bf3d_review_r2x_web.py#L221)、[隔离服务:L305](../tools/serve_bf3d_review_r2x.py#L305)、[代表验证器:L990](../tools/verify_bf3d_review_r2x_preview.cjs#L990)、[阶段收口器:L2128](../tools/finalize_bf3d_r2x_stage.py#L2128)。 |
+| Config / contract | [R2X 预注册合同](../PT/高炉3D模型/work/WEB_60_20260720_R2X_R2J_AO_REBAKE_CANDIDATE/WEB-60_R2X_阶段预注册合同.md)固定五个炉壳、`TEXCOORD_2 → uv2`、`aoMap.channel=2`，BaseColor/Normal/Roughness/Metalness 继续使用 channel `0`；off/on 只允许把 `aoMapIntensity` 从 `0` 切到导入值 `1`。页面必须标记 `1K smoke / E illustrative / not P50 / not production`。不新增 API、数据库、schema 或生产配置。 |
+
+### Artifact / test evidence
+
+- 最终受控候选为
+  [gl02_blast_furnace_material_review.r2x-ao-smoke1k.v5payload.glb](../PT/高炉3D模型/work/WEB_60_20260720_R2X_R2J_AO_REBAKE_CANDIDATE/glb/gl02_blast_furnace_material_review.r2x-ao-smoke1k.v5payload.glb)，
+  `1,115,216` bytes，SHA-256
+  `bd074c23c237fe7ff3abac0f823bd9aef978021e4e829963b3f979e9b58f1c00`。
+  [重打包报告](../PT/高炉3D模型/work/WEB_60_20260720_R2X_R2J_AO_REBAKE_CANDIDATE/reports/r2x_ao_v5_payload_repack_report.json)
+  和
+  [独立审计](../PT/高炉3D模型/work/WEB_60_20260720_R2X_R2J_AO_REBAKE_CANDIDATE/reports/r2x_ao_smoke1k_v5payload_audit.json)
+  证明 UV2/AO 追加和 V5 非 AO payload 保持通过；Khronos
+  [原始报告](../PT/高炉3D模型/work/WEB_60_20260720_R2X_R2J_AO_REBAKE_CANDIDATE/reports/khronos_gltf_validator_r2x_ao_v5payload.json)
+  为 `0 errors / 0 warnings`。
+- 首次重打包候选
+  `c8b748ef03b516a78de658a3b25a5f2265fef9bd34cea334a3490fba1fbab139`
+  越权追加第二个 clamp sampler，finding 为
+  `UNAUTHORIZED_EXTRA_AO_CLAMP_SAMPLER`，已 `fail_closed`。该失败历史必须保留；
+  最终候选改为复用锁定 V5 sampler `0`，sampler 数量保持 `1→1`。
+- [代表 Three/视觉报告](../PT/高炉3D模型/work/WEB_60_20260720_R2X_R2J_AO_REBAKE_CANDIDATE/reports/bf3d_review_r2x_representative_report.json)
+  记录 `machine_three_passed=true`：Chromium `1440×900` 完成全景 off/on、近景
+  off/on 四张截图和两组配对，五类
+  `console/page/http/external/request_failed` 错误均为 `0`。但两组
+  `changed_pixels=0`，各自 off/on PNG SHA 完全相同，故
+  `visual_gate_passed=false`。
+- [独立视觉复核](../PT/高炉3D模型/work/WEB_60_20260720_R2X_R2J_AO_REBAKE_CANDIDATE/reports/r2x_independent_visual_review.json)
+  的结论为 `fail_closed_ao_visual_signal_absent`。AO PNG 有 `99.6763%`
+  像素为纯白，非白像素仅 `0.3237%`，当前代表视图没有可见 AO 信号。
+
+### Decision / impact
+
+- 阶段状态固定为 `r2x_machine_passed_three_visual_failed_closed`；
+  `full_matrix_executed=false`，不升级 2K，不批准 P50/P60、正式 GLB、生产 8092
+  或下一发布阶段。V5 与 formal 受保护资产哈希保持不变。
+- AO 只是局部遮蔽乘子，不是“用户看不到具体材质”的完整修复。后续应回到可见的几何
+  接触源、材质检视照明和近景模式，并取得权威结构参考；禁止用黑色圆环、装饰线或修改
+  BaseColor 来伪造 AO/分层。最终边界见
+  [R2X 根审查结论](../PT/高炉3D模型/work/WEB_60_20260720_R2X_R2J_AO_REBAKE_CANDIDATE/WEB-60_R2X_根审查结论.md)。
+
+## REQ-BF3D-R2Y-MATERIAL-SIGNAL-VISIBILITY-DIAGNOSTIC-20260720
+
+### Requirement / config
+
+- [R2Y 预注册合同](../PT/高炉3D模型/work/WEB_60_20260720_R2Y_MATERIAL_SIGNAL_VISIBILITY_DIAGNOSTIC/WEB-60_R2Y_阶段预注册合同.md)
+  把 `data present → visible texel hit → shader consumption → final 8-bit visibility`
+  拆成四道独立门。范围固定为 `E/diagnostic`，不修改 V5、R2X、formal 或生产资产。
+- 固定 Chromium `1440×900`、`960×540 @ DPR1`、Three.js r160、sRGB/ACES、
+  `exposure=1`；代表门失败时禁止完整矩阵、2K、P50、P60 与生产。
+
+### Program / artifact / test
+
+- 输入锁：[verify_bf3d_r2y_input_gate.py](../tools/verify_bf3d_r2y_input_gate.py)。
+- PBR 数据层：[audit_bf3d_r2y_pbr_texture_signal.py](../tools/audit_bf3d_r2y_pbr_texture_signal.py)。
+- AO UV/相机/mip 层：[audit_bf3d_r2y_ao_uv_hit.py](../tools/audit_bf3d_r2y_ao_uv_hit.py)。
+- 隔离运行层：[bf3d_review_r2y.server.html](../高炉前端数据/bf3d_review_r2y.server.html)、
+  [bf3d-review-renderer-r2y.js](../高炉前端数据/assets/bf3d-review-renderer-r2y.js)、
+  [serve_bf3d_review_r2y.py](../tools/serve_bf3d_review_r2y.py) 和
+  [verify_bf3d_review_r2y_preview.cjs](../tools/verify_bf3d_review_r2y_preview.cjs)。
+- [CPU 光栅报告](../PT/高炉3D模型/work/WEB_60_20260720_R2Y_MATERIAL_SIGNAL_VISIBILITY_DIAGNOSTIC/reports/r2y_ao_uv_hit_raster_audit.json)
+  通过：全景/近景 mip 非白可见像素为 `785 / 6483`，排除当前审计视角下单纯的
+  `uv_or_camera_miss`。AO WebGL 合成黑/浮点/8-bit liveness 未执行。
+- [代表报告](../PT/高炉3D模型/work/WEB_60_20260720_R2Y_MATERIAL_SIGNAL_VISIBILITY_DIAGNOSTIC/reports/bf3d_review_r2y_representative_report.json)
+  为 `23/26`：macro `0.962958 < 1`、anisotropy `1.021708 < 1.03`、
+  environment changed ratio/mean diff 均为 `0`。五类浏览器错误均为 `0`，但
+  `pbr_fixture_passed=false`、`full_matrix_executed=false`。
+- 报告把三个通道明确区分为 `data_present=true`、`sampled=true`、
+  `runtime_binding_present=true`、`consumed=null`、`visible=false`；原始统计与绑定
+  不能替代逐通道 shader off/on 证明。
+
+### Decision / impact
+
+- [独立审查](../PT/高炉3D模型/work/WEB_60_20260720_R2Y_MATERIAL_SIGNAL_VISIBILITY_DIAGNOSTIC/reports/r2y_independent_review_decisions.json)
+  发现 Normal 网格、Roughness 周期竖波和 beauty 平铺竖纹，结论为
+  `fail_closed_material_signal_artifact_dominated_environment_nonobservable`。
+- 根状态为 `r2y_cpu_hit_passed_pbr_visual_failed_ao_webgl_pending_fail_closed`。
+  CPU 命中通过不代表 AO WebGL 可见；环境零差也不能直接归因为 PMREM wiring 故障。
+  V5/R2X/formal/生产保持不变，权威边界见
+  [阶段总结](../PT/高炉3D模型/work/WEB_60_20260720_R2Y_MATERIAL_SIGNAL_VISIBILITY_DIAGNOSTIC/WEB-60_R2Y_阶段成果总结.md)
+  与[根审查](../PT/高炉3D模型/work/WEB_60_20260720_R2Y_MATERIAL_SIGNAL_VISIBILITY_DIAGNOSTIC/WEB-60_R2Y_根审查结论.md)。
+
+## REQ-BF3D-STATIC-PRESSURE-18-PLACEMENT-20260721
+
+### Requirement / program / data contract
+
+| 追踪项 | 受控记录 |
+|---|---|
+| Requirement | 在用户认可的 P40 炉壳外观候选上增加三层、每层 A～F 的 18 个炉身静压力测量点；运行/测量审查可见，纯材质审查隐藏。同步补齐可用传感器数据集说明，禁止把旧三个平均代理复制为 18 个实测点。 |
+| Data identity | 唯一语义 ID 为 `P_static_{lower|middle|upper}_{A-F}`，正式源分支为 `EQ/SI0/GL02/BT`。业务层名/标高固定为炉身下部 `20.350 m`、炉身中部 `23.488 m`、炉身上部 `28.976 m`；pSpace 原始描述另存为 `source_description_raw`。A～F 仅为相对顺序，固定 `orientation_status=relative_only`。逐点 Tag 见[静压力扩展目录](../高炉前端数据/智能助手/mcp/gl02_static_pressure_points.json)。 |
+| Blender program | 隔离阶段构建器、源检查器和复开验证器位于 [VIS-30 scripts](../PT/高炉3D模型/work/VIS_30_20260721_STATIC_PRESSURE_18_PLACEMENT/scripts)。源 P40 showroom SHA-256 为 `722498eb60ad2a364c7d26fc8ae38977cbc0e45a4969c70c759303a84f89a7ef`；18 点几何从既有 INT-30 R1B R2 受控候选 append，未复制 P40 的三个汇总占位。 |
+| Web program | [bf3d-internal-simulation.js](../高炉前端数据/assets/bf3d-internal-simulation.js)把 18 个 `measured/raw` 点拆为独立运行覆盖层；外观和剖面运行模式均可见，材质审查隐藏。`good/illustrative` 点位统一使用工业黄色 `#F2C94C` 身份色且不再按 `deviation_kpa` 改色，`stale` 使用明显变暗的黄色 `#8F7728`；`interpolated/periodic_interpolation` 色带与 `estimated` 偏流箭头仍属于剖面派生层。 |
+| Dataset program | [build_hot_metal_si_dataset.py](../tools/build_hot_metal_si_dataset.py)只读本地静压力目录，为未来重建的数据字典补充 `semantic_id/business_level_name/height_m/position/orientation_status/source_description_raw/hmi_instrument_id_status/unit_status`；不改变宽表列名和值。说明见[铁水硅炉况传感器数据集](铁水硅炉况传感器数据集.md)和[8093 静压力同步合同](8093_MCP炉身静压力AF与PostgreSQL同步.md)。 |
+| Count boundary | `115` 是正式 GLB 核心传感器节点合同；`133` 是同步目录物理点；`134` 是当前数据集构建时读取的启用注册点。18 个 A～F 点是独立动态 Overlay/数据特征，不改写 115 节点身份。 |
+| API / DB / schema | 没有新增 API、数据库写入、schema 迁移或生产部署。现有 8767 `bf3d_snapshot.measured.static_pressure` 继续提供 18 点；本阶段没有连接生产库，也没有改写已有 CSV/Manifest。 |
+
+### Runtime state / fail-closed behavior
+
+- 点位中心按受控炉型半径外移 `0.12 m`；Blender Z 为工艺标高减 `20 m`，即
+  `0.350 / 3.488 / 8.976 m`。绝对厂区零方位未对表，不输出东南西北。
+- `good/illustrative` 点均以工业黄色 `#F2C94C` 身份色显示；`stale` 冻结最后有效值并以明显变暗的黄色 `#8F7728` 标陈旧；`missing` 或超过硬过期阈值隐藏。
+- 点位身份色与 `deviation_kpa` 解耦；没有偏差值时，原始压力仍以黄色实测点显示，不再把约 300 kPa
+  原值套入 `-12～+12 kPa` 偏差色标。同层 6 点全部有效且都有偏差值后，才允许
+  生成有界插值带和估计偏流箭头；状态文案显示实际 `N/18`。
+- HMI PE 仪表号存在冲突记录，单位 `kPa` 来自受控配置而现场源元数据为空；对应
+  状态保持 `unconfirmed`，不得作为 Blender 稳定主键或声称已现场确认。
+
+### Artifact / verification evidence
+
+- 受控 Blender 候选：
+  [VIS30_STATIC_PRESSURE_18_PLACEMENT_CANDIDATE.blend](../PT/高炉3D模型/work/VIS_30_20260721_STATIC_PRESSURE_18_PLACEMENT/blends/VIS30_STATIC_PRESSURE_18_PLACEMENT_CANDIDATE.blend)，
+  SHA-256 `8f129ca5881a00d3ee6b06a45de3eebe06697d45f9e3f890f8addcf12c77d3aa`；18 点统一使用
+  `MI_VIS30_STATIC_PRESSURE_INDUSTRIAL_YELLOW` / `#F2C94C` 身份材质；
+  打开即进入 `STATIC_PRESSURE_ISOLATED_REVIEW` Scene/View Layer 和隔离全景相机。
+- 独立 Web Overlay GLB：
+  [VIS30_STATIC_PRESSURE_18_ONLY_OVERLAY.glb](../PT/高炉3D模型/work/VIS_30_20260721_STATIC_PRESSURE_18_PLACEMENT/glb/VIS30_STATIC_PRESSURE_18_ONLY_OVERLAY.glb)，
+  SHA-256 `07b9e024bb994ac674d6238ed1743ef2c91f55f02a74517cdb3d93c8e73802fa`；重导入只含 18 个静压力点，
+  `short_name/Tag/source_description_raw` 与权威目录逐点 `18/18` 匹配。
+- [机器报告](../PT/高炉3D模型/work/VIS_30_20260721_STATIC_PRESSURE_18_PLACEMENT/reports/vis30_static_pressure_18_machine_report.json)
+  与[重开验证](../PT/高炉3D模型/work/VIS_30_20260721_STATIC_PRESSURE_18_PLACEMENT/reports/vis30_static_pressure_18_reopen_validation.json)
+  通过：`18=3×6`、精确高度/半径/相对角通过，旧三个代理隐藏，
+  `STATIC_PRESSURE_REVIEW` 显示、`MATERIAL_REVIEW` 排除；新集合未新增黄色轮廓、
+  圆周装饰环、长竖线或粒子。
+- [隔离视觉证据](../PT/高炉3D模型/work/VIS_30_20260721_STATIC_PRESSURE_18_PLACEMENT/renders/VIS30_STATIC_PRESSURE_18_ISOLATED_CONTACT_SHEET.png)
+  SHA-256 为 `549ddbaa4d23e8e6f0f4b90ca09804bbf06915b5cef8792cc3183a173d466eb5`：
+  P40 材质全景已排除旧温度竖线、旧传感器和遮挡支撑；下/中/上三张 A～F
+  证据图各有 6 个黄色点且 `level_tile_ring_count=0`。独立视觉复核批准为用户可见候选；
+  二维标签只用于审查，不作为 GLB 运行标签。
+- Web 合同测试：`node tools/verify_bf3d_internal_simulation.cjs` 通过；覆盖外观可见、
+  材质审查隐藏、`good/illustrative` 黄色身份色与偏差色解耦、stale 深黄色冻结、missing/硬过期隐藏、每层 6 点门禁和
+  `radiusAt(height)+0.12 m` 坐标。
+- 跨浏览器/视口矩阵
+  [cross_engine_viewport_report.json](../logs/bf3d_internal_simulation_20260719/matrix/cross_engine_viewport_report.json)
+  为 `ok=true`：Chromium 9 个视口、Firefox 4 个、WebKit 4 个，共 `17` runs、
+  `85` 路由组合；页面横向溢出、页面错误、console 错误和 HTTP 错误均为 `0`。
+- 数据集离线回归：`pytest tests/test_build_hot_metal_si_dataset.py` 为 `5 passed`，
+  Ruff 与 `py_compile` 通过；未连接生产数据库。
+- 根 [pipeline_status.json](../reports/pipeline_status.json) 已登记为平行的
+  `candidate_ready_for_review`，保留原 `current_stage`，不冒充正式发布阶段。
+
+### Decision / impact
+
+- 状态为 `candidate_ready_for_review`，且独立视觉复核已批准用户可见候选。本阶段批准
+  P40 派生候选、独立 Overlay GLB、运行时18点显示与数据字典描述增强；不批准绝对
+  厂区方位、施工定位、控制用途或正式发布。
+- V5 纯材质审查 GLB、正式 115 节点 GLB、R2J/R2K、formal 资产和生产服务均未被
+  覆盖。后续只有在现场完成 A～F 零方位、PE 仪表号和单位复核后，才可把
+  `relative_only/unconfirmed` 升级为正式空间安装合同。
+## 2026-07-24 WEB_60 img2threejs 外观原型浏览器验证
+
+- 需求：`REQ-BF3D-IMG2THREEJS-PROTOTYPE-20260724`
+- 程序：`tools/verify_bf3d_img2threejs_preview.mjs`
+- 触发：手工执行；未注册计划任务，不属于自动值守。
+- 输入：8096 只读静态页面、八层 DOM 合同和 Three.js 运行统计。
+- 浏览器：Chromium 九个固定视口；Firefox/WebKit 各四个代表视口。
+- 操作：风口层隐藏/恢复、展开/复位、灰模开关、风口聚焦、参考图折叠。
+- 输出：`PT/高炉3D模型/work/WEB_60_IMG2THREEJS_20260724_R1/reports/browser_matrix.json|md` 和逐组合截图。
+- 当前结果：`17/17` 通过，失败项、页面错误、控制台错误、资源失败和横向溢出均为 `0`。
+- 数据库/API/生产写入：不适用；程序仅访问本机静态页面。
+- 回滚：删除实验目录与本验证程序即可；正式 GLB、8092/8767 和数据库配置均未改动。
+
+## 2026-07-24 WEB_60 img2threejs R2 语义细化浏览器验证
+
+- 需求：`REQ-BF3D-IMG2THREEJS-SEMANTIC-DETAIL-R2-20260724`
+- 程序：`tools/verify_bf3d_img2threejs_preview.mjs`
+- 触发：手工执行；三浏览器并行运行；未注册计划任务，不属于自动值守。
+- 输入：8096 只读静态页面、受控 `115/80/18/26/2` 数字合同和 `relative_only` 方位门禁。
+- 浏览器：Chromium 九个固定视口；Firefox/WebKit 各四个代表视口。
+- 操作：工艺区/L10/出铁口设备隐藏与恢复、80 点总控及单层禁用/启用、45% 展开/复位、灰模、风口/出铁口/进料口近景、参考图折叠。
+- 输出：`PT/高炉3D模型/work/WEB_60_IMG2THREEJS_20260724_R1/reports/browser_matrix.json|md` 和逐组合截图。
+- 当前结果：`17/17` 通过；运行统计为 `284` 网格、`599` 实例、`198,456` 三角面；失败项、页面错误、控制台错误、资源失败和横向溢出均为 `0`。
+- 数据库/API/生产写入：不适用；程序仅访问本机静态页面。
+- 回滚：恢复实验目录中的 `preview/` 和本验证程序即可；正式 GLB、8092/8767 和数据库配置均未改动。
+
+## 2026-07-25 V4 8094 高炉本体资产热替换
+
+- 需求：`REQ-BF3D-8094-FURNACE-BODY-ASSET-SWAP-20260725`；仅针对 V4 8094 预览，不改变 8093 生产页面。
+- 守护程序：计划任务 `\BlastFurnaceServices\V3AutoPreviewProxy8094` → `tools\run_22012_8094_preview.ps1` → `ollama_proxy_server.py`；本次先停止任务并回收遗留的旧 8094 子进程，再启动同一任务。
+- 资产：`GL02_FURNACE_BODY_R1.glb`；运行时点位清单 `sensor_billboards.v1.json`；正式传感器 `115`、静压力 `18`、合计 `133`。
+- Web 程序：`高炉前端数据/assets/bf3d-furnace-body-billboard-adapter.js` 负责 manifest Billboard/拾取/live buffer 适配，`bf3d-internal-simulation.js` 负责新本体上的内部流线/负荷仿真；`tools/patch_8094_furnace_body_page.py` 为 SHA-256 守护页面补丁，`tools/verify_8094_furnace_body_swap.ps1` 为远端只读一致性检查。
+- 数据/API/数据库：未增加数据库写入、schema 或生产 API；Billboard 仅按 canonical point id 读取现有页面 buffer，缺少实时值时保留无值状态，不伪造静压力数据。
+- 备份：`backups/8094_furnace_body_swap_20260726_001347`，含替换前 HTML 与 GLB，可恢复。
+- 验证：远端 page/manifest HTTP 200；远端 hash 与本地产物一致；计划任务 Running、8094 监听恢复；HTML contract、133 点位 manifest 和 flow runtime marker 全部通过。浏览器最终全矩阵尚未完成，原因是既有 8094 用户标签刷新时主线程长时间处于 GLB/Babel 解析状态；不得据此宣称跨浏览器矩阵已通过。
+# 2026-07-26 8094 Billboard pSpace 实时 133 点
+
+- `REQ-BF3D-BILLBOARD-PSPACE-LIVE-20260726`：将 8094 高炉本体的
+  133 个 Billboard 从空值/页面缓冲升级为 pSpace `RealReadList` 逐点实时值。
+- 实现、测试、部署与回滚入口见
+  [专项交接](handoffs/2026-07-26-8094-billboard-pspace-live.md)。
+- 原 115 字段诊断合同不变；新增 25 个 Billboard 兼容键后流字段为 140，
+  其中物理 Billboard ID 精确为 133。
+- 现有 `8768` 已确认是 PostgreSQL 30 秒桥并保持不变；新增
+  `V4BillboardPspace8770` 计划任务，以 pSpace `RealReadList` 1 秒读取
+  133 点，8094 Billboard 单独订阅 8770。
+- 2026-07-26 12:05:57 外部真实探针返回 140 个流字段、133 个 Billboard
+  元数据、133 个数值、133 个质量码、0 缺点；计划任务 Running。
+- 三维背景默认护眼浅灰 `#eef2f1`，并提供纯白、钢灰、深色和自定义颜色；
+  背景热发布未重启 8768/8770。
+- `BUG-BF3D-8094-VIEWPORT-WHEEL-20260726`：修复旧版延迟样式把 3D 画布重新
+  缩至左右各 24% 以及滚轮事件不能稳定到达 canvas 的问题；最终规则覆盖完整舞台，
+  增加独立滚轮缩放和“全景”复位。Chromium `1366×768` 实测画布/舞台宽度比
+  `0.9966`，滚轮后相机距离 `74.04 → 49.83`；证据见
+  [专项交接](handoffs/2026-07-26-8094-billboard-pspace-live.md) 和
+  `logs/8094_billboard_zoom_20260726/`。
+- `BUG-BF3D-8094-MANIFEST-RETRY-STORM-20260726`：Billboard manifest 偶发空响应
+  后不再每 120ms 紧密重试，改为 1s 起步、最高 15s 的指数退避，避免 8094 静态
+  服务在网络波动时被重试请求放大；成功挂载后恢复初始退避。
+
+## 2026-07-26 220.12 Ollama 27B / 30B 自动拉起链路只读核查
+
+- 追踪编号：`OPS-22012-OLLAMA-AUTOSTART-AUDIT-20260726`。
+- 结论：220.12 只有一个自动 Windows 服务 `BFOllama11434` 负责启动
+  `ollama serve` 并监听 `11434`，不是 27B/30B 各自监听。每分钟计划任务
+  `\BlastFurnaceServices\BFOllama11434HealthCheck` 运行
+  `check_managed_nssm_service_health.ps1`，其配置向
+  `chiqiong-blast-furnace:latest`（27.8B）发送极短 `/api/chat` 且
+  `keep_alive=24h`，这是当前 27B 自动预热、续驻和失败重启入口。
+- 30.5B 的 `bf-diagnosis-runtime:v1` 与
+  `chiqiong-blast-furnace:latest_M` digest 相同，当前没有启用中的服务配置
+  或健康任务自动加载；核查时 `/api/ps` 只显示 27B。这里记录的
+  `OLLAMA_MAX_LOADED_MODELS=2` 是 **2026-07-26 修复前的核查阶段历史值**，
+  当时只表示容量上限，不是双大模型自动加载开关；现行值已由
+  `OPS-22012-OLLAMA-27B-ONLY-20260726` 收敛为 `1`。
+- 当前 8092、8093、8094 受管代理均显式选择 27B。远端
+  `start_v3_8092_python.py` 虽保留 30.5B 默认值，但只有脱离受管配置直接运行
+  且不传模型参数时才可能加载 30.5B，不是当前自动拉起链。
+- 旧 `BlastFurnaceV3Proxy8092/8093` 一次性任务动作脚本已不存在；
+  `BlastFurnace8093Proxy_NewProject` 开机任务的动作脚本也已不存在，不能作为
+  当前模型自动拉起来源。旧 V4 runner 中的
+  `--public-model bf-diagnosis-runtime:v1` 仅是公开显示参数，真实
+  `--model` 仍为 27B。
+- 专项说明：[22012_Ollama_27B_30B自动拉起链路_20260726.md](22012_Ollama_27B_30B自动拉起链路_20260726.md)；
+  主探针：[probe_22012_ollama_autostart.ps1](../tools/probe_22012_ollama_autostart.ps1)；
+  旧任务排除探针：
+  [probe_22012_ollama_legacy_launchers.ps1](../tools/probe_22012_ollama_legacy_launchers.ps1)。
+- 验证：只读核对 Windows 服务/NSSM 参数、计划任务触发器、`11434` 监听进程、
+  代理命令行、服务 JSON、`/api/tags`、`/api/ps` 和健康日志；没有启停、重启、
+  切换或预热模型。健康日志中 2026-07-26 12:34 的自动重启由既有每分钟任务
+  在 `/api/chat` 超时后触发，不是本次探针写操作。
+
+## 2026-07-26 8094 智能助手无回复 PID/GPU 只读复核
+
+- 追踪编号：`OPS-22012-8094-QA-PID-GPU-AUDIT-20260726`。
+- 运行态：`11434/8092/8093/8094` 监听 PID 为
+  `13620/12444/14172/5560`，父进程均存在；旧孤儿 runner PID `976`
+  已消失。Ollama 当前同时驻留 27.8B PID `6972` 和 30.5B PID `18644`，
+  不是用户观察到的单一 27B。
+- GPU：L20 `46068 MiB` 中已用 `40408 MiB`、剩余 `5345 MiB`；
+  两个 runner 分别占用约 `20084/20288 MiB`。连续三次采样 GPU 利用率均为
+  `0%`，没有正在生成的信号。
+- 定位：8094 PID `5560` 与用户客户端保持活动连接，但没有到 `11434` 的
+  活动连接；因此无回复发生在代理进入 Ollama 之前，优先属于前置数据、
+  RAG/MCP 或其它 I/O 等待，不是 27B GPU 推理过慢。双大模型驻留造成显存
+  风险，但本次快照不能证明当前请求正在 OOM。
+- 证据：[probe_22012_pid_gpu_only.ps1](../tools/probe_22012_pid_gpu_only.ps1)、
+  [22012_pid_gpu_only_20260726_r2.json](../logs/22012_pid_gpu_only_20260726_r2.json)；
+  详细说明见
+  [22012_8093_v4_guard_ops.md](22012_8093_v4_guard_ops.md)。
+- 操作边界：只读；没有 POST 问答、服务启停、模型卸载、进程清理或配置修改。
+
+## 2026-07-26 11434 仅允许驻留 27B，阻止旧请求加载 30.5B
+
+- 追踪编号：`OPS-22012-OLLAMA-27B-ONLY-20260726`。
+- 需求：11434 同时只驻留一个生产大模型；8094 问答使用 11434 已经运行的
+  27.8B，不允许浏览器或旧 API 请求再加载 30.5B。
+- 程序：
+  [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)
+  忽略调用方 `model`，仅从 `/api/ps` 选择
+  `BF_ALLOWED_LOADED_MODELS` 中已驻留的模型；不再用 `/api/tags` 选择未加载
+  模型。[8094 runner](../tools/run_22012_8094_preview.ps1) 不设置
+  `BF_LLM_MODEL`，并固定 `BF_QA_KNOWLEDGE_SEARCH_MODE=keyword`；
+  [本地整栈启动器](../tools/start_v3_full_python.py) 也不再默认注入固定模型，
+  只有显式传 `--model` 时才锁定。
+- Ollama 配置：远端
+  `tools/service_configs/22012_BFOllama11434.json` 已将
+  `OLLAMA_MAX_LOADED_MODELS` 从 `2` 改为 `1`；运行进程环境复核也是 `1`。
+  27B 健康检查模型仍为 `chiqiong-blast-furnace:latest`。
+- 模型清单：`bf-diagnosis-runtime:v1` 与
+  `chiqiong-blast-furnace:latest_M` 的 manifest 已移动至
+  `F:\Ollama\models\disabled-manifests\single_27b_20260726_143701`，
+  blob 未删除，可按备份恢复。
+- 部署边界：重启 `BFOllama11434` 与 8094；8093 PID 在操作前后均为
+  `14172`，没有重启 8093、8768、8770 或数据库服务。一次性部署任务完成后
+  已删除。
+- 验证：`/api/ps` 仅有 `chiqiong-blast-furnace:latest`；直接请求 30.5B
+  返回 HTTP 404；8094 状态 `ok/model_ok=true`；向 8094 故意提交旧 30.5B
+  模型名后，实际响应模型仍是 27.8B，且请求后 `/api/ps` 未出现 30.5B。
+- 2026-07-27 再核：`GET 11434/api/ps` 仍只返回
+  `chiqiong-blast-furnace:latest`，8094 `/api/ollama/status` 为
+  `ok=true/proxy_ok=true/model_ok=true`；没有发送可能超过 5 秒的问答请求，
+  没有重启模型或服务。
+- 测试：`python -m pytest -q -p no:cacheprovider
+  tests/test_ollama_loaded_model_policy.py`，结果 `3 passed`。
+- 证据与回滚：
+  [部署结果](../logs/22012_30b_source_audit_20260726/deploy_27b_only_result.json)、
+  [运行态复核](../logs/22012_30b_source_audit_20260726/runtime_verification.json)、
+  [部署脚本](../tools/deploy_22012_8094_loaded_27b_only.ps1)、
+  [专项说明](22012_Ollama_27B_30B自动拉起链路_20260726.md)。
+
+## BUG-8093-MCP-TOP-PRESSURE-HOW-20260726：炉顶压力“如何”历史查询
+
+- 需求：`最近半小时炉顶压力如何？` 必须从 PostgreSQL 分钟历史读取
+  `P_top`，返回时间范围、样本数、均值、最小值、最大值、起止值和趋势。
+- 根因：MCP 预取的数据意图词包含“怎么样/咋样”，遗漏“如何”，因此请求
+  没有进入 `get_statistics`；同时补充 `P_top` 核心兜底目录，使可选映射配置
+  缺失时仍可加载炉顶压力点位。
+- 程序：[ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、
+  [bf_data_mcp_server.py](../高炉前端数据/智能助手/mcp/bf_data_mcp_server.py)。
+- 测试：`python -m pytest 高炉前端数据/智能助手/tests/test_qa_latency_optimizations.py
+  高炉前端数据/智能助手/tests/test_mcp_chart_expansion.py -q`，结果 `41 passed`。
+- 部署：2026-07-26 15:11 受控更新 220.12 的 8093/8094 共享问答代码，只重启
+  `BFV4PreviewProxy8093` 与 `V3AutoPreviewProxy8094`；8768、8770 PID 分别保持
+  `15668`、`12956`，未重启。
+- 现网验收：8093、8094 均返回 HTTP 200，`mcp_prefetch_used=true`、
+  `kind=statistics`、`variables=["P_top"]`，精确问题自动验收均通过。
+
+## REQ-MCP-AGENT-ORCHESTRATION-20260726：受控自主工具编排
+
+- 目标：模型结合当前问题和最近对话，自主执行“目录发现→数据查询/计算→绘图
+  →总结”，同时由服务端控制工具白名单、参数 Schema、调用规模和只读边界。
+- 规划：
+  [MCP受控自主工具编排规划与通用流程](../PT/MCP受控自主工具编排规划与通用流程.md)。
+- 实现：
+  [模型规划入口](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L3915)、
+  [多轮工具循环](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L4175)、
+  [服务端工具策略](../高炉前端数据/智能助手/backend/mcp_tool_policy.py#L110)。
+- 安全约束：仅执行 MCP 实时工具目录中的工具；拒绝 Schema 外参数、错误类型、
+  错误枚举、超长参数和超量数组；数据库变量和时间范围仍由 MCP 二次校验；
+  不向模型开放 SQL、凭据或写操作。
+- 测试：
+  `python -m pytest 高炉前端数据/智能助手/tests/test_mcp_agent_orchestration.py
+  高炉前端数据/智能助手/tests/test_qa_latency_optimizations.py
+  高炉前端数据/智能助手/tests/test_mcp_chart_expansion.py -q`，结果 `49 passed`。
+- 现网验收：8093/8094 对“分析最近半小时炉顶压力和总压差是否相关”均自主完成
+  两次目录发现和一次相关性绘图，返回 `P_top`、`DP_total`、相关系数 `-0.33`
+  及 PNG；证据见
+  [验收 JSON](../logs/8093_8094_mcp_agent_orchestration_acceptance_20260726.json)。
+- 部署边界：只重启 8093/8094；8768 PID=`15668`、8770 PID=`12956` 均未变化。
+
+## REQ-MCP-AGENT-LATENCY-20260726：自主编排低延迟与可恢复基线
+
+- 目标：保留27B自主规划能力，但规划阶段使用低温度、小上下文、小输出上限，
+  不注入完整炉况或RAG证据；常见问题通过三级路径、复合工具、缓存和执行预算
+  避免多轮模型往返。
+- 可恢复基线：
+  [SHA-256清单](../backups/mcp_route_baseline_20260726_1552/manifest.json)、
+  [校验/恢复脚本](../tools/restore_mcp_route_baseline.py)。`--verify`只读；
+  `--restore`只恢复本地文件，不部署、不重启服务。
+- 实现：
+  [轻量规划与标准复合路由](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、
+  [工具策略](../高炉前端数据/智能助手/backend/mcp_tool_policy.py)。
+- 默认预算：规划温度0、输出360 tokens、最近6条消息、每条1200字符、最多2轮
+  规划、4次工具调用、30秒缓存、45秒单工具/整轮MCP执行预算。
+- 回归：
+  `python -m pytest 高炉前端数据/智能助手/tests/test_mcp_latency_optimization.py
+  高炉前端数据/智能助手/tests/test_mcp_agent_orchestration.py
+  高炉前端数据/智能助手/tests/test_qa_latency_optimizations.py
+  高炉前端数据/智能助手/tests/test_mcp_chart_expansion.py -q`，结果`54 passed`。
+- 同题现网：相关性分析工具数`3→1`；8093 `38.57s→15.43/25.94s`，
+  8094 `45.22s→16.32s`。固定口语“最近半小时炉顶压力如何？”仍走
+  `statistics/P_top`，12.26秒自动通过。
+- 证据：
+  [低延迟验收JSON](../logs/8093_8094_mcp_latency_optimization_acceptance_20260726.json)。
+- 发布边界：最终只重启8093/8094；8768 PID=`15668`、8770 PID=`12956`
+  均保持不变。
+
+## REQ-MCP-BUSINESS-OBJECT-CATALOG-20260726：统一业务对象目录
+
+- 总阶段入口：
+  [MCP智能工具系统九阶段升级总表](../PT/MCP智能工具系统九阶段升级总表.md)。
+- 合同：统一`object_id/object_type/display_name/aliases/unit/capabilities/status/executor`
+  字段，覆盖sensor、heat、hot_metal_analysis、slag_analysis、feed_chemistry、
+  report、qa_history、calculation、chart九类对象。
+- 配置：
+  [catalog目录](../高炉前端数据/智能助手/mcp/catalog/)包含Schema、manifest、
+  sensors、heat_analysis、calculation_tools、chart_capabilities和knowledge_assets。
+- 运行时：
+  [统一目录加载器](../高炉前端数据/智能助手/mcp/business_object_catalog.py#L134)
+  把实际`VARIABLES`转换为统一sensor对象并与静态业务目录合并。
+- MCP工具：
+  [list_business_objects](../高炉前端数据/智能助手/mcp/bf_data_mcp_server.py#L2065)、
+  [search_business_objects](../高炉前端数据/智能助手/mcp/bf_data_mcp_server.py#L2095)、
+  [get_business_object](../高炉前端数据/智能助手/mcp/bf_data_mcp_server.py#L2122)。
+- 兼容性：旧`find_gl02_variables`保留；模型跨业务对象优先使用统一目录，仅在
+  已确认传感器且需细点位匹配时使用旧目录。
+- 测试：合同、9类对象、18/18静压力点、跨类型搜索和结构化错误合计纳入相关
+  回归；总结果`61 passed`。
+- 现网：8093搜索铁水硅含量命中`hot_metal_chemistry`；8094搜索相关散点图
+  命中`correlation_chart`，均HTTP 200且只调用一次`search_business_objects`。
+- 证据：
+  [验收JSON](../logs/8093_8094_business_object_catalog_acceptance_20260726.json)。
+- 发布边界：只重启8093/8094；8768/8770 PID保持`15668/12956`。
+
+## REQ-MCP-CONVERSATION-CONTEXT-20260726：结构化追问与确定性低延迟执行
+
+- 需求：短句和省略式追问必须继承上轮业务对象、时间窗和图表类型；去除Prompt
+  仅用于MCP本体直连测速，不删除生产口语路由。
+- 程序：
+  [结构化状态](../高炉前端数据/智能助手/backend/mcp_conversation_context.py)、
+  [问答路由与确定性计划](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、
+  [MCP变量解析](../高炉前端数据/智能助手/mcp/bf_data_mcp_server.py)。
+- 数据合同：状态仅保存对象ID、相对时间、分析目标、图表类型和证据摘要；禁止
+  保存SQL、数据库凭据、完整系统提示和完整炉况资料。
+- 安全修复：机器变量ID只允许精确匹配；本地最小目录加入已核实的
+  `DP_total/SIO_GL02_BT_T0132`，阻止缺目录时把`DP_total`误映射为`P_top`。
+- 延迟策略：清晰latest/history/statistics请求批量执行一次
+  `query_gl02_sensors`；清晰图表/相关性请求一次执行复合工具；事实格式器直接
+  返回数据和图片，27B只处理无法确定工具的复杂问题。
+- 本地测试：相关回归`76 passed`。
+- 现网验收：四个关键当前值问题4/4自动通过，中位总耗时`1117.6ms`；两个
+  会话7轮少信息追问7/7通过；无Prompt直连4/4，总耗时`3730.5ms`。
+- 证据：
+  [关键四问](../logs/8093_phase3_four_priority_prompts_20260726.json)、
+  [多轮追问](../logs/8093_mcp_context_followups_20260726.json)、
+  [无Prompt直连](../logs/mcp_direct_no_prompt_20260726.json)。
+- 发布：最终版本于`2026-07-26 18:21:19`部署；8093/8094为
+  `16636/13924`，该次部署前后8768/8770保持`12672/12956`。部署过程中曾遇
+  自动值守与服务启动竞争，脚本自动回滚成功；随后改为启动命令容忍瞬态竞争，
+  并继续以端口与受保护PID作为最终判定。
+- 说明：在几次独立部署之间观察到8768由外部自动值守更换PID
+  `15668→2052→12672`；不是单次部署脚本触发。最终部署窗口内PID未变化。
+
+## REQ-SI-FORMAL-LABEL-CONTRACT-V3-20260726：正式炉次Si标签、数据与训练
+
+- 用户目标：用MES正式meltno替代试样号炉次推断，取得真实取样时间、铁口、
+  铁罐和出铁阶段，并明确代表Si、下一试样Si、整炉Si分布三个任务。
+- 只读源：
+  `t_qpes_inner_batch/inner_batch_insp_bb/t_ipes_cond/v_qpes_mat_final`及
+  `bf_sensor.sensor_registry/one_minute_values`；无生产数据库写入。
+- 核查结论：2#正式化验24,821条、正式炉次9,337个、精确炉次连接24,705条；
+  `takesampletime`为0条，可信铁口编号为0条；全历史铁罐号连接覆盖66.07%。
+- 当前训练范围：5,936条正式试样、2,366炉；排除66炉完整标签在截止前已可见
+  的非前瞻样本后，2,291炉通过标签与至少100点门禁；
+  133物理点生成665个当前/60/120分钟候选特征，训练使用579个。
+- 切分：按MES`opentime`的1,603/344/344时间外切分，同一正式meltno不跨段。
+- 训练：代表Si ExtraTrees测试MAE `0.048851%`、`±0.05`命中`64.53%`；
+  分布P50 MAE `0.048312%`；下一试样任务因取样时间缺失被合同阻止。
+- 状态：`experimental_offline_formal_contract`；未授权接生产MCP、预警或操作
+  建议。
+- 程序：
+  [正式标签](../PT/预测铁水Si含量/src/si_semantic_engine/formal_labels.py)、
+  [数据拼装](../PT/预测铁水Si含量/src/si_semantic_engine/formal_dataset.py)、
+  [只读抽取](../tools/build_formal_si_dataset_v3.py)、
+  [训练](../PT/预测铁水Si含量/src/si_semantic_engine/train_v3.py)。
+- 合同和证据：
+  [数据合同](../PT/预测铁水Si含量/docs/data_contract.md)、
+  [数据清单](../PT/预测铁水Si含量/data/processed/formal_v3_20260726/manifest.json)、
+  [实验指标](../PT/预测铁水Si含量/reports/experiments/EXP-SI-V3-FORMAL-001_20260726_222525/metrics.json)。
+- 回归：
+  `python -m unittest discover -s PT/预测铁水Si含量/tests -v`，结果
+  `Ran 23 tests / OK`。
+
+## REQ-BF3D-8093-MEASURED-121-OVERVIEW-20260801：8093 炉体 121 点与全景相机
+
+- 用户目标：左侧既有 28 核心变量面板完全不移动；三维炉体保留 121 个具有实际安装语义的点位；计算、设定与汇总变量不再贴在炉壳上；关闭点位聚焦。
+- 121 点构成：80 个炉体温度、18 个 A～F 静压力、2 个南北出铁口温度、21 个设备/管线/炉顶实测点。炉壳直接物理测点为 100 个，另有 21 个实测设备点。
+- 3D 排除 12 点：`DP_upper`、`DP_lower`、`DP_total`、`PI`、`GasUtil`、`TFT`、`PCI_set`、`L`、`P_top`、`P_static_20m35`、`P_static_23m49`、`P_static_28m98`。排除只作用于 8093 Three.js 场景，不删除数据，也不改变左侧 28 变量。
+- 实现：[8093 点位筛选器](../高炉前端数据/assets/bf3d-physical-point-filter-8093.js)在共享 133 点 adapter 完成后原地筛选 Billboard、命中对象和传感器对象，保持悬停和实时更新闭包有效；[8093 全景相机](../高炉前端数据/assets/bf3d-surface-camera-guard-8093.js)固定炉心 target、全模型包围半径防穿透和无限方位角，不注册点位聚焦。
+- 部署：[原子部署器](../tools/remote_deploy_8093_physical_points_overview.py)已部署到 `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW`，备份位于 `backups\8093_measured121_overview_20260801\20260801_202127`。8094 页面、共享 adapter、8094 相机运行时的部署前后 SHA-256 完全一致。
+- 验证：JavaScript 语法、Python 语法与 7 项单元/隔离部署契约均通过；8093 页面及两个资源 HTTP 200，页面包含 `20260801-measured121-r2` 与 `20260801-overview-only-r6`。因正式页完整加载超过用户规定的单次 5 秒操作上限，本轮未用长等待声明完成远端视觉矩阵。
+
+## DOC-BF-SELF-LEARNING-MECHANISM-20260802：冀南钢铁高炉智能体自学习机理
+
+- 目标：将高炉智能体的“自学习”固定为滚动基线自适应、诊断/工具外部记忆和人工审核后的离线迭代，不把在线改权重或生产自动控制表述为当前能力。
+- 说明：[项目版自学习机理说明](冀南钢铁高炉智能体自学习机理说明_项目版_20260802.md)。
+- 原理图：[项目版自学习闭环 SVG](冀南钢铁高炉智能体自学习闭环_项目版_20260802.svg)。
+- 运行链路：`one_minute_values` → 数据质量与同步门 → 30 天 `daily_baselines` / 60 分钟诊断窗口 / 5 分钟档位 → 规则、Chronos、RAG、MCP 证据融合 → 只读建议与安全门禁 → 队列/总结/工具轨迹沉淀。
+- 学习边界：当前已实现滚动基线、短时队列、总结与追问承接；人工采纳/拒绝、实际操作结果和质量结果尚未统一为可训练标签表，后续必须经过时间外回测、影子运行和专家复核后才可版本回灌。
+- 追踪入口：[自动诊断配置](../自动诊断服务/config.yaml)、[自动诊断表结构](../自动诊断服务/schema.sql)、[8767 状态/预测桥接](../自动诊断服务/local_pg_ws_bridge.py)、[建议引擎说明](调控结论生成引擎可追踪说明.md)。
+
+## DOC-BF-SELF-LEARNING-SHORT-20260802：冀南钢铁高炉智能体自学习原理精简版
+
+- 用途：用于汇报首页、论文方法概览或原理页，仅保留“感知—认知—融合—决策—学习”五个核心节点。
+- 原理图：[冀南钢铁高炉智能体自学习原理 SVG](冀南钢铁高炉智能体自学习原理.svg)。
+- 与详细版关系：[详细机理说明](冀南钢铁高炉智能体自学习机理说明_项目版_20260802.md)保留数据表、服务和学习边界；精简图不替代详细追踪说明。
+
+## 2026-08-02：8093 初始全景放大与守卫覆盖审计（已部署）
+
+- 相机运行时升级为 `bf3d.camera.overview-only.8093.v4`，初始/全景复位使用 `OVERVIEW_FIT_MARGIN=1.0` 与 `OVERVIEW_ORBIT_MARGIN=1.12`；相对旧 1.08 fit margin 约放大 8%。
+- `minDistance=fullOrbitRadius`、近裁剪面 `0.05m`、炉心 target 和 360° 旋转均未改变，不修改 GLB。
+- 使用 [守卫部署入口](../tools/remote_guarded_deploy_8093_initial_camera_framing.ps1)完成停—改—启：`guard_paused=true`、`guard_restored=true`、`ws8768_unchanged=true`、HTTP 200。
+- 备份：`backups\8093_initial_camera_framing_20260802\20260802_213047`。最终页面 SHA-256 `A6A7D2D6...E3A`，相机 SHA-256 `1C87B11B...C6F0`。
+- 部署前页面 SHA-256 仍为上一轮记录的 `F308993A...24FC1`；恢复守卫后新相机哈希仍为 `1C87B11B...C6F0`，未发现守卫回写旧代码。
+- [远端/本机审计器](../tools/audit_8093_remote_local_parity.py)确认 5 个关键代码资产和受控 GLB 一致；整页 HTML 因远端专用运行时注入而与本机主 HTML 不同。详见[专项审计](8093_初始构图与远端本机一致性审计_20260802.md)。
+
+## BUG-BF3D-CAD-BOTTOM-BAND-20260804：8094 底部空白带
+
+- 需求/问题：[问题追踪](question_traceability.md#q-bf3d-8093-cad-bottom-band-20260804)、[需求追踪](requirements_traceability.md#bug-bf3d-cad-bottom-band-20260804)。
+- 程序：[8094 补丁器](../tools/patch_8094_cad_bottom_band.py)、[远端 8094-only 部署器](../tools/remote_deploy_8094_cad_bottom_band.ps1)、[合同测试](../tests/test_8094_cad_bottom_band_fix.py)。
+- 配置/页面契约：独立 `frontend_dashboard_v3.8094_preview.server.html`；最终样式 ID `bf3d-cad-bottom-band-fix-20260804`；底部 inset 为 `0`，左右 inset 保持 `24%`；不修改 8093 守卫、8768 或共享 adapter。
+- 验证：`python -m unittest -v tests.test_8094_cad_bottom_band_fix` 为 3 项通过；远端 8094 HTTP 200、任务 Running、8093/8094/8768/8770 PID 未变，8093 返回内容前后一致；Chrome `1552×816` stage/viewer 底部差值约 1px。
+- 运行记录：[2026-08-04 8094 修复交接](handoffs/2026-08-04-8094-cad-bottom-band-fix.md)。

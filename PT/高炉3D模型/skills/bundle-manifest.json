@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "bundle_id": "gl02-blast-furnace-3d-skills",
+  "pack_version": "1.0.0",
+  "created_at": "2026-07-16",
+  "entry_skill": "bf3d-orchestrate",
+  "upstream_lock": "sources.lock.json",
+  "skills": [
+    "bf3d-orchestrate",
+    "bf3d-geometry-audit",
+    "bf3d-uv-bake",
+    "bf3d-industrial-materials",
+    "bf3d-light-render",
+    "bf3d-gltf-handoff",
+    "bf3d-visual-qa"
+  ],
+  "workflow": [
+    "bf3d-orchestrate",
+    "bf3d-geometry-audit",
+    "bf3d-uv-bake",
+    "bf3d-industrial-materials",
+    "bf3d-light-render",
+    "bf3d-gltf-handoff",
+    "bf3d-visual-qa"
+  ]
+}

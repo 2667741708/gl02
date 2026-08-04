@@ -1,0 +1,47 @@
+{
+  "catalog_version": "1.0.0",
+  "objects": [
+    {
+      "object_id": "sensor_statistics",
+      "object_type": "calculation",
+      "display_name": "传感器统计摘要",
+      "aliases": ["平均值", "最大值", "最小值", "波动", "趋势", "统计"],
+      "unit": null,
+      "capabilities": ["avg", "min", "max", "count", "stddev", "slope", "trend"],
+      "status": "enabled",
+      "description": "对一个或多个传感器时间窗执行确定性统计",
+      "executor": {
+        "service": "blast-furnace-gl02-data-mcp",
+        "tools": ["query_gl02_statistics", "query_gl02_sensors"]
+      }
+    },
+    {
+      "object_id": "sensor_correlation",
+      "object_type": "calculation",
+      "display_name": "传感器相关性分析",
+      "aliases": ["相关性", "相关系数", "关系", "关联", "是否同步"],
+      "unit": null,
+      "capabilities": ["pearson", "aligned_series", "pairwise_matrix"],
+      "status": "enabled",
+      "description": "对齐多个时间序列并计算皮尔逊相关系数",
+      "executor": {
+        "service": "blast-furnace-gl02-data-mcp",
+        "tools": ["plot_gl02_analysis"]
+      }
+    },
+    {
+      "object_id": "sensor_feature_statistics",
+      "object_type": "calculation",
+      "display_name": "传感器增强特征统计",
+      "aliases": ["增强统计", "基线对比", "z值", "斜率", "波动特征"],
+      "unit": null,
+      "capabilities": ["window_summary", "baseline_compare", "zscore", "slope"],
+      "status": "enabled",
+      "description": "计算时间窗、daily_baselines和趋势特征",
+      "executor": {
+        "service": "blast-furnace-gl02-data-mcp",
+        "tools": ["query_gl02_feature_statistics"]
+      }
+    }
+  ]
+}

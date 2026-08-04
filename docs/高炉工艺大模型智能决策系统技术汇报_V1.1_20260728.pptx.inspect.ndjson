@@ -1,0 +1,208 @@
+{"kind":"deck","id":"pr/tfawlt","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"","type":"master","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"body","type":"body","textPreview":"Click to edit Master styles | Second level | Third level | Fourth level | Fifth level"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Title Slide","placeholders":[{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"subtitle","type":"subtitle","textPreview":"Click to edit Master subtitle style"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout2.xml","name":"Title and Content","placeholders":[{"name":"text placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"},{"name":"title","type":"title","textPreview":"Click to edit Master title style"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout3.xml","name":"Two Content","placeholders":[{"name":"text placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"},{"name":"text placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"title","type":"title","textPreview":"Click to edit Master title style"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout4.xml","name":"Three Content","placeholders":[{"name":"text placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"},{"name":"text placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"text placeholder 2","textPreview":"Click to edit Master text styles | Second level | Third level | Fourth level | Fifth level"},{"name":"title","type":"title","textPreview":"Click to edit Master title style"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout5.xml","name":"Four Content","placeholders":[{"name":"text placeholder 2","textPreview":"Click to edit Master"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"},{"name":"title","type":"title","textPreview":"Click to edit Master title style"},{"name":"body","type":"body","textPreview":"Click to edit Master"},{"name":"text placeholder 2","textPreview":"Click to edit Master"},{"name":"body","type":"body","textPreview":"Click to edit Master"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout6.xml","name":"Title Only","placeholders":[{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"},{"name":"title","type":"title","textPreview":"Click to edit Master title style"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout7.xml","name":"Footer Only","placeholders":[{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout8.xml","name":"Blank"}
+{"kind":"slide","id":"sl/y90nupkv","slide":1,"title":"高炉工艺大模型","textShapes":4}
+{"kind":"textbox","id":"sh/7qp4be9c","slide":1,"name":"Title 3","placeholder":"title","text":"高炉工艺大模型\n智能决策系统","textPreview":"高炉工艺大模型 | 智能决策系统","textChars":14,"textLines":2,"bbox":[59.84,151.69,992,181.26]}
+{"kind":"textbox","id":"sh/65g3298r","slide":1,"name":"Subtitle 4","placeholder":"subtitle","text":"从实时炉况理解到多目标博弈与帕累托决策\n技术方案汇报","textPreview":"从实时炉况理解到多目标博弈与帕累托决策 | 技术方案汇报","textChars":26,"textLines":2,"bbox":[63.31,533.04,661.9,112.99]}
+{"kind":"textbox","id":"sh/ts7md4r2","slide":1,"name":"Subtitle 4","text":"2026年7月","textPreview":"2026年7月","textChars":7,"textLines":1,"bbox":[63.31,483.59,661.9,33.63]}
+{"kind":"textbox","id":"sh/wn6dc7eh","slide":1,"name":"Subtitle 4","text":"冀南钢铁集团 × 燕山大学","textPreview":"冀南钢铁集团 × 燕山大学","textChars":13,"textLines":1,"bbox":[63.31,58.33,375.69,36.24]}
+{"kind":"shape","id":"sh/sryl4zqx","slide":1,"name":"Straight Connector 6","bbox":[-19.24,413.03,1318.48,0]}
+{"kind":"image","id":"im/ipofexcz","slide":1,"name":"","geometry":"rect","alt":"冀南钢铁集团标识","bbox":[892,43,158,44]}
+{"kind":"image","id":"im/5cze9svq","slide":1,"name":"","geometry":"rect","alt":"燕山大学标识","bbox":[1061,43,150,44]}
+{"kind":"notes","id":"nt/y90nupkv","slide":1,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/hwbqtkby","slide":2,"title":"2","textShapes":3}
+{"kind":"textbox","id":"sh/9072xkry","slide":2,"name":"Slide Number Placeholder 1","placeholder":"slideNumber","text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/ozy1ofad","slide":2,"name":"Title 2","placeholder":"title","text":"从业务目标到可落地的智能决策闭环","textPreview":"从业务目标到可落地的智能决策闭环","textChars":16,"textLines":1,"bbox":[41.33,109.84,992,103.5]}
+{"kind":"textbox","id":"sh/a10jqpsj","slide":2,"name":"Subtitle 4","text":"汇报目录","textPreview":"汇报目录","textChars":4,"textLines":1,"bbox":[41.33,41.18,375.69,36.24]}
+{"kind":"table","id":"tb/sjil0vu9","slide":2,"name":"Table 6","rows":6,"cols":3,"preview":"01 | 建设背景 | 多目标冲突与项目定位","bbox":[41.33,270.13,1197.33,374.4]}
+{"kind":"notes","id":"nt/hwbqtkby","slide":2,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/ofy9wn61","slide":3,"title":"项目已形成覆盖数据接入、炉况研判、趋势分析、参数优化与知识问答的统一工作台。系统以真实运行数据为上下文，由训练后的领域大模型结合专家知识库形成炉况理解和操...","textShapes":12}
+{"kind":"textbox","id":"sh/u9wf21cv","slide":3,"name":"Google Shape;534;p58","text":"项目已形成覆盖数据接入、炉况研判、趋势分析、参数优化与知识问答的统一工作台。系统以真实运行数据为上下文，由训练后的领域大模型结合专家知识库形成炉况理解和操作方案。","textPreview":"项目已形成覆盖数据接入、炉况研判、趋势分析、参数优化与知识问答的统一工作台。系统以真实运行数据为上下文，由训练后的领域大模型结合专家知识库形成炉况理解和操作方案。","textChars":81,"textLines":1,"bbox":[41.33,295.32,581.33,195.9]}
+{"kind":"textbox","id":"sh/4zex8bux","slide":3,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/3ah8rqlg","slide":3,"name":"Google Shape;534;p58","text":"项目状态","textPreview":"项目状态","textChars":4,"textLines":1,"bbox":[41.33,221.63,193.64,42.25]}
+{"kind":"textbox","id":"sh/obq90bml","slide":3,"name":"Google Shape;534;p58","text":"在现有系统之上增加多目标候选评估层，让顺行、质量、能耗和炉体长期友好四类目标同时进入决策视野。","textPreview":"在现有系统之上增加多目标候选评估层，让顺行、质量、能耗和炉体长期友好四类目标同时进入决策视野。","textChars":47,"textLines":1,"bbox":[657.23,296.8,581.33,105.1]}
+{"kind":"textbox","id":"sh/pcjqtg36","slide":3,"name":"Google Shape;534;p58","text":"核心判断","textPreview":"核心判断","textChars":4,"textLines":1,"bbox":[657.23,246.09,581.33,42.25]}
+{"kind":"textbox","id":"sh/n2l4fq98","slide":3,"name":"Title 2","placeholder":"title","text":"当前能力已具备，多目标决策进入验证阶段","textPreview":"当前能力已具备，多目标决策进入验证阶段","textChars":19,"textLines":1,"bbox":[41.33,109.84,1197.23,65.49]}
+{"kind":"textbox","id":"sh/m1c3mlsn","slide":3,"name":"Subtitle 4","text":"执行摘要","textPreview":"执行摘要","textChars":4,"textLines":1,"bbox":[41.33,41.18,375.69,36.24]}
+{"kind":"shape","id":"sh/a5c3ql8z","slide":3,"name":"Straight Connector 14","bbox":[657.33,424.12,581.33,0]}
+{"kind":"textbox","id":"sh/x8nml0ra","slide":3,"name":"Google Shape;534;p58","text":"按“离线回放—影子验证—工作台接入”推进，先验证候选集质量与现场可解释性，再逐步形成稳定的人机协同流程。","textPreview":"按“离线回放—影子验证—工作台接入”推进，先验证候选集质量与现场可解释性，再逐步形成稳定的人机协同流程。","textChars":52,"textLines":1,"bbox":[657.23,511.07,581.33,126.01]}
+{"kind":"textbox","id":"sh/w7ulsvqp","slide":3,"name":"Google Shape;534;p58","text":"下一步决策","textPreview":"下一步决策","textChars":5,"textLines":1,"bbox":[657.23,460.37,581.33,42.25]}
+{"kind":"textbox","id":"sh/d0jax03i","slide":3,"name":"Rounded Rectangle 2","text":"方案已形成","textPreview":"方案已形成","textChars":5,"textLines":1,"bbox":[246.67,219.77,238.51,42.25]}
+{"kind":"textbox","id":"sh/v6l4jq94","slide":3,"name":"TextBox 13","text":"结论","textPreview":"结论","textChars":2,"textLines":1,"bbox":[41.33,499.33,581.33,32.83]}
+{"kind":"textbox","id":"sh/ja54na9g","slide":3,"name":"Google Shape;534;p58","text":"系统输出多组可比较方案，授权人员可依据当前任务重点选择均衡、顺行、节能或寿命友好方向。","textPreview":"系统输出多组可比较方案，授权人员可依据当前任务重点选择均衡、顺行、节能或寿命友好方向。","textChars":43,"textLines":1,"bbox":[40.55,539.01,581.33,90.32]}
+{"kind":"notes","id":"nt/ofy9wn61","slide":3,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/jyx0ra1s","slide":4,"title":"4","textShapes":12}
+{"kind":"textbox","id":"sh/p0rel8vu","slide":4,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/ozydc3u9","slide":4,"name":"Google Shape;533;p58","placeholder":"title","text":"高炉操作本质上是四类目标同时存在的动态均衡","textPreview":"高炉操作本质上是四类目标同时存在的动态均衡","textChars":21,"textLines":1,"bbox":[41.33,36.12,1197.33,62.55]}
+{"kind":"shape","id":"sh/sna103ap","slide":4,"name":"Rounded Rectangle 6","bbox":[657.68,266.4,580.99,172]}
+{"kind":"shape","id":"sh/ih8ju9sn","slide":4,"name":"Rounded Rectangle 8","bbox":[42.94,266.4,580.99,172]}
+{"kind":"textbox","id":"sh/kbm987y5","slide":4,"name":"Content Placeholder 10","text":"保持气流、热状态与压差结构协调，降低运行波动。","textPreview":"保持气流、热状态与压差结构协调，降低运行波动。","textChars":23,"textLines":1,"bbox":[74.15,341.3,523.56,62.73]}
+{"kind":"shape","id":"sh/1cj2d8b6","slide":4,"name":"Rounded Rectangle 1","bbox":[657.68,458.8,580.99,172]}
+{"kind":"shape","id":"sh/rm1k7yt4","slide":4,"name":"Rounded Rectangle 3","bbox":[42.94,458.8,580.99,172]}
+{"kind":"textbox","id":"sh/i94r6xgz","slide":4,"name":"Google Shape;534;p58","text":"高炉过程具有强耦合、非线性与滞后性。局部改善可能影响其他目标，因此系统需要输出一组可比较候选方案，而不是只给出单一答案。","textPreview":"高炉过程具有强耦合、非线性与滞后性。局部改善可能影响其他目标，因此系统需要输出一组可比较候选方案，而不是只给出单一答案。","textChars":60,"textLines":1,"bbox":[41.33,173.13,1197.33,66.57]}
+{"kind":"textbox","id":"sh/jadsz2xk","slide":4,"name":"Google Shape;534;p58","text":"业务目标","textPreview":"业务目标","textChars":4,"textLines":1,"bbox":[41.33,120.37,1197.33,42.25]}
+{"kind":"textbox","id":"sh/w72947yt","slide":4,"name":"TextBox 13","text":"炉况顺行","textPreview":"炉况顺行","textChars":4,"textLines":1,"bbox":[73.8,293.31,523.56,32.83]}
+{"kind":"textbox","id":"sh/a5kr2xg3","slide":4,"name":"Content Placeholder 10","text":"兼顾质量目标与稳定性，关注持续达标能力。","textPreview":"兼顾质量目标与稳定性，关注持续达标能力。","textChars":20,"textLines":1,"bbox":[688.55,341.3,523.56,62.73]}
+{"kind":"textbox","id":"sh/v6tsv2xo","slide":4,"name":"TextBox 16","text":"铁水质量","textPreview":"铁水质量","textChars":4,"textLines":1,"bbox":[688.2,293.31,523.56,32.83]}
+{"kind":"textbox","id":"sh/g36tgryd","slide":4,"name":"Content Placeholder 10","text":"在产量与质量约束下寻找更优的燃料利用路径。","textPreview":"在产量与质量约束下寻找更优的燃料利用路径。","textChars":21,"textLines":1,"bbox":[74.15,534.9,523.56,62.73]}
+{"kind":"textbox","id":"sh/h4fa9wfy","slide":4,"name":"TextBox 18","text":"燃料消耗","textPreview":"燃料消耗","textChars":4,"textLines":1,"bbox":[73.8,486.91,523.56,32.83]}
+{"kind":"textbox","id":"sh/p0batw72","slide":4,"name":"Content Placeholder 10","text":"控制长期热负荷与工况冲击，支持炉体长期友好运行。","textPreview":"控制长期热负荷与工况冲击，支持炉体长期友好运行。","textChars":24,"textLines":1,"bbox":[688.55,534.9,523.56,62.73]}
+{"kind":"textbox","id":"sh/oz29krqh","slide":4,"name":"TextBox 20","text":"炉体寿命","textPreview":"炉体寿命","textChars":4,"textLines":1,"bbox":[688.2,486.91,523.56,32.83]}
+{"kind":"notes","id":"nt/jyx0ra1s","slide":4,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/i107q5of","slide":5,"title":"5","textShapes":9}
+{"kind":"textbox","id":"sh/1wza1kj6","slide":5,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/0vq98fil","slide":5,"name":"Google Shape;533;p58","placeholder":"title","text":"统一工作台把炉况理解、趋势预测与参数优化连成一体","textPreview":"统一工作台把炉况理解、趋势预测与参数优化连成一体","textChars":24,"textLines":1,"bbox":[41.33,36.12,1197.33,62.55]}
+{"kind":"textbox","id":"sh/yhkbe1o7","slide":5,"name":"Google Shape;534;p58","text":"面向高炉长与工艺人员的角色化工作台，持续接收真实运行数据并形成可解释的辅助决策。","textPreview":"面向高炉长与工艺人员的角色化工作台，持续接收真实运行数据并形成可解释的辅助决策。","textChars":40,"textLines":1,"bbox":[41.33,150.83,581.33,75.52]}
+{"kind":"textbox","id":"sh/2h0ni107","slide":5,"name":"Content Placeholder 10","text":"结合当前数据、已有炉况判断与专家知识，形成主次炉况研判。","textPreview":"结合当前数据、已有炉况判断与专家知识，形成主次炉况研判。","textChars":28,"textLines":1,"bbox":[697.96,229.32,526.48,62.73]}
+{"kind":"textbox","id":"sh/5o7mhcju","slide":5,"name":"TextBox 27","text":"实时炉况理解","textPreview":"实时炉况理解","textChars":6,"textLines":1,"bbox":[697.62,190.37,526.48,25.54]}
+{"kind":"shape","id":"sh/dgbulwnm","slide":5,"name":"Rounded Rectangle 1","bbox":[672.53,159.78,566.32,146.34]}
+{"kind":"textbox","id":"sh/z2tcnm5s","slide":5,"name":"Content Placeholder 10","text":"对关键指标进行未来窗口分析，为候选方案评估提供前瞻信息。","textPreview":"对关键指标进行未来窗口分析，为候选方案评估提供前瞻信息。","textChars":28,"textLines":1,"bbox":[697.96,387.72,526.48,62.73]}
+{"kind":"textbox","id":"sh/l4bupwny","slide":5,"name":"TextBox 5","text":"趋势分析与预测","textPreview":"趋势分析与预测","textChars":7,"textLines":1,"bbox":[697.62,348.77,526.48,25.54]}
+{"kind":"shape","id":"sh/032tgr6d","slide":5,"name":"Rounded Rectangle 6","bbox":[672.53,318.18,566.32,146.34]}
+{"kind":"textbox","id":"sh/n6dcr65o","slide":5,"name":"Content Placeholder 10","text":"输出多组参数候选与知识问答结果，支持授权人员比较选择。","textPreview":"输出多组参数候选与知识问答结果，支持授权人员比较选择。","textChars":27,"textLines":1,"bbox":[697.96,546.12,526.48,62.73]}
+{"kind":"textbox","id":"sh/m5kbi1oj","slide":5,"name":"TextBox 8","text":"参数优化与智能问答","textPreview":"参数优化与智能问答","textChars":9,"textLines":1,"bbox":[697.62,507.17,526.48,25.54]}
+{"kind":"shape","id":"sh/w32dkbuh","slide":5,"name":"Rounded Rectangle 9","bbox":[672.53,476.58,566.32,146.34]}
+{"kind":"image","id":"im/ixgril47","slide":5,"name":"","geometry":"rect","alt":"高炉工艺大模型智能决策系统总览","bbox":[41.33,249.33,581.33,380]}
+{"kind":"notes","id":"nt/i107q5of","slide":5,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n- 项目图：高炉工艺大模型智能决策系统总览\n[/Sources]"}
+{"kind":"slide","id":"sl/x8f69ofe","slide":6,"title":"6","textShapes":7}
+{"kind":"textbox","id":"sh/q9gz25wb","slide":6,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"6","textPreview":"6","textChars":1,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"shape","id":"sh/h4bupgn6","slide":6,"name":"Rounded Rectangle 9","bbox":[452.38,353.33,374.67,276]}
+{"kind":"shape","id":"sh/w32twb6l","slide":6,"name":"Rounded Rectangle 10","bbox":[864,353.33,374.67,276]}
+{"kind":"textbox","id":"sh/v2tcn650","slide":6,"name":"Content Placeholder 9","text":"专家知识库与MCP\n工艺知识、专家经验、资料检索与工具服务","textPreview":"专家知识库与MCP | 工艺知识、专家经验、资料检索与工具服务","textChars":29,"textLines":2,"bbox":[485.23,435.29,309.64,150.43]}
+{"kind":"textbox","id":"sh/u1kbu1ov","slide":6,"name":"Content Placeholder 10","text":"27B领域大模型\n理解任务、融合事实与知识、组织多智能体协作","textPreview":"27B领域大模型 | 理解任务、融合事实与知识、组织多智能体协作","textChars":30,"textLines":2,"bbox":[896.18,435.29,309.64,150.43]}
+{"kind":"shape","id":"sh/5svutgni","slide":6,"name":"Google Shape;340;p61","bbox":[485.84,387.83,24.55,24.54]}
+{"kind":"shape","id":"sh/47mt0b6x","slide":6,"name":"Google Shape;340;p61","bbox":[895.88,387.83,24.55,24.54]}
+{"kind":"textbox","id":"sh/87ipkzal","slide":6,"name":"Title 3","placeholder":"title","text":"真实数据、专家知识与27B模型共同形成决策上下文","textPreview":"真实数据、专家知识与27B模型共同形成决策上下文","textChars":24,"textLines":1,"bbox":[41.33,36.12,1197.33,79.33]}
+{"kind":"shape","id":"sh/98rqt4r6","slide":6,"name":"Rounded Rectangle 4","bbox":[44.38,353.33,374.67,276]}
+{"kind":"textbox","id":"sh/ml07i9sv","slide":6,"name":"Content Placeholder 9","text":"真实运行数据\n过程数据、设备状态、质量信息与班次记录","textPreview":"真实运行数据 | 过程数据、设备状态、质量信息与班次记录","textChars":26,"textLines":2,"bbox":[77.23,435.29,309.64,150.43]}
+{"kind":"shape","id":"sh/7m98ru9g","slide":6,"name":"Google Shape;340;p61","bbox":[77.84,387.83,24.55,24.54]}
+{"kind":"textbox","id":"sh/i54bylor","slide":6,"name":"Google Shape;534;p58","text":"炉况研判与操作方案均由训练后的领域大模型在当前真实运行数据、已有炉况判断、任务上下文和具体专家知识库的共同支持下形成；MCP服务器为模型提供按权限调用的数据与工具能力。","textPreview":"炉况研判与操作方案均由训练后的领域大模型在当前真实运行数据、已有炉况判断、任务上下文和具体专家知识库的共同支持下形成；MCP服务器为模型提供按权限调用的数据与工具能力。","textChars":84,"textLines":1,"bbox":[41.33,191.13,1197.33,139.28]}
+{"kind":"textbox","id":"sh/twfux0ne","slide":6,"name":"Google Shape;534;p58","text":"系统上下文","textPreview":"系统上下文","textChars":5,"textLines":1,"bbox":[41.33,138.37,1197.33,42.25]}
+{"kind":"notes","id":"nt/x8f69ofe","slide":6,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/gnmp4jqx","slide":7,"title":"7","textShapes":11}
+{"kind":"textbox","id":"sh/sra9kfyx","slide":7,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"7","textPreview":"7","textChars":1,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/tsjad0z2","slide":7,"name":"Google Shape;533;p58","placeholder":"title","text":"1.5TB领域数据训练27B模型，接入真实运行","textPreview":"1.5TB领域数据训练27B模型，接入真实运行","textChars":23,"textLines":1,"bbox":[41.33,37.27,822.67,108.06]}
+{"kind":"textbox","id":"sh/dcbud0ra","slide":7,"name":"Google Shape;534;p58","text":"参数高效微调提升领域能力，同时保留通用理解、推理与工具使用能力。","textPreview":"参数高效微调提升领域能力，同时保留通用理解、推理与工具使用能力。","textChars":32,"textLines":1,"bbox":[41.33,137.63,581.33,75.52]}
+{"kind":"textbox","id":"sh/etsrm5gn","slide":7,"text":"1.5TB高炉领域数据","textPreview":"1.5TB高炉领域数据","textChars":11,"textLines":1,"bbox":[71.33,242.2,521.33,64]}
+{"kind":"shape","id":"sh/fu1sfah8","slide":7,"bbox":[321.99,310.2,20,20]}
+{"kind":"textbox","id":"sh/gva9ofyt","slide":7,"text":"数据治理与训练组织","textPreview":"数据治理与训练组织","textChars":9,"textLines":1,"bbox":[71.33,334.2,521.33,64]}
+{"kind":"shape","id":"sh/1wjahkze","slide":7,"bbox":[321.99,402.2,20,20]}
+{"kind":"textbox","id":"sh/2hcrqpgz","slide":7,"text":"参数高效微调","textPreview":"参数高效微调","textChars":6,"textLines":1,"bbox":[71.33,426.2,521.33,64]}
+{"kind":"shape","id":"sh/3ilsjuhk","slide":7,"bbox":[321.99,494.2,20,20]}
+{"kind":"textbox","id":"sh/behs3a9o","slide":7,"text":"领域能力与通用能力双轨评测","textPreview":"领域能力与通用能力双轨评测","textChars":13,"textLines":1,"bbox":[71.33,518.2,521.33,64]}
+{"kind":"textbox","id":"sh/ad8rap83","slide":7,"text":"真实运行数据与已有炉况判断","textPreview":"真实运行数据与已有炉况判断","textChars":13,"textLines":1,"bbox":[687.75,242.2,521.33,64]}
+{"kind":"shape","id":"sh/xgza5kre","slide":7,"bbox":[938.42,310.2,20,20]}
+{"kind":"textbox","id":"sh/wfq9cfq9","slide":7,"text":"MCP工具与专家知识库","textPreview":"MCP工具与专家知识库","textChars":11,"textLines":1,"bbox":[687.75,334.2,521.33,64]}
+{"kind":"shape","id":"sh/j2hs7u9k","slide":7,"bbox":[938.42,402.2,20,20]}
+{"kind":"textbox","id":"sh/y18rep8z","slide":7,"text":"27B模型理解与多智能体编排","textPreview":"27B模型理解与多智能体编排","textChars":14,"textLines":1,"bbox":[687.75,426.2,521.33,64]}
+{"kind":"shape","id":"sh/l4ja947q","slide":7,"bbox":[938.42,494.2,20,20]}
+{"kind":"textbox","id":"sh/k3a9gzq5","slide":7,"text":"多目标博弈输出帕累托候选集","textPreview":"多目标博弈输出帕累托候选集","textChars":13,"textLines":1,"bbox":[687.75,518.2,521.33,64]}
+{"kind":"notes","id":"nt/gnmp4jqx","slide":7,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/fu1gfa1s","slide":8,"title":"8","textShapes":3}
+{"kind":"textbox","id":"sh/983ap0ru","slide":8,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"8","textPreview":"8","textChars":1,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/87atgfq9","slide":8,"name":"Google Shape;533;p58","placeholder":"title","text":"从单一最优转向\n可比较、可权衡的帕累托候选集","textPreview":"从单一最优转向 | 可比较、可权衡的帕累托候选集","textChars":22,"textLines":2,"bbox":[41.33,122.93,1197.33,188.76]}
+{"kind":"textbox","id":"sh/g72x4zyd","slide":8,"name":"Google Shape;534;p58","text":"系统在当前工况、未来趋势与可操作边界内生成多组候选方案，通过非支配筛选保留帕累托前沿，再由多目标博弈形成均衡、顺行、节能和寿命友好等代表方案。","textPreview":"系统在当前工况、未来趋势与可操作边界内生成多组候选方案，通过非支配筛选保留帕累托前沿，再由多目标博弈形成均衡、顺行、节能和寿命友好等代表方案。","textChars":71,"textLines":1,"bbox":[267.68,346.22,744.63,195.9]}
+{"kind":"notes","id":"nt/fu1gfa1s","slide":8,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/udsvah03","slide":9,"title":"9","textShapes":4}
+{"kind":"textbox","id":"sh/94zaxgfa","slide":9,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"9","textPreview":"9","textChars":1,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/83qtobep","slide":9,"name":"Google Shape;533;p58","placeholder":"title","text":"目标与关键操作参数形成统一决策空间","textPreview":"目标与关键操作参数形成统一决策空间","textChars":17,"textLines":1,"bbox":[41.33,36.12,822.67,109.22]}
+{"kind":"textbox","id":"sh/ofq5svm5","slide":9,"name":"Google Shape;534;p58","text":"优化对象覆盖氧煤比、风温、鼓风湿度和装料制度等关键操作参数。每个候选方案同时评价四类目标变化，并保留人工确认与执行记录。","textPreview":"优化对象覆盖氧煤比、风温、鼓风湿度和装料制度等关键操作参数。每个候选方案同时评价四类目标变化，并保留人工确认与执行记录。","textChars":60,"textLines":1,"bbox":[41.33,291.25,378.67,338.08]}
+{"kind":"textbox","id":"sh/bih4na5w","slide":9,"name":"Google Shape;534;p58","text":"决策对象","textPreview":"决策对象","textChars":4,"textLines":1,"bbox":[41.33,164.29,378.67,123.71]}
+{"kind":"table","id":"tb/2x0ne10r","slide":9,"name":"Google Shape;644;p93","rows":10,"cols":4,"preview":"对象 | 类型 | 决策关注 | 输出形态","bbox":[498.98,162.66,711.6,485.86]}
+{"kind":"notes","id":"nt/udsvah03","slide":9,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/m90b6t0r","slide":10,"title":"10","textShapes":14}
+{"kind":"textbox","id":"sh/l8z690ji","slide":10,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/k7q50v2x","slide":10,"name":"Google Shape;533;p58","placeholder":"title","text":"多目标博弈形成帕累托候选方案","textPreview":"多目标博弈形成帕累托候选方案","textChars":14,"textLines":1,"bbox":[41.33,36.12,582.6,73.22]}
+{"kind":"shape","id":"sh/l036l83y","slide":10,"name":"Rounded Rectangle 5","bbox":[657.68,249.33,580.99,172]}
+{"kind":"shape","id":"sh/d87uxg3m","slide":10,"name":"Rounded Rectangle 10","bbox":[657.68,458.8,580.99,172]}
+{"kind":"textbox","id":"sh/q5gb21kb","slide":10,"name":"Content Placeholder 10","text":"围绕当前状态、趋势信息和许可操作范围形成多组方案。","textPreview":"围绕当前状态、趋势信息和许可操作范围形成多组方案。","textChars":25,"textLines":1,"bbox":[688.55,324.23,523.56,62.73]}
+{"kind":"textbox","id":"sh/r6pcv6lw","slide":10,"name":"TextBox 12","text":"候选生成","textPreview":"候选生成","textChars":4,"textLines":1,"bbox":[688.2,276.24,523.56,32.83]}
+{"kind":"textbox","id":"sh/0bit8b2d","slide":10,"name":"Content Placeholder 10","text":"通过多目标博弈形成均衡、顺行、节能与寿命友好代表解。","textPreview":"通过多目标博弈形成均衡、顺行、节能与寿命友好代表解。","textChars":26,"textLines":1,"bbox":[688.55,534.9,523.56,62.73]}
+{"kind":"textbox","id":"sh/1cru1g3y","slide":10,"name":"TextBox 14","text":"博弈协调","textPreview":"博弈协调","textChars":4,"textLines":1,"bbox":[688.2,486.91,523.56,32.83]}
+{"kind":"shape","id":"sh/e9gb61k7","slide":10,"name":"Rounded Rectangle 15","bbox":[657.68,41.06,580.99,172]}
+{"kind":"textbox","id":"sh/fapcz6ls","slide":10,"name":"Content Placeholder 10","text":"保留至少一个目标更优且其他目标不恶化的非支配方案。","textPreview":"保留至少一个目标更优且其他目标不恶化的非支配方案。","textChars":25,"textLines":1,"bbox":[688.55,115.96,523.56,62.73]}
+{"kind":"textbox","id":"sh/ozitcv29","slide":10,"name":"TextBox 17","text":"非支配筛选","textPreview":"非支配筛选","textChars":5,"textLines":1,"bbox":[688.2,67.97,523.56,32.83]}
+{"kind":"shape","id":"sh/m98725k3","slide":10,"bbox":[42.91,107.41,537.97,548.58]}
+{"kind":"textbox","id":"sh/9cj6d0je","slide":10,"text":"帕累托前沿（概念示意）","textPreview":"帕累托前沿（概念示意）","textChars":11,"textLines":1,"bbox":[64.91,121.41,493.97,34]}
+{"kind":"shape","id":"sh/8bqp4vit","slide":10,"bbox":[118.91,583.99,421.97,2]}
+{"kind":"shape","id":"sh/nexoz614","slide":10,"bbox":[118.91,185.41,2,398.58]}
+{"kind":"shape","id":"sh/2donq1kj","slide":10,"bbox":[198.3,459.42,10,10]}
+{"kind":"shape","id":"sh/ex8n61sf","slide":10,"bbox":[240.5,407.6,10,10]}
+{"kind":"shape","id":"sh/fy1of690","slide":10,"bbox":[291.14,439.49,10,10]}
+{"kind":"shape","id":"sh/gjap8bal","slide":10,"bbox":[337.55,367.74,10,10]}
+{"kind":"shape","id":"sh/1kj6hgr6","slide":10,"bbox":[379.75,391.66,10,10]}
+{"kind":"shape","id":"sh/2ls7alsr","slide":10,"bbox":[417.73,331.87,10,10]}
+{"kind":"shape","id":"sh/3m1ojq9w","slide":10,"bbox":[459.93,343.83,10,10]}
+{"kind":"shape","id":"sh/onapcvah","slide":10,"bbox":[299.58,307.96,10,10]}
+{"kind":"shape","id":"sh/poj6l0r2","slide":10,"bbox":[192.08,282.04,14,14]}
+{"kind":"shape","id":"sh/qpc7elsn","slide":10,"bbox":[255.38,250.15,14,14]}
+{"kind":"shape","id":"sh/bqlonq98","slide":10,"bbox":[327.11,226.24,14,14]}
+{"kind":"shape","id":"sh/lw7itofm","slide":10,"bbox":[403.07,210.3,14,14]}
+{"kind":"shape","id":"sh/kvyh0jy1","slide":10,"bbox":[474.8,198.34,14,14]}
+{"kind":"textbox","id":"sh/zup0rexg","slide":10,"text":"顺行","textPreview":"顺行","textChars":2,"textLines":1,"bbox":[183.08,255.04,56,24]}
+{"kind":"textbox","id":"sh/ytwzy9gv","slide":10,"text":"均衡","textPreview":"均衡","textChars":2,"textLines":1,"bbox":[316.11,195.24,56,24]}
+{"kind":"textbox","id":"sh/9k7ixofi","slide":10,"text":"节能","textPreview":"节能","textChars":2,"textLines":1,"bbox":[463.8,167.34,56,24]}
+{"kind":"textbox","id":"sh/8zy143yd","slide":10,"text":"燃料消耗改善","textPreview":"燃料消耗改善","textChars":6,"textLines":1,"bbox":[239.9,601.99,180,28]}
+{"kind":"textbox","id":"sh/7yp0vyxs","slide":10,"text":"顺行与质量\n综合表现","textPreview":"顺行与质量 | 综合表现","textChars":10,"textLines":2,"bbox":[52.91,360.7,64,48]}
+{"kind":"chart","id":"ch/3ydoze9w","slide":10,"name":"Chart 3","chartType":"combo","bbox":[42.91,107.41,537.97,548.58]}
+{"kind":"notes","id":"nt/m90b6t0r","slide":10,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/jetc3ut0","slide":11,"title":"11","textShapes":12}
+{"kind":"textbox","id":"sh/pgvihkre","slide":11,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/4fmh8fat","slide":11,"name":"Google Shape;533;p58","placeholder":"title","text":"运行视频串联五类核心工作流","textPreview":"运行视频串联五类核心工作流","textChars":13,"textLines":1,"bbox":[41.33,36.12,582.6,73.22]}
+{"kind":"shape","id":"sh/xcryxg7y","slide":11,"name":"Rounded Rectangle 1","bbox":[658.48,213.33,271.07,278.9]}
+{"kind":"textbox","id":"sh/wbih4b6d","slide":11,"name":"Content Placeholder 9","text":"71秒","textPreview":"71秒","textChars":3,"textLines":1,"bbox":[681.82,247.44,223.97,94.88]}
+{"kind":"textbox","id":"sh/o7ih0r6h","slide":11,"name":"Content Placeholder 15","text":"完整运行视频","textPreview":"完整运行视频","textChars":6,"textLines":1,"bbox":[688.82,370.53,216.98,64.67]}
+{"kind":"shape","id":"sh/72t03qp0","slide":11,"name":"Rounded Rectangle 7","bbox":[968.42,213.33,271.07,278.9]}
+{"kind":"textbox","id":"sh/61kzalof","slide":11,"name":"Content Placeholder 9","text":"5类","textPreview":"5类","textChars":2,"textLines":1,"bbox":[991.76,247.44,223.97,94.88]}
+{"kind":"textbox","id":"sh/ofqtgnyt","slide":11,"name":"Content Placeholder 15","text":"五类界面联动","textPreview":"五类界面联动","textChars":6,"textLines":1,"bbox":[998.76,370.53,216.98,64.67]}
+{"kind":"textbox","id":"sh/dofa18z6","slide":11,"name":"Content Placeholder 2","text":"素材来自系统实际运行视频及同步界面截图，按总览、炉况诊断、参数优化、趋势分析和智能问答呈现连续工作流。","textPreview":"素材来自系统实际运行视频及同步界面截图，按总览、炉况诊断、参数优化、趋势分析和智能问答呈现连续工作流。","textChars":51,"textLines":1,"bbox":[657.05,521.93,581.61,104]}
+{"kind":"shape","id":"sh/u9kz25sr","slide":11,"bbox":[42.91,107.41,537.97,548.58]}
+{"kind":"textbox","id":"sh/gb2h4fax","slide":11,"text":"总览","textPreview":"总览","textChars":2,"textLines":1,"bbox":[52,302,248,24]}
+{"kind":"textbox","id":"sh/e5ozep8v","slide":11,"text":"炉况诊断","textPreview":"炉况诊断","textChars":4,"textLines":1,"bbox":[315,302,248,24]}
+{"kind":"textbox","id":"sh/7udkby50","slide":11,"text":"参数优化","textPreview":"参数优化","textChars":4,"textLines":1,"bbox":[52,462,248,24]}
+{"kind":"textbox","id":"sh/9gv2d8nq","slide":11,"text":"趋势分析","textPreview":"趋势分析","textChars":4,"textLines":1,"bbox":[315,462,248,24]}
+{"kind":"textbox","id":"sh/zqtk7e5o","slide":11,"text":"智能助手\n连续追问与知识问答","textPreview":"智能助手 | 连续追问与知识问答","textChars":14,"textLines":2,"bbox":[315,492,248,58]}
+{"kind":"chart","id":"ch/f2povi5o","slide":11,"name":"Chart 3","chartType":"combo","bbox":[42.91,107.41,537.97,548.58]}
+{"kind":"image","id":"im/g7edkzi1","slide":11,"name":"","geometry":"rect","alt":"总览运行界面","bbox":[52,170,248,128]}
+{"kind":"image","id":"im/a9cb650r","slide":11,"name":"","geometry":"rect","alt":"炉况诊断运行界面","bbox":[315,170,248,128]}
+{"kind":"image","id":"im/b6dsjmt0","slide":11,"name":"","geometry":"rect","alt":"参数优化运行界面","bbox":[52,330,248,128]}
+{"kind":"image","id":"im/d8valwb6","slide":11,"name":"","geometry":"rect","alt":"趋势分析运行界面","bbox":[315,330,248,128]}
+{"kind":"image","id":"im/zadsn6tc","slide":11,"name":"","geometry":"rect","alt":"智能问答运行界面","bbox":[52,490,248,100]}
+{"kind":"notes","id":"nt/jetc3ut0","slide":11,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n- 运行视频：《系统运行视频.mp4》\n- 运行视频关键帧：趋势分析工作台\n[/Sources]"}
+{"kind":"slide","id":"sl/8f2psfyx","slide":12,"title":"离线原型","textShapes":8}
+{"kind":"textbox","id":"sh/mps7a5or","slide":12,"name":"Content Placeholder 15","text":"离线原型\n基于历史运行数据回放，验证候选生成、非支配筛选与方案解释。","textPreview":"离线原型 | 基于历史运行数据回放，验证候选生成、非支配筛选与方案解释。","textChars":34,"textLines":2,"bbox":[41.33,401.33,272.54,122.67]}
+{"kind":"textbox","id":"sh/ra943il8","slide":12,"name":"Slide Number Placeholder 3","placeholder":"slideNumber","text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/xw3q94ne","slide":12,"name":"Title 10","placeholder":"title","text":"按离线回放、影子验证、工作台接入三阶段推进","textPreview":"按离线回放、影子验证、工作台接入三阶段推进","textChars":21,"textLines":1,"bbox":[41.33,36.12,823.82,108.65]}
+{"kind":"textbox","id":"sh/nq1o3a5w","slide":12,"name":"Text Placeholder 16","placeholder":"body","text":"影子运行\n对照真实班次持续评估候选质量、稳定性和现场可理解性。","textPreview":"影子运行 | 对照真实班次持续评估候选质量、稳定性和现场可理解性。","textChars":31,"textLines":2,"bbox":[453.24,401.33,272.54,122.67]}
+{"kind":"textbox","id":"sh/0nap8f6l","slide":12,"name":"Content Placeholder 17","text":"工作台接入\n形成授权人员选择、确认、记录与复盘的持续使用流程。","textPreview":"工作台接入 | 形成授权人员选择、确认、记录与复盘的持续使用流程。","textChars":31,"textLines":2,"bbox":[865.15,401.33,272.54,122.67]}
+{"kind":"shape","id":"sh/tgrm1wzy","slide":12,"name":"Google Shape;2259;p159","bbox":[35.46,354.2,1285.61,0.03]}
+{"kind":"shape","id":"sh/0f2lgnmp","slide":12,"name":"Google Shape;2260;p159","bbox":[35.46,348.58,11.24,11.24]}
+{"kind":"shape","id":"sh/q903ad4n","slide":12,"name":"Google Shape;2261;p159","bbox":[446.38,348.58,11.24,11.24]}
+{"kind":"shape","id":"sh/dcbm583y","slide":12,"name":"Google Shape;2262;p159","bbox":[858.38,348.58,11.24,11.24]}
+{"kind":"textbox","id":"sh/a543mx4r","slide":12,"name":"Content Placeholder 15","text":"阶段一","textPreview":"阶段一","textChars":3,"textLines":1,"bbox":[41.33,298.51,169.33,27.55]}
+{"kind":"textbox","id":"sh/bulo7u58","slide":12,"name":"Content Placeholder 15","text":"阶段二","textPreview":"阶段二","textChars":3,"textLines":1,"bbox":[450.83,298.51,169.33,27.55]}
+{"kind":"textbox","id":"sh/orapcf6h","slide":12,"name":"Content Placeholder 15","text":"阶段三","textPreview":"阶段三","textChars":3,"textLines":1,"bbox":[863.33,298.51,169.33,27.55]}
+{"kind":"notes","id":"nt/8f2psfyx","slide":12,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/hgzapcr6","slide":13,"title":"13","textShapes":8}
+{"kind":"textbox","id":"sh/i1czm1oj","slide":13,"name":"Google Shape;532;p58","placeholder":"slideNumber","text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[0,0,0,0]}
+{"kind":"textbox","id":"sh/j2l0f6p4","slide":13,"name":"Google Shape;533;p58","placeholder":"title","text":"数据、模型、优化与人机协同同步治理","textPreview":"数据、模型、优化与人机协同同步治理","textChars":17,"textLines":1,"bbox":[41.33,36.12,1197.33,73.22]}
+{"kind":"textbox","id":"sh/p4r6p8by","slide":13,"name":"Google Shape;955;p80","text":"运行验证与复盘","textPreview":"运行验证与复盘","textChars":7,"textLines":1,"bbox":[495.72,431.26,479.02,53.89]}
+{"kind":"textbox","id":"sh/21gnuts7","slide":13,"name":"Google Shape;957;p80","text":"版本与审计管理","textPreview":"版本与审计管理","textChars":7,"textLines":1,"bbox":[61.32,575.16,1157.66,53.89]}
+{"kind":"textbox","id":"sh/32ponyts","slide":13,"name":"Google Shape;960;p80","text":"人机协同验收","textPreview":"人机协同验收","textChars":6,"textLines":1,"bbox":[789.79,499.21,429.19,53.89]}
+{"kind":"textbox","id":"sh/gzy5s3a1","slide":13,"name":"Google Shape;963;p80","text":"多目标优化原型","textPreview":"多目标优化原型","textChars":7,"textLines":1,"bbox":[296.06,357.29,922.92,53.89]}
+{"kind":"textbox","id":"sh/1076lobm","slide":13,"name":"Google Shape;966;p80","text":"27B模型评测","textPreview":"27B模型评测","textChars":7,"textLines":1,"bbox":[296.06,283.31,672.81,53.89]}
+{"kind":"textbox","id":"sh/hcfy9k3u","slide":13,"name":"Google Shape;969;p80","text":"数据与知识治理","textPreview":"数据与知识治理","textChars":7,"textLines":1,"bbox":[53.32,207.36,439.39,53.89]}
+{"kind":"table","id":"tb/9kbmhwfu","slide":13,"name":"Google Shape;953;p80","rows":1,"cols":5,"preview":"能力准备 | 离线验证 | 影子验证 | 工作台接入 | 持续治理","bbox":[41.33,144.87,1197.33,484.46]}
+{"kind":"notes","id":"nt/hgzapcr6","slide":13,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}
+{"kind":"slide","id":"sl/6lsnupw7","slide":14,"title":"多目标协同闭环已形成","textShapes":2}
+{"kind":"textbox","id":"sh/jepwf2pc","slide":14,"name":"Title 3","placeholder":"title","text":"多目标协同闭环已形成","textPreview":"多目标协同闭环已形成","textChars":10,"textLines":1,"bbox":[41.33,98.43,992,261.57]}
+{"kind":"textbox","id":"sh/idgvmx8r","slide":14,"name":"Subtitle 4","placeholder":"subtitle","text":"高炉工艺大模型智能决策系统\n真实运行数据 × 27B领域大模型 × 专家知识\n融合MCP工具与多智能体编排，支撑稳定顺行、铁水质量、燃料消耗与炉体寿命的可比较、可权衡辅助决策","textPreview":"高炉工艺大模型智能决策系统 | 真实运行数据 × 27B领域大模型 × 专家知识 | 融合MCP工具与多智能体编排，支撑稳定顺行、铁水质量、燃料消耗与炉体寿命的可比较、可权衡辅助决策","textChars":87,"textLines":3,"bbox":[46.32,475.85,678.04,145.72]}
+{"kind":"shape","id":"sh/wbydknq1","slide":14,"name":"Straight Connector 2","bbox":[-19.24,413.03,1318.48,0]}
+{"kind":"notes","id":"nt/6lsnupw7","slide":14,"text":"[Sources]\n- 技术报告：《高炉工艺大模型智能决策系统技术报告 V3.0》\n[/Sources]"}

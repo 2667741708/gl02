@@ -1,0 +1,4 @@
+interface:
+  display_name: "高炉视觉验收"
+  short_description: "使用固定机位截图矩阵与逐项差异记录闭环高炉视觉质量验收流程"
+  default_prompt: "使用 $bf3d-visual-qa 对高炉材质和渲染做视觉验收。"

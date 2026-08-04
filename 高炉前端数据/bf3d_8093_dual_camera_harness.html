@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>8093 双相机模式验收页</title>
+  <style>
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#e8eeed;font-family:SimSun,"宋体",serif}
+    #stage{position:relative;width:100%;height:100%;overflow:hidden}
+    #viewer{position:absolute;inset:0}
+    #viewer canvas{display:block;width:100%;height:100%;touch-action:none}
+    #status{position:absolute;top:10px;left:10px;z-index:20;padding:7px 10px;border:1px solid #457c77;border-radius:5px;background:rgba(15,28,29,.9);color:#eef8f5}
+    .bf3d-fit-full-model{position:absolute;top:10px;right:10px;z-index:20;min-height:34px;padding:0 12px;border:1px solid #457c77;border-radius:5px;background:#304643;color:#fff;font:14px SimSun,"宋体",serif;cursor:pointer}
+  </style>
+</head>
+<body>
+  <main id="stage">
+    <div id="viewer"></div>
+    <div id="status" role="status">正在加载正式高炉本体与 133 点清单…</div>
+    <button class="bf3d-fit-full-model" type="button">全景</button>
+  </main>
+  <script type="importmap">{"imports":{"three":"./libs/three/three.module.js"}}</script>
+  <script type="module">
+    import * as THREE from "./libs/three/three.module.js";
+    import {OrbitControls} from "./libs/three/controls/OrbitControls.js";
+    import {GLTFLoader} from "./libs/three/loaders/GLTFLoader.js";
+
+    const MODEL_ASSET=Object.freeze({
+      id:"GL02_FURNACE_BODY_R1",
+      label:"高炉本体与 133 点 Billboard 中文语义版 R1",
+      url:"../PT/高炉3D模型/模型资产库/09_高炉本体133点Billboard_cn/GL02_FURNACE_BODY_R1.glb",
+      bytes:8229120,
+      sha256:"150df18b68f0410b9a168f80c2df34efda86384fc51d37226f81c2acd244ed53",
+    });
+    const host=document.getElementById("viewer"),status=document.getElementById("status");
+    host.dataset.modelAssetId=MODEL_ASSET.id;
+    host.dataset.modelAssetUrl=MODEL_ASSET.url;
+    host.dataset.modelAssetExpectedBytes=String(MODEL_ASSET.bytes);
+    host.dataset.modelAssetSha256=MODEL_ASSET.sha256;
+    const scene=new THREE.Scene();scene.background=new THREE.Color(0xe8eeed);
+    const camera=new THREE.PerspectiveCamera(34,1,.05,500);
+    const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));host.append(renderer.domElement);
+    const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.enablePan=false;
+    scene.add(new THREE.HemisphereLight(0xffffff,0x304244,2.1));
+    const key=new THREE.DirectionalLight(0xffffff,2);key.position.set(30,60,45);scene.add(key);
+    const [modelBytes,manifest]=await Promise.all([
+      fetch(MODEL_ASSET.url,{cache:"no-store"}).then(async response=>{
+        if(!response.ok)throw new Error(`模型请求失败：HTTP ${response.status}`);
+        const bytes=await response.arrayBuffer();
+        if(bytes.byteLength!==MODEL_ASSET.bytes)throw new Error(`模型字节数不符：${bytes.byteLength}，预期 ${MODEL_ASSET.bytes}`);
+        return bytes;
+      }),
+      fetch("../PT/高炉3D模型/模型资产库/09_高炉本体133点Billboard_cn/sensor_billboards.v1.json",{cache:"no-store"}).then(r=>r.json()),
+    ]);
+    const modelBaseUrl=new URL("./",new URL(MODEL_ASSET.url,document.baseURI)).href;
+    const gltf=await new GLTFLoader().parseAsync(modelBytes,modelBaseUrl);
+    host.dataset.modelAssetLoadedBytes=String(modelBytes.byteLength);
+    host.dataset.modelAssetVerified="true";
+    const model=gltf.scene;scene.add(model);model.updateMatrixWorld(true);
+    const box=new THREE.Box3().setFromObject(model),sphere=box.getBoundingSphere(new THREE.Sphere());
+    const markerGeometry=new THREE.SphereGeometry(.28,10,8),billboardEntries=[],hitObjects=[];
+    for(const point of manifest.points){
+      const material=new THREE.MeshBasicMaterial({color:point.category==="static_pressure_18"?0xedbd51:0x36d8cc});
+      const marker=new THREE.Mesh(markerGeometry,material);marker.position.fromArray(point.position);marker.userData.sensorId=point.id;scene.add(marker);
+      billboardEntries.push({point,bindingId:point.id,sprite:marker});hitObjects.push(marker);
+    }
+    const distance=Math.max(sphere.radius*2.8,65);camera.position.copy(sphere.center).add(new THREE.Vector3(.62,.28,1).normalize().multiplyScalar(distance));controls.target.copy(sphere.center);controls.update();
+    const viewerApi={THREE,scene,camera,renderer,controls,model,baseModel:model,billboardCenter:sphere.center.clone(),billboardEntries,hitObjects,modelAsset:MODEL_ASSET,__bf3dFurnaceBodyBillboards:true,selectedBillboardId:""};
+    renderer.domElement.__bf3dViewer=viewerApi;window.__BF_CAD_FURNACE_VIEWER=viewerApi;
+    status.textContent=`已加载：${MODEL_ASSET.label}；${manifest.points.length} 点；等待双相机运行时`;
+    const readinessTimer=setInterval(()=>{
+      const runtime=window.__BF3D_SURFACE_CAMERA_GUARD_8093__;
+      if(!runtime)return;
+      status.textContent=`已就绪：${MODEL_ASSET.label}；${manifest.points.length} 点；全炉旋转＋点位聚焦`;
+      clearInterval(readinessTimer);
+    },100);
+    const resize=()=>{const rect=host.getBoundingClientRect();renderer.setSize(Math.max(1,rect.width),Math.max(1,rect.height),false);camera.aspect=Math.max(1,rect.width)/Math.max(1,rect.height);camera.updateProjectionMatrix()};
+    resize();addEventListener("resize",resize);
+    const render=()=>{controls.update();renderer.render(scene,camera);requestAnimationFrame(render)};render();
+  </script>
+  <script type="module" src="./assets/bf3d-surface-camera-guard-8093.js?v=20260801-8093-dual-camera-r5"></script>
+</body>
+</html>

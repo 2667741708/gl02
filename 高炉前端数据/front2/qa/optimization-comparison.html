@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>front2 参数优化视觉对照</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px; background: #090d11; color: #edf3f4; font-family: SimSun, "宋体", serif; }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+    figure { margin: 0; min-width: 0; border: 1px solid #46545b; background: #11181e; }
+    figcaption { padding: 9px 12px; border-bottom: 1px solid #46545b; color: #c8d2d5; }
+    img { display: block; width: 100%; min-width: 0; max-width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <h1>参数优化页 · 1366×768 同视口对照</h1>
+  <main>
+    <figure><figcaption>8093 视觉母版</figcaption><img src="source_optimization_1366x768.png" alt="8093 参数优化视觉母版"></figure>
+    <figure><figcaption>8094 front2 实现</figcaption><img src="front2_optimization_1366x768.png" alt="8094 front2 参数优化实现"></figure>
+  </main>
+</body>
+</html>

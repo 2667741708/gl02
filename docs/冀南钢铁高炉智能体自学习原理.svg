@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2b6fb3"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#7955a7"/>
+    </marker>
+    <style>
+      .title{font-family:Microsoft YaHei,SimSun,serif;font-size:34px;font-weight:700;fill:#17395f}
+      .subtitle{font-family:Microsoft YaHei,SimSun,serif;font-size:18px;fill:#66788a}
+      .head{font-family:Microsoft YaHei,SimSun,serif;font-size:25px;font-weight:700;fill:#17395f}
+      .body{font-family:Microsoft YaHei,SimSun,serif;font-size:20px;fill:#33495b}
+      .small{font-family:Microsoft YaHei,SimSun,serif;font-size:17px;fill:#607383}
+      .box{stroke-width:2.5;rx:16}
+      .blue{fill:#eef5fb;stroke:#2b6fb3}
+      .green{fill:#eef7f2;stroke:#3b7f66}
+      .orange{fill:#fff6e8;stroke:#b97926}
+      .purple{fill:#f4effb;stroke:#7955a7}
+      .gray{fill:#f6f8fa;stroke:#91a0ae}
+      .flow{fill:none;stroke:#2b6fb3;stroke-width:4;marker-end:url(#arrow)}
+      .learn{fill:none;stroke:#7955a7;stroke-width:3.5;stroke-dasharray:11 8;marker-end:url(#arrow-purple)}
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#fbfcfd"/>
+  <text x="70" y="68" class="title">冀南钢铁高炉智能体自学习原理</text>
+  <text x="72" y="105" class="subtitle">感知 → 认知 → 融合 → 决策 → 学习</text>
+
+  <rect x="70" y="150" width="1460" height="78" class="box blue"/>
+  <text x="104" y="188" class="head">输入</text>
+  <text x="246" y="188" class="body">实时数据　·　专家知识　·　现场反馈</text>
+
+  <rect x="70" y="340" width="250" height="220" class="box blue"/>
+  <text x="100" y="390" class="head">① 感知</text>
+  <text x="100" y="442" class="body">高炉本体</text>
+  <text x="100" y="478" class="body">历史数据</text>
+  <text x="100" y="530" class="small">状态采集 · 历史追踪</text>
+
+  <rect x="360" y="340" width="250" height="220" class="box green"/>
+  <text x="390" y="390" class="head">② 认知</text>
+  <text x="390" y="442" class="body">60 分钟窗口</text>
+  <text x="390" y="478" class="body">5 分钟诊断</text>
+
+  <rect x="650" y="340" width="250" height="220" class="box green"/>
+  <text x="680" y="390" class="head">③ 融合</text>
+  <text x="680" y="442" class="body">基于模型综合判断</text>
+  <text x="680" y="478" class="small">形成当前炉况结论</text>
+
+  <rect x="940" y="340" width="250" height="220" class="box orange"/>
+  <text x="970" y="390" class="head">④ 决策</text>
+  <text x="970" y="442" class="body">形成炉况判断</text>
+  <text x="970" y="478" class="body">生成调控建议</text>
+  <text x="970" y="514" class="body">人工确认执行</text>
+
+  <rect x="1230" y="340" width="300" height="220" class="box purple"/>
+  <text x="1260" y="390" class="head">⑤ 学习</text>
+  <text x="1260" y="442" class="body">记忆沉淀</text>
+  <text x="1260" y="478" class="body">离线回测</text>
+  <text x="1260" y="514" class="body">版本更新</text>
+
+  <path d="M195 246 L195 330" class="flow"/>
+  <path d="M320 450 L360 450" class="flow"/>
+  <path d="M610 450 L650 450" class="flow"/>
+  <path d="M900 450 L940 450" class="flow"/>
+  <path d="M1190 450 L1230 450" class="flow"/>
+
+  <path d="M1380 580 C1380 690 1110 730 850 730 C590 730 480 680 480 570" class="learn"/>
+  <text x="720" y="710" class="small" fill="#7955a7">反馈进入下一轮认知与离线迭代</text>
+
+</svg>

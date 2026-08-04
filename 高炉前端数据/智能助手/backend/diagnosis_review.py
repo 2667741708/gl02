@@ -1,0 +1,811 @@
+"""Local-only abnormal diagnosis review support.
+
+The review store is intentionally isolated from the normal assistant/database
+configuration.  It requires explicit ``BF_DIAG_REVIEW_PG*`` variables and
+refuses non-loopback PostgreSQL hosts.
+"""
+
+from __future__ import annotations
+
+import base64
+import hashlib
+import hmac
+import ipaddress
+import json
+import os
+import re
+import secrets
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from http.cookies import SimpleCookie
+from typing import Any, Iterable, Mapping, Optional, Sequence
+
+
+DIAGNOSIS_KEYS = (
+    "normal",
+    "lowline",
+    "edge",
+    "center",
+    "channel",
+    "cold",
+    "hot",
+    "column",
+)
+DIAGNOSIS_LABELS = {
+    "normal": "正常顺行",
+    "lowline": "低料线",
+    "edge": "边缘煤气流发展",
+    "center": "边缘不足/中心过吹",
+    "channel": "管道行程",
+    "cold": "热制度下行",
+    "hot": "热制度上行",
+    "column": "崩滑料/悬料",
+}
+VERDICTS = {"correct", "incorrect", "uncertain"}
+SESSION_COOKIE = "bf_diag_review_session"
+DEFAULT_ALLOWED_ROLES = ("高组长",)
+_EPHEMERAL_SESSION_SECRET = secrets.token_bytes(48)
+_SCHEMA_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+class ReviewConfigurationError(RuntimeError):
+    """Raised when the local review store is unsafe or incomplete."""
+
+
+class ReviewValidationError(ValueError):
+    """Raised when a review request does not satisfy the contract."""
+
+
+@dataclass(frozen=True)
+class ReviewConfig:
+    enabled: bool
+    test_mode: bool
+    pg_host: str
+    pg_port: int
+    pg_database: str
+    pg_user: str
+    pg_password: str
+    pg_schema: str
+    allowed_roles: tuple[str, ...]
+    session_ttl_seconds: int
+
+    @property
+    def store_configured(self) -> bool:
+        return all((self.pg_host, self.pg_database, self.pg_user, self.pg_password))
+
+
+def env_truthy(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def review_enabled() -> bool:
+    return env_truthy("BF_DIAGNOSIS_REVIEW_ENABLED", False)
+
+
+def review_test_mode_enabled() -> bool:
+    return env_truthy("BF_DIAGNOSIS_REVIEW_TEST_MODE", False)
+
+
+def _split_csv(value: str) -> tuple[str, ...]:
+    return tuple(item.strip() for item in value.split(",") if item.strip())
+
+
+def load_review_config(require_store: bool = False) -> ReviewConfig:
+    host = os.getenv("BF_DIAG_REVIEW_PGHOST", "").strip()
+    schema = os.getenv("BF_DIAG_REVIEW_PGSCHEMA", "bf_assistant").strip() or "bf_assistant"
+    if not _SCHEMA_RE.fullmatch(schema):
+        raise ReviewConfigurationError("BF_DIAG_REVIEW_PGSCHEMA 不是安全的 PostgreSQL schema 名称")
+    try:
+        port = int(os.getenv("BF_DIAG_REVIEW_PGPORT", "18000"))
+        ttl = int(os.getenv("BF_AUTH_SESSION_TTL_SECONDS", "28800"))
+    except ValueError as exc:
+        raise ReviewConfigurationError("复核数据库端口或会话有效期不是整数") from exc
+    roles = _split_csv(os.getenv("BF_DIAG_REVIEW_ALLOWED_ROLES", ",".join(DEFAULT_ALLOWED_ROLES)))
+    config = ReviewConfig(
+        enabled=review_enabled(),
+        test_mode=review_test_mode_enabled(),
+        pg_host=host,
+        pg_port=port,
+        pg_database=os.getenv("BF_DIAG_REVIEW_PGDATABASE", "").strip(),
+        pg_user=os.getenv("BF_DIAG_REVIEW_PGUSER", "").strip(),
+        pg_password=os.getenv("BF_DIAG_REVIEW_PGPASSWORD", ""),
+        pg_schema=schema,
+        allowed_roles=roles or DEFAULT_ALLOWED_ROLES,
+        session_ttl_seconds=max(60, ttl),
+    )
+    if require_store:
+        if not config.store_configured:
+            raise ReviewConfigurationError(
+                "必须显式配置 BF_DIAG_REVIEW_PGHOST/PGDATABASE/PGUSER/PGPASSWORD"
+            )
+        if not is_loopback_host(config.pg_host):
+            raise ReviewConfigurationError("复核数据库只允许使用本机回环地址")
+    return config
+
+
+def is_loopback_host(host: str) -> bool:
+    normalized = (host or "").strip().lower().strip("[]")
+    if normalized == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(normalized).is_loopback
+    except ValueError:
+        return False
+
+
+def client_is_loopback(client_address: Any) -> bool:
+    host = client_address[0] if isinstance(client_address, (tuple, list)) else str(client_address or "")
+    return is_loopback_host(host)
+
+
+def role_is_allowed(role: str, config: Optional[ReviewConfig] = None) -> bool:
+    cfg = config or load_review_config()
+    return str(role or "").strip() in cfg.allowed_roles
+
+
+def authenticate_account(accounts: Mapping[str, Mapping[str, str]], username: str, password: str) -> Optional[dict[str, str]]:
+    account = accounts.get(str(username or "").strip())
+    expected = str(account.get("password") or "") if account else ""
+    if not account or not password or not hmac.compare_digest(str(password), expected):
+        return None
+    return {"username": str(username).strip(), "role": str(account.get("role") or "")}
+
+
+def display_label(key: str) -> str:
+    return DIAGNOSIS_LABELS.get(str(key or ""), str(key or "未知"))
+
+
+def _b64encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def _b64decode(value: str) -> bytes:
+    return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+
+
+def _session_secret() -> bytes:
+    configured = os.getenv("BF_AUTH_SESSION_SECRET", "").encode("utf-8")
+    return configured or _EPHEMERAL_SESSION_SECRET
+
+
+def create_session_token(
+    username: str,
+    role: str,
+    *,
+    now: Optional[datetime] = None,
+    ttl_seconds: Optional[int] = None,
+) -> str:
+    issued = now or datetime.now(timezone.utc)
+    ttl = ttl_seconds or load_review_config().session_ttl_seconds
+    payload = {
+        "sub": str(username),
+        "role": str(role),
+        "iat": int(issued.timestamp()),
+        "exp": int((issued + timedelta(seconds=ttl)).timestamp()),
+        "nonce": secrets.token_hex(8),
+    }
+    encoded = _b64encode(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    signature = _b64encode(hmac.new(_session_secret(), encoded.encode("ascii"), hashlib.sha256).digest())
+    return f"{encoded}.{signature}"
+
+
+def verify_session_token(token: str, *, now: Optional[datetime] = None) -> Optional[dict[str, Any]]:
+    try:
+        encoded, supplied_signature = str(token or "").split(".", 1)
+        expected_signature = _b64encode(
+            hmac.new(_session_secret(), encoded.encode("ascii"), hashlib.sha256).digest()
+        )
+        if not hmac.compare_digest(supplied_signature, expected_signature):
+            return None
+        payload = json.loads(_b64decode(encoded).decode("utf-8"))
+        current_ts = int((now or datetime.now(timezone.utc)).timestamp())
+        if current_ts >= int(payload.get("exp", 0)):
+            return None
+        if not payload.get("sub") or not payload.get("role"):
+            return None
+        return payload
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return None
+
+
+def session_from_cookie(cookie_header: str) -> Optional[dict[str, Any]]:
+    if not cookie_header:
+        return None
+    cookie = SimpleCookie()
+    try:
+        cookie.load(cookie_header)
+    except Exception:
+        return None
+    morsel = cookie.get(SESSION_COOKIE)
+    return verify_session_token(morsel.value) if morsel else None
+
+
+def session_cookie_header(token: str, ttl_seconds: Optional[int] = None) -> str:
+    ttl = ttl_seconds or load_review_config().session_ttl_seconds
+    return (
+        f"{SESSION_COOKIE}={token}; Path=/; Max-Age={int(ttl)}; "
+        "HttpOnly; SameSite=Strict"
+    )
+
+
+def clear_session_cookie_header() -> str:
+    return f"{SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict"
+
+
+def normalize_timestamp(value: Any) -> datetime:
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone(timedelta(hours=8)))
+    return parsed
+
+
+def iso_timestamp(value: Any) -> str:
+    return normalize_timestamp(value).isoformat()
+
+
+def normalize_scores(raw_scores: Any) -> dict[str, float]:
+    if isinstance(raw_scores, str):
+        try:
+            raw_scores = json.loads(raw_scores)
+        except json.JSONDecodeError:
+            raw_scores = {}
+    raw = raw_scores if isinstance(raw_scores, Mapping) else {}
+    normalized: dict[str, float] = {}
+    for key in DIAGNOSIS_KEYS:
+        try:
+            normalized[key] = round(float(raw.get(key, 0.0)), 6)
+        except (TypeError, ValueError):
+            normalized[key] = 0.0
+    return normalized
+
+
+def normalize_sequence(value: Any) -> list[Any]:
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError:
+            return []
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return list(value)
+    return []
+
+
+def _episode_key(furnace_id: str, label: str, start_ts: datetime) -> str:
+    material = f"{furnace_id}|{label}|{start_ts.isoformat()}".encode("utf-8")
+    return hashlib.sha256(material).hexdigest()[:32]
+
+
+def derive_current_episode(
+    snapshots: Iterable[Mapping[str, Any]],
+    *,
+    furnace_id: str = "BF",
+    max_gap_minutes: int = 10,
+) -> dict[str, Any]:
+    rows = []
+    for source in snapshots:
+        try:
+            item = dict(source)
+            item["diagnosis_ts"] = normalize_timestamp(item["diagnosis_ts"])
+            rows.append(item)
+        except (KeyError, ValueError, TypeError):
+            continue
+    rows.sort(key=lambda row: row["diagnosis_ts"])
+    if not rows:
+        return {"available": False, "is_abnormal": False, "reason": "暂无诊断快照"}
+
+    current = rows[-1]
+    label = str(current.get("main_label") or "normal")
+    episode_start = current["diagnosis_ts"]
+    if label != "normal":
+        cursor = current["diagnosis_ts"]
+        for previous in reversed(rows[:-1]):
+            gap = cursor - previous["diagnosis_ts"]
+            if previous.get("main_label") != label or gap > timedelta(minutes=max_gap_minutes):
+                break
+            episode_start = previous["diagnosis_ts"]
+            cursor = previous["diagnosis_ts"]
+
+    scores = normalize_scores(current.get("raw_scores"))
+    try:
+        main_score = float(current.get("main_score", scores.get(label, 0.0)))
+    except (TypeError, ValueError):
+        main_score = scores.get(label, 0.0)
+    try:
+        main_confidence = float(current.get("main_confidence", 0.0))
+    except (TypeError, ValueError):
+        main_confidence = 0.0
+    try:
+        snapshot_id: Any = int(current["id"])
+    except (KeyError, TypeError, ValueError):
+        snapshot_id = str(current.get("id") or iso_timestamp(current["diagnosis_ts"]))
+
+    candidates = [
+        {"key": key, "label": display_label(key), "score": score}
+        for key, score in sorted(scores.items(), key=lambda pair: pair[1], reverse=True)
+        if key != label
+    ]
+    return {
+        "available": True,
+        "is_abnormal": label != "normal",
+        "furnace_id": furnace_id,
+        "episode_key": _episode_key(furnace_id, label, episode_start),
+        "episode_start_ts": episode_start.isoformat(),
+        "snapshot_id": snapshot_id,
+        "diagnosis_ts": current["diagnosis_ts"].isoformat(),
+        "main_label": label,
+        "main_display_label": display_label(label),
+        "main_score": round(main_score, 6),
+        "main_confidence": round(main_confidence, 6),
+        "secondary": normalize_sequence(current.get("secondary")),
+        "raw_scores": scores,
+        "candidates": candidates,
+        "evidence": normalize_sequence(current.get("evidence")),
+        "data_coverage": current.get("data_coverage") if isinstance(current.get("data_coverage"), Mapping) else {},
+        "snapshot_source": "live_readonly",
+    }
+
+
+_FIXTURE_SCORES = {
+    "normal": {"normal": 92, "lowline": 8, "edge": 11, "center": 7, "channel": 10, "cold": 18, "hot": 12, "column": 4},
+    "cold": {"normal": 34, "lowline": 31, "edge": 29, "center": 17, "channel": 24, "cold": 87, "hot": 8, "column": 18},
+    "hot": {"normal": 27, "lowline": 12, "edge": 35, "center": 21, "channel": 30, "cold": 9, "hot": 84, "column": 16},
+    "lowline": {"normal": 22, "lowline": 91, "edge": 44, "center": 26, "channel": 38, "cold": 30, "hot": 16, "column": 27},
+    "channel": {"normal": 19, "lowline": 45, "edge": 62, "center": 41, "channel": 89, "cold": 23, "hot": 31, "column": 36},
+}
+
+
+def build_fixture_context(label: str, case_id: str = "default") -> dict[str, Any]:
+    diagnosis_key = label if label in _FIXTURE_SCORES else "normal"
+    identity = f"{diagnosis_key}:{case_id or 'default'}"
+    digest = hashlib.sha256(identity.encode("utf-8")).digest()
+    synthetic_id = -int.from_bytes(digest[:4], "big")
+    synthetic_ts = datetime(2026, 8, 4, tzinfo=timezone(timedelta(hours=8))) + timedelta(
+        seconds=int.from_bytes(digest[4:8], "big") % 86400
+    )
+    row = {
+        "id": synthetic_id,
+        "diagnosis_ts": synthetic_ts,
+        "main_label": diagnosis_key,
+        "main_score": _FIXTURE_SCORES[diagnosis_key][diagnosis_key],
+        "main_confidence": 0.0,
+        "secondary": [],
+        "raw_scores": _FIXTURE_SCORES[diagnosis_key],
+        "evidence": [
+            {"title": "本机测试证据", "detail": f"测试场景：{display_label(diagnosis_key)}"},
+            {"title": "边界说明", "detail": "该场景仅用于交互验收，不代表真实生产诊断。"},
+        ],
+        "data_coverage": {"available": 126, "expected": 133, "ratio": 126 / 133},
+    }
+    context = derive_current_episode([row], furnace_id="BF-local-fixture")
+    context["episode_key"] = hashlib.sha256(f"fixture|{identity}".encode("utf-8")).hexdigest()[:32]
+    context["snapshot_source"] = "local_fixture"
+    context["fixture_label"] = diagnosis_key
+    context["fixture_case_id"] = case_id or "default"
+    return context
+
+
+def validate_review_payload(payload: Any, canonical_context: Mapping[str, Any]) -> dict[str, Any]:
+    if not isinstance(payload, Mapping):
+        raise ReviewValidationError("请求体必须是 JSON 对象")
+    verdict = str(payload.get("verdict") or "").strip()
+    if verdict not in VERDICTS:
+        raise ReviewValidationError("复核结论必须是诊断正确、诊断不正确或暂无法判断")
+    corrected_main = str(payload.get("corrected_main_label") or "").strip() or None
+    corrected_secondary = str(payload.get("corrected_secondary_label") or "").strip() or None
+    if verdict == "incorrect" and corrected_main not in DIAGNOSIS_KEYS:
+        raise ReviewValidationError("诊断不正确时必须选择实际主炉况")
+    if verdict != "incorrect" and (corrected_main or corrected_secondary):
+        raise ReviewValidationError("只有诊断不正确时才能填写纠正炉况")
+    if corrected_secondary and corrected_secondary not in DIAGNOSIS_KEYS:
+        raise ReviewValidationError("纠正次炉况不在允许范围内")
+    if corrected_main and corrected_secondary == corrected_main:
+        raise ReviewValidationError("实际主炉况与次炉况不能相同")
+    idempotency_key = str(payload.get("idempotency_key") or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9._:-]{8,128}", idempotency_key):
+        raise ReviewValidationError("幂等键格式无效")
+    if str(payload.get("episode_key") or "") != str(canonical_context.get("episode_key") or ""):
+        raise ReviewValidationError("异常段已变化，请刷新后重新复核")
+    if str(payload.get("snapshot_id") or "") != str(canonical_context.get("snapshot_id") or ""):
+        raise ReviewValidationError("诊断快照已变化，请刷新后重新复核")
+    note = str(payload.get("note") or "").strip()
+    if len(note) > 2000:
+        raise ReviewValidationError("备注不能超过2000个字符")
+    human_match_score = optional_human_score(payload.get("human_match_score"))
+    suggestion = str(payload.get("suggestion") or "").strip()
+    if len(suggestion) > 2000:
+        raise ReviewValidationError("建议不能超过2000个字符")
+    return {
+        "verdict": verdict,
+        "corrected_main_label": corrected_main,
+        "corrected_secondary_label": corrected_secondary,
+        "note": note,
+        "human_match_score": human_match_score,
+        "suggestion": suggestion,
+        "idempotency_key": idempotency_key,
+        "source_page": str(payload.get("source_page") or "").strip()[:300],
+    }
+
+
+def optional_human_score(value: Any) -> Optional[int]:
+    """Normalize an optional 0-100 integer score supplied by a furnace leader."""
+    if value is None or str(value).strip() == "":
+        return None
+    try:
+        score = int(str(value).strip())
+    except (TypeError, ValueError) as exc:
+        raise ReviewValidationError("高炉长人工匹配分必须是0到100的整数") from exc
+    if score < 0 or score > 100:
+        raise ReviewValidationError("高炉长人工匹配分必须在0到100之间")
+    return score
+
+
+def validate_manual_score_payload(payload: Any, canonical_context: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate a manual score/suggestion for one diagnosis label at one snapshot."""
+    if not isinstance(payload, Mapping):
+        raise ReviewValidationError("请求体必须是 JSON 对象")
+    target_label = str(payload.get("target_label") or "").strip()
+    if target_label not in DIAGNOSIS_KEYS:
+        raise ReviewValidationError("请选择有效的炉况诊断项")
+    if str(payload.get("snapshot_id") or "") != str(canonical_context.get("snapshot_id") or ""):
+        raise ReviewValidationError("诊断快照已变化，请刷新后重新评分")
+    human_match_score = optional_human_score(payload.get("human_match_score"))
+    suggestion = str(payload.get("suggestion") or "").strip()
+    if len(suggestion) > 2000:
+        raise ReviewValidationError("建议不能超过2000个字符")
+    if human_match_score is None and not suggestion:
+        raise ReviewValidationError("请填写人工匹配分或建议；如不填写可直接关闭弹窗")
+    idempotency_key = str(payload.get("idempotency_key") or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9._:-]{8,128}", idempotency_key):
+        raise ReviewValidationError("幂等键格式无效")
+    return {
+        "target_label": target_label,
+        "human_match_score": human_match_score,
+        "suggestion": suggestion,
+        "idempotency_key": idempotency_key,
+        "source_page": str(payload.get("source_page") or "").strip()[:300],
+    }
+
+
+REVIEW_TABLE_DDL = """
+CREATE SCHEMA IF NOT EXISTS {schema};
+CREATE TABLE IF NOT EXISTS {schema}.diagnosis_review_events (
+    id BIGSERIAL PRIMARY KEY,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    furnace_id TEXT NOT NULL,
+    episode_key TEXT NOT NULL,
+    episode_start_ts TIMESTAMPTZ NOT NULL,
+    diagnosis_snapshot_id TEXT NOT NULL,
+    diagnosis_ts TIMESTAMPTZ NOT NULL,
+    main_label TEXT NOT NULL,
+    main_score DOUBLE PRECISION NOT NULL,
+    main_confidence DOUBLE PRECISION NOT NULL DEFAULT 0,
+    secondary JSONB NOT NULL DEFAULT '[]'::jsonb,
+    raw_scores JSONB NOT NULL,
+    evidence JSONB NOT NULL DEFAULT '[]'::jsonb,
+    data_coverage JSONB NOT NULL DEFAULT '{{}}'::jsonb,
+    verdict TEXT NOT NULL CHECK (verdict IN ('correct', 'incorrect', 'uncertain')),
+    corrected_main_label TEXT,
+    corrected_secondary_label TEXT,
+    note TEXT NOT NULL DEFAULT '',
+    human_match_score SMALLINT CHECK (human_match_score BETWEEN 0 AND 100),
+    suggestion TEXT NOT NULL DEFAULT '',
+    reviewer_username TEXT NOT NULL,
+    reviewer_role TEXT NOT NULL,
+    identity_mode TEXT NOT NULL DEFAULT 'signed_session',
+    snapshot_source TEXT NOT NULL CHECK (snapshot_source IN ('live_readonly', 'local_fixture')),
+    source_page TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS diagnosis_review_events_episode_idx
+    ON {schema}.diagnosis_review_events (episode_key, created_at DESC);
+CREATE INDEX IF NOT EXISTS diagnosis_review_events_reviewer_idx
+    ON {schema}.diagnosis_review_events (reviewer_username, created_at DESC);
+ALTER TABLE {schema}.diagnosis_review_events
+    ADD COLUMN IF NOT EXISTS human_match_score SMALLINT CHECK (human_match_score BETWEEN 0 AND 100);
+ALTER TABLE {schema}.diagnosis_review_events
+    ADD COLUMN IF NOT EXISTS suggestion TEXT NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS {schema}.diagnosis_manual_score_events (
+    id BIGSERIAL PRIMARY KEY,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    furnace_id TEXT NOT NULL,
+    diagnosis_snapshot_id TEXT NOT NULL,
+    diagnosis_ts TIMESTAMPTZ NOT NULL,
+    target_label TEXT NOT NULL,
+    system_main_label TEXT NOT NULL,
+    system_main_score DOUBLE PRECISION NOT NULL,
+    system_raw_scores JSONB NOT NULL,
+    human_match_score SMALLINT CHECK (human_match_score BETWEEN 0 AND 100),
+    suggestion TEXT NOT NULL DEFAULT '',
+    reviewer_username TEXT NOT NULL,
+    reviewer_role TEXT NOT NULL,
+    identity_mode TEXT NOT NULL DEFAULT 'signed_session',
+    snapshot_source TEXT NOT NULL CHECK (snapshot_source IN ('live_readonly', 'local_fixture')),
+    source_page TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (human_match_score IS NOT NULL OR length(btrim(suggestion)) > 0)
+);
+CREATE INDEX IF NOT EXISTS diagnosis_manual_score_snapshot_idx
+    ON {schema}.diagnosis_manual_score_events (diagnosis_ts DESC, target_label, created_at DESC);
+CREATE INDEX IF NOT EXISTS diagnosis_manual_score_reviewer_idx
+    ON {schema}.diagnosis_manual_score_events (reviewer_username, created_at DESC);
+"""
+
+
+class DiagnosisReviewStore:
+    """Append-only event store backed by explicitly configured local PostgreSQL."""
+
+    def __init__(self, config: Optional[ReviewConfig] = None):
+        self.config = config or load_review_config(require_store=True)
+        if not self.config.store_configured or not is_loopback_host(self.config.pg_host):
+            raise ReviewConfigurationError("复核事件存储未显式配置为本机 PostgreSQL")
+
+    def _connect(self):
+        try:
+            import psycopg
+        except ImportError as exc:
+            raise ReviewConfigurationError("缺少 psycopg，无法连接本机复核数据库") from exc
+        return psycopg.connect(
+            host=self.config.pg_host,
+            port=self.config.pg_port,
+            dbname=self.config.pg_database,
+            user=self.config.pg_user,
+            password=self.config.pg_password,
+            connect_timeout=5,
+        )
+
+    @property
+    def table_name(self) -> str:
+        return f"{self.config.pg_schema}.diagnosis_review_events"
+
+    @property
+    def manual_score_table_name(self) -> str:
+        return f"{self.config.pg_schema}.diagnosis_manual_score_events"
+
+    def ensure_schema(self) -> None:
+        ddl = REVIEW_TABLE_DDL.format(schema=self.config.pg_schema)
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(ddl)
+
+    def insert_event(
+        self,
+        canonical_context: Mapping[str, Any],
+        review: Mapping[str, Any],
+        session: Mapping[str, Any],
+    ) -> tuple[dict[str, Any], bool]:
+        try:
+            from psycopg.types.json import Jsonb
+        except ImportError as exc:
+            raise ReviewConfigurationError("缺少 psycopg JSON 支持") from exc
+        values = (
+            review["idempotency_key"],
+            str(canonical_context.get("furnace_id") or "BF"),
+            str(canonical_context["episode_key"]),
+            normalize_timestamp(canonical_context["episode_start_ts"]),
+            str(canonical_context["snapshot_id"]),
+            normalize_timestamp(canonical_context["diagnosis_ts"]),
+            str(canonical_context["main_label"]),
+            float(canonical_context.get("main_score", 0.0)),
+            float(canonical_context.get("main_confidence", 0.0)),
+            Jsonb(canonical_context.get("secondary") or []),
+            Jsonb(normalize_scores(canonical_context.get("raw_scores"))),
+            Jsonb(canonical_context.get("evidence") or []),
+            Jsonb(canonical_context.get("data_coverage") or {}),
+            review["verdict"],
+            review.get("corrected_main_label"),
+            review.get("corrected_secondary_label"),
+            review.get("note") or "",
+            review.get("human_match_score"),
+            review.get("suggestion") or "",
+            str(session.get("sub") or ""),
+            str(session.get("role") or ""),
+            str(canonical_context.get("snapshot_source") or "live_readonly"),
+            review.get("source_page") or "",
+        )
+        insert_sql = f"""
+            INSERT INTO {self.table_name} (
+                idempotency_key, furnace_id, episode_key, episode_start_ts,
+                diagnosis_snapshot_id, diagnosis_ts, main_label, main_score,
+                main_confidence, secondary, raw_scores, evidence, data_coverage,
+                verdict, corrected_main_label, corrected_secondary_label, note,
+                human_match_score, suggestion,
+                reviewer_username, reviewer_role, snapshot_source, source_page
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+            )
+            ON CONFLICT (idempotency_key) DO NOTHING
+            RETURNING id, idempotency_key, episode_key, diagnosis_snapshot_id,
+                      verdict, human_match_score, suggestion, reviewer_username,
+                      reviewer_role, snapshot_source, created_at
+        """
+        lookup_sql = f"""
+            SELECT id, idempotency_key, episode_key, diagnosis_snapshot_id,
+                   verdict, human_match_score, suggestion, reviewer_username,
+                   reviewer_role, snapshot_source, created_at
+            FROM {self.table_name}
+            WHERE idempotency_key = %s
+        """
+        columns = (
+            "id", "idempotency_key", "episode_key", "diagnosis_snapshot_id",
+            "verdict", "human_match_score", "suggestion", "reviewer_username",
+            "reviewer_role", "snapshot_source", "created_at",
+        )
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(insert_sql, values)
+                row = cursor.fetchone()
+                created = row is not None
+                if row is None:
+                    cursor.execute(lookup_sql, (review["idempotency_key"],))
+                    row = cursor.fetchone()
+        return dict(zip(columns, row)), created
+
+    def list_events(
+        self,
+        *,
+        episode_key: str = "",
+        reviewer_username: str = "",
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        conditions: list[str] = []
+        params: list[Any] = []
+        if episode_key:
+            conditions.append("episode_key = %s")
+            params.append(episode_key)
+        if reviewer_username:
+            conditions.append("reviewer_username = %s")
+            params.append(reviewer_username)
+        where = f" WHERE {' AND '.join(conditions)}" if conditions else ""
+        safe_limit = max(1, min(int(limit), 200))
+        sql = f"""
+            SELECT id, idempotency_key, furnace_id, episode_key, episode_start_ts,
+                   diagnosis_snapshot_id, diagnosis_ts, main_label, main_score,
+                   main_confidence, secondary, raw_scores, evidence, data_coverage,
+                   verdict, corrected_main_label, corrected_secondary_label, note,
+                   human_match_score, suggestion,
+                   reviewer_username, reviewer_role, identity_mode, snapshot_source,
+                   source_page, created_at
+            FROM {self.table_name}{where}
+            ORDER BY created_at DESC
+            LIMIT {safe_limit}
+        """
+        columns = (
+            "id", "idempotency_key", "furnace_id", "episode_key", "episode_start_ts",
+            "diagnosis_snapshot_id", "diagnosis_ts", "main_label", "main_score",
+            "main_confidence", "secondary", "raw_scores", "evidence", "data_coverage",
+            "verdict", "corrected_main_label", "corrected_secondary_label", "note",
+            "human_match_score", "suggestion",
+            "reviewer_username", "reviewer_role", "identity_mode", "snapshot_source",
+            "source_page", "created_at",
+        )
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sql, tuple(params))
+                rows = cursor.fetchall()
+        return [dict(zip(columns, row)) for row in rows]
+
+    def insert_manual_score_event(
+        self,
+        canonical_context: Mapping[str, Any],
+        manual_score: Mapping[str, Any],
+        session: Mapping[str, Any],
+    ) -> tuple[dict[str, Any], bool]:
+        """Append one score/suggestion for a diagnosis label and snapshot."""
+        try:
+            from psycopg.types.json import Jsonb
+        except ImportError as exc:
+            raise ReviewConfigurationError("缺少 psycopg JSON 支持") from exc
+        values = (
+            manual_score["idempotency_key"],
+            str(canonical_context.get("furnace_id") or "BF"),
+            str(canonical_context["snapshot_id"]),
+            normalize_timestamp(canonical_context["diagnosis_ts"]),
+            manual_score["target_label"],
+            str(canonical_context["main_label"]),
+            float(canonical_context.get("main_score", 0.0)),
+            Jsonb(normalize_scores(canonical_context.get("raw_scores"))),
+            manual_score.get("human_match_score"),
+            manual_score.get("suggestion") or "",
+            str(session.get("sub") or ""),
+            str(session.get("role") or ""),
+            str(canonical_context.get("snapshot_source") or "live_readonly"),
+            manual_score.get("source_page") or "",
+        )
+        insert_sql = f"""
+            INSERT INTO {self.manual_score_table_name} (
+                idempotency_key, furnace_id, diagnosis_snapshot_id, diagnosis_ts,
+                target_label, system_main_label, system_main_score, system_raw_scores,
+                human_match_score, suggestion, reviewer_username, reviewer_role,
+                snapshot_source, source_page
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (idempotency_key) DO NOTHING
+            RETURNING id, idempotency_key, diagnosis_snapshot_id, diagnosis_ts,
+                      target_label, human_match_score, suggestion, reviewer_username,
+                      reviewer_role, snapshot_source, created_at
+        """
+        lookup_sql = f"""
+            SELECT id, idempotency_key, diagnosis_snapshot_id, diagnosis_ts,
+                   target_label, human_match_score, suggestion, reviewer_username,
+                   reviewer_role, snapshot_source, created_at
+            FROM {self.manual_score_table_name}
+            WHERE idempotency_key = %s
+        """
+        columns = (
+            "id", "idempotency_key", "diagnosis_snapshot_id", "diagnosis_ts",
+            "target_label", "human_match_score", "suggestion", "reviewer_username",
+            "reviewer_role", "snapshot_source", "created_at",
+        )
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(insert_sql, values)
+                row = cursor.fetchone()
+                created = row is not None
+                if row is None:
+                    cursor.execute(lookup_sql, (manual_score["idempotency_key"],))
+                    row = cursor.fetchone()
+        return dict(zip(columns, row)), created
+
+    def list_human_score_events(
+        self,
+        *,
+        start: Any = None,
+        end: Any = None,
+        labels: Sequence[str] = (),
+        limit: int = 5000,
+    ) -> list[dict[str, Any]]:
+        """Return manual and popup-origin score/suggestion events for dashboard joins."""
+        conditions: list[str] = []
+        params: list[Any] = []
+        if start:
+            conditions.append("diagnosis_ts >= %s")
+            params.append(normalize_timestamp(start))
+        if end:
+            conditions.append("diagnosis_ts <= %s")
+            params.append(normalize_timestamp(end))
+        clean_labels = [label for label in labels if label in DIAGNOSIS_KEYS]
+        if clean_labels:
+            conditions.append("target_label = ANY(%s)")
+            params.append(clean_labels)
+        where = f" WHERE {' AND '.join(conditions)}" if conditions else ""
+        safe_limit = max(1, min(int(limit), 100000))
+        sql = f"""
+            WITH human_events AS (
+                SELECT id, idempotency_key, diagnosis_snapshot_id, diagnosis_ts,
+                       target_label, system_main_label, system_main_score,
+                       system_raw_scores, human_match_score, suggestion,
+                       reviewer_username, reviewer_role, snapshot_source,
+                       source_page, created_at, 'manual_diagnosis'::text AS review_mode
+                FROM {self.manual_score_table_name}
+                UNION ALL
+                SELECT id, idempotency_key, diagnosis_snapshot_id, diagnosis_ts,
+                       main_label AS target_label, main_label AS system_main_label,
+                       main_score AS system_main_score, raw_scores AS system_raw_scores,
+                       human_match_score, suggestion, reviewer_username, reviewer_role,
+                       snapshot_source, source_page, created_at,
+                       'abnormal_popup'::text AS review_mode
+                FROM {self.table_name}
+                WHERE human_match_score IS NOT NULL OR length(btrim(suggestion)) > 0
+            )
+            SELECT * FROM human_events{where}
+            ORDER BY diagnosis_ts DESC, created_at DESC
+            LIMIT {safe_limit}
+        """
+        columns = (
+            "id", "idempotency_key", "diagnosis_snapshot_id", "diagnosis_ts",
+            "target_label", "system_main_label", "system_main_score", "system_raw_scores",
+            "human_match_score", "suggestion", "reviewer_username", "reviewer_role",
+            "snapshot_source", "source_page", "created_at", "review_mode",
+        )
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sql, tuple(params))
+                rows = cursor.fetchall()
+        return [dict(zip(columns, row)) for row in rows]

@@ -1,0 +1,120 @@
+# config/thresholds.yaml
+# 基于现场实际数据表的阈值配置。
+
+rules:
+  normal:
+    stable_top_pressure: 1.25
+    stable_delta_pressure: 1.25
+    stable_permeability: 1.25
+    stable_blast_pressure: 1.25
+    stable_top_temp_disp: 0.28
+    stable_body_temperature: 1.25
+    balanced_body_circumference: 0.38
+    stable_material_line: 0.8
+    abnormal_suppress_score: 60
+
+  lowline:
+    hard_score_limit: 20
+    hard:
+      delta_l_min: 0.5
+    low_line_depth: [0.5, 3.0]
+    low_line_duration: [5, 30]
+    top_temp_rising: [0.1, 0.5]
+    upper_body_temperature_rising: [0.8, 1.5]
+    north_south_level_diff: [0.25, 0.8]
+
+  edge:
+    hard_score_limit: 35
+    hard:
+      body_upper_hot_min: 0.8
+      body_middle_hot_min: 0.8
+      body_lower_hot_min: 0.8
+      hot_sector_min: 20
+    body_upper_heat_load: [0.8, 1.5]
+    body_middle_lower_heat_load: [0.8, 1.5]
+    top_temp_rising: [0.1, 0.5]
+    hot_sector_bias: [15, 60]
+    top_temp_dispersion: [0.15, 0.45]
+    high_permeability: [0.8, 1.5]
+    low_gas_utilization: [-0.5, -1.0]
+
+  center:
+    hard_score_limit: 35
+    hard:
+      body_upper_low_min: -0.8
+      dp_total_high_min: 0.8
+      dp_upper_high_min: 0.8
+      p_blast_high: 0.8
+    low_body_wall_temperature: [-0.8, -1.5]
+    high_total_delta_p: [0.8, 1.5]
+    high_upper_delta_p: [0.8, 1.5]
+    high_blast_pressure: [0.8, 1.5]
+    low_permeability: [-0.8, -1.5]
+    low_top_temperature: [-0.1, -0.5]
+    static_pressure_unbalanced: [8, 25]
+
+  channel:
+    hard_score_limit: 40
+    hard:
+      spike_count_min: 1
+      pressure_oscillation_min: 1.5
+      hot_spot_jump_min: 0.8
+    top_pressure_spike_freq: [1, 10]
+    pressure_oscillation: [1.0, 3.0]
+    hot_spot_jump: [0.8, 1.5]
+    top_temp_dispersion: [0.3, 0.8]
+    low_gas_utilization: [-0.5, -1.0]
+
+  cold:
+    hard_score_limit: 25
+    hard:
+      p_blast_low: -0.5
+      body_temp_low: -0.8
+      pi_high: 0.5
+      t_top_down: -0.2
+      t_blast_low: -0.5
+    top_temp_down_trend: [-0.1, -0.5]
+    low_body_temperature: [-0.8, -1.5]
+    low_taphole_temp_proxy: [-0.8, -1.5]
+    low_blast_pressure: [-0.8, -1.5]
+    high_permeability: [0.8, 1.5]
+    low_gas_utilization: [-0.5, -1.0]
+    operation_heat_reduction: [-0.5, -1.2]
+
+  hot:
+    hard_score_limit: 25
+    hard:
+      p_blast_high: 0.5
+      body_temp_high: 0.8
+      pi_low: -0.5
+      t_top_up: 0.1
+      t_blast_high: 0.5
+    top_temp_rising: [0.1, 0.6]
+    high_body_temperature: [0.8, 1.5]
+    high_taphole_temp_proxy: [0.8, 1.5]
+    high_total_delta_p: [0.8, 1.5]
+    low_permeability: [-0.8, -1.5]
+    top_pressure_spikes: [1, 5]
+    operation_heat_increase: [0.5, 1.2]
+
+  column:
+    hang:
+      hard_score_limit: 30
+      hard:
+        stall_duration_min: 20
+      stall_duration: [20, 40]
+      total_delta_p_rise: [0.8, 1.5]
+      blast_pressure_rise: [0.8, 1.5]
+      pi_drop: [-0.8, -1.5]
+      top_temp_rise: [0.1, 0.5]
+      upper_body_temp_rise: [0.8, 1.5]
+    slip:
+      hard_score_limit: 30
+      hard:
+        slip_magnitude_min: 0.3
+        collapse_magnitude_min: 1.0
+      drop_magnitude: [0.3, 2.0]
+      pressure_oscillation: [0.8, 1.5]
+      top_pressure_spike: [1, 5]
+      top_temp_dispersion: [0.15, 0.45]
+      north_south_level_diff: [0.25, 0.8]

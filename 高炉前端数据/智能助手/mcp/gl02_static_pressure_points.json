@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "requirement": "REQ-8093-MCP-STATIC-PRESSURE-AF-20260716",
+  "source": "pSpace 10.22.181.243:8889 metadata audit 2026-07-16",
+  "mapping_policy": "Height and A-F come from pSpace metadata; the HMI layer names are 20350=lower body, 23488=middle body, 28976=upper body.",
+  "dataset_description": {
+    "glb_core_sensor_node_count": 115,
+    "synchronized_physical_point_count_after_2026_07_16": 133,
+    "enabled_registry_point_count_at_dataset_build_2026_07_19": 134,
+    "static_pressure_point_count": 18,
+    "business_level_by_height_m": {
+      "20.350": "炉身下部",
+      "23.488": "炉身中部",
+      "28.976": "炉身上部"
+    },
+    "orientation_status": "relative_only",
+    "relative_angles_deg_by_position": {
+      "A": 0,
+      "B": 60,
+      "C": 120,
+      "D": 180,
+      "E": 240,
+      "F": 300
+    },
+    "source_description_policy": "Keep each variable.description unchanged as source_description_raw; use business_level_by_height_m only for display and modeling semantics.",
+    "unit_status": "configured_kpa_source_metadata_blank_unconfirmed",
+    "hmi_instrument_id_status": "unconfirmed_conflicting_records",
+    "model_use_boundary": "Measured point overlay only; not an absolute plant azimuth, construction coordinate, CFD streamline, or control input."
+  },
+  "hmi_instrument_mapping": {
+    "P_static_lower_A-F": "PE242021A-F",
+    "P_static_middle_A-F": "PE242022A-F",
+    "P_static_upper_A-F": "PE242023A-F"
+  },
+  "variables": [
+    {"variable_name":"P_static_lower_A","aliases":["20.35米A点静压力","20.350米A点静压力","炉腰A点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0102","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0102","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0102","description":"2#高炉本体-20350 高炉炉腰部静压力A","unit":"kPa","height_m":20.35,"position":"A"},
+    {"variable_name":"P_static_lower_B","aliases":["20.35米B点静压力","20.350米B点静压力","炉腰B点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0103","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0103","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0103","description":"2#高炉本体-20350 高炉炉腰部静压力B","unit":"kPa","height_m":20.35,"position":"B"},
+    {"variable_name":"P_static_lower_C","aliases":["20.35米C点静压力","20.350米C点静压力","炉腰C点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0104","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0104","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0104","description":"2#高炉本体-20350 高炉炉腰部静压力C","unit":"kPa","height_m":20.35,"position":"C"},
+    {"variable_name":"P_static_lower_D","aliases":["20.35米D点静压力","20.350米D点静压力","炉腰D点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0105","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0105","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0105","description":"2#高炉本体-20350 高炉炉腰部静压力D","unit":"kPa","height_m":20.35,"position":"D"},
+    {"variable_name":"P_static_lower_E","aliases":["20.35米E点静压力","20.350米E点静压力","炉腰E点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0107","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0107","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0107","description":"2#高炉本体-20350 高炉炉腰部静压力E","unit":"kPa","height_m":20.35,"position":"E"},
+    {"variable_name":"P_static_lower_F","aliases":["20.35米F点静压力","20.350米F点静压力","炉腰F点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0108","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0108","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0108","description":"2#高炉本体-20350 高炉炉腰部静压力F","unit":"kPa","height_m":20.35,"position":"F"},
+    {"variable_name":"P_static_middle_A","aliases":["23.49米A点静压力","23.488米A点静压力","炉身下部A点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0068","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0068","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0068","description":"2#高炉本体-23488 高炉炉身下部静压力A","unit":"kPa","height_m":23.488,"position":"A"},
+    {"variable_name":"P_static_middle_B","aliases":["23.49米B点静压力","23.488米B点静压力","炉身下部B点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0069","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0069","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0069","description":"2#高炉本体-23488 高炉炉身下部静压力B","unit":"kPa","height_m":23.488,"position":"B"},
+    {"variable_name":"P_static_middle_C","aliases":["23.49米C点静压力","23.488米C点静压力","炉身下部C点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0070","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0070","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0070","description":"2#高炉本体-23488 高炉炉身下部静压力C","unit":"kPa","height_m":23.488,"position":"C"},
+    {"variable_name":"P_static_middle_D","aliases":["23.49米D点静压力","23.488米D点静压力","炉身下部D点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0071","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0071","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0071","description":"2#高炉本体-23488 高炉炉身下部静压力D","unit":"kPa","height_m":23.488,"position":"D"},
+    {"variable_name":"P_static_middle_E","aliases":["23.49米E点静压力","23.488米E点静压力","炉身下部E点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0072","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0072","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0072","description":"2#高炉本体-23488 高炉炉身下部静压力E","unit":"kPa","height_m":23.488,"position":"E"},
+    {"variable_name":"P_static_middle_F","aliases":["23.49米F点静压力","23.488米F点静压力","炉身下部F点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0110","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0110","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0110","description":"2#高炉本体-23488 高炉炉身下部静压力F","unit":"kPa","height_m":23.488,"position":"F"},
+    {"variable_name":"P_static_upper_A","aliases":["28.98米A点静压力","28.976米A点静压力","炉身中部A点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0075","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0075","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0075","description":"2#高炉本体-28976 高炉炉身中部静压力A","unit":"kPa","height_m":28.976,"position":"A"},
+    {"variable_name":"P_static_upper_B","aliases":["28.98米B点静压力","28.976米B点静压力","炉身中部B点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0076","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0076","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0076","description":"2#高炉本体-28976 高炉炉身中部静压力B","unit":"kPa","height_m":28.976,"position":"B"},
+    {"variable_name":"P_static_upper_C","aliases":["28.98米C点静压力","28.976米C点静压力","炉身中部C点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0077","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0077","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0077","description":"2#高炉本体-28976 高炉炉身中部静压力C","unit":"kPa","height_m":28.976,"position":"C"},
+    {"variable_name":"P_static_upper_D","aliases":["28.98米D点静压力","28.976米D点静压力","炉身中部D点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0078","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0078","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0078","description":"2#高炉本体-28976 高炉炉身中部静压力D","unit":"kPa","height_m":28.976,"position":"D"},
+    {"variable_name":"P_static_upper_E","aliases":["28.98米E点静压力","28.976米E点静压力","炉身中部E点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0079","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0079","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0079","description":"2#高炉本体-28976 高炉炉身中部静压力E","unit":"kPa","height_m":28.976,"position":"E"},
+    {"variable_name":"P_static_upper_F","aliases":["28.98米F点静压力","28.976米F点静压力","炉身中部F点静压力"],"status":"physical","confidence":"high","source_branch":"EQ/SI0/GL02/BT","short_name":"EQ_SIO_GL02_BT_T0080","point_id":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0080","tag_long_name":"\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0080","description":"2#高炉本体-28976 高炉炉身中部静压力F","unit":"kPa","height_m":28.976,"position":"F"}
+  ]
+}

@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2b6fb3"/></marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3b7f66"/></marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#b97926"/></marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#7955a7"/></marker>
+    <style>
+      .title{font-family:Microsoft YaHei,SimSun,serif;font-size:34px;font-weight:700;fill:#17395f}
+      .subtitle{font-family:Microsoft YaHei,SimSun,serif;font-size:17px;fill:#5d6d7e}
+      .head{font-family:Microsoft YaHei,SimSun,serif;font-size:21px;font-weight:700;fill:#17395f}
+      .label{font-family:Microsoft YaHei,SimSun,serif;font-size:17px;fill:#243746}
+      .small{font-family:Microsoft YaHei,SimSun,serif;font-size:15px;fill:#4d5e6d}
+      .tiny{font-family:Microsoft YaHei,SimSun,serif;font-size:13px;fill:#637585}
+      .box{stroke-width:2;rx:12}
+      .blue{fill:#eef5fb;stroke:#2b6fb3}
+      .green{fill:#eef7f2;stroke:#3b7f66}
+      .orange{fill:#fff6e8;stroke:#b97926}
+      .purple{fill:#f4effb;stroke:#7955a7}
+      .gray{fill:#f5f7f9;stroke:#8092a3}
+      .white{fill:#ffffff;stroke:#c8d3de}
+      .flow-blue{fill:none;stroke:#2b6fb3;stroke-width:3;marker-end:url(#arrow-blue)}
+      .flow-green{fill:none;stroke:#3b7f66;stroke-width:3;marker-end:url(#arrow-green)}
+      .flow-orange{fill:none;stroke:#b97926;stroke-width:3;marker-end:url(#arrow-orange)}
+      .flow-purple{fill:none;stroke:#7955a7;stroke-width:3;stroke-dasharray:9 7;marker-end:url(#arrow-purple)}
+      .feedback{fill:none;stroke:#7b8794;stroke-width:2.5;stroke-dasharray:8 7;marker-end:url(#arrow-blue)}
+    </style>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#fbfcfd"/>
+  <text x="64" y="62" class="title">冀南钢铁高炉智能体自学习机理（项目实现口径）</text>
+  <text x="66" y="96" class="subtitle">滚动基线自适应　+　诊断/工具外部记忆　+　人工审核后的离线迭代；生产推理链路只读</text>
+
+  <rect x="64" y="132" width="1792" height="112" class="box blue"/>
+  <text x="92" y="164" class="head">生产事实与历史证据</text>
+  <rect x="350" y="148" width="330" height="72" class="box white"/>
+  <text x="376" y="178" class="label">实时物理点</text><text x="376" y="202" class="small">1 min · 115/133 点 · 当前值/趋势</text>
+  <rect x="706" y="148" width="330" height="72" class="box white"/>
+  <text x="732" y="178" class="label">MES 与质量反馈</text><text x="732" y="202" class="small">正式炉次 · 铁水 Si · 质量结果</text>
+  <rect x="1062" y="148" width="330" height="72" class="box white"/>
+  <text x="1088" y="178" class="label">历史诊断与操作上下文</text><text x="1088" y="202" class="small">快照 · 队列 · 班次承接 · 追问</text>
+  <rect x="1418" y="148" width="410" height="72" class="box white"/>
+  <text x="1444" y="178" class="label">规程、专家知识与工具能力</text><text x="1444" y="202" class="small">三规二制 · RAG · MCP 目录/统计/绘图</text>
+
+  <rect x="64" y="286" width="340" height="222" class="box blue"/>
+  <text x="90" y="322" class="head">① 数据质量与同步门</text>
+  <text x="90" y="358" class="label">事实先过门，再进入诊断</text>
+  <text x="90" y="389" class="small">• 同步屏障、覆盖率、来源延迟</text>
+  <text x="90" y="416" class="small">• 缺口补漏与历史回填</text>
+  <text x="90" y="443" class="small">• 零值须经 pSpace 审计</text>
+  <text x="90" y="476" class="tiny">bf_sensor.data_quality_status</text>
+  <text x="90" y="496" class="tiny">质量不足 → 降级，不生成伪结论</text>
+
+  <rect x="456" y="286" width="390" height="222" class="box green"/>
+  <text x="482" y="322" class="head">② 工况状态与滚动基线</text>
+  <text x="482" y="358" class="label">当前窗口与历史分布对齐</text>
+  <text x="482" y="391" class="small">60 min 当前窗口 · 每 5 min 诊断</text>
+  <text x="482" y="420" class="small">30 d 基线：median / IQR / P10/P50/P90</text>
+  <text x="482" y="452" class="small">z = (x − median_ref) / (IQR_ref + ε)</text>
+  <text x="482" y="484" class="tiny">daily_baselines · diagnosis_snapshots</text>
+
+  <rect x="898" y="286" width="436" height="222" class="box green"/>
+  <text x="924" y="322" class="head">③ 多源证据融合</text>
+  <text x="924" y="358" class="label">不是单一模型给结论</text>
+  <text x="924" y="389" class="small">规则：8 类炉况 / 主次仲裁 / 基线偏离</text>
+  <text x="924" y="416" class="small">预测：Chronos + 目标专属协变量</text>
+  <text x="924" y="443" class="small">知识：三规二制分层 RAG</text>
+  <text x="924" y="470" class="small">工具：MCP 查询、统计、趋势、相关性</text>
+  <text x="924" y="496" class="tiny">evidence = fact + rule + forecast + knowledge/tool</text>
+
+  <rect x="1386" y="286" width="470" height="222" class="box orange"/>
+  <text x="1412" y="322" class="head">④ 智能体编排与只读决策</text>
+  <text x="1412" y="358" class="label">领域大模型负责理解、编排、解释</text>
+  <text x="1412" y="389" class="small">诊断队列：12 点 × 5 min</text>
+  <text x="1412" y="416" class="small">短时总结、工具轨迹、追问增量</text>
+  <text x="1412" y="443" class="small">建议：模板 → 严重度 → 组合 → 安全门禁</text>
+  <text x="1412" y="470" class="small">输出：即时动作 / 禁止动作 / 观察项</text>
+  <text x="1412" y="496" class="tiny">read_only = true · 不连接生产控制写接口</text>
+
+  <path d="M960 244 L960 274" class="flow-blue"/>
+  <path d="M404 397 L456 397" class="flow-blue"/>
+  <path d="M846 397 L898 397" class="flow-green"/>
+  <path d="M1334 397 L1386 397" class="flow-orange"/>
+
+  <rect x="64" y="574" width="880" height="236" class="box orange"/>
+  <text x="92" y="612" class="head">⑤ 现场工作台与人工边界</text>
+  <text x="92" y="650" class="label">诊断、趋势、优化建议、智能问答、报表知识库</text>
+  <rect x="92" y="678" width="244" height="86" class="box white"/>
+  <text x="116" y="713" class="label">当前炉况</text><text x="116" y="739" class="small">主次炉况 / 证据 / 数据质量</text>
+  <rect x="360" y="678" width="244" height="86" class="box white"/>
+  <text x="384" y="713" class="label">趋势与预测</text><text x="384" y="739" class="small">过去窗口 / 未来 120 min</text>
+  <rect x="628" y="678" width="244" height="86" class="box white"/>
+  <text x="652" y="713" class="label">建议与复核</text><text x="652" y="739" class="small">现场人员确认后执行</text>
+  <text x="92" y="793" class="tiny">生产执行遵循现场制度与授权；智能体不直接写入控制系统</text>
+
+  <rect x="990" y="574" width="390" height="236" class="box purple"/>
+  <text x="1016" y="612" class="head">⑥ 外部记忆与滚动适应</text>
+  <text x="1016" y="650" class="label">当前可立即复用</text>
+  <text x="1016" y="682" class="small">• short_window_summaries</text>
+  <text x="1016" y="709" class="small">• conversation_delta_contexts</text>
+  <text x="1016" y="736" class="small">• tool trace / 诊断队列 / 班次承接</text>
+  <text x="1016" y="774" class="tiny">下一轮检索相似场景并保持证据连续</text>
+
+  <rect x="1426" y="574" width="430" height="236" class="box purple"/>
+  <text x="1452" y="612" class="head">⑦ 受控离线学习与版本回灌</text>
+  <text x="1452" y="650" class="label">必须经过审核，不在线改权重</text>
+  <text x="1452" y="682" class="small">人工确认 / 操作结果 / 炉次质量</text>
+  <text x="1452" y="709" class="small">→ 标签与案例 → 时间外回测</text>
+  <text x="1452" y="736" class="small">→ 影子运行 → 专家复核</text>
+  <text x="1452" y="763" class="small">→ 规则 / 特征 / 知识 / 模型版本</text>
+  <text x="1452" y="793" class="tiny">当前：反馈结构化学习表仍需补齐</text>
+
+  <path d="M1620 508 L1620 558" class="flow-orange"/>
+  <path d="M504 508 C504 540 460 548 460 574" class="feedback"/>
+  <path d="M1118 508 L1118 558" class="flow-purple"/>
+  <path d="M944 692 L990 692" class="feedback"/>
+  <path d="M1380 692 L1426 692" class="flow-purple"/>
+  <path d="M1426 826 C1320 880 1150 884 990 826" class="flow-purple"/>
+  <path d="M1426 860 C1210 980 760 970 590 820" class="flow-purple"/>
+  <path d="M990 850 C880 930 600 930 430 820" class="feedback"/>
+
+  <rect x="64" y="878" width="1792" height="136" class="box gray"/>
+  <text x="92" y="914" class="head">当前项目结论</text>
+  <text x="92" y="947" class="label">已实现：质量门、滚动基线、规则诊断、Chronos 预测、RAG/MCP、短时外部记忆、只读建议与安全门禁。</text>
+  <text x="92" y="976" class="label">受控升级：人工采纳/拒绝、实际操作结果和质量结果需先结构化，随后才进入离线训练、回测、影子运行和版本发布。</text>
+  <line x1="1500" y1="914" x2="1548" y2="914" class="flow-blue"/><text x="1560" y="920" class="small">当前运行数据流</text>
+  <line x1="1500" y1="950" x2="1548" y2="950" class="flow-purple"/><text x="1560" y="956" class="small">受控学习/反馈流</text>
+  <line x1="1500" y1="986" x2="1548" y2="986" class="feedback"/><text x="1560" y="992" class="small">人工边界/待接入</text>
+</svg>

@@ -1,0 +1,278 @@
+{
+  "schema_version": "bf3d.asset_registry.v1",
+  "requirement_id": "REQ-BF3D-ASSET-CONTROLLED-MASTER-R1-20260721",
+  "asset_id": "BF3D-CONTROLLED-MASTER-R1",
+  "generated_at_utc": "2026-07-21T05:32:31.552982+00:00",
+  "status": "candidate_ready_for_controlled_review",
+  "production_integration_allowed": false,
+  "coordinate_contract": {
+    "unit": "meter",
+    "up_axis": "Z",
+    "center": [
+      0,
+      0
+    ],
+    "web_export_up_axis": "Y"
+  },
+  "source_assets": [
+    {
+      "asset_id": "GL02_GLTF_PORTABLE_TANGENT_COMPLETE_V5",
+      "role": "R5_R2J_R2K_static_structure",
+      "path": "高炉前端数据/models/gl02_blast_furnace_review.v5.blend",
+      "bytes": 37121148,
+      "sha256": "3e6df5fb02d3734d14923d4432739a5918ac8249d6a3c8ad1415395429b27e3a"
+    },
+    {
+      "asset_id": "VIS30_STATIC_PRESSURE_18",
+      "role": "static_pressure_sensor_overlay",
+      "path": "PT/高炉3D模型/work/VIS_30_20260721_STATIC_PRESSURE_18_PLACEMENT/glb/VIS30_STATIC_PRESSURE_18_ONLY_OVERLAY.glb",
+      "bytes": 237784,
+      "sha256": "07b9e024bb994ac674d6238ed1743ef2c91f55f02a74517cdb3d93c8e73802fa"
+    },
+    {
+      "asset_id": "GL02_FORMAL_PROTECTED",
+      "role": "protected_baseline_not_modified",
+      "path": "高炉前端数据/models/gl02_blast_furnace.glb",
+      "bytes": 4314736,
+      "sha256": "808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6"
+    },
+    {
+      "asset_id": "INT30_R2M_BURDEN_VISUAL_CANDIDATE",
+      "role": "illustrative_burden_surface_layers_chute_and_fx_source",
+      "path": "PT/高炉3D模型/work/INT_30_20260719_R2M_BURDEN_PHYSICS_FX_RESPONSE/blends/INT_30_R2M_BURDEN_PHYSICS_FX_RESPONSE_CANDIDATE.blend",
+      "bytes": 23187645,
+      "sha256": "8606e7090e070367d5d4d595f1a71b099b7fcfa933d951ec11668ce2b8e4cf41"
+    },
+    {
+      "asset_id": "P40_APPROX_CONTROLLED_EQUIPMENT_SOURCE",
+      "role": "illustrative_top_taphole_tuyere_and_bustle_equipment_source",
+      "path": "PT/高炉3D模型/work/P40_TUYERE_PREVIEW_20260717_1434/P40_FIXED_LOOKDEV_CANDIDATE.blend",
+      "bytes": 3672500,
+      "sha256": "d268759a0e923cf9412da91400cee85e7b94e3418c1c41363053a15c372dd478"
+    }
+  ],
+  "modules": [
+    {
+      "collection": "01_SHELL_R5",
+      "role": "shell_surface",
+      "status": "integrated_via_v5",
+      "exported_in_r1": true
+    },
+    {
+      "collection": "02_STRUCTURE_R2J",
+      "role": "five_zone_shell_entities",
+      "status": "integrated_via_v5",
+      "exported_in_r1": true
+    },
+    {
+      "collection": "03_LINING_R2K",
+      "role": "wall_internal_layers",
+      "status": "integrated_via_v5",
+      "exported_in_r1": true
+    },
+    {
+      "collection": "04_BURDEN",
+      "role": "burden_surface_and_column",
+      "status": "registered_deferred",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "05_COHESIVE_ZONE",
+      "role": "cohesive_zone",
+      "status": "registered_deferred",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "06_TUYERE_RACEWAY",
+      "role": "tuyere_raceway_pci",
+      "status": "registered_deferred",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "07_GAS_PRESSURE",
+      "role": "static_pressure_18",
+      "status": "integrated",
+      "exported_in_r1": true
+    },
+    {
+      "collection": "08_HEARTH_LIQUID",
+      "role": "dripping_hot_metal_slag",
+      "status": "registered_deferred",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "09_REVIEW_HELPERS",
+      "role": "review_cameras_lights",
+      "status": "master_only",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "99_ARCHIVE_REFERENCES",
+      "role": "historical_read_only",
+      "status": "master_only",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "R3_FURNACE_TOP_EQUIPMENT",
+      "role": "bell_less_top_bleeders_uptakes_downcomer",
+      "status": "controlled_integrated_illustrative",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "R3_TAPHOLE_EQUIPMENT",
+      "role": "two_taphole_hardware",
+      "status": "controlled_integrated_illustrative",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "R3_TUYERE_EQUIPMENT",
+      "role": "26_tuyere_positions_bustle_pipe_flange_bolts",
+      "status": "controlled_integrated_illustrative",
+      "exported_in_r1": false
+    },
+    {
+      "collection": "R3_HEARTH_BOTTOM_INTERIM",
+      "role": "interim_visible_bottom_closure",
+      "status": "controlled_interim_detail_deferred",
+      "exported_in_r1": false
+    }
+  ],
+  "outputs": [
+    {
+      "path": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/blends/BF3D_CONTROLLED_MASTER_R1.blend",
+      "bytes": 37147639,
+      "sha256": "a5015d62bc0b7720f9418937bfe2e3f9ffacaa857edbf132f2e1865080906c7d"
+    },
+    {
+      "path": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_base.r1.glb",
+      "bytes": 994892,
+      "sha256": "ebd1804d0e503931b513132a75be93a3ffa1065e93c476e14fb188e8d21abf3a"
+    },
+    {
+      "path": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_sensors.r1.glb",
+      "bytes": 314392,
+      "sha256": "2c3c4632f13d60be121c5e682ac87dacc6291756aad9bd30d38dc053330b5961"
+    },
+    {
+      "path": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_combined_review.r1.glb",
+      "bytes": 1304552,
+      "sha256": "fa3f566521006cc1124d43e0de84995f1f52aff5a2cc9bd42ca2eac9e2db4aa0"
+    },
+    {
+      "path": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_structural_section.r1.glb",
+      "bytes": 3945984,
+      "sha256": "e5c77d3834c631e2513209a690f6328d1c63dba2c8d489b2d2dbe17645465f71"
+    },
+    {
+      "path": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_full_assembly.r1.glb",
+      "bytes": 4973160,
+      "sha256": "76a7ec528346f08db33784e58c85c99adb1149db1253d3b9698114180e74bd1a"
+    },
+    {
+      "path": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/blends/BF3D_FULL_ASSEMBLY_R1_DIRECT_OPEN.blend",
+      "bytes": 38023705,
+      "sha256": "5e5298d014e61be8ec0949367e2b40fb3f7d82f8cc544e5c0ecf9956e96d5640"
+    },
+    {
+      "path": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/blends/BF3D_CONTROLLED_MASTER_R3_EQUIPMENT_MERGED.blend",
+      "bytes": 38023705,
+      "sha256": "5e5298d014e61be8ec0949367e2b40fb3f7d82f8cc544e5c0ecf9956e96d5640"
+    }
+  ],
+  "review_contract": {
+    "material_review": {
+      "asset": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_base.r1.glb",
+      "sensor_count": 0,
+      "forbidden_content_hidden": true
+    },
+    "structural_section": {
+      "asset": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_structural_section.r1.glb",
+      "sensor_count": 0
+    },
+    "sensor_review": {
+      "asset": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_sensors.r1.glb",
+      "static_pressure_count": 18,
+      "identity_color": "#F2C94C"
+    },
+    "combined_review": {
+      "asset": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_combined_review.r1.glb",
+      "base_mesh_count": 5,
+      "static_pressure_count": 18
+    },
+    "full_assembly": {
+      "asset": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/glb/bf3d_full_assembly.r1.glb",
+      "source_object_count": 33,
+      "base_object_count": 5,
+      "section_object_count": 10,
+      "static_pressure_count": 18,
+      "runtime_modes": [
+        "whole_exterior",
+        "whole_cutaway"
+      ]
+    },
+    "blender_direct_open": {
+      "asset": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/blends/BF3D_FULL_ASSEMBLY_R1_DIRECT_OPEN.blend",
+      "controlled_master_r3": "PT/高炉3D模型/work/ASSET_10_20260721_R1_CONTROLLED_MASTER/blends/BF3D_CONTROLLED_MASTER_R3_EQUIPMENT_MERGED.blend",
+      "format": "BLEND",
+      "default_mode": "internal_process_cutaway",
+      "default_view_layer": "内部工艺_默认",
+      "exterior_view_layer": "完整外观",
+      "wall_view_layer": "墙体分层",
+      "base_object_count_present": 5,
+      "complete_360_exterior_object_count": 5,
+      "controlled_equipment_contract": {
+        "top_meshes": 2,
+        "taphole_meshes": 3,
+        "tuyere_hardware_meshes": 3,
+        "tuyere_numbered_positions": 26,
+        "hearth_bottom_interim_meshes": 1,
+        "hearth_bottom_detailed_modeling": "deferred"
+      },
+      "visible_static_pressure_count": 18,
+      "default_visible_section_object_count": 10,
+      "illustrative_burden_source": "PT/高炉3D模型/work/INT_30_20260719_R2M_BURDEN_PHYSICS_FX_RESPONSE/blends/INT_30_R2M_BURDEN_PHYSICS_FX_RESPONSE_CANDIDATE.blend",
+      "simulated_internal_scene_version": "BF3D_COMPLETE_VISUAL_SIM_R3",
+      "simulated_internal_control_use": "prohibited",
+      "simulated_modules": [
+        "cohesive_closed_volume",
+        "26_uniform_raceways",
+        "dripping_zone",
+        "deadman",
+        "hot_metal",
+        "slag"
+      ],
+      "controlled_equipment_source": "PT/高炉3D模型/work/P40_TUYERE_PREVIEW_20260717_1434/P40_FIXED_LOOKDEV_CANDIDATE.blend",
+      "controlled_equipment": {
+        "top_meshes": 2,
+        "taphole_meshes": 3,
+        "tuyere_hardware_meshes": 3,
+        "tuyere_numbered_position_anchors": 26,
+        "hearth_bottom_interim_meshes": 1,
+        "hearth_bottom_detailed_modeling": "deferred",
+        "evidence_level": "illustrative",
+        "control_use": "prohibited"
+      },
+      "animation_contract": {
+        "frame_range": [
+          1,
+          480
+        ],
+        "fps": 24,
+        "cohesive_motion": "bounded_damped_parametric_motion_v1",
+        "droplet_motion": "staggered_cyclic_gravity_proxy_v1",
+        "droplet_loop_frames": 96
+      },
+      "review_helpers_hidden": true,
+      "glb_open_operator": "File > Import > glTF 2.0"
+    }
+  },
+  "deferred_modules": [
+    "04_BURDEN",
+    "05_COHESIVE_ZONE",
+    "06_TUYERE_RACEWAY",
+    "08_HEARTH_LIQUID"
+  ],
+  "evidence_boundary": "R5/R2J/R2K remain E/illustrative and not for construction; sensor values are measured when live, orientation is relative-only.",
+  "updated_at_utc": "2026-07-21T09:32:40.238098+00:00",
+  "latest_change_requirement_id": "REQ-BF3D-CONTROLLED-EQUIPMENT-MERGE-R3-20260721"
+}

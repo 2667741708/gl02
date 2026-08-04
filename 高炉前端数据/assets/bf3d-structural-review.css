@@ -1,0 +1,364 @@
+.bf3d-review-panel {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 28;
+  width: min(520px, calc(100% - 18px));
+  transform: none;
+  padding: 8px;
+  border: 1px solid rgba(115, 159, 144, 0.52);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(9, 24, 25, 0.96), rgba(4, 14, 18, 0.94));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32), inset 0 0 18px rgba(81, 132, 112, 0.08);
+  color: #f4fff8;
+  font-family: SimSun, "宋体", serif;
+  pointer-events: auto;
+}
+
+.layered-cad-stage:not(.bf3d-review-active):not(.bf3d-review-status-visible)
+  .bf3d-review-panel {
+  display: none;
+}
+
+.layered-cad-stage.bf3d-review-active .bf3d-review-panel,
+.layered-cad-stage.bf3d-review-status-visible .bf3d-review-panel {
+  z-index: 28;
+  left: 50%;
+  width: min(560px, calc(100% - 18px));
+  transform: translateX(-50%);
+}
+
+.cad-review-controls-row {
+  border-top: 1px solid rgba(112, 151, 139, 0.24);
+}
+
+.bf3d-review-head,
+.bf3d-review-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bf3d-review-head strong {
+  font-size: 14px;
+  color: #fff;
+}
+
+.bf3d-review-head span {
+  color: #9fc9b7;
+  font-size: 11px;
+}
+
+.bf3d-review-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.bf3d-review-actions button {
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid rgba(125, 167, 151, 0.46);
+  border-radius: 4px;
+  background: rgba(24, 45, 43, 0.88);
+  color: #d9eee4;
+  font: 700 12px SimSun, "宋体", serif;
+  cursor: pointer;
+}
+
+.bf3d-review-actions button:hover,
+.bf3d-review-actions button:focus-visible {
+  border-color: #b3d8c6;
+  background: rgba(52, 83, 73, 0.92);
+  outline: none;
+}
+
+.bf3d-review-actions button.active {
+  border-color: #e2bd61;
+  background: linear-gradient(180deg, rgba(116, 83, 30, 0.94), rgba(68, 49, 22, 0.94));
+  color: #fff7d7;
+  box-shadow: inset 0 0 10px rgba(241, 190, 75, 0.13);
+}
+
+.bf3d-review-status {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(118, 160, 145, 0.2);
+  font-size: 11px;
+}
+
+.bf3d-review-status b {
+  flex: 0 0 auto;
+  color: #f7d686;
+}
+
+.bf3d-review-status span {
+  overflow: hidden;
+  color: #bdd5ca;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bf3d-review-panel[data-review-load-state="error"] {
+  border-color: rgba(205, 81, 69, 0.72);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.38),
+    inset 0 0 18px rgba(205, 81, 69, 0.08);
+}
+
+.bf3d-review-panel[data-review-load-state="error"] .bf3d-review-status b {
+  color: #ff9487;
+}
+
+.bf3d-review-panel[data-review-load-state="loading"] [data-review-asset]::before {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border: 1px solid rgba(220, 242, 232, 0.3);
+  border-top-color: #e2bd61;
+  border-radius: 50%;
+  content: "";
+  vertical-align: -1px;
+  animation: bf3d-review-spin 0.8s linear infinite;
+}
+
+.bf3d-review-recovery {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(205, 81, 69, 0.28);
+}
+
+.bf3d-review-recovery[hidden] {
+  display: none;
+}
+
+.bf3d-review-recovery button {
+  min-height: 27px;
+  padding: 4px 9px;
+  border: 1px solid rgba(205, 81, 69, 0.55);
+  border-radius: 4px;
+  background: rgba(58, 27, 25, 0.9);
+  color: #ffe5e1;
+  font: 700 11px SimSun, "宋体", serif;
+  cursor: pointer;
+}
+
+.bf3d-review-recovery button:first-child {
+  border-color: rgba(226, 189, 97, 0.68);
+  background: rgba(91, 65, 25, 0.9);
+  color: #fff4cf;
+}
+
+.bf3d-review-recovery button:hover,
+.bf3d-review-recovery button:focus-visible {
+  filter: brightness(1.18);
+  outline: 1px solid rgba(255, 255, 255, 0.28);
+  outline-offset: 1px;
+}
+
+@keyframes bf3d-review-spin {
+  to { transform: rotate(360deg); }
+}
+
+.bf3d-review-legend {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px 8px;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(118, 160, 145, 0.2);
+  color: #e6f2ec;
+  font-size: 10px;
+}
+
+.bf3d-review-legend[hidden] {
+  display: none;
+}
+
+.bf3d-review-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.bf3d-review-legend i {
+  width: 12px;
+  height: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 1px;
+}
+
+.bf3d-review-legend i.steel { background: #778a91; }
+.bf3d-review-legend i.backfill { background: #7a7263; }
+.bf3d-review-legend i.copper { background: #8f3f22; }
+.bf3d-review-legend i.castiron { background: #303535; }
+.bf3d-review-legend i.hotface { background: #b45025; }
+.bf3d-review-legend i.refractory { background: #c0a27b; }
+
+.bf3d-review-legend small {
+  grid-column: 1 / -1;
+  color: #d9ba7e;
+  line-height: 1.35;
+}
+
+.bf3d-review-camera-actions {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.bf3d-review-camera-actions button {
+  min-height: 27px;
+  border: 1px solid rgba(125, 167, 151, 0.46);
+  border-radius: 4px;
+  background: rgba(24, 45, 43, 0.88);
+  color: #d9eee4;
+  font: 700 11px SimSun, "宋体", serif;
+  cursor: pointer;
+}
+
+.bf3d-review-camera-actions button:hover,
+.bf3d-review-camera-actions button:focus-visible {
+  border-color: #b3d8c6;
+  background: rgba(52, 83, 73, 0.92);
+  outline: none;
+}
+
+.bf3d-review-camera-actions button.active {
+  border-color: #e2bd61;
+  background: rgba(91, 65, 25, 0.92);
+  color: #fff4cf;
+}
+
+.bf3d-review-camera-actions button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.layered-cad-stage.bf3d-review-active .furnace-layer-callouts,
+.layered-cad-stage.bf3d-review-active .furnace-follow-lines,
+.layered-cad-stage.bf3d-review-active .cad-furnace-tooltip,
+.layered-cad-stage.bf3d-review-active .bf3d-sim-panel,
+.bf3d-review-scope-active > .cad-layer-controls {
+  display: none !important;
+}
+
+.layered-cad-stage.bf3d-review-active .cad-furnace-status {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.furnace-wrap.is-3d.centered-cad.furnace-layer-wrap
+  .furnace-stage-3d.cad-stage.layered-cad-stage.bf3d-review-active
+  .cad-furnace-viewer {
+  inset: 8% 4% 3% 4% !important;
+  left: 4% !important;
+  right: 4% !important;
+  top: 8% !important;
+  bottom: 3% !important;
+  border-color: rgba(125, 168, 151, 0.18) !important;
+  background: radial-gradient(circle at 46% 42%, rgba(88, 103, 96, 0.22), transparent 58%),
+    linear-gradient(180deg, rgba(8, 15, 17, 0.82), rgba(2, 7, 9, 0.96)) !important;
+}
+
+.layered-cad-stage.bf3d-review-material .cad-furnace-viewer {
+  background: radial-gradient(circle at 52% 45%, rgba(137, 139, 127, 0.2), transparent 60%),
+    linear-gradient(180deg, #111818, #050909) !important;
+}
+
+.layered-cad-stage.bf3d-review-structural .cad-furnace-viewer {
+  background: radial-gradient(circle at 50% 46%, rgba(109, 83, 58, 0.18), transparent 62%),
+    linear-gradient(180deg, #111719, #05080a) !important;
+}
+
+@media (max-width: 1366px), (max-height: 760px) {
+  .bf3d-review-panel {
+    top: 5px;
+    width: min(450px, calc(100% - 300px));
+    padding: 6px;
+  }
+
+  .layered-cad-stage.bf3d-review-active .bf3d-review-panel,
+  .layered-cad-stage.bf3d-review-status-visible .bf3d-review-panel {
+    width: min(500px, calc(100% - 14px));
+  }
+
+  .bf3d-review-head {
+    display: none;
+  }
+
+  .bf3d-review-actions {
+    margin-top: 0;
+  }
+
+  .bf3d-review-actions button {
+    min-height: 26px;
+    padding: 3px 5px;
+    font-size: 11px;
+  }
+
+  .bf3d-review-status {
+    margin-top: 4px;
+    padding-top: 4px;
+    font-size: 10px;
+  }
+
+  .bf3d-review-legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: 64px;
+    overflow: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .bf3d-review-panel {
+    position: absolute;
+    top: auto;
+    bottom: 6px;
+    left: 4px;
+    width: calc(100% - 8px);
+    transform: none;
+    margin: 0;
+  }
+
+  .layered-cad-stage.bf3d-review-active .bf3d-review-panel,
+  .layered-cad-stage.bf3d-review-status-visible .bf3d-review-panel {
+    top: 2px;
+    bottom: auto;
+    left: 4px;
+    width: calc(100% - 8px);
+    transform: none;
+  }
+
+  .bf3d-review-status span {
+    white-space: normal;
+  }
+
+  .bf3d-review-legend {
+    display: none;
+  }
+
+  .furnace-wrap.is-3d.centered-cad.furnace-layer-wrap
+    .furnace-stage-3d.cad-stage.layered-cad-stage.bf3d-review-active
+    .cad-furnace-viewer {
+    inset: 15% 1% 2% 1% !important;
+    left: 1% !important;
+    right: 1% !important;
+    top: 15% !important;
+    bottom: 2% !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bf3d-review-panel[data-review-load-state="loading"] [data-review-asset]::before {
+    animation: none;
+  }
+}

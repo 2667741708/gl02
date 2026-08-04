@@ -1,0 +1,21 @@
+{
+  "schema": "gl02.bf3d.sensor_catalog_build_report.v1",
+  "generated_at": "2026-07-25T10:36:11.178995+00:00",
+  "outputs": {
+    "catalog": "D:\\文件\\冀南钢铁运行中第二版本\\PT\\高炉3D模型\\docs\\GL02传感器点位清单.v1.json",
+    "units": "D:\\文件\\冀南钢铁运行中第二版本\\PT\\高炉3D模型\\docs\\GL02传感器单位映射.v1.json",
+    "semantics": "D:\\文件\\冀南钢铁运行中第二版本\\PT\\高炉3D模型\\docs\\GL02传感器语义映射.v1.json",
+    "markdown": "D:\\文件\\冀南钢铁运行中第二版本\\PT\\高炉3D模型\\docs\\GL02传感器点位清单.md"
+  },
+  "checks": {
+    "database_count_133": true,
+    "billboard_count_133": true,
+    "database_billboard_ids_match": true,
+    "formal_sensor_count_115": true,
+    "static_pressure_count_18": true,
+    "all_units_mapped": true,
+    "all_semantics_mapped": true,
+    "all_cn_abbreviations": true
+  },
+  "passed": true
+}

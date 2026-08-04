@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <title>GL02 高炉 R2X 1K AO 冒烟审查</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="assets/bf3d-review-renderer.css" />
+    <style>
+      .r2x-ao-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
+      .r2x-ao-strip .segmented{min-width:240px}
+      .r2x-gate{border-left:3px solid #c89745;padding-left:10px;color:#d6d0c5}
+      .r2x-gate strong{color:#f3d18c}
+      .r2x-contract-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+      .r2x-contract-list li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(148,159,166,.16);padding-bottom:6px}
+      .r2x-contract-list b{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#cfd8dc;text-align:right}
+      @media(max-width:720px){.r2x-ao-strip{grid-template-columns:1fr}.r2x-ao-strip .segmented{min-width:0}}
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./libs/three/three.module.js",
+          "three/addons/": "./libs/three/"
+        }
+      }
+    </script>
+    <script type="module" src="assets/bf3d-review-renderer-r2x.js"></script>
+  </head>
+  <body
+    data-bf3d-review-page="r2x-isolated"
+    data-load-state="loading"
+    data-review-view="global"
+    data-ao-state="off"
+    data-evidence="E/illustrative"
+    data-p50-approved="false"
+    data-production-approved="false"
+  >
+    <a class="skip-link" href="#review-main">跳到三维审查区</a>
+
+    <header class="review-header">
+      <div class="title-block">
+        <p class="eyebrow">GL02 · R2X · 当前 R2J 独立 AO UV2 消费冒烟</p>
+        <h1>高炉外壳 1K AO 同机位审查</h1>
+        <p>只切换五个外壳的 aoMapIntensity；不改材质、灯光、曝光、环境、相机或 Tone Mapping。</p>
+      </div>
+      <div class="boundary-banner" role="status" aria-live="polite">
+        <strong>1K smoke</strong>
+        <span>E/illustrative</span>
+        <span>not P50</span>
+        <small>not production · 不批准 2K/P50/P60/P70/QA-70</small>
+      </div>
+    </header>
+
+    <section class="contract-strip" aria-label="R2X 运行合同">
+      <div>
+        <span>候选资产</span>
+        <b id="asset-contract">v5payload · 正在核验 SHA</b>
+      </div>
+      <div>
+        <span>AO 合同</span>
+        <b id="ao-contract">uv2 / channel 2 · 待检查</b>
+      </div>
+      <div>
+        <span>灯光与环境</span>
+        <b>P40 锁定 · R2W 同值</b>
+      </div>
+      <div>
+        <span>色彩路径</span>
+        <b>Three r160 · sRGB · ACES 1.00</b>
+      </div>
+    </section>
+
+    <main id="review-main" class="review-layout">
+      <section class="viewport-card" aria-labelledby="viewport-heading">
+        <div class="review-toolbar r2x-ao-strip">
+          <div>
+            <p class="toolbar-label" id="viewport-heading">同机位审查视角</p>
+            <div class="segmented" role="group" aria-label="选择审查视角">
+              <button
+                type="button"
+                class="is-active"
+                data-view-button="global"
+                aria-pressed="true"
+              >
+                外表面全景
+              </button>
+              <button
+                type="button"
+                data-view-button="detail"
+                aria-pressed="false"
+              >
+                炉腰材质近景
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="toolbar-label">AO 同机位开关</p>
+            <div class="segmented compact" role="group" aria-label="切换 AO">
+              <button
+                type="button"
+                class="is-active"
+                data-ao-button="off"
+                aria-pressed="true"
+              >
+                AO Off
+              </button>
+              <button
+                type="button"
+                data-ao-button="on"
+                aria-pressed="false"
+              >
+                AO On
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="bf3d-review-viewport"
+          class="review-viewport"
+          aria-label="GL02 高炉 R2X AO 同机位只读三维视口"
+        >
+          <div class="viewport-watermark" aria-hidden="true">
+            <b>1K smoke</b>
+            <span>E/illustrative · not P50</span>
+          </div>
+          <div
+            id="review-state-layer"
+            class="state-layer"
+            data-kind="loading"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div class="state-mark" aria-hidden="true"></div>
+            <h2 id="state-title">正在读取 R2X v5payload 候选</h2>
+            <p id="state-message">下载后将在浏览器内核验字节数、SHA 与 AO 运行时合同。</p>
+            <progress
+              id="load-progress"
+              class="load-progress"
+              aria-label="资产加载进度"
+              max="100"
+              value="0"
+            >
+              0%
+            </progress>
+            <button type="button" id="retry-button" hidden>重试加载</button>
+          </div>
+        </div>
+
+        <div class="viewport-footer">
+          <p id="active-view-description">
+            外表面全景 · AO Off；同机位只把五个外壳 aoMapIntensity 设为 0。
+          </p>
+          <p>代表审查固定相机；交互仅用于人工观察，不进入机器截图。</p>
+        </div>
+      </section>
+
+      <aside class="inspector" aria-label="R2X 只读审查信息">
+        <section class="inspector-section status-section">
+          <div class="section-heading">
+            <div>
+              <p class="toolbar-label">运行状态</p>
+              <h2>AO 消费合同</h2>
+            </div>
+            <span id="load-state-badge" class="state-badge is-loading">加载中</span>
+          </div>
+          <dl class="status-grid">
+            <div>
+              <dt>候选 SHA-256</dt>
+              <dd id="asset-sha">待核验</dd>
+            </div>
+            <div>
+              <dt>外壳 / 材质</dt>
+              <dd id="shell-count">待读取</dd>
+            </div>
+            <div>
+              <dt>uv2 / channel</dt>
+              <dd id="uv2-status">未检查</dd>
+            </div>
+            <div>
+              <dt>当前 AO</dt>
+              <dd id="ao-state-status">Off · intensity 0</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="inspector-section">
+          <p class="toolbar-label">硬边界</p>
+          <h2>本页不作发布批准</h2>
+          <p class="r2x-gate">
+            <strong>1K smoke / E illustrative / not P50 / not production</strong><br />
+            若 AO 差异为零、整体压黑或形成虚假圆环，代表审查必须失败关闭。
+          </p>
+        </section>
+
+        <section class="inspector-section">
+          <p class="toolbar-label">固定渲染合同</p>
+          <h2>AO 外全部冻结</h2>
+          <ul class="r2x-contract-list">
+            <li><span>BaseColor / Normal / Roughness / Metallic</span><b>channel 0</b></li>
+            <li><span>AO</span><b>uv2 / channel 2</b></li>
+            <li><span>AO Off / On</span><b>intensity 0 / imported 1</b></li>
+            <li><span>曝光 / Tone Mapping</span><b>1.00 / ACES</b></li>
+            <li><span>禁用对象 / 黄色轮廓</span><b>0 / 0</b></li>
+          </ul>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="review-footer">
+      <b>R2X 1K AO 隔离冒烟</b>
+      <span>只加载五壳 v5payload 候选</span>
+      <span>不加载正式 GLB 或生产控制器</span>
+      <span>不得据此批准 2K、P50 或生产</span>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,264 @@
+{
+  "description": "GL02 高炉 3D 工业现场模型可调参数。修改后刷新 8092 总览页即可生效。",
+  "renderer": {
+    "toneMappingExposure": {
+      "value": 1.28,
+      "comment": "整体曝光。提高会让模型更亮，过高会发灰；建议 1.05-1.35。"
+    },
+    "pixelRatioMax": {
+      "value": 2,
+      "comment": "渲染像素比上限。提高更清晰但更耗 GPU；建议 1.5-2。"
+    }
+  },
+  "fog": {
+    "color": {
+      "value": "#111816",
+      "comment": "雾颜色。偏深会更像夜间监控，偏灰会更像厂房白天。"
+    },
+    "near": {
+      "value": 58,
+      "comment": "雾开始距离。提高可减少模型被压暗；建议 50-80。"
+    },
+    "far": {
+      "value": 154,
+      "comment": "雾结束距离。提高可减少远处发黑；建议 130-190。"
+    }
+  },
+  "lights": {
+    "hemisphere": {
+      "skyColor": {
+        "value": "#d7ded8",
+        "comment": "环境光天空色，负责暗部补光。"
+      },
+      "groundColor": {
+        "value": "#211b16",
+        "comment": "环境光地面色，稍暖可保留炉前现场感。"
+      },
+      "intensity": {
+        "value": 1.62,
+        "comment": "环境光强度。提高后炉体暗面更可见；建议 1.35-1.75。"
+      }
+    },
+    "top": {
+      "color": {
+        "value": "#f5f2df",
+        "comment": "顶部厂房主光颜色。"
+      },
+      "intensity": {
+        "value": 2.55,
+        "comment": "顶部主光强度。提高后炉壳、平台更清楚；建议 2.1-2.8。"
+      },
+      "position": {
+        "value": [8, 26, 12],
+        "comment": "顶部主光位置 [x,y,z]，决定高光和阴影方向。"
+      }
+    },
+    "side": {
+      "color": {
+        "value": "#9caaa5",
+        "comment": "侧向补光颜色。"
+      },
+      "intensity": {
+        "value": 0.96,
+        "comment": "侧向补光强度。提高后围管、支架不那么黑；建议 0.7-1.15。"
+      },
+      "position": {
+        "value": [-18, 8, -16],
+        "comment": "侧向补光位置 [x,y,z]，可突出平台或管道。"
+      }
+    },
+    "warmTaphole": {
+      "color": {
+        "value": "#ff8a3a",
+        "comment": "出铁口暖光颜色。"
+      },
+      "intensity": {
+        "value": 1.12,
+        "comment": "出铁口暖光强度。提高后下部更暖、更有热区感；建议 0.8-1.6。"
+      },
+      "distance": {
+        "value": 42,
+        "comment": "暖光影响距离。影响炉缸和地坪亮度；建议 30-55。"
+      },
+      "decay": {
+        "value": 2.2,
+        "comment": "暖光衰减。越大越局部；建议 1.8-2.6。"
+      },
+      "position": {
+        "value": [4, -18, 18],
+        "comment": "出铁口暖光位置 [x,y,z]。"
+      }
+    }
+  },
+  "shadow": {
+    "enabled": {
+      "value": true,
+      "comment": "是否启用真实阴影。关闭会变平，开启更真实。"
+    },
+    "mapSize": {
+      "value": 2048,
+      "comment": "主光阴影贴图大小。越大越清晰但更耗性能；建议 1024 或 2048。"
+    },
+    "camera": {
+      "near": { "value": 1, "comment": "阴影相机近裁剪面。" },
+      "far": { "value": 90, "comment": "阴影相机远裁剪面。" },
+      "left": { "value": -38, "comment": "阴影相机左边界。" },
+      "right": { "value": 38, "comment": "阴影相机右边界。" },
+      "top": { "value": 42, "comment": "阴影相机上边界。" },
+      "bottom": { "value": -34, "comment": "阴影相机下边界。" }
+    }
+  },
+  "floor": {
+    "color": {
+      "value": "#686963",
+      "comment": "混凝土地坪材质颜色。提高亮度后现场感更清楚。"
+    },
+    "scaleMultiplier": {
+      "value": 3.2,
+      "comment": "地坪相对模型包围盒的尺寸倍数。"
+    }
+  },
+  "contactShadow": {
+    "opacity": {
+      "value": 0.26,
+      "comment": "接触阴影透明度。太高会脏，太低会让模型漂；建议 0.16-0.32。"
+    },
+    "scale": {
+      "value": 0.62,
+      "comment": "接触阴影半径相对模型尺寸的比例。"
+    }
+  },
+  "canvas": {
+    "filter": {
+      "value": "drop-shadow(0 20px 24px rgba(0,0,0,.46)) brightness(1.08) saturate(.92) contrast(1.04)",
+      "comment": "CSS 后处理滤镜。可加 brightness(1.08) 或提高 saturate 到 .9。"
+    }
+  },
+  "background": {
+    "stage": {
+      "value": "linear-gradient(180deg, rgba(58,66,63,.76), rgba(30,36,34,.9))",
+      "comment": "炉况总览面板内 3D 舞台背景。当前偏深，想更像厂房可改成 rgba(42,48,46,.82) 到 rgba(20,24,23,.92) 的灰绿渐变。"
+    },
+    "viewer": {
+      "value": "linear-gradient(180deg, rgba(72,80,75,.66), rgba(38,44,41,.78))",
+      "comment": "WebGL canvas 背后的空旷区域背景。提高 RGB 数值会变亮；不要用纯白，容易削弱工业纵深。"
+    }
+  },
+  "materialOverrides": {
+    "furnaceBody": {
+      "color": {
+        "value": "#9aa4a0",
+        "comment": "炉身/炉腰/炉喉外壳的提亮颜色。提高可让高炉主体更清楚；避免纯白，建议 #8f9996 到 #adb5af。"
+      },
+      "roughness": {
+        "value": 0.46,
+        "comment": "炉体外壳粗糙度。略低会更亮，过低会像塑料；建议 0.42-0.58。"
+      },
+      "metalness": {
+        "value": 0.72,
+        "comment": "炉体外壳金属度。略低可减少黑镜面反射；建议 0.62-0.82。"
+      },
+      "emissive": {
+        "value": "#202826",
+        "comment": "炉体外壳极弱暗部补色，用于让暗面不糊成黑块。"
+      },
+      "emissiveIntensity": {
+        "value": 0.08,
+        "comment": "炉体外壳暗部补色强度。过高会失真；建议 0.04-0.12。"
+      },
+      "opacity": {
+        "value": 1,
+        "comment": "炉体外壳透明度。1 为不透明；0.35-0.65 可临时观察内部料柱、软熔带、炉缸和传感器空间关系。生产总览建议保持 0.85-1。"
+      }
+    }
+  },
+  "sensor": {
+    "color": {
+      "value": "#77d4cf",
+      "comment": "传感器点主色。"
+    },
+    "emissive": {
+      "value": "#2ea8a0",
+      "comment": "传感器点弱发光色。"
+    },
+    "emissiveIntensity": {
+      "value": 0.22,
+      "comment": "传感器点发光强度。过高会回到玩具感；建议 0.15-0.35。"
+    },
+    "hitSphereRadius": {
+      "value": 0.82,
+      "comment": "传感器透明命中球半径，影响鼠标悬浮容错。"
+    },
+    "hoverRadiusPx": {
+      "value": 34,
+      "comment": "屏幕空间悬浮容错像素。越大越容易 hover；建议 28-44。"
+    }
+  },
+  "camera": {
+    "fov": {
+      "value": 38,
+      "comment": "相机视角。大则空间夸张，小则更工程图；建议 34-42。"
+    },
+    "near": {
+      "value": 0.1,
+      "comment": "相机近裁剪面。"
+    },
+    "far": {
+      "value": 320,
+      "comment": "相机远裁剪面。"
+    },
+    "enablePan": {
+      "value": false,
+      "comment": "是否允许平移。生产页建议 false，避免模型被拖走。"
+    },
+    "minPolarAngle": {
+      "value": 0.46,
+      "comment": "最小俯仰角，防止过度俯视/穿模。"
+    },
+    "maxPolarAngle": {
+      "value": 1.42,
+      "comment": "最大俯仰角，防止仰视穿帮。"
+    },
+    "minDistanceFactor": {
+      "value": 0.28,
+      "comment": "最小缩放距离 = 模型距离基准 * 该系数。"
+    },
+    "maxDistanceFactor": {
+      "value": 1.45,
+      "comment": "最大缩放距离 = 模型距离基准 * 该系数。"
+    },
+    "rotateSpeed": {
+      "value": 0.42,
+      "comment": "旋转速度。"
+    },
+    "zoomSpeed": {
+      "value": 0.55,
+      "comment": "缩放速度。"
+    }
+  },
+  "labels": {
+    "visible": {
+      "value": true,
+      "comment": "是否显示现场标注。"
+    },
+    "maxWidthPx": {
+      "value": 178,
+      "comment": "标注最大宽度。减小可减少遮挡，增大可提高可读性。"
+    },
+    "backgroundOpacity": {
+      "value": 0.78,
+      "comment": "标注背景透明度。降低可减少遮挡，提高可增强可读性。"
+    }
+  },
+  "priority_brightness_tuning": {
+    "comment": "如果只觉得太暗，优先调下面 6 项。",
+    "items": [
+      "renderer.toneMappingExposure.value: 1.25-1.35",
+      "lights.hemisphere.intensity.value: 1.55-1.75",
+      "lights.top.intensity.value: 2.4-2.8",
+      "lights.side.intensity.value: 0.9-1.1",
+      "canvas.filter.value: 增加 brightness(1.08) 或 saturate(.9)",
+      "floor.color.value / PBR 材质颜色: 稍微提亮，不要改成纯白"
+    ]
+  }
+}

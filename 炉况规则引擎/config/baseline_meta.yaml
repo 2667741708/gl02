@@ -1,0 +1,381 @@
+DP_lower:
+  iqr_ref: 8.819824
+  median_ref: 192.590073
+DP_total:
+  iqr_ref: 10.016556
+  median_ref: 200.60083
+DP_upper:
+  iqr_ref: 3.462273
+  median_ref: 7.689804
+GasUtil:
+  iqr_ref: 0.010748
+  median_ref: 0.415655
+Hopper_weight:
+  iqr_ref: 22.934752
+  median_ref: 11.783854
+Hopper_weight_set:
+  iqr_ref: 1.0e-06
+  median_ref: 0.0
+L:
+  iqr_ref: 0.307436
+  median_ref: 2.234791
+O2_small_flow:
+  iqr_ref: 3.255209
+  median_ref: -19.53125
+PCI_rate:
+  iqr_ref: 3.063473
+  median_ref: 42.244377
+PCI_set:
+  iqr_ref: 3.0
+  median_ref: 42.0
+PI:
+  iqr_ref: 1.335164
+  median_ref: 20.937972
+P_blast:
+  iqr_ref: 9.255615
+  median_ref: 461.50174
+P_blast_cold:
+  iqr_ref: 9.223083
+  median_ref: 473.719635
+P_static_lower_A:
+  iqr_ref: 6.872101
+  median_ref: 343.677673
+P_static_lower_B:
+  iqr_ref: 2.676514
+  median_ref: 382.59549
+P_static_lower_C:
+  iqr_ref: 0.868073
+  median_ref: 340.494781
+P_static_lower_D:
+  iqr_ref: 0.795746
+  median_ref: 363.208923
+P_static_lower_E:
+  iqr_ref: 5.027466
+  median_ref: 351.417816
+P_static_lower_F:
+  iqr_ref: 2.350983
+  median_ref: 357.349548
+P_static_middle_A:
+  iqr_ref: 5.099823
+  median_ref: 326.099533
+P_static_middle_B:
+  iqr_ref: 0.940384
+  median_ref: 338.252319
+P_static_middle_C:
+  iqr_ref: 3.544586
+  median_ref: 341.869217
+P_static_middle_D:
+  iqr_ref: 5.570038
+  median_ref: 341.579865
+P_static_middle_E:
+  iqr_ref: 6.076416
+  median_ref: 323.640045
+P_static_middle_F:
+  iqr_ref: 6.872101
+  median_ref: 336.62471
+P_static_upper_A:
+  iqr_ref: 4.991333
+  median_ref: 332.175934
+P_static_upper_B:
+  iqr_ref: 6.510406
+  median_ref: 325.014465
+P_static_upper_C:
+  iqr_ref: 3.110519
+  median_ref: 322.193283
+P_static_upper_D:
+  iqr_ref: 0.723419
+  median_ref: 329.49942
+P_static_upper_E:
+  iqr_ref: 4.412628
+  median_ref: 324.797455
+P_static_upper_F:
+  iqr_ref: 5.244507
+  median_ref: 329.933441
+P_top:
+  iqr_ref: 3.105331
+  median_ref: 260.896805
+Q_O2:
+  iqr_ref: 1002.0625
+  median_ref: 25982.530273
+Q_blast:
+  iqr_ref: 123.236328
+  median_ref: 4201.189941
+T_blast:
+  iqr_ref: 68.793396
+  median_ref: 1216.579895
+T_body_L10_A:
+  iqr_ref: 0.520832
+  median_ref: 42.339409
+T_body_L10_B:
+  iqr_ref: 0.694447
+  median_ref: 43.012154
+T_body_L10_C:
+  iqr_ref: 0.607639
+  median_ref: 43.012154
+T_body_L10_D:
+  iqr_ref: 0.434025
+  median_ref: 43.359375
+T_body_L10_E:
+  iqr_ref: 0.477428
+  median_ref: 43.446178
+T_body_L10_F:
+  iqr_ref: 0.477428
+  median_ref: 42.534721
+T_body_L10_G:
+  iqr_ref: 0.78125
+  median_ref: 42.751736
+T_body_L10_H:
+  iqr_ref: 0.477436
+  median_ref: 41.44965
+T_body_L11_A:
+  iqr_ref: 0.651043
+  median_ref: 46.484375
+T_body_L11_B:
+  iqr_ref: 0.911461
+  median_ref: 45.963539
+T_body_L11_C:
+  iqr_ref: 2.647572
+  median_ref: 47.005207
+T_body_L11_D:
+  iqr_ref: 0.911461
+  median_ref: 46.180553
+T_body_L11_E:
+  iqr_ref: 0.390629
+  median_ref: 45.2691
+T_body_L11_F:
+  iqr_ref: 1.519096
+  median_ref: 52.213543
+T_body_L11_G:
+  iqr_ref: 2.387154
+  median_ref: 47.395832
+T_body_L11_H:
+  iqr_ref: 3.385418
+  median_ref: 47.569447
+T_body_L12_A:
+  iqr_ref: 2.473957
+  median_ref: 48.697918
+T_body_L12_B:
+  iqr_ref: 1.736107
+  median_ref: 51.736111
+T_body_L12_C:
+  iqr_ref: 0.998264
+  median_ref: 48.697918
+T_body_L12_D:
+  iqr_ref: 4.513889
+  median_ref: 54.427082
+T_body_L12_E:
+  iqr_ref: 1.562504
+  median_ref: 47.005207
+T_body_L12_F:
+  iqr_ref: 14.192711
+  median_ref: 97.005211
+T_body_L12_G:
+  iqr_ref: 16.015625
+  median_ref: 92.664932
+T_body_L12_H:
+  iqr_ref: 20.616314
+  median_ref: 77.430557
+T_body_L13_A:
+  iqr_ref: 22.69965
+  median_ref: 70.138893
+T_body_L13_B:
+  iqr_ref: 33.376724
+  median_ref: 120.789932
+T_body_L13_C:
+  iqr_ref: 21.31076
+  median_ref: 97.743057
+T_body_L13_D:
+  iqr_ref: 10.460068
+  median_ref: 83.289932
+T_body_L13_E:
+  iqr_ref: 9.809029
+  median_ref: 77.604164
+T_body_L13_F:
+  iqr_ref: 3.906254
+  median_ref: 63.28125
+T_body_L13_G:
+  iqr_ref: 10.243057
+  median_ref: 80.078125
+T_body_L13_H:
+  iqr_ref: 10.807293
+  median_ref: 60.503475
+T_body_L14_A:
+  iqr_ref: 4.6875
+  median_ref: 77.126732
+T_body_L14_B:
+  iqr_ref: 3.038185
+  median_ref: 77.560768
+T_body_L14_C:
+  iqr_ref: 5.208328
+  median_ref: 66.623268
+T_body_L14_D:
+  iqr_ref: 5.121536
+  median_ref: 72.178822
+T_body_L14_E:
+  iqr_ref: 1.692711
+  median_ref: 64.322914
+T_body_L14_F:
+  iqr_ref: 1.822922
+  median_ref: 65.538193
+T_body_L14_G:
+  iqr_ref: 4.383675
+  median_ref: 65.928818
+T_body_L14_H:
+  iqr_ref: 5.46875
+  median_ref: 68.098961
+T_body_L15_A:
+  iqr_ref: 7.204857
+  median_ref: 97.178818
+T_body_L15_B:
+  iqr_ref: 7.03125
+  median_ref: 117.361107
+T_body_L15_C:
+  iqr_ref: 7.7257
+  median_ref: 106.857643
+T_body_L15_D:
+  iqr_ref: 7.769096
+  median_ref: 104.991318
+T_body_L15_E:
+  iqr_ref: 4.296867
+  median_ref: 95.876732
+T_body_L15_F:
+  iqr_ref: 5.078125
+  median_ref: 91.319443
+T_body_L15_G:
+  iqr_ref: 7.204865
+  median_ref: 91.493057
+T_body_L15_H:
+  iqr_ref: 11.067703
+  median_ref: 75.86805
+T_body_L16_A:
+  iqr_ref: 13.541672
+  median_ref: 86.284721
+T_body_L16_B:
+  iqr_ref: 4.513885
+  median_ref: 72.569443
+T_body_L16_C:
+  iqr_ref: 9.765633
+  median_ref: 84.635414
+T_body_L16_D:
+  iqr_ref: 10.633682
+  median_ref: 95.746529
+T_body_L16_E:
+  iqr_ref: 3.949654
+  median_ref: 77.256943
+T_body_L16_F:
+  iqr_ref: 6.336815
+  median_ref: 93.880211
+T_body_L16_G:
+  iqr_ref: 11.805557
+  median_ref: 90.625
+T_body_L16_H:
+  iqr_ref: 8.723961
+  median_ref: 73.654518
+T_body_L7_A:
+  iqr_ref: 1.171875
+  median_ref: 50.477428
+T_body_L7_B:
+  iqr_ref: 1.085068
+  median_ref: 45.659721
+T_body_L7_C:
+  iqr_ref: 0.868053
+  median_ref: 45.486111
+T_body_L7_D:
+  iqr_ref: 1.215275
+  median_ref: 45.659721
+T_body_L7_E:
+  iqr_ref: 1.302082
+  median_ref: 45.789928
+T_body_L7_F:
+  iqr_ref: 2.734375
+  median_ref: 57.682289
+T_body_L7_G:
+  iqr_ref: 1.519096
+  median_ref: 44.618053
+T_body_L7_H:
+  iqr_ref: 4.036461
+  median_ref: 59.895832
+T_body_L8_A:
+  iqr_ref: 0.651043
+  median_ref: 43.923611
+T_body_L8_B:
+  iqr_ref: 1.171875
+  median_ref: 44.921875
+T_body_L8_C:
+  iqr_ref: 1.215279
+  median_ref: 44.444447
+T_body_L8_D:
+  iqr_ref: 1.258682
+  median_ref: 45.225697
+T_body_L8_E:
+  iqr_ref: 0.694443
+  median_ref: 44.704861
+T_body_L8_F:
+  iqr_ref: 2.864586
+  median_ref: 49.739582
+T_body_L8_G:
+  iqr_ref: 0.759548
+  median_ref: 44.249134
+T_body_L8_H:
+  iqr_ref: 0.694443
+  median_ref: 43.185764
+T_body_L9_A:
+  iqr_ref: 0.564232
+  median_ref: 43.185764
+T_body_L9_B:
+  iqr_ref: 0.607635
+  median_ref: 43.315971
+T_body_L9_C:
+  iqr_ref: 0.651039
+  median_ref: 43.098961
+T_body_L9_D:
+  iqr_ref: 0.694447
+  median_ref: 43.836803
+T_body_L9_E:
+  iqr_ref: 1.388893
+  median_ref: 44.184029
+T_body_L9_F:
+  iqr_ref: 1.519093
+  median_ref: 50.954861
+T_body_L9_G:
+  iqr_ref: 0.694447
+  median_ref: 44.097225
+T_body_L9_H:
+  iqr_ref: 0.390625
+  median_ref: 43.142361
+T_taphole_1:
+  iqr_ref: 320.833252
+  median_ref: 1506.835938
+T_taphole_2:
+  iqr_ref: 313.085938
+  median_ref: 1503.081543
+T_taphole_3:
+  iqr_ref: 1.0e-06
+  median_ref: 0.0
+T_top:
+  iqr_ref: 17.724613
+  median_ref: 111.607533
+T_top_A:
+  iqr_ref: 18.120659
+  median_ref: 112.521702
+T_top_B:
+  iqr_ref: 17.317711
+  median_ref: 109.939232
+T_top_C:
+  iqr_ref: 18.250866
+  median_ref: 111.892365
+T_top_D:
+  iqr_ref: 17.795128
+  median_ref: 111.892365
+cooling_wall_return_pressure:
+  iqr_ref: 0.010091
+  median_ref: 0.155093
+cooling_wall_supply_flow_1:
+  iqr_ref: 42.136719
+  median_ref: 4456.380127
+cooling_wall_supply_flow_2:
+  iqr_ref: 3.141266
+  median_ref: 279.975037
+cooling_wall_supply_pressure:
+  iqr_ref: 0.010851
+  median_ref: 0.754384

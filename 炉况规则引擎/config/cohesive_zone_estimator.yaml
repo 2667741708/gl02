@@ -1,0 +1,246 @@
+# REQ-BF3D-C2-001
+# GL02 软熔带根部低置信度基线估计器参数。
+#
+# 重要边界：
+# - 本模型没有垂直探针/解剖真值校准，只能输出 estimated。
+# - confidence_cap 固定不高于 0.45；参数未经现场标定，不得用于自动控制。
+# - 所有时间窗口只允许读取 evaluation_time 及之前的数据。
+
+schema_version: "1.0"
+
+model:
+  version: "C2-ROOT-BASELINE-2026.07"
+  evidence: "estimated"
+  calibration_status: "uncalibrated"
+  confidence_cap: 0.45
+  root_definition: "wall_thermal_activity_centroid"
+  azimuth_reference: "sensor_relative_A_zero"
+  absolute_azimuth_status: "unconfirmed"
+  control_use: "prohibited"
+
+time:
+  input_cadence_minutes: 1
+  current_window_minutes: 15
+  reference_window_minutes: 15
+  reference_separation_minutes: 15
+  max_body_age_minutes: 5
+  max_pressure_age_minutes: 5
+  max_thermal_age_minutes: 5
+  min_samples_per_sensor_per_window: 5
+
+coverage:
+  min_current_body_layers: 5
+  min_reference_body_layers: 5
+  min_common_body_layers: 5
+  min_sectors_per_layer: 4
+  min_common_eccentric_sectors: 6
+  min_pressure_concepts: 1
+  group_weights:
+    body_temperature: 0.65
+    pressure_permeability: 0.25
+    thermal_forcing: 0.10
+    top_distribution: 0.00
+    burden_descent: 0.00
+
+body_temperature:
+  unit: "degC"
+  valid_min: -20.0
+  valid_max: 600.0
+  layers:
+    L7: 16.860
+    L8: 18.335
+    L9: 20.125
+    L10: 21.860
+    L11: 23.711
+    L12: 25.441
+    L13: 27.171
+  sectors:
+    A: 0.0
+    B: 45.0
+    C: 90.0
+    D: 135.0
+    E: 180.0
+    F: 225.0
+    G: 270.0
+    H: 315.0
+  centroid:
+    weight_floor: 0.10
+    weight_power: 1.60
+    minimum_profile_span_degC: 1.0
+
+pressure:
+  unit: "kPa"
+  valid_min: 0.0
+  valid_max: 600.0
+  concepts:
+    DP_total:
+      columns: ["DP_total"]
+      delta_scale: 20.0
+      direction: 1.0
+      weight: 1.00
+    DP_lower:
+      columns: ["DP_lower"]
+      delta_scale: 12.0
+      direction: 1.0
+      weight: 0.80
+    DP_upper:
+      columns: ["DP_upper"]
+      delta_scale: 12.0
+      direction: 1.0
+      weight: 0.65
+    PI:
+      columns: ["PI"]
+      valid_min: 0.01
+      valid_max: 100.0
+      delta_scale: 3.0
+      direction: -1.0
+      weight: 0.70
+  static_levels:
+    lower:
+      height_m: 20.350
+      exact_columns:
+        ["P_static_lower_A", "P_static_lower_B", "P_static_lower_C",
+         "P_static_lower_D", "P_static_lower_E", "P_static_lower_F"]
+      proxy_columns: ["P_static_lower_mean", "P_static_20m35"]
+    middle:
+      height_m: 23.488
+      exact_columns:
+        ["P_static_middle_A", "P_static_middle_B", "P_static_middle_C",
+         "P_static_middle_D", "P_static_middle_E", "P_static_middle_F"]
+      proxy_columns: ["P_static_middle_mean", "P_static_23m49"]
+    upper:
+      height_m: 28.976
+      exact_columns:
+        ["P_static_upper_A", "P_static_upper_B", "P_static_upper_C",
+         "P_static_upper_D", "P_static_upper_E", "P_static_upper_F"]
+      proxy_columns: ["P_static_upper_mean", "P_static_28m98"]
+  static_gradient:
+    delta_scale: 12.0
+    weight: 0.80
+    min_levels: 2
+    min_exact_sectors_per_level: 3
+  static_sector_angles_deg:
+    A: 0.0
+    B: 60.0
+    C: 120.0
+    D: 180.0
+    E: 240.0
+    F: 300.0
+
+thermal_forcing:
+  # direction=+1 表示该变量相对参考窗口上升时，对根部标高给出很小的上移修正。
+  center_height_gain_m: 0.35
+  concepts:
+    Q_blast:
+      columns: ["Q_blast"]
+      valid_min: 0.0
+      valid_max: 15000.0
+      delta_scale: 500.0
+      direction: 1.0
+      weight: 0.80
+    T_blast:
+      columns: ["T_blast"]
+      valid_min: 100.0
+      valid_max: 1600.0
+      delta_scale: 100.0
+      direction: 1.0
+      weight: 1.00
+    Q_O2:
+      columns: ["Q_O2"]
+      valid_min: 0.0
+      valid_max: 50000.0
+      delta_scale: 2000.0
+      direction: 1.0
+      weight: 0.55
+    O2_rate:
+      columns: ["O2_rate"]
+      valid_min: 0.0
+      valid_max: 30.0
+      delta_scale: 1.0
+      direction: 1.0
+      weight: 0.55
+    PCI:
+      columns: ["PCI_rate", "PCI_set"]
+      valid_min: 0.0
+      valid_max: 300.0
+      delta_scale: 10.0
+      direction: 0.25
+      weight: 0.45
+    TFT:
+      columns: ["TFT"]
+      valid_min: 500.0
+      valid_max: 3000.0
+      delta_scale: 150.0
+      direction: 1.0
+      weight: 0.70
+
+top_distribution:
+  concepts:
+    top_temperature:
+      columns: ["T_top_A", "T_top_B", "T_top_C", "T_top_D", "T_top"]
+      valid_min: -20.0
+      valid_max: 1000.0
+    top_pressure:
+      columns: ["P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D", "P_top"]
+      valid_min: 0.0
+      valid_max: 600.0
+    gas_utilisation:
+      columns: ["GasUtil"]
+      valid_min: 0.0
+      valid_max: 100.0
+
+burden_descent:
+  concepts:
+    main_stockline:
+      columns: ["L"]
+      valid_min: -20.0
+      valid_max: 30.0
+    south_stockline:
+      columns: ["L_south"]
+      valid_min: -20.0
+      valid_max: 30.0
+    north_stockline:
+      columns: ["L_north"]
+      valid_min: -20.0
+      valid_max: 30.0
+    hopper_weight:
+      columns: ["Hopper_weight"]
+      valid_min: 0.0
+      valid_max: 500.0
+
+geometry:
+  unit: "m"
+  center_height_min: 15.0
+  center_height_max: 28.5
+  inner_radius: 0.90
+  outer_radius: 3.85
+  base_amplitude: 2.20
+  amplitude_min: 1.20
+  amplitude_max: 3.20
+  amplitude_pressure_gain_m: 0.20
+  base_thickness: 2.10
+  thickness_min: 1.20
+  thickness_max: 4.50
+  thickness_pressure_gain_m: 0.85
+  thickness_thermal_spread_gain: 0.08
+  thermal_spread_reference_m: 3.50
+  max_eccentricity_m: 0.75
+  eccentric_shape_threshold_m: 0.10
+  default_shape: "inverted_v"
+
+eccentricity:
+  temperature_vector_weight: 0.82
+  static_pressure_vector_weight: 0.18
+  temperature_normalisation_degC: 8.0
+  pressure_normalisation_kPa: 6.0
+
+movement:
+  stable_velocity_threshold_m_per_h: 0.12
+  max_abs_velocity_m_per_h: 2.40
+  forecast_horizon_minutes: 15
+  forecast_assumption: "constant_velocity_uncalibrated"
+
+uncertainty:
+  min_m: 0.55
+  max_m: 1.80
+  missing_pressure_penalty_m: 0.20

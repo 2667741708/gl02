@@ -1,0 +1,91 @@
+{
+  "model_id": "gl02_semantic_si_engine",
+  "model_version": "0.1.0-design",
+  "model_status": "design_only_unfitted",
+  "unit": "%",
+  "distribution_family": "normal",
+  "intercept": 0.3,
+  "residual_std": 0.1,
+  "target_band": {
+    "low": 0.2,
+    "high": 0.4
+  },
+  "calibration_notice": "所有内部系数、阈值和残差仅为零贡献结构占位；predict()必须拒绝本配置。完成按时间回测后生成新版本，不得原地把设计配置改成生产配置。",
+  "feature_contract": "z__前缀表示只使用训练时间段统计量标准化后的炉次特征；不得用全量数据计算均值和尺度。",
+  "neurons": [
+    {
+      "id": "thermal_input",
+      "display_name": "热输入",
+      "expected_direction": "expert_review_required_positive_tendency",
+      "feature_weights": {
+        "z__T_blast_mean_120m": 0.0,
+        "z__TFT_mean_120m": 0.0,
+        "z__O2_rate_mean_120m": 0.0,
+        "z__PCI_rate_mean_120m": 0.0
+      },
+      "threshold": 0.0,
+      "scale": 1.0,
+      "neutral_activation": 0.5,
+      "output_weight": 0.0
+    },
+    {
+      "id": "permeability",
+      "display_name": "透气性与压差",
+      "expected_direction": "non_monotonic_expert_review",
+      "feature_weights": {
+        "z__DP_total_mean_120m": 0.0,
+        "z__DP_total_slope_120m": 0.0,
+        "z__PI_mean_120m": 0.0,
+        "z__Q_blast_mean_120m": 0.0
+      },
+      "threshold": 0.0,
+      "scale": 1.0,
+      "neutral_activation": 0.5,
+      "output_weight": 0.0
+    },
+    {
+      "id": "gas_flow_distribution",
+      "display_name": "煤气流与周向分布",
+      "expected_direction": "mainly_uncertainty_and_interaction",
+      "feature_weights": {
+        "z__T_top_range_mean_120m": 0.0,
+        "z__body_temperature_sector_range_120m": 0.0,
+        "z__P_top_mean_120m": 0.0
+      },
+      "threshold": 0.0,
+      "scale": 1.0,
+      "neutral_activation": 0.5,
+      "output_weight": 0.0
+    },
+    {
+      "id": "burden_chemistry",
+      "display_name": "炉料化学负荷",
+      "expected_direction": "disabled_until_exact_heat_lineage",
+      "feature_weights": {
+        "z__burden_TFe_dry_weighted": 0.0,
+        "z__burden_SiO2_dry_weighted": 0.0,
+        "z__burden_Al2O3_dry_weighted": 0.0,
+        "z__burden_S_dry_weighted": 0.0
+      },
+      "threshold": 0.0,
+      "scale": 1.0,
+      "neutral_activation": 0.5,
+      "output_weight": 0.0
+    },
+    {
+      "id": "previous_heat_inertia",
+      "display_name": "前序炉Si惯性",
+      "expected_direction": "positive_autoregressive",
+      "feature_weights": {
+        "z__previous_heat_Si_median": 0.0,
+        "z__previous_3_heat_Si_median": 0.0,
+        "z__previous_3_heat_Si_slope": 0.0
+      },
+      "threshold": 0.0,
+      "scale": 1.0,
+      "neutral_activation": 0.5,
+      "output_weight": 0.0
+    }
+  ]
+}
+

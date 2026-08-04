@@ -1,0 +1,599 @@
+{
+  "schema_version": "visual_bible_conformance.v1",
+  "matrix_id": "VB-QA-001",
+  "visual_bible_version": "v1.1",
+  "furnace_id": "GL02",
+  "audited_at": "2026-07-20",
+  "scope": [
+    "P40_LOOKDEV",
+    "P50_MASTER_4K",
+    "P60_PREFLIGHT_4K",
+    "formal_glb",
+    "threejs_runtime",
+    "data_contract",
+    "browser_qa",
+    "r2q_internal_material_review_v3",
+    "r2r_renderer_numeric_ab_gate",
+    "r2s_renderer_numeric_contract_alignment"
+  ],
+  "status_definitions": {
+    "compliant": "Implementation, evidence, validation and approval boundary are sufficient for the stated requirement.",
+    "partial": "Part of the requirement is implemented or evidenced, but the complete release contract is not met.",
+    "noncompliant": "The current implementation is absent or conflicts with the requirement.",
+    "blocked": "Completion depends on external confirmation, approval, tooling or controlled production replacement.",
+    "not_applicable": "The requirement is explicitly recorded as outside the current project scope; it cannot be used to hide missing implementation."
+  },
+  "summary": {
+    "total": 45,
+    "compliant": 13,
+    "partial": 17,
+    "noncompliant": 9,
+    "blocked": 6,
+    "not_applicable": 0
+  },
+  "approval_boundaries": {
+    "p40": "approved",
+    "p50": "KEEP_P50_PENDING_NOT_APPROVED",
+    "p60": "not_granted_preflight_only",
+    "p70": "not_granted",
+    "formal_glb_sha256": "808960f1b2703e7fb27df35f1b1b1a17063b9b10d2267acba593fc3872b62af6",
+    "formal_glb_replaced": false,
+    "gltf_validator": "unavailable"
+  },
+  "items": [
+    {
+      "id": "VB-GOV-001",
+      "category": "governance",
+      "requirement": "Visual Bible, controlled annexes and implementation evidence use controlled versions and stable IDs.",
+      "status": "partial",
+      "evidence_refs": [
+        "../工业级高炉数字孪生视觉规范（Visual Bible）.md",
+        "../docs/GL02数据映射附件.md",
+        "Visual_Bible当前实现合规矩阵.md"
+      ],
+      "next_action": "Assign maintainers and approvers, record changes and add link checks.",
+      "verification": "Review version, ownership, change record and link integrity."
+    },
+    {
+      "id": "VB-GOV-002",
+      "category": "governance",
+      "requirement": "Candidates, preflight artifacts and formal approvals remain distinct.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../work/P50_MASTER_4K_20260717_R1/p50_master_4k_visual_review.json",
+        "../work/P60_PREFLIGHT_4K_20260717_R1/p60_preflight_report.json",
+        "../work/P60_PREFLIGHT_4K_20260717_R1/p60_preflight_manifest.json"
+      ],
+      "next_action": "Preserve the stop line until signed approvals are available.",
+      "verification": "Compare report states, formal GLB hash and release record."
+    },
+    {
+      "id": "VB-GOV-003",
+      "category": "governance",
+      "requirement": "Every asset, HDRI, texture and visual reference has provenance, licence and hash.",
+      "status": "partial",
+      "evidence_refs": [
+        "../work/P50_MASTER_4K_20260717_R1/p50_texture_manifest.json",
+        "../work/P60_PREFLIGHT_4K_20260717_R1/p60_preflight_sha256.json",
+        "../THIRD_PARTY_NOTICES.md",
+        "../source/references/hdri/industrial_sunset_2k.hdr",
+        "../docs/视觉参考图板.md"
+      ],
+      "current_fact": "The Poly Haven Industrial Sunset 2K HDRI is registered as CC0 with SHA-256 2a411097d65fcebfe00275641bd80350f95c7a1dbfc53b2260df85b296d2b990, but visual approval and the remaining reference provenance chain are incomplete.",
+      "next_action": "Complete provenance records for remaining references and approve the HDRI with matched Blender/Web views.",
+      "verification": "Audit external assets and recompute the HDRI SHA-256."
+    },
+    {
+      "id": "VB-GOV-004",
+      "category": "governance",
+      "requirement": "Requirements trace to assets, code, tests and approvals in both directions.",
+      "status": "partial",
+      "evidence_refs": [
+        "Visual_Bible当前实现合规矩阵.md",
+        "visual_bible_conformance_v1.json"
+      ],
+      "next_action": "Add schema, link, hash and status checks to CI.",
+      "verification": "Validate JSON Schema, Markdown links and referenced hashes."
+    },
+    {
+      "id": "VB-MAT-001",
+      "category": "material",
+      "requirement": "Metallic-roughness PBR channels and colour spaces are correct.",
+      "status": "partial",
+      "evidence_refs": [
+        "../work/P50_MASTER_4K_20260717_R1/p50_texture_manifest.json",
+        "../work/P50_MASTER_4K_20260717_R1/p50_master_4k_visual_review.json"
+      ],
+      "next_action": "Complete human material review, Validator and formal delivery approval.",
+      "verification": "Channel statistics, glTF Validator and matched Blender/Web views."
+    },
+    {
+      "id": "VB-MAT-002",
+      "category": "material",
+      "requirement": "The formal browser shell is opaque matte steel and preserves embedded maps.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../../../logs/bf3d_cutaway_runtime_20260717/formal_report.json"
+      ],
+      "next_action": "Keep the map-preservation contract during any formal asset replacement.",
+      "verification": "Run verify_gl02_layered_model_ui.py material assertions."
+    },
+    {
+      "id": "VB-MAT-003",
+      "category": "material",
+      "requirement": "Macro, medium and micro surface scales coexist and use physical scale.",
+      "status": "partial",
+      "evidence_refs": [
+        "../work/SURF_20_20260718_R5/SURF-20_R5_阶段成果总结.md",
+        "../work/SURF_20_20260718_R5/renders/SURF20_R5_10_R1_R4_R5_GRAZING_COMPARISON.png",
+        "../work/INT_30_20260718_R2D_R1_RENDER_PARITY/int30_r2d_machine_report.json",
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html"
+      ],
+      "next_action": "Preserve VB-DEC-MAT-001 (B=0.16, D=0.10m, N=0.45, metallic=0.06, roughness=0.56-0.82), bake/export R5 only into an isolated GLB candidate, and prove Web parity before any formal replacement.",
+      "verification": "Compare the fixed R5 LookDev source and 0.5m, 3m, 8m, 20m and 40m Web views; verify material/node/GLB hashes."
+    },
+    {
+      "id": "VB-MAT-004",
+      "category": "material",
+      "requirement": "Local-contact AO is consumed by the formal Web asset without broad darkening.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../../../logs/bf3d_cutaway_runtime_20260717/formal_report.json",
+        "../../../logs/bf3d_cutaway_runtime_20260717/p60_4k_report.json"
+      ],
+      "next_action": "Deliver approved ORM and validate UV1 and AO intensity.",
+      "verification": "Formal/candidate runtime reports and AO on/off comparison."
+    },
+    {
+      "id": "VB-MAT-005",
+      "category": "material",
+      "requirement": "Structural and detail normals use RNM or equivalent and distance-aware attenuation.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html"
+      ],
+      "next_action": "Implement quality-aware normal blending, normal mip handling and specular anti-aliasing.",
+      "verification": "Rotation shimmer, distant moire and near-detail matrix."
+    },
+    {
+      "id": "VB-MAT-006",
+      "category": "material",
+      "requirement": "Browser delivery uses KTX2/BasisU with capability detection and fallback.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../work/P60_PREFLIGHT_4K_20260717_R1/p60_preflight_manifest.json"
+      ],
+      "next_action": "Generate KTX2, connect KTX2Loader/transcoder and retain fallback.",
+      "verification": "Cross-engine network, decode and GPU-memory report."
+    },
+    {
+      "id": "VB-MAT-007",
+      "category": "material",
+      "requirement": "Distinct industrial object families use controlled independent materials.",
+      "status": "partial",
+      "evidence_refs": [
+        "../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/p40_visual_review.json",
+        "../work/P50_MASTER_4K_20260717_R1/p50_resource_counts.json"
+      ],
+      "next_action": "Bind every material card to asset IDs and LOD policy.",
+      "verification": "Material-slot audit, object cards and fixed close-ups."
+    },
+    {
+      "id": "VB-LIGHT-001",
+      "category": "lighting",
+      "requirement": "Blender has approved neutral/presentation LookDev and seven fixed cameras.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/p40_fixed_lookdev_candidate.json",
+        "../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/p40_visual_review.json"
+      ],
+      "next_action": "Preserve the P40 hash and camera preset.",
+      "verification": "Re-render the 18 fixed views and compare."
+    },
+    {
+      "id": "VB-LIGHT-002",
+      "category": "lighting",
+      "requirement": "Blender and Web colour pipelines share one controlled preset and tolerance.",
+      "status": "partial",
+      "evidence_refs": [
+        "../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/p40_fixed_lookdev_candidate.json",
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../../../高炉前端数据/config/industrial_furnace_scene.json"
+      ],
+      "next_action": "Generate both pipelines from one preset and eliminate drifting values.",
+      "verification": "Grey-card, material-ball and matched-view delta metrics."
+    },
+    {
+      "id": "VB-LIGHT-003",
+      "category": "lighting",
+      "requirement": "Rough metal uses an approved HDRI and PMREM-filtered IBL.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../source/references/hdri/industrial_sunset_2k.hdr",
+        "../THIRD_PARTY_NOTICES.md",
+        "../docs/视觉参考图板.md"
+      ],
+      "current_fact": "A hash-locked CC0 HDRI candidate is available, but it is not visually approved and the page has no PMREMGenerator or scene.environment connection.",
+      "next_action": "Approve the candidate in matched Blender/Web views, then lock rotation and intensity and connect PMREM with a low-quality fallback.",
+      "verification": "Hash check, environment on/off, roughness ladder, matched-view and GPU-memory tests."
+    },
+    {
+      "id": "VB-LIGHT-004",
+      "category": "lighting",
+      "requirement": "Key, rim and cutaway lights support structure and data legibility.",
+      "status": "partial",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html"
+      ],
+      "next_action": "Drive all runtime lights from the controlled LookDev preset.",
+      "verification": "Neutral, presentation and cutaway Golden Views."
+    },
+    {
+      "id": "VB-LIGHT-005",
+      "category": "lighting",
+      "requirement": "Ground contact, shadows and AO avoid floating and double darkening.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../../../高炉前端数据/config/industrial_furnace_scene.json"
+      ],
+      "next_action": "Implement a tested low-cost contact-shadow solution and tune it with AO.",
+      "verification": "Support-foot contact images and GPU timing."
+    },
+    {
+      "id": "VB-INT-001",
+      "category": "internal",
+      "requirement": "Internal process objects have stable semantic categories and are hidden by default.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/assets/bf3d-internal-simulation.js",
+        "../../../logs/bf3d_cutaway_runtime_20260717/formal_report.json",
+        "../../../logs/bf3d_internal_simulation_20260719/runtime_contract_report.json"
+      ],
+      "next_action": "Preserve the authoritative simulation categories and keep all 45 legacy decorative objects invisible.",
+      "verification": "Run cutaway and internal-simulation suites."
+    },
+    {
+      "id": "VB-INT-002",
+      "category": "internal",
+      "requirement": "Cutaway opens, reveals in stages, pauses, resets and reuses resources.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../tools/verify_gl02_cutaway_runtime.cjs",
+        "../../../logs/bf3d_cutaway_cross_engine_20260717/report.md"
+      ],
+      "next_action": "Retain delegation and resource-reuse coverage after data and geometry additions.",
+      "verification": "Cutaway, internal-simulation and cross-engine suites."
+    },
+    {
+      "id": "VB-INT-003",
+      "category": "internal",
+      "requirement": "Cut surfaces show believable shell/refractory/cooling thickness and a real cap.",
+      "status": "partial",
+      "evidence_refs": [
+        "../work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/section_scale_cap_validation.json",
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html"
+      ],
+      "next_action": "Keep the physical R2Q half-sections isolated until numeric A/B, field Edge and release gates pass; field dimensions remain required.",
+      "verification": "Section-cap report, multi-angle cutaway, back-face, depth and asset-hash tests."
+    },
+    {
+      "id": "VB-INT-004",
+      "category": "internal",
+      "requirement": "Burden, pressure, charging, cohesive zone, hearth and labs are driven by one clock and evidence contract.",
+      "status": "partial",
+      "evidence_refs": [
+        "../高炉内部数据驱动3D动画总设计.md",
+        "../../../高炉前端数据/assets/bf3d-internal-simulation.js",
+        "../../../logs/bf3d_internal_simulation_20260719/runtime_contract_report.json"
+      ],
+      "next_action": "Enter the INT-40 truth/backtest input gate; retain uncalibrated and control-prohibited boundaries without an independent reference.",
+      "verification": "Knowledge-time fixtures, pause, seek, reconnect and historical backtest."
+    },
+    {
+      "id": "VB-INT-005",
+      "category": "internal",
+      "requirement": "The internal model includes deadman, lining, staves and skull as independent evidence-labelled objects.",
+      "status": "partial",
+      "evidence_refs": [
+        "../work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/role_forbidden_validation.json",
+        "../work/WEB_60_20260719_R2Q_INTERNAL_MATERIAL_LOOKDEV/reports/section_scale_cap_validation.json"
+      ],
+      "next_action": "Add deadman and evidence-backed skull only after engineering references are available; do not infer them visually.",
+      "verification": "Object-tree, physical-section and provenance-label review."
+    },
+    {
+      "id": "VB-INT-006",
+      "category": "internal",
+      "requirement": "Illustrative objects are never presented as live physical fields.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../../../logs/bf3d_cutaway_cross_engine_20260717/report.md"
+      ],
+      "next_action": "Keep per-object evidence labels when live data is connected.",
+      "verification": "UI wording and userData.evidence assertions."
+    },
+    {
+      "id": "VB-DATA-101",
+      "category": "data",
+      "requirement": "The formal model preserves exactly 115 stable SENSOR nodes.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/models/gl02_blast_furnace.manifest.json",
+        "../../../tools/verify_gl02_layered_model_ui.py"
+      ],
+      "next_action": "Run name and world-matrix diffs for every asset replacement.",
+      "verification": "Layered-model UI test and GLB manifest diff."
+    },
+    {
+      "id": "VB-DATA-102",
+      "category": "data",
+      "requirement": "L7-L16 contain 80 body-temperature points, eight A-H points per layer at the controlled heights.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../../../logs/bf3d_layer_matrix_20260717/report.md",
+        "../../../logs/bf3d_layer_cross_engine_20260717/report.md"
+      ],
+      "next_action": "Add full quality-state fixtures after semantic-package integration.",
+      "verification": "Existing layer UI and cross-engine suites."
+    },
+    {
+      "id": "VB-DATA-103",
+      "category": "data",
+      "requirement": "Eighteen static-pressure points are rendered as three A-F measured overlays, distinct from the legacy three points.",
+      "status": "partial",
+      "evidence_refs": [
+        "../../../高炉前端数据/智能助手/mcp/gl02_static_pressure_points.json",
+        "../docs/GL02数据映射附件.md"
+      ],
+      "next_action": "Connect the 18 semantic IDs, confirm azimuths and label interpolation as estimated.",
+      "verification": "18-of-18 fixture, screenshots and evidence-schema assertions."
+    },
+    {
+      "id": "VB-DATA-104",
+      "category": "data",
+      "requirement": "Every value retains seven times plus evidence, derivation and quality.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../docs/GL02数据映射附件.md",
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html"
+      ],
+      "next_action": "Generate bf3d_snapshot.v1 and bf3d_event.v1 from backend adapters.",
+      "verification": "JSON Schema, knowledge-time replay and late-data tests."
+    },
+    {
+      "id": "VB-DATA-105",
+      "category": "data",
+      "requirement": "Stockline datum, direction, south/north semantics and absolute orientation are field-confirmed.",
+      "status": "blocked",
+      "evidence_refs": [
+        "../高炉内部数据驱动3D动画总设计.md",
+        "../docs/GL02数据映射附件.md"
+      ],
+      "next_action": "Complete HMI, point-list and trend confirmation and freeze one orientation config.",
+      "verification": "Signed fixed samples, direction tests and field screenshots."
+    },
+    {
+      "id": "VB-DATA-106",
+      "category": "data",
+      "requirement": "Charging, heat, tap and production records form a replayable event stream.",
+      "status": "partial",
+      "evidence_refs": [
+        "../高炉内部数据驱动3D动画总设计.md",
+        "../../../docs/mes数据集.md"
+      ],
+      "next_action": "Build an event adapter and confirm event-time and heat-charge association semantics.",
+      "verification": "Sanitised real fixture and single-heat seek reconstruction."
+    },
+    {
+      "id": "VB-DATA-107",
+      "category": "data",
+      "requirement": "Hot-metal and slag labs attach by stable heat/sample keys and publication time.",
+      "status": "blocked",
+      "evidence_refs": [
+        "../高炉内部数据驱动3D动画总设计.md",
+        "../docs/GL02数据映射附件.md"
+      ],
+      "next_action": "Create controlled ETL or stable association keys and retain sample/judged/published times.",
+      "verification": "As-known-at-the-time and hindsight-analysis replay tests."
+    },
+    {
+      "id": "VB-DATA-108",
+      "category": "data",
+      "requirement": "Missing, stale, bad, manual and maintenance states never appear normal.",
+      "status": "partial",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../docs/GL02数据映射附件.md"
+      ],
+      "next_action": "Freeze source-specific warning and hard-expiry thresholds and apply one state machine.",
+      "verification": "Stale, bad, missing and recovery fixtures."
+    },
+    {
+      "id": "VB-RUNTIME-001",
+      "category": "runtime",
+      "requirement": "Three.js and GLTFLoader versions are controlled and recorded.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/libs/three/three.module.js",
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html"
+      ],
+      "next_action": "Run full GLB, shader and browser regression before upgrades.",
+      "verification": "Runtime version probe and load smoke test."
+    },
+    {
+      "id": "VB-RUNTIME-002",
+      "category": "runtime",
+      "requirement": "GLTF import preserves PBR maps and provides a safe map-less fallback.",
+      "status": "partial",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../../../logs/bf3d_cutaway_runtime_20260717/formal_report.json",
+        "../../../logs/bf3d_cutaway_runtime_20260717/p60_4k_report.json"
+      ],
+      "next_action": "Revalidate against the approved formal PBR asset after controlled replacement.",
+      "verification": "Formal and candidate runtime-report comparison."
+    },
+    {
+      "id": "VB-RUNTIME-003",
+      "category": "runtime",
+      "requirement": "Draco, Meshopt and KTX2 loading, capability checks and fallbacks are wired.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html"
+      ],
+      "next_action": "Connect decoders and transcoder with timeout and fallback paths.",
+      "verification": "Cross-engine load, compression and failure-injection tests."
+    },
+    {
+      "id": "VB-RUNTIME-004",
+      "category": "runtime",
+      "requirement": "High, medium and low quality tiers cover the entire scene budget.",
+      "status": "partial",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html"
+      ],
+      "next_action": "Create one quality controller for DPR, texture, particles, LOD, volume and GPU budget.",
+      "verification": "Ten-second and thirty-minute tests for all quality tiers."
+    },
+    {
+      "id": "VB-RUNTIME-005",
+      "category": "runtime",
+      "requirement": "Layer and route changes do not leak geometry, materials, textures or RAF loops.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../高炉前端数据/frontend_dashboard_v3.server.html",
+        "../../../tools/verify_gl02_layered_model_ui.py",
+        "../../../tools/verify_gl02_cutaway_runtime.cjs"
+      ],
+      "next_action": "Extend the contract to new overlays, particles and PMREM resources.",
+      "verification": "One hundred switches, route round trips and renderer.info."
+    },
+    {
+      "id": "VB-RUNTIME-006",
+      "category": "runtime",
+      "requirement": "Only approved GLB assets can replace the formal production model.",
+      "status": "blocked",
+      "evidence_refs": [
+        "../work/P60_PREFLIGHT_4K_20260717_R1/p60_preflight_manifest.json"
+      ],
+      "next_action": "Complete P50 approval, Validator, P60/P70 gates and rollback package.",
+      "verification": "Hash, signatures and production/rollback manifests."
+    },
+    {
+      "id": "VB-QA-101",
+      "category": "qa",
+      "requirement": "Fixed LookDev neutral and presentation views are approved.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/p40_visual_review.json"
+      ],
+      "next_action": "Register camera and light parameters in the machine-readable preset and Golden Views.",
+      "verification": "Re-render and compare the 18 P40 images."
+    },
+    {
+      "id": "VB-QA-102",
+      "category": "qa",
+      "requirement": "P50 material bake receives independent human approval.",
+      "status": "blocked",
+      "evidence_refs": [
+        "../work/P50_MASTER_4K_20260717_R1/p50_master_4k_visual_review.json"
+      ],
+      "next_action": "Add close-ups, multiple angles, rotation-shimmer evidence and signed review.",
+      "verification": "P50 material review checklist."
+    },
+    {
+      "id": "VB-QA-103",
+      "category": "qa",
+      "requirement": "P60 GLB handoff receives formal approval.",
+      "status": "blocked",
+      "evidence_refs": [
+        "../work/P60_PREFLIGHT_4K_20260717_R1/p60_preflight_report.json"
+      ],
+      "next_action": "Approve P50 first, then complete compression, Validator, Web handoff and sign-off.",
+      "verification": "P60/P70 release gates."
+    },
+    {
+      "id": "VB-QA-104",
+      "category": "qa",
+      "requirement": "Khronos glTF Validator is available and passes the release artifact.",
+      "status": "blocked",
+      "evidence_refs": [
+        "../work/P60_PREFLIGHT_4K_20260717_R1/gltf_validator_status.json"
+      ],
+      "next_action": "Install and pin a Validator version and generate the full report.",
+      "verification": "Validator CLI or Node report with version."
+    },
+    {
+      "id": "VB-QA-105",
+      "category": "qa",
+      "requirement": "Ten-layer responsive browser matrices pass.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../logs/bf3d_layer_matrix_20260717/report.md",
+        "../../../logs/bf3d_layer_cross_engine_20260717/report.md"
+      ],
+      "next_action": "Repeat the same matrix after complete data-quality integration.",
+      "verification": "Layer matrix and cross-engine reports."
+    },
+    {
+      "id": "VB-QA-106",
+      "category": "qa",
+      "requirement": "Cutaway representative cross-engine viewports pass.",
+      "status": "compliant",
+      "evidence_refs": [
+        "../../../logs/bf3d_cutaway_cross_engine_20260717/report.md"
+      ],
+      "next_action": "Rerun after a production integration of the R2Q physical sections or any new data source.",
+      "verification": "Cutaway, internal-simulation and cross-engine suites."
+    },
+    {
+      "id": "VB-QA-107",
+      "category": "qa",
+      "requirement": "Golden Views lock camera, viewport, data snapshot, random seed, HDR and baseline-image state.",
+      "status": "partial",
+      "evidence_refs": [
+        "../work/P40_FIXED_LOOKDEV_20260717_P36_FINAL/p40_fixed_lookdev_candidate.json",
+        "../work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/capture_contract.json",
+        "../work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/comparison_report.json",
+        "../work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/reports/three_contract_preflight.json",
+        "../work/WEB_60_20260719_R2R_RENDERER_NUMERIC_AB_GATE/reviews/R2R_INDEPENDENT_VISUAL_REVIEW.md",
+        "../work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/pipeline_status.json",
+        "../work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/implementation_delta_manifest.json",
+        "../work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/r2s_audit_contract_verification.json",
+        "../work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/color_management_decision.json",
+        "../work/WEB_60_20260719_R2S_RENDERER_CONTRACT_ALIGNMENT/photometric_mapping_decision.json"
+      ],
+      "next_action": "Preapprove the immutable color-management and P40 photometric mappings, implement a disposable isolated renderer/scene/camera/light capture path, then rerun the unchanged Blender and Three.js thresholds before establishing approved Golden images and their update process.",
+      "verification": "R2R image diff, R2S dual-gate numeric-contract tests, required-metric fail-closed behavior and parameter/hash consistency."
+    },
+    {
+      "id": "VB-QA-108",
+      "category": "qa",
+      "requirement": "The full scene meets TTI, P95 frame time, memory, draw-call and long-run budgets.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../../../tools/verify_gl02_layered_model_ui.py",
+        "../../../tools/verify_gl02_cutaway_runtime.cjs"
+      ],
+      "next_action": "Create standard device tiers, sampling scripts and failure thresholds.",
+      "verification": "TTI, renderer.info, P95 frame time and memory curves."
+    },
+    {
+      "id": "VB-QA-109",
+      "category": "qa",
+      "requirement": "Data semantics, units, seven times, disconnection and replay are automatically tested.",
+      "status": "noncompliant",
+      "evidence_refs": [
+        "../docs/GL02数据映射附件.md"
+      ],
+      "next_action": "Implement TEST-VB-DATA-003 through TEST-VB-DATA-009.",
+      "verification": "Schema, fixture and deterministic replay suite."
+    }
+  ]
+}
