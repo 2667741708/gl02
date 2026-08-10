@@ -14,6 +14,8 @@ import pandas as pd
 
 from baseline_maintainer import build_day
 from baseline_service import build_baseline_meta, write_runtime_baseline
+from abc_feature_builder import build_feature_snapshot
+from abc_rule_engine import evaluate as evaluate_abc, load_config as load_abc_config
 from service_config import PROJECT_ROOT, load_config, project_path
 from store import DiagnosisStore
 
@@ -42,6 +44,33 @@ CORE19_VARIABLES = [
     "T_top_C",
     "T_top_D",
 ]
+
+
+def build_abc_runtime_inputs(frame: pd.DataFrame, evaluation_ts: datetime) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Create a 90-minute, minute-aligned production input contract.
+
+    Current values come exclusively from the final common minute.  This avoids
+    constructing top-temperature/top-pressure ranges from asynchronously aged
+    sensor samples.  Missing minutes remain null in history for the 75% window
+    coverage gates.
+    """
+    end = pd.Timestamp(evaluation_ts).floor("min")
+    index = pd.date_range(end=end, periods=90, freq="min")
+    if frame.empty or "timestamp" not in frame.columns:
+        return {}, {"timestamps": [item.isoformat() for item in index], "evaluation_ts": end.isoformat()}
+    working = frame.copy()
+    working["timestamp"] = pd.to_datetime(working["timestamp"]).dt.floor("min")
+    working = working[working["timestamp"] <= end]
+    working = working.groupby("timestamp", as_index=True).mean(numeric_only=True).reindex(index)
+    history: dict[str, Any] = {
+        "timestamps": [item.isoformat() for item in index],
+        "evaluation_ts": end.isoformat(),
+    }
+    for column in working.columns:
+        history[str(column)] = [None if pd.isna(value) else float(value) for value in working[column].tolist()]
+    final = working.iloc[-1]
+    current = {str(column): float(value) for column, value in final.items() if not pd.isna(value)}
+    return current, history
 
 
 def resolve_rule_engine_dir(configured: str | Path | None) -> Path:
@@ -172,6 +201,8 @@ class AutoDiagnosisScheduler:
         )
 
     def diagnose_point(self, ts: datetime, dry_run: bool = False) -> dict[str, Any]:
+        abc_config = load_abc_config()
+        abc_thresholds = abc_config.get("feature_thresholds") or {}
         baseline_days = int(self.diag_cfg["baseline_days"])
         window_minutes = int(self.diag_cfg["window_minutes"])
         interval = int(self.diag_cfg["diagnosis_interval_minutes"])
@@ -218,6 +249,9 @@ class AutoDiagnosisScheduler:
                             row["variable_name"]: {
                                 "median_ref": float(row["median_ref"]),
                                 "iqr_ref": float(row["iqr_ref"]),
+                                "coverage_ratio": float(row["coverage_ratio"]) if row.get("coverage_ratio") is not None else None,
+                                "sample_count": int(row["sample_count"]) if row.get("sample_count") is not None else None,
+                                "expected_minutes": int(row["expected_minutes"]) if row.get("expected_minutes") is not None else None,
                             }
                             for row in baseline_rows
                         },
@@ -237,6 +271,9 @@ class AutoDiagnosisScheduler:
                         row["variable_name"]: {
                             "median_ref": float(row["median_ref"]),
                             "iqr_ref": float(row["iqr_ref"]),
+                            "coverage_ratio": float(row["coverage_ratio"]) if row.get("coverage_ratio") is not None else None,
+                            "sample_count": int(row["sample_count"]) if row.get("sample_count") is not None else None,
+                            "expected_minutes": int(row["expected_minutes"]) if row.get("expected_minutes") is not None else None,
                         }
                         for row in baseline_rows
                     }
@@ -252,6 +289,8 @@ class AutoDiagnosisScheduler:
             else pd.DataFrame()
         )
         current = self.store.fetch_wide_frame(window_start, window_end, diagnosis_variables)
+        abc_frame = self.store.fetch_wide_frame(ts - timedelta(minutes=89), ts, None)
+        abc_current_values, abc_history_values = build_abc_runtime_inputs(abc_frame, ts)
         latest_ts = self.store.latest_data_ts()
         lag = int((datetime.now().replace(tzinfo=None) - latest_ts).total_seconds()) if latest_ts else None
         coverage = self.store.data_coverage(current, window_start, window_end, self.required_variables)
@@ -278,6 +317,18 @@ class AutoDiagnosisScheduler:
             "source_lag_seconds": lag,
         }
         if float(coverage.get("coverage_ratio", 0.0)) < min_coverage:
+            low_features, low_quality = build_feature_snapshot(
+                abc_current_values,
+                baseline=persisted_baseline,
+                history=abc_history_values,
+                data_age_seconds=lag,
+                coverage_ratio=float(coverage.get("coverage_ratio", 0.0)),
+                thresholds=abc_thresholds,
+            )
+            try:
+                low_abc_bundle = evaluate_abc(low_features, quality=low_quality, timestamp=ts, config=abc_config)
+            except Exception as exc:
+                low_abc_bundle = {"schema_version": "abc_rule_bundle.v1", "state": "error", "error_type": type(exc).__name__}
             payload = {
                 **base_payload,
                 "main_label": "data_quality_low",
@@ -298,9 +349,12 @@ class AutoDiagnosisScheduler:
                 ],
                 "raw_scores": {},
                 "feature_snapshot": {},
+                "abc_rule_bundle_internal": low_abc_bundle,
             }
             if not dry_run:
                 self.store.upsert_diagnosis(payload)
+                if low_abc_bundle.get("evaluations"):
+                    self.store.persist_abc_evaluation(low_abc_bundle, source_snapshot_id=None)
             return payload
         baseline_meta = persisted_baseline or build_baseline_meta(history)
         baseline_path = write_runtime_baseline(baseline_meta)
@@ -309,13 +363,33 @@ class AutoDiagnosisScheduler:
         engine = self.DiagnosticEngine()
         result = engine.run(features, timestamp=ts.strftime("%Y-%m-%d %H:%M:%S"))
 
+        # ABC33 runs in parallel with the legacy eight-condition engine.  The
+        # complete evaluation is retained server-side; the WebSocket/API layer
+        # must serialize only ``abc_bundle.public``.
+        abc_features, abc_quality = build_feature_snapshot(
+            {**abc_current_values, **json_safe_feature_snapshot(features)},
+            baseline=persisted_baseline,
+            history=abc_history_values,
+            data_age_seconds=lag,
+            coverage_ratio=float(coverage.get("coverage_ratio", 0.0)),
+            thresholds=abc_thresholds,
+        )
+        try:
+            abc_bundle = evaluate_abc(abc_features, quality=abc_quality, timestamp=ts, config=abc_config)
+        except Exception as exc:
+            abc_bundle = {"schema_version": "abc_rule_bundle.v1", "state": "error", "error_type": type(exc).__name__}
+
         payload = {
             **result,
             **base_payload,
             "feature_snapshot": json_safe_feature_snapshot(features),
+            "abc_rule_bundle_internal": abc_bundle,
         }
         if not dry_run:
             self.store.upsert_diagnosis(payload)
+            if abc_bundle.get("evaluations"):
+                self.store.persist_abc_evaluation(abc_bundle, source_snapshot_id=None)
+                self.store.persist_abc_alerts(abc_bundle)
         return payload
 
     def backfill(self, start: datetime, end: datetime, dry_run: bool = False) -> list[dict[str, Any]]:

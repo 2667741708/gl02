@@ -1,0 +1,279 @@
+{
+  "schema_version": "three_rules_two_systems.v1",
+  "source_document": "docs/冀钢炼铁三规二制.md",
+  "label_actions": {
+    "normal": ["KEEP-STABLE", "LOW-O2-STABLE-01"],
+    "cold": ["LOW-TBLAST-UP-06", "LOW-PCI-UP-02", "LOW-O2-DOWN-01", "LOW-BLAST-DOWN-02", "LOAD-DOWN-07", "NET-COKE-01"],
+    "hot": ["LOW-BLAST-UP-GATE", "LOW-O2-UP-GATE", "LOAD-UP-01", "LOW-PCI-DOWN-02", "LOW-TBLAST-DOWN-08"],
+    "lowline": ["LOW-BLAST-DOWN-05", "NET-COKE-05"],
+    "edge": ["UP-03", "UP-07", "EDGE-O2-BLOCK", "LOAD-DOWN-07"],
+    "center": ["UP-04", "UP-05", "LOW-BLAST-DOWN-04"],
+    "channel": ["LOW-BLAST-DOWN-04", "LOW-O2-DOWN-01", "UP-10", "UP-11", "UP-12"],
+    "column": ["LOW-BLAST-DOWN-04", "LOW-O2-DOWN-01", "LOW-PCI-DOWN-05", "UP-12", "NET-COKE-04"]
+  },
+  "actions": {
+    "KEEP-STABLE": {
+      "scheme": "integrated", "source_refs": ["5.1.8.1", "5.3.5.2.6.4"],
+      "name": "保持当前制度稳定", "user_facing_text": "维持当前风、氧、煤、料制度，避免因短时波动频繁调剂",
+      "sequence_rank": 10, "legacy_stage": "immediate", "required_inputs": [],
+      "preconditions": ["当前诊断为正常顺行"], "delta": null,
+      "observation_window": {"min_minutes": 15, "max_minutes": 15, "basis": "持续确认风压、顶压、透气性和顶温离散度"},
+      "approval": {"required": false, "role": null, "kind": "read_only_monitor"}
+    },
+    "LOW-O2-STABLE-01": {
+      "scheme": "lower", "source_refs": ["5.3.6.2"],
+      "name": "保持富氧稳定", "user_facing_text": "正常生产保持富氧率稳定；给氧、停氧应逐步增减并与喷煤协同",
+      "sequence_rank": 20, "legacy_stage": "followup", "required_inputs": [],
+      "preconditions": ["正常生产且无富氧事故信号"], "delta": null,
+      "observation_window": {"min_minutes": 15, "max_minutes": 30, "basis": "观察理论燃烧温度、煤气流和喷煤协同"},
+      "approval": {"required": false, "role": null, "kind": "read_only_monitor"}
+    },
+    "LOW-TBLAST-UP-06": {
+      "scheme": "lower", "source_refs": ["5.1.8.4", "5.3.4.1.1", "5.3.4.1.6"],
+      "name": "分步提高风温", "user_facing_text": "经现场确认后，每次提高10～20℃，每小时累计不超过50℃",
+      "sequence_rank": 10, "legacy_stage": "immediate", "required_inputs": ["T_blast"],
+      "preconditions": ["热制度下行或低于规定水平", "未触发需立即减风温的设备/事故条件"],
+      "delta": {"min": 10, "max": 20, "unit": "℃", "hourly_limit": {"max": 50, "unit": "℃/h"}},
+      "observation_window": {"min_minutes": 15, "max_minutes": 60, "basis": "分步观察铁水热状态、理论燃烧温度和顺行"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "LOW-PCI-UP-02": {
+      "scheme": "lower", "source_refs": ["5.1.8.4", "5.3.5.4.2", "5.3.5.1.4"],
+      "name": "热制度下行时增加喷煤候选", "user_facing_text": "热制度开始下行且顺行、压力制度允许时，可按现场批准幅度逐步增加喷煤",
+      "sequence_rank": 20, "legacy_stage": "immediate", "required_inputs": ["PCI_rate", "coal_ash_pct", "anthracite_200mesh_pct", "coal_moisture_pct", "coal_analysis_current_flag"],
+      "preconditions": ["热制度开始下行", "煤粉灰分、细度、水分和化验时效满足喷煤质量资格", "非严重失常", "非减风降压、低压、常压或休风阶段"],
+      "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "喷煤热影响约滞后半个冶炼周期，最终窗口由现场冶炼周期配置"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "LOW-O2-DOWN-01": {
+      "scheme": "lower", "source_refs": ["5.1.8.4", "5.3.6.1.4"],
+      "name": "减氧或临时停氧候选", "user_facing_text": "炉况不顺或温度过高、过低时，经现场确认逐步减氧或临时停氧",
+      "sequence_rank": 30, "legacy_stage": "immediate", "required_inputs": ["O2_rate"],
+      "preconditions": ["炉况不顺或温度明显偏离规定水平", "执行前通知鼓风机和调度室"],
+      "delta": null,
+      "observation_window": {"min_minutes": 5, "max_minutes": 15, "basis": "观察风压、压差、理论燃烧温度和煤气流"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "LOW-BLAST-DOWN-02": {
+      "scheme": "lower", "source_refs": ["5.1.8.4", "5.3.3.2.2"],
+      "name": "热制度严重下行时降低冷风压力", "user_facing_text": "热制度严重下行并影响顺行时，经现场确认降低冷风压力，控制料速和压差",
+      "sequence_rank": 31, "legacy_stage": "immediate", "required_inputs": ["P_blast_cold"],
+      "preconditions": ["热制度严重下行或已有难行证据"], "delta": null,
+      "observation_window": {"min_minutes": 5, "max_minutes": 15, "basis": "观察料速、压差、风口状态和顶温"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "LOAD-DOWN-07": {
+      "scheme": "burden", "source_refs": ["5.1.8.4", "5.3.7.2.7", "5.3.7.3.2"],
+      "name": "减轻焦炭负荷", "user_facing_text": "仅在热制度仍低于规定水平且其他参数已无调剂余地时，按现场批准目标减轻焦炭负荷",
+      "sequence_rank": 40, "legacy_stage": "followup", "required_inputs": ["coke_load_current", "coke_load_target", "other_adjustments_exhausted_flag"],
+      "preconditions": ["其他下部调剂已无余地", "存在现场批准的目标焦炭负荷"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "至少按料批和冶炼周期观察，不能用分钟级即时变化判断"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_change"}
+    },
+    "NET-COKE-01": {
+      "scheme": "burden", "source_refs": ["5.1.8.4", "5.3.8.1"],
+      "name": "热制度下行附加净焦", "user_facing_text": "作为末级补热手段，由现场根据热状态和批准方案确定附加净焦量",
+      "sequence_rank": 50, "legacy_stage": "followup", "required_inputs": ["net_coke_target", "net_coke_plan_approved_flag"],
+      "preconditions": ["前序调剂不足以恢复热状态", "附加净焦量已有现场方案"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按净焦料批下达后的实际冶炼周期复查"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_change"}
+    },
+    "LOW-BLAST-UP-GATE": {
+      "scheme": "lower", "source_refs": ["5.1.8.5", "5.3.3.1.1", "5.3.3.1.2", "5.3.3.1.3", "5.3.3.1.4"],
+      "name": "增加冷风压力资格核验", "user_facing_text": "仅在风量风压平稳、冷风压力低于30天Q3、炉温充沛、渣铁出净且压差允许时进入加压候选",
+      "sequence_rank": 10, "legacy_stage": "immediate", "required_inputs": ["P_blast_cold", "blast_stable_flag", "hot_state_sufficient_flag", "slag_iron_drained_flag", "DP_total", "approved_dp_limit"],
+      "preconditions": ["全部加压承受条件同时成立", "不存在低料线、管道、崩悬或风口异常"], "delta": null,
+      "observation_window": {"min_minutes": 5, "max_minutes": 15, "basis": "每步观察风压、压差、料速、风口和渣铁状态"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "LOW-O2-UP-GATE": {
+      "scheme": "lower", "source_refs": ["5.1.8.5", "5.3.6.1.2", "5.3.6.1.3", "5.3.6.2"],
+      "name": "加氧资格核验", "user_facing_text": "正常顺行且与喷煤协同、边缘煤气流未发展、理论燃烧温度有余量时，方可逐步增加富氧",
+      "sequence_rank": 20, "legacy_stage": "immediate", "required_inputs": ["O2_rate", "oxygen_coal_coordinated_flag", "TFT", "approved_tft_limit"],
+      "preconditions": ["炉况稳定", "边缘煤气流未发展", "理论燃烧温度预测不超限"], "delta": null,
+      "observation_window": {"min_minutes": 5, "max_minutes": 15, "basis": "观察理论燃烧温度、边缘煤气流、压差和喷煤协同"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "LOAD-UP-01": {
+      "scheme": "burden", "source_refs": ["5.1.8.5", "5.3.7.1.1", "5.3.7.3.1"],
+      "name": "加重焦炭负荷", "user_facing_text": "热制度超过规定水平时，经批准将矿/焦比每次上调1.0%～1.5%",
+      "sequence_rank": 30, "legacy_stage": "followup", "required_inputs": ["coke_load_current", "coke_load_target"],
+      "preconditions": ["热制度超过规定水平", "透气性允许且目标负荷已批准"],
+      "delta": {"min": 1.0, "max": 1.5, "unit": "%"},
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按料批和冶炼周期观察热状态、煤气利用率和透气性"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_change"}
+    },
+    "LOW-PCI-DOWN-02": {
+      "scheme": "lower", "source_refs": ["5.1.8.5", "5.3.5.5.2", "5.3.5.1.4"],
+      "name": "热制度上行时减少喷煤", "user_facing_text": "热制度上行时，经现场确认逐步减少喷煤，并按约半个冶炼周期观察热影响",
+      "sequence_rank": 40, "legacy_stage": "followup", "required_inputs": ["PCI_rate"],
+      "preconditions": ["热制度上行"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "喷煤热影响约滞后半个冶炼周期"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "LOW-TBLAST-DOWN-08": {
+      "scheme": "lower", "source_refs": ["5.1.8.5", "5.3.4.2.8"],
+      "name": "及时降低风温", "user_facing_text": "经现场批准一次降至需要水平，但不得长期低风温；条件恢复后尽快恢复规定风温",
+      "sequence_rank": 50, "legacy_stage": "followup", "required_inputs": ["T_blast"],
+      "preconditions": ["热制度上行且前序手段不足或不具备条件"], "delta": null,
+      "observation_window": {"min_minutes": 10, "max_minutes": 30, "basis": "观察热状态、理论燃烧温度和顺行，并保留恢复检查"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "LOW-BLAST-DOWN-05": {
+      "scheme": "lower", "source_refs": ["5.3.3.2.5"],
+      "name": "低料线降低冷风压力控料速", "user_facing_text": "低料线期间经现场确认降低冷风压力控制料速，补足料线前不强行恢复压力",
+      "sequence_rank": 5, "legacy_stage": "immediate", "required_inputs": ["P_blast_cold", "L"],
+      "preconditions": ["低料线已确认"], "delta": null,
+      "observation_window": {"min_minutes": 5, "max_minutes": 10, "basis": "观察料线、料速、顶温、压差和煤气分布"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "NET-COKE-05": {
+      "scheme": "burden", "source_refs": ["5.3.8.5"],
+      "name": "低料线附加净焦核算", "user_facing_text": "按低料线持续时间和实际深度核算净焦量，经高炉作业长批准后执行",
+      "sequence_rank": 20, "legacy_stage": "followup", "required_inputs": ["lowline_duration_minutes", "lowline_depth", "net_coke_target"],
+      "preconditions": ["低料线持续时间和实际深度已确认", "净焦量已核算"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按净焦料批下达后的冶炼周期复查"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_change"}
+    },
+    "UP-03": {
+      "scheme": "upper", "source_refs": ["5.3.1.3"],
+      "name": "增加边缘布矿圈数", "user_facing_text": "在矿总圈不变前提下，增加边缘布矿圈数，以加重边缘、疏松中心",
+      "sequence_rank": 10, "legacy_stage": "immediate", "required_inputs": ["ore_total_rings", "ore_edge_rings_current", "ore_edge_rings_target"],
+      "preconditions": ["边缘气流发展已复核", "矿总圈保持不变", "当前及目标圈数可审计"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按料批观察煤气分布、十字测温、压差和料速"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_distribution"}
+    },
+    "UP-07": {
+      "scheme": "upper", "source_refs": ["5.3.2.3", "5.3.2.5"],
+      "name": "增大矿石γ抑制边缘", "user_facing_text": "确认溜槽布料方向后，增大γ矿以增加边缘矿量、加重边缘",
+      "sequence_rank": 20, "legacy_stage": "followup", "required_inputs": ["gamma_ore_current", "gamma_ore_target", "chute_direction"],
+      "preconditions": ["边缘气流发展已复核", "溜槽方向明确，反向布料时需反转规则效果"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按料批观察边缘煤气流、十字测温和压差"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_distribution"}
+    },
+    "EDGE-O2-BLOCK": {
+      "scheme": "lower", "source_refs": ["5.3.6.1.3"],
+      "name": "阻断继续加氧", "user_facing_text": "边缘煤气流已经发展，当前禁止继续强化富氧",
+      "sequence_rank": 1, "legacy_stage": "immediate", "required_inputs": [],
+      "preconditions": ["边缘煤气流发展"], "delta": null,
+      "observation_window": {"min_minutes": 5, "max_minutes": 15, "basis": "持续观察边缘煤气流、理论燃烧温度和压差"},
+      "approval": {"required": false, "role": null, "kind": "safety_block"}
+    },
+    "UP-04": {
+      "scheme": "upper", "source_refs": ["5.3.1.4"],
+      "name": "增加边缘布焦圈数", "user_facing_text": "在焦总圈不变前提下，增加边缘布焦圈数，以疏松边缘、加重中心",
+      "sequence_rank": 10, "legacy_stage": "immediate", "required_inputs": ["coke_total_rings", "coke_edge_rings_current", "coke_edge_rings_target"],
+      "preconditions": ["中心气流过强已复核", "焦总圈保持不变", "当前及目标圈数可审计"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按料批观察中心煤气流、十字测温、压差和料速"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_distribution"}
+    },
+    "UP-05": {
+      "scheme": "upper", "source_refs": ["5.3.2.1", "5.3.2.5"],
+      "name": "增大焦炭γ抑制中心", "user_facing_text": "确认溜槽布料方向后，增大γ焦以减少中心焦炭量、加重中心",
+      "sequence_rank": 20, "legacy_stage": "followup", "required_inputs": ["gamma_coke_current", "gamma_coke_target", "chute_direction"],
+      "preconditions": ["中心气流过强已复核", "溜槽方向明确，反向布料时需反转规则效果"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按料批观察中心煤气流、十字测温和压差"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_distribution"}
+    },
+    "LOW-BLAST-DOWN-04": {
+      "scheme": "lower", "source_refs": ["5.3.3.2.4"],
+      "name": "失常炉况降低冷风压力", "user_facing_text": "管道、崩料、偏料或悬料时，经现场确认降低冷风压力和压差并恢复顺行",
+      "sequence_rank": 5, "legacy_stage": "immediate", "required_inputs": ["P_blast_cold"],
+      "preconditions": ["管道、崩料、偏料或悬料已确认"], "delta": null,
+      "observation_window": {"min_minutes": 5, "max_minutes": 10, "basis": "观察风压、压差、探尺、料速和风口状态"},
+      "approval": {"required": true, "role": "值班工长", "kind": "parameter_change"}
+    },
+    "UP-10": {
+      "scheme": "upper", "source_refs": ["5.3.2.6"],
+      "name": "特殊布料处理管道或偏料", "user_facing_text": "管道或料面偏斜经复核后，由现场授权采用偏料、扇形或定点布料",
+      "sequence_rank": 20, "legacy_stage": "immediate", "required_inputs": ["burden_surface_confirmed_flag"],
+      "preconditions": ["管道或料面偏斜已经现场复核"], "delta": null,
+      "observation_window": {"min_minutes": 30, "max_minutes": null, "basis": "按料批观察下料均匀性、煤气分布和管道消除情况"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "special_operation"}
+    },
+    "UP-11": {
+      "scheme": "upper", "source_refs": ["5.3.2.7"],
+      "name": "集中净焦后补回矿石", "user_facing_text": "按批准方案先集中加入净焦，再部分或全部补回矿石，作为不可拆分的两步管道处理链",
+      "sequence_rank": 30, "legacy_stage": "followup", "required_inputs": ["net_coke_target", "ore_restore_plan", "net_coke_plan_approved_flag"],
+      "preconditions": ["管道已确认", "净焦量与矿石补回方案完整"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按两步料批实际下达与管道消除情况复查"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "special_operation"}
+    },
+    "UP-12": {
+      "scheme": "upper", "source_refs": ["5.3.2.8"],
+      "name": "坐料处理严重管道或偏料", "user_facing_text": "仅在炉温充足、严重管道或偏料、非高压、炉顶打水已停且现场授权时组织坐料",
+      "sequence_rank": 40, "legacy_stage": "followup", "required_inputs": ["hot_state_sufficient_flag", "serious_channel_or_bias_flag", "top_water_stopped_flag"],
+      "preconditions": ["炉温充足", "严重管道或偏料", "非高压运行", "炉顶打水已停"], "delta": null,
+      "observation_window": {"min_minutes": 0, "max_minutes": null, "basis": "按事故预案连续监护探尺、风压、顶压、风口和料柱状态"},
+      "approval": {"required": true, "role": "高炉作业长/值班长", "kind": "special_operation"}
+    },
+    "LOW-PCI-DOWN-05": {
+      "scheme": "lower", "source_refs": ["5.3.5.5.5", "5.3.5.2.6.1"],
+      "name": "严重失常时停止喷煤", "user_facing_text": "炉况严重失常时按事故预案先停煤；停喷吹扫后不得长时间空吹",
+      "sequence_rank": 10, "legacy_stage": "immediate", "required_inputs": ["PCI_rate"],
+      "preconditions": ["严重失常已确认", "已通知喷吹站"], "delta": null,
+      "observation_window": {"min_minutes": 0, "max_minutes": 10, "basis": "连续确认喷煤停止、管内煤粉处理、风压和风口状态"},
+      "approval": {"required": true, "role": "值班工长", "kind": "emergency_procedure"}
+    },
+    "NET-COKE-04": {
+      "scheme": "burden", "source_refs": ["5.3.8.4"],
+      "name": "悬料恢复后净焦核算", "user_facing_text": "悬料恢复后按崩料后的实际料线深度核算净焦量，经高炉作业长批准后执行",
+      "sequence_rank": 50, "legacy_stage": "followup", "required_inputs": ["post_slip_line_depth", "net_coke_target"],
+      "preconditions": ["悬料已经恢复", "崩料后料线深度可用"], "delta": null,
+      "observation_window": {"min_minutes": 60, "max_minutes": null, "basis": "按净焦料批下达后的冶炼周期复查"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_change"}
+    },
+    "BASICITY-07": {
+      "scheme": "basicity", "source_refs": ["5.1.7.2", "5.1.7.3", "5.3.9.7"],
+      "name": "先核算再决定碱度调剂", "user_facing_text": "先将理论碱度与实际炉渣碱度按炉次对齐核算；数据和批准目标齐全前，不给调剂方向或剂量",
+      "sequence_rank": 10, "legacy_stage": "followup", "required_inputs": ["slag_r2_actual", "burden_r2_theoretical", "sample_batch_id", "sample_published_at"],
+      "preconditions": ["存在碱度、配比、铁水硫或专项状态触发", "理论值与实际值按炉次和发布时间对齐"],
+      "delta": {"target_min": 1.15, "target_max": 1.22, "unit": "CaO/SiO2"},
+      "observation_window": {"min_minutes": null, "max_minutes": null, "basis": "按炉次、取样时间和化验发布时间复核，不与一分钟传感器等时处理"},
+      "approval": {"required": true, "role": "高炉作业长", "kind": "burden_calculation"}
+    },
+    "SAFETY-PRESSURE-NORMAL": {
+      "scheme": "safety", "source_refs": ["5.3.2.8"],
+      "name": "先改常压运行", "user_facing_text": "高压状态下禁止坐料；按事故预案先改常压并复核顶压",
+      "sequence_rank": 0, "legacy_stage": "immediate", "required_inputs": [], "preconditions": ["高压运行已确认"], "delta": null,
+      "observation_window": {"min_minutes": 0, "max_minutes": 5, "basis": "连续确认顶压和压力制度状态"},
+      "approval": {"required": true, "role": "值班长", "kind": "safety_prerequisite"}
+    },
+    "SAFETY-TOP-TEMP-350": {
+      "scheme": "safety", "source_refs": ["5.2.3.6"],
+      "name": "顶温超限保护", "user_facing_text": "炉顶温度超过350℃，按事故预案启动顶温控制并大幅减风",
+      "sequence_rank": 0, "legacy_stage": "immediate", "required_inputs": [], "preconditions": ["15分钟炉顶最高温度超过350℃"], "delta": null,
+      "observation_window": {"min_minutes": 0, "max_minutes": 5, "basis": "连续监测顶温、炉顶设备和风压"},
+      "approval": {"required": true, "role": "值班长", "kind": "emergency_procedure"}
+    },
+    "SAFETY-COLUMN-PLAN": {
+      "scheme": "safety", "source_refs": ["5.4.3"],
+      "name": "按悬料事故预案处置", "user_facing_text": "确认悬料硬条件后，按事故预案处置富氧、喷煤、TRT和炉顶打水",
+      "sequence_rank": 0, "legacy_stage": "immediate", "required_inputs": [], "preconditions": ["悬料硬条件已确认"], "delta": null,
+      "observation_window": {"min_minutes": 0, "max_minutes": 5, "basis": "连续监护探尺、风压、压差、透气性和风口"},
+      "approval": {"required": true, "role": "值班长", "kind": "emergency_procedure"}
+    },
+    "SAFETY-COLUMN-VERIFY": {
+      "scheme": "safety", "source_refs": ["5.4.3"],
+      "name": "现场复核悬料硬条件", "user_facing_text": "组织现场复核探尺、风压、压差、透气性和实际下料后，再决定坐料相关操作",
+      "sequence_rank": 1, "legacy_stage": "immediate", "required_inputs": [], "preconditions": ["悬料诊断达到硬条件"], "delta": null,
+      "observation_window": {"min_minutes": 0, "max_minutes": 5, "basis": "现场连续复核"},
+      "approval": {"required": true, "role": "值班长", "kind": "manual_verification"}
+    },
+    "SAFETY-TUYERE-CHECK": {
+      "scheme": "safety", "source_refs": ["5.3.5.3.9"],
+      "name": "优先检查风口", "user_facing_text": "风口异常时暂停对应风口喷吹并优先检查，严禁强行恢复风量，防止灌渣",
+      "sequence_rank": 0, "legacy_stage": "immediate", "required_inputs": [], "preconditions": ["风口异常已确认"], "delta": null,
+      "observation_window": {"min_minutes": 0, "max_minutes": 5, "basis": "连续监护风口、风压和喷煤支管"},
+      "approval": {"required": true, "role": "值班长", "kind": "emergency_procedure"}
+    },
+    "SAFETY-TRT-OFF": {
+      "scheme": "safety", "source_refs": ["5.4.3"],
+      "name": "先解列TRT", "user_facing_text": "管道或悬料伴随TRT运行时，按事故预案先解列TRT",
+      "sequence_rank": 0, "legacy_stage": "immediate", "required_inputs": [], "preconditions": ["管道或悬料且TRT正在运行"], "delta": null,
+      "observation_window": {"min_minutes": 0, "max_minutes": 5, "basis": "确认TRT解列状态和顶压"},
+      "approval": {"required": true, "role": "值班长", "kind": "emergency_procedure"}
+    }
+  }
+}

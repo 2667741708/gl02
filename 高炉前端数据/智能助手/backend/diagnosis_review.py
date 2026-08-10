@@ -1,8 +1,9 @@
-"""Local-only abnormal diagnosis review support.
+"""Loopback-only abnormal diagnosis review support.
 
 The review store is intentionally isolated from the normal assistant/database
 configuration.  It requires explicit ``BF_DIAG_REVIEW_PG*`` variables and
-refuses non-loopback PostgreSQL hosts.
+refuses non-loopback PostgreSQL hosts.  A deployment may opt into a server-side
+onsite identity so scoring does not require a browser login.
 """
 
 from __future__ import annotations
@@ -44,8 +45,13 @@ DIAGNOSIS_LABELS = {
 VERDICTS = {"correct", "incorrect", "uncertain"}
 SESSION_COOKIE = "bf_diag_review_session"
 DEFAULT_ALLOWED_ROLES = ("高组长",)
+DEFAULT_ANONYMOUS_USERNAME = "onsite_8093"
+DEFAULT_ANONYMOUS_ROLE = "现场高炉长"
+SIGNED_SESSION_IDENTITY = "signed_session"
+ONSITE_ANONYMOUS_IDENTITY = "onsite_anonymous"
 _EPHEMERAL_SESSION_SECRET = secrets.token_bytes(48)
 _SCHEMA_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 class ReviewConfigurationError(RuntimeError):
@@ -60,6 +66,9 @@ class ReviewValidationError(ValueError):
 class ReviewConfig:
     enabled: bool
     test_mode: bool
+    require_login: bool
+    anonymous_username: str
+    anonymous_role: str
     pg_host: str
     pg_port: int
     pg_database: str
@@ -104,14 +113,29 @@ def load_review_config(require_store: bool = False) -> ReviewConfig:
     except ValueError as exc:
         raise ReviewConfigurationError("复核数据库端口或会话有效期不是整数") from exc
     roles = _split_csv(os.getenv("BF_DIAG_REVIEW_ALLOWED_ROLES", ",".join(DEFAULT_ALLOWED_ROLES)))
+    password = os.getenv("BF_DIAG_REVIEW_PGPASSWORD", "")
+    password_env = os.getenv("BF_DIAG_REVIEW_PGPASSWORD_ENV", "").strip()
+    if not password and password_env:
+        if not _ENV_NAME_RE.fullmatch(password_env):
+            raise ReviewConfigurationError("BF_DIAG_REVIEW_PGPASSWORD_ENV 不是安全的环境变量名称")
+        password = os.getenv(password_env, "")
     config = ReviewConfig(
         enabled=review_enabled(),
         test_mode=review_test_mode_enabled(),
+        require_login=env_truthy("BF_DIAG_REVIEW_REQUIRE_LOGIN", True),
+        anonymous_username=(
+            os.getenv("BF_DIAG_REVIEW_ANONYMOUS_USERNAME", DEFAULT_ANONYMOUS_USERNAME).strip()
+            or DEFAULT_ANONYMOUS_USERNAME
+        ),
+        anonymous_role=(
+            os.getenv("BF_DIAG_REVIEW_ANONYMOUS_ROLE", DEFAULT_ANONYMOUS_ROLE).strip()
+            or DEFAULT_ANONYMOUS_ROLE
+        ),
         pg_host=host,
         pg_port=port,
         pg_database=os.getenv("BF_DIAG_REVIEW_PGDATABASE", "").strip(),
         pg_user=os.getenv("BF_DIAG_REVIEW_PGUSER", "").strip(),
-        pg_password=os.getenv("BF_DIAG_REVIEW_PGPASSWORD", ""),
+        pg_password=password,
         pg_schema=schema,
         allowed_roles=roles or DEFAULT_ALLOWED_ROLES,
         session_ttl_seconds=max(60, ttl),
@@ -144,6 +168,32 @@ def client_is_loopback(client_address: Any) -> bool:
 def role_is_allowed(role: str, config: Optional[ReviewConfig] = None) -> bool:
     cfg = config or load_review_config()
     return str(role or "").strip() in cfg.allowed_roles
+
+
+def submission_identity(
+    session: Optional[Mapping[str, Any]],
+    config: Optional[ReviewConfig] = None,
+) -> Optional[dict[str, str]]:
+    """Return a server-controlled writer identity for one score submission.
+
+    Browser payload fields are deliberately ignored.  An allowed signed session
+    keeps its named identity; when login is disabled every other request uses the
+    fixed onsite identity from server configuration.
+    """
+    cfg = config or load_review_config()
+    if session and role_is_allowed(str(session.get("role") or ""), cfg):
+        return {
+            "sub": str(session.get("sub") or ""),
+            "role": str(session.get("role") or ""),
+            "identity_mode": SIGNED_SESSION_IDENTITY,
+        }
+    if cfg.require_login:
+        return None
+    return {
+        "sub": cfg.anonymous_username,
+        "role": cfg.anonymous_role,
+        "identity_mode": ONSITE_ANONYMOUS_IDENTITY,
+    }
 
 
 def authenticate_account(accounts: Mapping[str, Mapping[str, str]], username: str, password: str) -> Optional[dict[str, str]]:
@@ -346,6 +396,11 @@ def derive_current_episode(
         "raw_scores": scores,
         "candidates": candidates,
         "evidence": normalize_sequence(current.get("evidence")),
+        "feature_snapshot": (
+            dict(current.get("feature_snapshot"))
+            if isinstance(current.get("feature_snapshot"), Mapping)
+            else {}
+        ),
         "data_coverage": current.get("data_coverage") if isinstance(current.get("data_coverage"), Mapping) else {},
         "snapshot_source": "live_readonly",
     }
@@ -380,6 +435,21 @@ def build_fixture_context(label: str, case_id: str = "default") -> dict[str, Any
             {"title": "本机测试证据", "detail": f"测试场景：{display_label(diagnosis_key)}"},
             {"title": "边界说明", "detail": "该场景仅用于交互验收，不代表真实生产诊断。"},
         ],
+        "feature_snapshot": {
+            "z30_T_top_slope": -0.62,
+            "z60_T_body_lower": -1.08,
+            "z_T_taphole_mean": -0.84,
+            "z60_P_blast": -0.91,
+            "z60_PI": 0.94,
+            "z60_GasUtil": -0.73,
+            "z60_T_blast": -0.58,
+            "zstd_P_top": 0.42,
+            "zstd_DP_total": 0.51,
+            "zstd_PI": 0.38,
+            "zstd_P_blast": 0.47,
+            "DispTop_15": 0.21,
+            "L_diff_NS": 0.12,
+        },
         "data_coverage": {"available": 126, "expected": 133, "ratio": 126 / 133},
     }
     context = derive_current_episode([row], furnace_id="BF-local-fixture")
@@ -510,6 +580,8 @@ ALTER TABLE {schema}.diagnosis_review_events
     ADD COLUMN IF NOT EXISTS human_match_score SMALLINT CHECK (human_match_score BETWEEN 0 AND 100);
 ALTER TABLE {schema}.diagnosis_review_events
     ADD COLUMN IF NOT EXISTS suggestion TEXT NOT NULL DEFAULT '';
+ALTER TABLE {schema}.diagnosis_review_events
+    ADD COLUMN IF NOT EXISTS identity_mode TEXT NOT NULL DEFAULT 'signed_session';
 
 CREATE TABLE IF NOT EXISTS {schema}.diagnosis_manual_score_events (
     id BIGSERIAL PRIMARY KEY,
@@ -535,6 +607,38 @@ CREATE INDEX IF NOT EXISTS diagnosis_manual_score_snapshot_idx
     ON {schema}.diagnosis_manual_score_events (diagnosis_ts DESC, target_label, created_at DESC);
 CREATE INDEX IF NOT EXISTS diagnosis_manual_score_reviewer_idx
     ON {schema}.diagnosis_manual_score_events (reviewer_username, created_at DESC);
+ALTER TABLE {schema}.diagnosis_manual_score_events
+    ADD COLUMN IF NOT EXISTS identity_mode TEXT NOT NULL DEFAULT 'signed_session';
+
+CREATE TABLE IF NOT EXISTS {schema}.diagnosis_ai_analysis_snapshots (
+    id BIGSERIAL PRIMARY KEY,
+    furnace_id TEXT NOT NULL,
+    diagnosis_snapshot_id TEXT NOT NULL,
+    diagnosis_ts TIMESTAMPTZ NOT NULL,
+    bucket_ts TIMESTAMPTZ NOT NULL,
+    bucket_minutes SMALLINT NOT NULL DEFAULT 5 CHECK (bucket_minutes BETWEEN 1 AND 60),
+    main_label TEXT NOT NULL,
+    system_raw_scores JSONB NOT NULL,
+    canonical_context JSONB NOT NULL,
+    analyses JSONB NOT NULL DEFAULT '[]'::jsonb,
+    generation_state TEXT NOT NULL CHECK (
+        generation_state IN ('preparing', 'reasoning', 'completed', 'failed')
+    ),
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    last_error_code TEXT NOT NULL DEFAULT '',
+    prompt_version TEXT NOT NULL,
+    snapshot_hash TEXT NOT NULL,
+    model_public_name TEXT NOT NULL,
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (furnace_id, bucket_ts, prompt_version)
+);
+CREATE INDEX IF NOT EXISTS diagnosis_ai_analysis_snapshot_idx
+    ON {schema}.diagnosis_ai_analysis_snapshots (diagnosis_ts DESC, generation_state);
+CREATE INDEX IF NOT EXISTS diagnosis_ai_analysis_bucket_idx
+    ON {schema}.diagnosis_ai_analysis_snapshots (bucket_ts DESC, main_label);
 """
 
 
@@ -568,17 +672,299 @@ class DiagnosisReviewStore:
     def manual_score_table_name(self) -> str:
         return f"{self.config.pg_schema}.diagnosis_manual_score_events"
 
+    @property
+    def ai_analysis_table_name(self) -> str:
+        return f"{self.config.pg_schema}.diagnosis_ai_analysis_snapshots"
+
     def ensure_schema(self) -> None:
         ddl = REVIEW_TABLE_DDL.format(schema=self.config.pg_schema)
         with self._connect() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(ddl)
 
+    def read_latest_diagnosis_rows(self, *, limit: int = 288) -> list[dict[str, Any]]:
+        """Read canonical diagnosis snapshots through the isolated review connection."""
+        safe_limit = max(1, min(int(limit), 2880))
+        sql = """
+            SELECT * FROM (
+                SELECT DISTINCT ON (diagnosis_ts)
+                       id, diagnosis_ts, main_label, main_score, main_confidence,
+                       secondary_label, secondary_score, secondary_confidence,
+                       evidence, raw_scores, feature_snapshot, data_coverage, updated_at
+                FROM bf_sensor.diagnosis_snapshots
+                ORDER BY diagnosis_ts DESC, updated_at DESC, id DESC
+            ) snapshots
+            ORDER BY diagnosis_ts DESC
+            LIMIT %s
+        """
+        columns = (
+            "id", "diagnosis_ts", "main_label", "main_score", "main_confidence",
+            "secondary_label", "secondary_score", "secondary_confidence",
+            "evidence", "raw_scores", "feature_snapshot", "data_coverage", "updated_at",
+        )
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sql, (safe_limit,))
+                rows = cursor.fetchall()
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            item = dict(zip(columns, row))
+            item["secondary"] = []
+            if item.get("secondary_label"):
+                item["secondary"].append(
+                    {
+                        "label": item.get("secondary_label"),
+                        "score": item.get("secondary_score"),
+                        "confidence": item.get("secondary_confidence"),
+                    }
+                )
+            result.append(item)
+        return result
+
+    def read_diagnosis_evidence_rows(
+        self,
+        *,
+        diagnosis_ts: Any,
+        variables: Sequence[str],
+        window_minutes: int = 60,
+        baseline_days: int = 30,
+    ) -> dict[str, list[dict[str, Any]]]:
+        """Read minute values and daily references used by score explanations.
+
+        This is a read-only companion query.  It applies the same unaudited-zero
+        boundary as the diagnosis scheduler and never writes or recalculates the
+        canonical rule scores.
+        """
+        target = normalize_timestamp(diagnosis_ts)
+        safe_variables = tuple(dict.fromkeys(str(item) for item in variables if item))
+        if not safe_variables:
+            return {"sensor_rows": [], "baseline_rows": []}
+        start = target - timedelta(minutes=max(5, min(int(window_minutes), 180)))
+        sensor_sql = """
+            SELECT r.variable_name, v.ts,
+                   CASE
+                       WHEN v.value = 0
+                        AND COALESCE(z.verification_status, '') <> 'verified_zero'
+                       THEN NULL
+                       ELSE v.value
+                   END AS value
+            FROM bf_sensor.one_minute_values v
+            JOIN bf_sensor.sensor_registry r ON r.tag_long_name = v.tag_long_name
+            LEFT JOIN bf_sensor.zero_value_audits z
+              ON z.tag_long_name = v.tag_long_name
+             AND z.ts = v.ts
+             AND z.pspace_aggregate = v.aggregate
+            WHERE r.is_enabled = true
+              AND r.is_derived = false
+              AND r.variable_name = ANY(%s)
+              AND v.ts >= %s
+              AND v.ts <= %s
+            ORDER BY r.variable_name, v.ts
+        """
+        baseline_sql = """
+            SELECT DISTINCT ON (variable_name)
+                   variable_name, baseline_day, median_ref, iqr_ref,
+                   p10, p90, sample_count, coverage_ratio,
+                   baseline_window_start, baseline_window_end
+            FROM bf_sensor.daily_baselines
+            WHERE baseline_days = %s
+              AND baseline_day <= %s
+              AND variable_name = ANY(%s)
+            ORDER BY variable_name, baseline_day DESC, updated_at DESC
+        """
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sensor_sql, (list(safe_variables), start, target))
+                sensor_values = cursor.fetchall()
+                cursor.execute(
+                    baseline_sql,
+                    (int(baseline_days), target.date(), list(safe_variables)),
+                )
+                baseline_values = cursor.fetchall()
+        sensor_columns = ("variable_name", "ts", "value")
+        baseline_columns = (
+            "variable_name", "baseline_day", "median_ref", "iqr_ref",
+            "p10", "p90", "sample_count", "coverage_ratio",
+            "baseline_window_start", "baseline_window_end",
+        )
+        return {
+            "sensor_rows": [dict(zip(sensor_columns, row)) for row in sensor_values],
+            "baseline_rows": [dict(zip(baseline_columns, row)) for row in baseline_values],
+        }
+
+    def get_ai_analysis(
+        self,
+        *,
+        furnace_id: str,
+        bucket_ts: Any,
+        prompt_version: str,
+    ) -> Optional[dict[str, Any]]:
+        """Return the durable analysis state for one five-minute bucket."""
+        sql = f"""
+            SELECT id, furnace_id, diagnosis_snapshot_id, diagnosis_ts, bucket_ts,
+                   bucket_minutes, main_label, system_raw_scores, canonical_context,
+                   analyses, generation_state, attempt_count, last_error_code,
+                   prompt_version, snapshot_hash, model_public_name, started_at,
+                   completed_at, created_at, updated_at
+            FROM {self.ai_analysis_table_name}
+            WHERE furnace_id = %s AND bucket_ts = %s AND prompt_version = %s
+            LIMIT 1
+        """
+        columns = (
+            "id", "furnace_id", "diagnosis_snapshot_id", "diagnosis_ts", "bucket_ts",
+            "bucket_minutes", "main_label", "system_raw_scores", "canonical_context",
+            "analyses", "generation_state", "attempt_count", "last_error_code",
+            "prompt_version", "snapshot_hash", "model_public_name", "started_at",
+            "completed_at", "created_at", "updated_at",
+        )
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    sql,
+                    (
+                        furnace_id,
+                        normalize_timestamp(bucket_ts),
+                        prompt_version,
+                    ),
+                )
+                row = cursor.fetchone()
+        return dict(zip(columns, row)) if row else None
+
+    def begin_ai_analysis(
+        self,
+        context: Mapping[str, Any],
+        *,
+        prompt_version: str,
+        snapshot_hash: str,
+        model_public_name: str,
+    ) -> dict[str, Any]:
+        """Create or mark one derived five-minute analysis row as reasoning."""
+        try:
+            from psycopg.types.json import Jsonb
+        except ImportError as exc:
+            raise ReviewConfigurationError("缺少 psycopg JSON 支持") from exc
+        sql = f"""
+            INSERT INTO {self.ai_analysis_table_name} AS current_row (
+                furnace_id, diagnosis_snapshot_id, diagnosis_ts, bucket_ts,
+                bucket_minutes, main_label, system_raw_scores, canonical_context,
+                generation_state, attempt_count, prompt_version, snapshot_hash,
+                model_public_name, started_at, updated_at
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s,
+                'reasoning', 1, %s, %s, %s, NOW(), NOW()
+            )
+            ON CONFLICT (furnace_id, bucket_ts, prompt_version) DO UPDATE SET
+                diagnosis_snapshot_id = EXCLUDED.diagnosis_snapshot_id,
+                diagnosis_ts = EXCLUDED.diagnosis_ts,
+                main_label = EXCLUDED.main_label,
+                system_raw_scores = EXCLUDED.system_raw_scores,
+                canonical_context = EXCLUDED.canonical_context,
+                generation_state = 'reasoning',
+                attempt_count = current_row.attempt_count + 1,
+                last_error_code = '',
+                snapshot_hash = EXCLUDED.snapshot_hash,
+                model_public_name = EXCLUDED.model_public_name,
+                started_at = NOW(),
+                completed_at = NULL,
+                updated_at = NOW()
+            RETURNING id, generation_state, attempt_count, started_at, updated_at
+        """
+        values = (
+            str(context.get("furnace_id") or "BF"),
+            str(context.get("snapshot_id") or ""),
+            normalize_timestamp(context["diagnosis_ts"]),
+            normalize_timestamp(context["bucket_ts"]),
+            int(context.get("bucket_minutes") or 5),
+            str(context.get("main_label") or "normal"),
+            Jsonb(normalize_scores(context.get("scores"))),
+            Jsonb(dict(context)),
+            prompt_version,
+            snapshot_hash,
+            model_public_name,
+        )
+        columns = ("id", "generation_state", "attempt_count", "started_at", "updated_at")
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sql, values)
+                row = cursor.fetchone()
+        return dict(zip(columns, row))
+
+    def complete_ai_analysis(
+        self,
+        *,
+        furnace_id: str,
+        bucket_ts: Any,
+        prompt_version: str,
+        snapshot_hash: str,
+        analyses: Sequence[Mapping[str, Any]],
+    ) -> dict[str, Any]:
+        """Persist a complete eight-condition result for the current bucket."""
+        try:
+            from psycopg.types.json import Jsonb
+        except ImportError as exc:
+            raise ReviewConfigurationError("缺少 psycopg JSON 支持") from exc
+        sql = f"""
+            UPDATE {self.ai_analysis_table_name}
+            SET analyses = %s,
+                generation_state = 'completed',
+                last_error_code = '',
+                snapshot_hash = %s,
+                completed_at = NOW(),
+                updated_at = NOW()
+            WHERE furnace_id = %s AND bucket_ts = %s AND prompt_version = %s
+            RETURNING id, generation_state, attempt_count, completed_at, updated_at
+        """
+        columns = ("id", "generation_state", "attempt_count", "completed_at", "updated_at")
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    sql,
+                    (
+                        Jsonb([dict(item) for item in analyses]),
+                        snapshot_hash,
+                        furnace_id,
+                        normalize_timestamp(bucket_ts),
+                        prompt_version,
+                    ),
+                )
+                row = cursor.fetchone()
+        if not row:
+            raise ReviewConfigurationError("5分钟智能分析状态不存在，无法保存结果")
+        return dict(zip(columns, row))
+
+    def fail_ai_analysis(
+        self,
+        *,
+        furnace_id: str,
+        bucket_ts: Any,
+        prompt_version: str,
+        error_code: str,
+    ) -> None:
+        """Record a sanitized failure code without storing model output or secrets."""
+        sql = f"""
+            UPDATE {self.ai_analysis_table_name}
+            SET generation_state = 'failed',
+                last_error_code = %s,
+                updated_at = NOW()
+            WHERE furnace_id = %s AND bucket_ts = %s AND prompt_version = %s
+        """
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    sql,
+                    (
+                        str(error_code or "AnalysisError")[:120],
+                        furnace_id,
+                        normalize_timestamp(bucket_ts),
+                        prompt_version,
+                    ),
+                )
+
     def insert_event(
         self,
         canonical_context: Mapping[str, Any],
         review: Mapping[str, Any],
-        session: Mapping[str, Any],
+        identity: Mapping[str, Any],
     ) -> tuple[dict[str, Any], bool]:
         try:
             from psycopg.types.json import Jsonb
@@ -604,8 +990,9 @@ class DiagnosisReviewStore:
             review.get("note") or "",
             review.get("human_match_score"),
             review.get("suggestion") or "",
-            str(session.get("sub") or ""),
-            str(session.get("role") or ""),
+            str(identity.get("sub") or ""),
+            str(identity.get("role") or ""),
+            str(identity.get("identity_mode") or SIGNED_SESSION_IDENTITY),
             str(canonical_context.get("snapshot_source") or "live_readonly"),
             review.get("source_page") or "",
         )
@@ -616,27 +1003,27 @@ class DiagnosisReviewStore:
                 main_confidence, secondary, raw_scores, evidence, data_coverage,
                 verdict, corrected_main_label, corrected_secondary_label, note,
                 human_match_score, suggestion,
-                reviewer_username, reviewer_role, snapshot_source, source_page
+                reviewer_username, reviewer_role, identity_mode, snapshot_source, source_page
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             ON CONFLICT (idempotency_key) DO NOTHING
             RETURNING id, idempotency_key, episode_key, diagnosis_snapshot_id,
                       verdict, human_match_score, suggestion, reviewer_username,
-                      reviewer_role, snapshot_source, created_at
+                      reviewer_role, identity_mode, snapshot_source, created_at
         """
         lookup_sql = f"""
             SELECT id, idempotency_key, episode_key, diagnosis_snapshot_id,
                    verdict, human_match_score, suggestion, reviewer_username,
-                   reviewer_role, snapshot_source, created_at
+                   reviewer_role, identity_mode, snapshot_source, created_at
             FROM {self.table_name}
             WHERE idempotency_key = %s
         """
         columns = (
             "id", "idempotency_key", "episode_key", "diagnosis_snapshot_id",
             "verdict", "human_match_score", "suggestion", "reviewer_username",
-            "reviewer_role", "snapshot_source", "created_at",
+            "reviewer_role", "identity_mode", "snapshot_source", "created_at",
         )
         with self._connect() as connection:
             with connection.cursor() as cursor:
@@ -696,7 +1083,7 @@ class DiagnosisReviewStore:
         self,
         canonical_context: Mapping[str, Any],
         manual_score: Mapping[str, Any],
-        session: Mapping[str, Any],
+        identity: Mapping[str, Any],
     ) -> tuple[dict[str, Any], bool]:
         """Append one score/suggestion for a diagnosis label and snapshot."""
         try:
@@ -714,8 +1101,9 @@ class DiagnosisReviewStore:
             Jsonb(normalize_scores(canonical_context.get("raw_scores"))),
             manual_score.get("human_match_score"),
             manual_score.get("suggestion") or "",
-            str(session.get("sub") or ""),
-            str(session.get("role") or ""),
+            str(identity.get("sub") or ""),
+            str(identity.get("role") or ""),
+            str(identity.get("identity_mode") or SIGNED_SESSION_IDENTITY),
             str(canonical_context.get("snapshot_source") or "live_readonly"),
             manual_score.get("source_page") or "",
         )
@@ -724,24 +1112,24 @@ class DiagnosisReviewStore:
                 idempotency_key, furnace_id, diagnosis_snapshot_id, diagnosis_ts,
                 target_label, system_main_label, system_main_score, system_raw_scores,
                 human_match_score, suggestion, reviewer_username, reviewer_role,
-                snapshot_source, source_page
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                identity_mode, snapshot_source, source_page
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (idempotency_key) DO NOTHING
             RETURNING id, idempotency_key, diagnosis_snapshot_id, diagnosis_ts,
                       target_label, human_match_score, suggestion, reviewer_username,
-                      reviewer_role, snapshot_source, created_at
+                      reviewer_role, identity_mode, snapshot_source, created_at
         """
         lookup_sql = f"""
             SELECT id, idempotency_key, diagnosis_snapshot_id, diagnosis_ts,
                    target_label, human_match_score, suggestion, reviewer_username,
-                   reviewer_role, snapshot_source, created_at
+                   reviewer_role, identity_mode, snapshot_source, created_at
             FROM {self.manual_score_table_name}
             WHERE idempotency_key = %s
         """
         columns = (
             "id", "idempotency_key", "diagnosis_snapshot_id", "diagnosis_ts",
             "target_label", "human_match_score", "suggestion", "reviewer_username",
-            "reviewer_role", "snapshot_source", "created_at",
+            "reviewer_role", "identity_mode", "snapshot_source", "created_at",
         )
         with self._connect() as connection:
             with connection.cursor() as cursor:

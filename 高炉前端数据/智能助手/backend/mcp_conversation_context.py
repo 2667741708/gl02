@@ -192,14 +192,70 @@ def context_with_tool_trace(
             names.append(name)
         payload = item.get("result")
         if isinstance(payload, dict):
-            evidence.append(
-                {
-                    "tool": name,
-                    "image_url": payload.get("image_url"),
-                    "count": payload.get("count") or payload.get("success_count"),
-                    "object_id": ((payload.get("object") or {}).get("object_id") if isinstance(payload.get("object"), dict) else None),
-                }
-            )
+            evidence_item = {
+                "tool": name,
+                "server_id": item.get("server_id"),
+                "image_url": payload.get("image_url"),
+                "count": payload.get("count") or payload.get("success_count") or payload.get("sample_count"),
+                "object_id": ((payload.get("object") or {}).get("object_id") if isinstance(payload.get("object"), dict) else None),
+                "current_heat_no": payload.get("current_heat_no"),
+                "previous_heat_no": payload.get("previous_heat_no"),
+                "as_of_time": payload.get("as_of_time"),
+                "heat_time_window": payload.get("heat_time_window"),
+            }
+            evidence.append({key: value for key, value in evidence_item.items() if value is not None})
     result["last_tool_names"] = names[-8:]
     result["last_evidence"] = evidence[-8:]
+    return result
+
+
+def context_with_cross_source_snapshot(
+    context: dict[str, Any] | None,
+    snapshot: Any,  # CrossSourceSnapshot
+) -> dict[str, Any]:
+    """Persist compact cross-source facts for follow-up question resolution.
+
+    Saves the last 8 facts with their fact_id, label, value, unit,
+    data_time, and source_service.  These are used to resolve pronouns
+    like "那个顶压" or "刚才那个Si" in follow-up questions.
+
+    Sensor facts are NOT blindly reused across requests — real-time
+    sensor queries are re-issued; only short-term MES repeats may be
+    served from the 30-second tool cache.
+    """
+
+    result = dict(context or empty_tool_context())
+    evidence: list[dict[str, Any]] = list(result.get("last_evidence") or [])
+
+    if snapshot is None:
+        result["last_evidence"] = evidence[-8:]
+        return result
+
+    # Extract cross-source facts
+    for fact in getattr(snapshot, "facts", []) or []:
+        evidence_item = {
+            "fact_id": getattr(fact, "fact_id", None),
+            "label": getattr(fact, "label", None),
+            "value": getattr(fact, "value", None),
+            "unit": getattr(fact, "unit", None),
+            "data_time": getattr(fact, "data_time", None),
+            "source_service": getattr(fact, "source_service", None),
+            "missing": getattr(fact, "missing", False),
+        }
+        # Only keep non-None fields
+        evidence.append({
+            key: val for key, val in evidence_item.items() if val is not None
+        })
+
+    # Save heat reference for follow-up
+    heat_ref = getattr(snapshot, "heat_reference", None)
+    if isinstance(heat_ref, dict):
+        evidence.append({
+            "heat_reference": True,
+            "resolved_heat_no": heat_ref.get("resolved_heat_no"),
+            "resolution_policy": heat_ref.get("resolution_policy"),
+        })
+
+    result["last_evidence"] = evidence[-8:]
+    result["last_tool_names"] = result.get("last_tool_names") or []
     return result

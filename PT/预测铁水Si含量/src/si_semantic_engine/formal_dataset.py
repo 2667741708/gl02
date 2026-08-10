@@ -136,6 +136,64 @@ def attach_available_si_history(heat_rows: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+# Selectable in-memory supervision target for offline experiments.
+def prepare_training_target(
+    frame: pd.DataFrame,
+    heat_targets: pd.DataFrame,
+    *,
+    target_column: str = "target__Si_representative",
+) -> tuple[pd.DataFrame, dict[str, str]]:
+    """Select a heat Si target and rebuild its leakage-safe history.
+
+    Model internals retain the legacy representative column name. Selecting the
+    arithmetic mean changes only the in-memory supervision and prior-heat
+    features, leaving source artifacts and frozen median models untouched.
+    """
+
+    supported = {"target__Si_representative", "target__Si_mean"}
+    if target_column not in supported:
+        raise ValueError(f"不支持的整炉Si训练目标：{target_column}")
+    history_columns = (
+        "history__available_heat_count",
+        "history__previous_meltno",
+        *HISTORY_FLOAT_COLUMNS,
+    )
+    required_frame = {"official_meltno", target_column, *history_columns}
+    missing_frame = sorted(required_frame - set(frame.columns))
+    if missing_frame:
+        raise ValueError(
+            f"训练宽表缺少整炉Si目标或历史字段：{', '.join(missing_frame)}"
+        )
+    required_targets = {"official_meltno", target_column}
+    missing_targets = sorted(required_targets - set(heat_targets.columns))
+    if missing_targets:
+        raise ValueError(
+            f"正式炉次目标缺少字段：{', '.join(missing_targets)}"
+        )
+    targets_for_history = heat_targets.copy()
+    targets_for_history["target__Si_representative"] = pd.to_numeric(
+        targets_for_history[target_column], errors="coerce"
+    )
+    target_history = attach_available_si_history(targets_for_history)[
+        ["official_meltno", *history_columns]
+    ]
+    output = frame.drop(columns=list(history_columns)).merge(
+        target_history,
+        on="official_meltno",
+        how="left",
+        validate="one_to_one",
+        sort=False,
+    )
+    selected = pd.to_numeric(output[target_column], errors="coerce")
+    if selected.isna().any():
+        raise ValueError(f"训练宽表存在空的整炉Si目标：{target_column}")
+    output["target__Si_representative"] = selected
+    return canonicalize_history_features(output), {
+        "target_column": target_column,
+        "history_target_column": target_column,
+    }
+
+
 def assign_heat_time_splits(
     frame: pd.DataFrame,
     train_ratio: float = 0.70,

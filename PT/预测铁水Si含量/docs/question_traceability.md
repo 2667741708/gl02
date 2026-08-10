@@ -176,3 +176,121 @@ V15的802项选择中只有335项跨三折完全稳定；紧凑候选稳健分�
 
 证据：[V14～V15方法](experiment_method_v14_v15.md)、
 [阶段报告](../reports/2026-07-27_V14_V15语义压缩与响应时延实验.md)。
+
+## Q-SI-AVERAGE-CURVE-22012-20260806
+
+### 用户问题
+
+220.12已保存炉铁水质量分析和新增过程点，希望按炉次使用平均Si重新测试当前
+最佳方法，画最近半个月真实平均Si与预测平均Si曲线，并核查IMES炉料化学成分；
+下一轮考虑输入前5炉Si。
+
+### 结论
+
+- 220.12最近15天有220炉、474条铁水样，全部220炉有算术平均Si；
+- 平均Si V9自适应权重模型全窗口MAE 0.04034，严格时间外155炉MAE 0.03848；
+- 水平相关性约0.43～0.45，但逐炉升降方向一致率约49%～50%，只能称总体水平
+  趋势中等一致，不能称逐炉趋势一致；
+- 已找到`PCI_current_hour`和`PCI_previous_hour`，以及另外14个新增物理点；
+- IMES烧结矿化学分析视图最近15天有371个试样，主要成分字段完整，但尚缺
+  经验证的“化验批次→投料批次→高炉炉次”谱系，因此本轮未混入模型；
+- 下一轮应增加前1至前5炉独立平均Si滞后，并保持发布时间防泄漏。
+
+证据：[结果报告](../reports/2026-08-06_22012最近15天逐炉平均Si真实预测曲线.md)。
+
+## REQ-SI-V19-CONTEXT-ABLATION-20260806
+
+Offline ablation for prior 1-5 heat mean-Si, current/lagged PCI, and IMES sinter chemistry time-background; V9/V13 and production interfaces remain frozen; chronological split is 1603/344/344.
+
+Implementation: v19_context_features.py, train_v19.py, extract_v19_context_v2.py, replay_v19_si_context_v2.py, test_v19_context_features.py.
+
+Result: chemistry ranked first on April/May/June pre-test selection, but frozen-test MAE did not beat V9 and paired bootstrap crossed zero; no shadow promotion. Status remains experimental_offline. Chemistry is time-background only; batch-to-bin-to-charge-to-heat lineage is unverified.
+
+Status: completed_offline_not_promoted.
+
+
+## REQ-SI-V19-AUGUST-HOLDOUT-20260807
+
+V19 rolling update: July data is included in offline training through 2026-07-26 19:02:00; 158 new August heats are held out as time-out evaluation. Original V19 artifacts remain frozen.
+
+Implementation: train_v19_august_holdout.py and train_v19_august_holdout_v2.py. Results: EXP-SI-V19-AUGUST-HOLDOUT-20260807.
+
+The protocol-selected candidate is pci; all_context is promising on this single August window but cannot be selected from the test result. No production promotion.
+
+Status: completed_offline_time_out_validation.
+
+
+## Q-SI-V20-OPEN-MINUS-HITRATE-20260807
+
+### 用户问题
+
+昨天按“每炉开口前 1 小时”回放时，±0.05 命中率只有 46.67%。希望重新做一轮
+V20 优化：扩大传感器窗口到 8～12 小时，加入前 1～5 个已发布炉次的独立平均
+Si、未化验炉次间隔、8/12小时喷煤，并按验证集命中率优先选择模型。
+
+### 已实现
+
+- 新增 V20 特征模块、数据集构建器、训练评估器；
+- 一键预测器保持默认 V19，指定 V20 bundle 时才加载 V20 特征；
+- 训练切分默认训练到 2026-07-31，验证 2026-08-01~2026-08-05，确认
+  2026-08-06~2026-08-07；
+- 单元测试覆盖 cutoff、防当前炉目标泄漏、未发布前炉跳过、未化验间隔和喷煤
+  不读未来。
+
+### 当前边界
+
+V20 已具备离线实验程序，但尚未在 220.12 上跑完整数据集构建和训练确认；因此
+当前状态是 `implemented_experimental_offline_not_promoted`，不能宣称命中率已提升。
+
+证据：[V20数据合同](data_contract.md#6-v20-开口前-1-小时平均-si-合同2026-08-07)、
+[程序索引](program_index.md#req-si-v20-open-minus-hitrate-20260807)、
+[测试参考](test_reference.md#test-si-v20-open-minus-20260807)。
+
+
+## Q-SI-FUELRATIO-V20-SIDE-BY-SIDE-20260808
+
+### 用户问题
+
+之前的一键 V19 结果如何；把工长燃料比方法与 V20 历史 Si 方法按相同炉次并列评估。
+
+### 结论
+
+- 一键入口默认 V19 August holdout，协议预选 `pci`；训练 2291 炉、8 月时间外测试
+  158 炉，MAE `0.04165`、±0.05 `67.72%`；不是开口前 1 小时口径。
+- MES 日报炉前块与 V20 验证/确认段只能对齐 7 炉；统一使用 220.12 每炉平均 Si 后，
+  V20 历史 Si 为 ±0.05 `57.14%`、MAE `0.0580`，工长固定 0.30 基准燃料比法为
+  `0.00%`、MAE `0.7358`。
+- 工长法当前按固定 `5 kg/t → 0.10% Si` 无约束线性外推，遇到报表燃料比大幅偏差会
+  产生负 Si 或过高 Si，只适合作为低置信度趋势解释/模型特征。
+
+证据：[并列评估报告](fuel_ratio_v20_side_by_side_20260808.md)、
+[指标 JSON](../reports/experiments/EXP-SI-FUELRATIO-V20-COMPARE-20260808/side_by_side_metrics.json)。
+
+## Q-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808
+
+对应需求：`REQ-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808`
+
+### 用户问题
+
+能否把 V20 单独显示在 8093/8094，让高炉长当前点击预测、回放任意历史炉次，并在实际平均 Si 随后发布后自动比较曲线和 ±0.05 命中？
+
+### 已实现
+
+两个端口均增加“平均 Si 预测 / V20影子模式”入口。当前预测支持目标炉号、预计开口时间和当前/开口前60分钟/指定截止时刻；历史页支持日期查询和批量回放。预测记录不可覆盖，实际值由炉次质量汇总表动态关联，因此化验随后到库后不需要重做预测即可显示误差。2026-08-08 用户进一步确认：V20 预测与回放不要求生产账号，任何能够打开页面的用户均可执行。
+
+边界：V20 仍为影子实验，点击结果不写生产控制、不替换 V19 默认流程；当前时刻偏离开口前60分钟训练口径时页面会告警。
+
+## Q-SI-V20-DEFAULT-LOGIN-LOCAL-DB-20260808
+
+### 用户问题
+
+V20 页面如何默认登录高炉长账号；数据是否只读取 220.12 本机已经持续同步的数据库，不再连接外部 IMES。
+
+### 核查结论
+
+- 2026-08-08 运行时核查：8093、8094 的 `/api/auth/status` 均为 `configured=false`。用户明确决定 V20 不配置生产账号、不增加登录框，任何能够访问页面的用户均可预测和回放。
+- 该放开仅适用于 `/api/si-v20/predict` 与 `/api/si-v20/replay`；后台管理、人工复核及其他既有写接口的权限不变。
+- V20 数据读取固定为 220.12 本机 PostgreSQL 的 `bf_assistant.heat_performance_quality_summary` 与预测审计表；其中 `si_avg` 的业务原始来源是 IMES 炉次铁水化验，由同步链路实时/回看下载到220.12并汇总。当前预测请求不再调用外部 IMES。后续若增加 IMES 特征，也只允许读取 220.12 本机已同步的 `bf_imes` 表或视图。
+
+状态：`login_requirement_removed_for_v20_only`。
+

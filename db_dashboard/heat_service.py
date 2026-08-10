@@ -151,31 +151,51 @@ def imes_ops_params() -> dict[str, Any]:
     """Resolve the project-approved operations-table read account."""
 
     file_values = _credential_values()
-    user = _setting("IMES_OPS_DB_USER", file_values)
-    password = _setting("IMES_OPS_DB_PASSWORD", file_values)
+    user = (
+        os.getenv("IMES_OPS_DB_USER")
+        or file_values.get("IMES_OPS_DB_USER")
+        or file_values.get("IMES_DB_USER")
+    )
+    password = (
+        os.getenv("IMES_OPS_DB_PASSWORD")
+        or file_values.get("IMES_OPS_DB_PASSWORD")
+        or file_values.get("IMES_DB_PASSWORD")
+    )
     if not user or not password:
         raise RuntimeError("缺少 IMES 生产作业表只读账号配置")
     return {
-        "host": _setting("IMES_OPS_DB_HOST", file_values, "127.0.0.1"),
-        "port": int(_setting("IMES_OPS_DB_PORT", file_values, "15433")),
-        "dbname": _setting("IMES_OPS_DB_NAME", file_values, "vastbase"),
+        "host": _setting(
+            "IMES_OPS_DB_HOST",
+            file_values,
+            file_values.get("IMES_DB_HOST", "127.0.0.1"),
+        ),
+        "port": int(_setting(
+            "IMES_OPS_DB_PORT",
+            file_values,
+            file_values.get("IMES_DB_PORT", "15433"),
+        )),
+        "dbname": _setting(
+            "IMES_OPS_DB_NAME",
+            file_values,
+            file_values.get("IMES_DB_NAME", "vastbase"),
+        ),
         "user": user,
         "password": password,
-        "connect_timeout": int(
-            _setting("IMES_DB_CONNECT_TIMEOUT_SECONDS", file_values, "3")
-        ),
-        "options": "-c default_transaction_read_only=on -c statement_timeout=3500",
+        "connect_timeout": 2,
+        "options": "-c default_transaction_read_only=on -c statement_timeout=2000",
+        "_max_attempts": 1,
     }
 
 
 def _vastbase_connect(params: dict[str, Any]):
     last_error: Exception | None = None
-    for attempt in range(3):
+    max_attempts = params.pop("_max_attempts", 3)
+    for attempt in range(max_attempts):
         try:
             return psycopg.connect(**params, row_factory=dict_row)
         except psycopg.OperationalError as exc:
             last_error = exc
-            if attempt < 2:
+            if attempt < max_attempts - 1:
                 time.sleep(0.5 * (attempt + 1))
     assert last_error is not None
     raise last_error
@@ -401,6 +421,30 @@ def _fetch_lab_rows_for_heats(heats: list[dict[str, Any]]) -> tuple[list[dict[st
             """,
             (melt_numbers,),
         ).fetchall()
+        batchnos = [str(row.get("batchno") or "") for row in hot_rows if row.get("batchno")]
+        tank_numbers = {}
+        if batchnos:
+            try:
+                tank_rows = conn.execute(
+                    """
+                    SELECT DISTINCT ON (batchno)
+                           CAST(batchno AS text) AS batchno,
+                           CAST(thankno AS text) AS tank_no
+                      FROM public.v_qpes_mat_final
+                     WHERE batchno = ANY(%s)
+                     ORDER BY batchno, publishtime DESC NULLS LAST
+                    """,
+                    (batchnos,),
+                ).fetchall()
+                tank_numbers = {
+                    str(row.get("batchno") or ""): row.get("tank_no")
+                    for row in tank_rows
+                    if row.get("batchno") and row.get("tank_no") not in (None, "")
+                }
+            except Exception:
+                tank_numbers = {}
+        for row in hot_rows:
+            row["tank_no"] = tank_numbers.get(str(row.get("batchno") or ""))
     with _vastbase_connect(imes_lab_params()) as conn:
         slag_rows = conn.execute(
             f"""

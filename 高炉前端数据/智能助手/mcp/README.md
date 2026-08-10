@@ -213,6 +213,35 @@ BF_QA_MCP_DATA_SERVER
 
 BF_MCP_PYTHON
   启动 MCP stdio server 使用的 Python；默认使用 8092 当前 Python。
+
+BF_QA_MCP_SERVER_REGISTRY
+  覆盖 Host 侧多服务注册表；默认 `backend/mcp_host/server_registry.json`。
+```
+
+### 8093 按需多 MCP Host
+
+问答代理不再固定只挂载一个数据 MCP，而是先根据问题选择服务：
+
+```text
+顶压/风量/炉温/趋势             → gl02-data
+炉次/铁水或炉渣化验/进料成分    → imes-readonly
+上一炉出铁期间的顶压走势         → gl02-data + imes-readonly
+```
+
+GL02 继续暴露原工具名以兼容旧确定性路由；IMES 通过 `imes__` 命名空间暴露，例如
+`imes__get_current_heat_context`。注册表中的 `excluded_tools` 是生产模型权限边界，
+当前明确屏蔽 `query_imes_readonly_sql`；不得仅因它是只读就重新暴露给模型。
+
+“当前属于第几个炉次？上一个炉次铁水的硅含量平均值是多少？”固定路由到一次
+`imes__get_current_previous_heat_si_summary`。它使用 MES 正式 `meltno`，聚合上一炉
+全部非空数值 Si 试样，并返回样本数、均值、范围、取样时间、数据来源与缺失状态。
+
+只做服务发现、不查询数据库的本地验证：
+
+```powershell
+& 'C:\Users\hmw20\.conda\envs\torch_cuda128_whm\python.exe' `
+  tools\test_mcp_multi_server_discovery.py `
+  --question '当前属于第几个炉次？上一个炉次铁水的硅含量平均值是多少？'
 ```
 
 8092 验证示例：
@@ -236,3 +265,52 @@ python -c "import json, urllib.request; payload={'message':'请调用MCP工具�
 
 旧`find_gl02_variables`继续用于已确定为GL02传感器的细点位匹配。
 
+## 本机三服务 MCP 注册表（扩展 IMES Web）
+
+本机 `backend/mcp_host/server_registry.json` 已在 8093 两服务合同的基础上增加
+`imes-web-readonly`，用于把本机经跳板转发的 MES Web 只读接口纳入同一 Host。
+当前启用服务和 Host 可见工具数为：
+
+| 服务 | 数据源 | Host 可见工具 |
+|---|---|---:|
+| `gl02-data` | pSpace/高炉传感器 | 18 |
+| `imes-readonly` | Vastbase/MES 业务表 | 14（原生15，排除任意 SQL） |
+| `imes-web-readonly` | IMES Web 白名单 HTTP 接口 | 3 |
+
+因此本机全部发现应得到 3 个服务、35 个工具；8093 生产端当前已部署的仍是前两项，
+本节是本机扩展，不代表已经把 Web 服务部署到 8093。命名空间工具包括：
+`imesweb__get_imes_web_status`、`imesweb__list_imes_web_datasets` 和
+`imesweb__query_imes_web_dataset`。
+
+仅做 stdio 服务发现（不查询业务数据库）：
+
+```powershell
+& 'C:\Users\hmw20\.conda\envs\torch_cuda128_whm\python.exe' `
+  tools\test_mcp_multi_server_discovery.py --all `
+  --question '通过 IMES Web 查看今天的炉次化验'
+```
+
+IMES Web MCP 只允许 `export_imes_web_readonly.py` 已核实的数据集和日期/分页参数，
+不接受任意 URL、任意 SQL 或写入操作。Web 登录存在验证码时，服务需要由当前进程注入
+`IMES_WEB_CAPTCHA`，或由运维在受控环境注入 `IMES_WEB_SESSION_COOKIE`；它不会读取浏览器
+Cookie，也不会把账号、口令、验证码或会话值放进工具结果。没有验证码/会话时会明确返回
+`IMES_WEB_CAPTCHA_REQUIRED`，这不是路由失败。
+
+运行时前置：本机 Web 使用 `http://127.0.0.1:18080/imes.web/`，Vastbase MCP 使用
+`127.0.0.1:15433`。两者均由 `tools/imes_22012_relay.py --profile imes` 通过
+220.12 跳板建立，转发未运行时分别返回 Web 不可达或 `relay unavailable`，不会静默直连生产网。
+
+## 当前炉次与大概时间段 Si 查询（2026-08-07）
+
+需求编号：`REQ-MCP-IMES-HEAT-SI-SAMPLES-20260807`。
+
+- “当前炉次/当前鸬鹚的硅含量”固定调用 `imes__query_current_heat_chemistry`。正在出铁时只汇总查询时点已经发布的非空数值试样，并明确标记为阶段性结果，不等待堵口，也不把缺失样本当作 0。
+- 每条试样返回试样号、通过 `batchno -> v_qpes_mat_final.thankno` 精确关联的铁罐号、Si 和时间。时间优先级为真实取样时间、化验判定时间、结果发布时间；使用后两者时回答会明确名称，不冒充真实取样时间。
+- “昨天上午4点到7点左右是哪几个炉次”调用 `imes__query_heat_chemistry_by_time_range`。工具解析日期、钟点、上午/下午、最近N小时等有界时间表达，返回所有与时间段重叠的正式炉次；没有重叠时只返回最近炉次并标记“最近炉次”供用户确认。
+- “鸬鹚”作为“炉次”的语音误识别别名进入 IMES 路由，不影响正式 `meltno`。
+
+批量验证：
+
+```powershell
+python -m pytest 高炉前端数据\智能助手\tests\test_imes_heat_summary_tools.py 高炉前端数据\智能助手\tests\test_mcp_multi_server_host.py -q
+```

@@ -1,0 +1,235 @@
+﻿{
+    "schema":  "bf.db-sync-module-manifest.v1",
+    "generated_at":  "2026-08-06T15:01:02.2777972+08:00",
+    "source_root":  "D:\\文件\\服务器实际运行版V4\\数据库同步和存取",
+    "target_root":  "D:\\文件\\冀南钢铁运行中第二版本\\数据库同步和存取",
+    "what_if":  false,
+    "exclusions":  [
+                       "backups",
+                       "logs",
+                       "data",
+                       "imes_exports",
+                       "__pycache__",
+                       "*.pyc",
+                       "*.env",
+                       "tmp_*"
+                   ],
+    "file_count":  43,
+    "files":  [
+                  {
+                      "path":  "config/IMES可读数据清单.tsv",
+                      "bytes":  9641,
+                      "sha256":  "300357C081F65BBEA09C95D4CC536CCD246821F271D842B65AC112CD0F06957C"
+                  },
+                  {
+                      "path":  "config/sync_config.json",
+                      "bytes":  5839,
+                      "sha256":  "B1FF7512E3CF18A4B8CF4F5EE51982FD7A1B66C1EF315CF0F5062A46DCA202A6"
+                  },
+                  {
+                      "path":  "config/点位清单.tsv",
+                      "bytes":  27477,
+                      "sha256":  "E13821CACCC5BC86826A23AA6976F484D3A5ED91063DEBE00FA311A48C6C0F62"
+                  },
+                  {
+                      "path":  "create_sync_tasks_22012.ps1",
+                      "bytes":  1103,
+                      "sha256":  "E2EBBC65E85312C8187A844C57E83D1F33B8FE186056B731C28B756919E9431D"
+                  },
+                  {
+                      "path":  "IMES数据存储位置与时间范围.md",
+                      "bytes":  4671,
+                      "sha256":  "5D15CA8B3A58B9ED72579C34BA68E4DF2AD41A62B85CFCCF92A2EF21C6B30199"
+                  },
+                  {
+                      "path":  "IMES只读采集说明.md",
+                      "bytes":  4844,
+                      "sha256":  "8666D8B8C04ACB5D841B415B1CE429C06176A9A4CA2D2853415C7F6F0ED44215"
+                  },
+                  {
+                      "path":  "install_postgresql_22012.ps1",
+                      "bytes":  4720,
+                      "sha256":  "3EF2140378EBC571F0355EA3F901E68BF35D70EC04D2C4DE7084185B653A3F07"
+                  },
+                  {
+                      "path":  "install_postgresql_portable_22012.ps1",
+                      "bytes":  6279,
+                      "sha256":  "DE590A8F46E2E6A26B86AC621B1E9E348B86125295EE7C6A779CBD2475E78023"
+                  },
+                  {
+                      "path":  "install_sync_watchdog_task.ps1",
+                      "bytes":  3959,
+                      "sha256":  "347B3D624F9D46490E222C4ADD085E28808B9E3CA0183799B30B3D8555893163"
+                  },
+                  {
+                      "path":  "PostgreSQL自动值守配置.md",
+                      "bytes":  3533,
+                      "sha256":  "90D60D9D0B7E4F0D4161E4AD531EBDA5C1DC698E5B2EC0618F435EF825619E9A"
+                  },
+                  {
+                      "path":  "README.md",
+                      "bytes":  13923,
+                      "sha256":  "72C290B1762D843C00336F53DF99C0CE04B60940E2DB8AF0DA3C2D847ED17012"
+                  },
+                  {
+                      "path":  "run_22012_continuous_sync.ps1",
+                      "bytes":  945,
+                      "sha256":  "C23A0BD255D83675D244218E6CEEBA9C7B4A9F6BB625146C27AE4889D61F1BA8"
+                  },
+                  {
+                      "path":  "run_22012_history_sync_90d.ps1",
+                      "bytes":  670,
+                      "sha256":  "006DD9234AE0F7DBA88C82FCA5F4A1FD09B2E4B542D54256C10CA47E07F4F86A"
+                  },
+                  {
+                      "path":  "run_22012_init.ps1",
+                      "bytes":  354,
+                      "sha256":  "D6E4426F5F9B14750EDA15B75AA6C8E45FF1EA5D33C9FBE0FFF53AE2AFDD9EAC"
+                  },
+                  {
+                      "path":  "run_22012_从IMES数据库同步.ps1",
+                      "bytes":  1018,
+                      "sha256":  "0640A0EBA74E40A4035BE7CBC7FEFDF9BA8F4B84CA2E113E4E3DE10470FC9964"
+                  },
+                  {
+                      "path":  "run_history_sync_pg_bg.ps1",
+                      "bytes":  1749,
+                      "sha256":  "49829E55AC0E7603D19BBBF9CA5F7DBCEB11B3786EC7E0983FDC9DA3531DB7A3"
+                  },
+                  {
+                      "path":  "run_raw_5s_sync_pg_once.ps1",
+                      "bytes":  1834,
+                      "sha256":  "35B9A802C930004C60C65F5F0D0E6489AE0CB7DEE82E536C771747AB75978EEF"
+                  },
+                  {
+                      "path":  "run_realtime_sync_pg_bg.ps1",
+                      "bytes":  3588,
+                      "sha256":  "363625E62AB863E7B78E39919B231C486E08E889E27A7A2A7F6CAC9BAACA43A4"
+                  },
+                  {
+                      "path":  "run_sync_watchdog.ps1",
+                      "bytes":  2102,
+                      "sha256":  "C68AE15C9C5C0A1B183917B0DE8F44A923E4DF41DF0857057037995761073CF3"
+                  },
+                  {
+                      "path":  "schema/create_database_postgresql.sql",
+                      "bytes":  324,
+                      "sha256":  "3BCA5673B76B1DEF8E858694F0AC80A63684304AB6B7D0B3E0C653A38E724043"
+                  },
+                  {
+                      "path":  "schema/postgresql_imes.sql",
+                      "bytes":  2999,
+                      "sha256":  "EDD3DFB4686242241697CE7830E702273B129747D64F671FAA4BDF02AC6165E5"
+                  },
+                  {
+                      "path":  "schema/postgresql_required_points.sql",
+                      "bytes":  11920,
+                      "sha256":  "FFFBA9F894745AC5E54502DBD713740929C79DD95CEED94FA7A8C3CEB693D85C"
+                  },
+                  {
+                      "path":  "schema/sqlite_required_points.sql",
+                      "bytes":  1912,
+                      "sha256":  "204C85C06F77E1683A8D8A7E73B09F0C96059B489B5C6B978B9BD53241D9484D"
+                  },
+                  {
+                      "path":  "setup_external_readonly_access.ps1",
+                      "bytes":  6360,
+                      "sha256":  "FD397389D6D0F074C0F82F08121F38F5DE6AFE5E5E304AD3C480D1B8FE1ED6D7"
+                  },
+                  {
+                      "path":  "src/catalog.py",
+                      "bytes":  3992,
+                      "sha256":  "153B40BFB150753282BB821C0D2BC4FF56C2E2D4C3F8B0381F0415E1AC1D8E28"
+                  },
+                  {
+                      "path":  "src/coal_hourly.py",
+                      "bytes":  5166,
+                      "sha256":  "808E716017949F88438FE6F0C9350E4FBDE0CE6D9DA76A14023D5C222972E992"
+                  },
+                  {
+                      "path":  "src/imes_pg_store.py",
+                      "bytes":  10885,
+                      "sha256":  "4000A47AB3B79E52113C36966F5C4103788C61A2AF360C1444821749F1F1BF9E"
+                  },
+                  {
+                      "path":  "src/imes_readonly_client.py",
+                      "bytes":  37904,
+                      "sha256":  "571F734C43ED3DAC2A2770D5C93B9A9627B93AFC0CD72E07A35B9E82ACC0BC69"
+                  },
+                  {
+                      "path":  "src/init_db.py",
+                      "bytes":  1400,
+                      "sha256":  "26513A8C790D6BC81A20555BA10F9A73E10057395A829E5494B6DCA24A729A3D"
+                  },
+                  {
+                      "path":  "src/init_pg.py",
+                      "bytes":  1708,
+                      "sha256":  "A9106AA7626032D7E386260CAB3A42BBC20DE55CAAB2A8B3337F220B5033273C"
+                  },
+                  {
+                      "path":  "src/pg_store.py",
+                      "bytes":  13045,
+                      "sha256":  "5E8761FE5C1CAC9ADF1946DD22922E4CA9F45864568A0E9F7F9272C64FC61D3E"
+                  },
+                  {
+                      "path":  "src/query_history.py",
+                      "bytes":  4826,
+                      "sha256":  "699C874062D4D425D2FFE7FDA86C39A215AEFDB96D80607BF298A72C917A4132"
+                  },
+                  {
+                      "path":  "src/query_history_pg.py",
+                      "bytes":  4668,
+                      "sha256":  "BB2D5777D3F386FAD090830CF4C4719C32FF8FD182503C1CE22D315CD24DDE57"
+                  },
+                  {
+                      "path":  "src/raw_minute_pipeline.py",
+                      "bytes":  8050,
+                      "sha256":  "6C0E4AD7FE67D808CE1546E77FAA30B31D0B4EC81A014F8AF4140AC4A77A11A7"
+                  },
+                  {
+                      "path":  "src/store.py",
+                      "bytes":  5839,
+                      "sha256":  "898E62CFA4C7FABE4828CEF3B445B1BCF0F8FBD0E3CB840925E94401C68BB8DE"
+                  },
+                  {
+                      "path":  "src/sync_from_243.py",
+                      "bytes":  5963,
+                      "sha256":  "9A8B555136B05BD9DE038C8AB4C896B6BB0A94D231C39E1E52ED2CA4FBB1DC56"
+                  },
+                  {
+                      "path":  "src/sync_from_243_pg.py",
+                      "bytes":  17789,
+                      "sha256":  "56FB87F7EF82D1BD07CA8BF7AC39376C7FF4FF1FAB565C7D2FE29951A54DC517"
+                  },
+                  {
+                      "path":  "src/sync_raw_5s_from_243_pg.py",
+                      "bytes":  9325,
+                      "sha256":  "A99C6913726D1EE78638D0F38F8B5C958B05C4E4CFE13115ED1CA89CA0B73759"
+                  },
+                  {
+                      "path":  "src/sync_watchdog.py",
+                      "bytes":  16790,
+                      "sha256":  "3C1CA8E2BF83C28C6994C379828FAE898E9AFE9536C7A9040E1EAB9C299B3163"
+                  },
+                  {
+                      "path":  "start_sync_jobs_22012.ps1",
+                      "bytes":  1336,
+                      "sha256":  "134B0C8D07E60CDA8BD74158DAA97DB356A43C3A74CF6C259F93B5285842C128"
+                  },
+                  {
+                      "path":  "从IMES数据库同步.py",
+                      "bytes":  13719,
+                      "sha256":  "4D1F53C1AFA5ED455754D997E4FF21ADEA08D761F55AAB17C67353C741E2242C"
+                  },
+                  {
+                      "path":  "明确指令.md",
+                      "bytes":  1753,
+                      "sha256":  "04317AD1F4E15D3EF71031D3A680A3A33709F696C6ADB752B444F572E68D073F"
+                  },
+                  {
+                      "path":  "同步守护任务说明.md",
+                      "bytes":  5079,
+                      "sha256":  "DECB24402B4FA9E6A1D44F3ECE445834C13E5638FFAA6376E6472D025AD870FD"
+                  }
+              ]
+}

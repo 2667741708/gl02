@@ -170,6 +170,7 @@ def run_experiment(
     catalog_path: Path,
     temporal_dir: Path,
     output_dir: Path,
+    target_column: str = TARGET,
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     models_dir = output_dir / "models"
@@ -180,6 +181,7 @@ def run_experiment(
         samples_path=samples_path,
         catalog_path=catalog_path,
         temporal_dir=temporal_dir,
+        target_column=target_column,
     )
     feature_args = dict(_feature_args(blocks))
     fold_masks = {
@@ -251,6 +253,8 @@ def run_experiment(
     predictions = test[
         ["official_meltno", "prediction_cutoff_ts", TARGET]
     ].copy()
+    predictions["training_target_column"] = target_column
+    predictions["actual__Si_target"] = test[TARGET].to_numpy(float)
     for name, values in test_components.items():
         predictions[f"prediction__{name}"] = values
     predictions["prediction__Si_ensemble"] = prediction
@@ -272,6 +276,7 @@ def run_experiment(
             "fallback": audit["fallback"],
             "weights": selected["weights"],
             "status": "experimental_offline_v9",
+            "target_column": target_column,
         },
         models_dir / "selected_v9_ensemble.joblib",
     )
@@ -281,6 +286,8 @@ def run_experiment(
     result = {
         "requirement_id": REQUIREMENT_ID,
         "model_status": "experimental_offline_v9",
+        "target_column": target_column,
+        "target_audit": blocks["target_audit"],
         "selection_contract": (
             "five-component simplex weights selected on April/May expanding "
             "folds plus fixed June validation; within 0.0002 robust-MAE "
@@ -378,6 +385,12 @@ def parser() -> argparse.ArgumentParser:
     cli.add_argument("--sensor-catalog", type=Path, required=True)
     cli.add_argument("--temporal-dir", type=Path, required=True)
     cli.add_argument("--output-dir", type=Path, required=True)
+    cli.add_argument(
+        "--target-column",
+        choices=("target__Si_representative", "target__Si_mean"),
+        default=TARGET,
+        help="整炉Si训练目标；平均值复测使用 target__Si_mean。",
+    )
     return cli
 
 
@@ -390,6 +403,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         catalog_path=args.sensor_catalog,
         temporal_dir=args.temporal_dir,
         output_dir=args.output_dir,
+        target_column=args.target_column,
     )
     print(json.dumps(result["selected"], ensure_ascii=False, indent=2))
     return 0

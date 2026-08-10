@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>冀南钢铁炼铁2号高炉｜工长趋势1画面</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/foreman-trend-preview.css">
+  <script src="libs/echarts.min.js"></script>
+  <script defer src="assets/foreman-coal-math.js?v=20260806-coal-hour-r1"></script>
+  <script defer src="assets/foreman-trend-preview.js?v=20260806-pspace-extra-r3"></script>
+</head>
+
+<body>
+  <!-- REQ-FOREMAN-TREND-STANDALONE-PREVIEW-20260805 -->
+  <main class="foreman-stage" data-page="foreman-trend-preview" aria-label="工长趋势1画面">
+    <header class="foreman-header">
+      <div class="foreman-plant">
+        <strong>冀南钢铁炼铁2号高炉</strong>
+        <span id="source-state" class="source-state is-connecting">实时流连接中</span>
+      </div>
+      <h1>工长趋势1画面</h1>
+      <div class="foreman-clock">
+        <time id="system-clock">--</time>
+        <small id="data-clock">数据时间 --</small>
+      </div>
+    </header>
+
+    <section id="metric-matrix" class="metric-matrix" aria-label="工长关注49项实时变量"></section>
+
+    <div class="chart-toolbar" data-chart-toolbar="main" role="toolbar" aria-label="主趋势图工具栏">
+      <button type="button" data-action="cursor" title="数据游标" aria-label="数据游标">⌖</button>
+      <button type="button" data-action="zoom-in" title="放大时间窗口" aria-label="放大时间窗口">＋</button>
+      <button type="button" data-action="zoom-out" title="缩小时间窗口" aria-label="缩小时间窗口">－</button>
+      <button type="button" data-action="pan-left" title="向前查看" aria-label="向前查看">◀</button>
+      <button type="button" data-action="pan-right" title="向后查看" aria-label="向后查看">▶</button>
+      <button type="button" data-action="reset" title="恢复完整窗口" aria-label="恢复完整窗口">⌂</button>
+      <button type="button" data-action="latest" title="定位最新数据" aria-label="定位最新数据">◎</button>
+      <button type="button" data-action="legend" title="显示或隐藏曲线清单" aria-label="显示或隐藏曲线清单">☷</button>
+      <button type="button" data-action="series-picker" title="选择变量曲线" aria-label="选择变量曲线">变量</button>
+      <button type="button" data-action="export" title="导出主趋势图" aria-label="导出主趋势图">⇩</button>
+      <span class="toolbar-separator" aria-hidden="true"></span>
+      <label class="window-select">显示窗口
+        <select id="window-minutes" aria-label="趋势显示窗口">
+          <option value="60">60分钟</option>
+          <option value="90" selected>90分钟</option>
+          <option value="120">120分钟</option>
+          <option value="240">240分钟</option>
+        </select>
+      </label>
+      <span id="ratio-formula" class="formula-note" title="按当前实时的下部压差和全炉压差计算">下部压差占比 = 下部压差 ÷ 全炉压差 × 100%</span>
+      <span id="main-toolbar-status" class="toolbar-status">等待趋势数据</span>
+    </div>
+
+    <section class="chart-shell main-chart-shell" aria-label="工长多变量主趋势图">
+      <div id="main-trend-chart" class="trend-chart" role="img" aria-label="工长多变量主趋势"></div>
+      <div id="main-chart-empty" class="chart-empty">等待实时历史数据</div>
+      <div id="series-key" class="series-key" hidden aria-label="主趋势曲线清单"></div>
+      <div id="series-picker" class="series-picker" hidden aria-label="变量曲线选择器">
+        <div class="series-picker-head"><strong>选择变量曲线</strong><button type="button" data-action="series-picker-close" aria-label="关闭变量选择器">×</button></div>
+        <p class="series-picker-help">勾选后显示在主趋势图；颜色与上方实时数值一致。</p>
+        <div id="series-picker-list" class="series-picker-list"></div>
+      </div>
+    </section>
+
+    <div class="chart-toolbar" data-chart-toolbar="lower" role="toolbar" aria-label="工艺周期趋势图工具栏">
+      <button type="button" data-action="cursor" title="数据游标" aria-label="数据游标">⌖</button>
+      <button type="button" data-action="zoom-in" title="放大时间窗口" aria-label="放大时间窗口">＋</button>
+      <button type="button" data-action="zoom-out" title="缩小时间窗口" aria-label="缩小时间窗口">－</button>
+      <button type="button" data-action="pan-left" title="向前查看" aria-label="向前查看">◀</button>
+      <button type="button" data-action="pan-right" title="向后查看" aria-label="向后查看">▶</button>
+      <button type="button" data-action="reset" title="恢复完整窗口" aria-label="恢复完整窗口">⌂</button>
+      <button type="button" data-action="latest" title="定位最新数据" aria-label="定位最新数据">◎</button>
+      <button type="button" data-action="export" title="导出工艺周期图" aria-label="导出工艺周期图">⇩</button>
+      <span class="toolbar-separator" aria-hidden="true"></span>
+      <span class="toolbar-caption">料批 / 料罐 / 探尺周期趋势</span>
+      <span id="lower-toolbar-status" class="toolbar-status">等待周期数据</span>
+    </div>
+
+    <section class="chart-shell lower-chart-shell" aria-label="布料与探尺周期趋势图">
+      <div id="lower-trend-chart" class="trend-chart" role="img" aria-label="布料与探尺周期趋势"></div>
+      <div id="lower-chart-empty" class="chart-empty">等待料罐与探尺历史数据</div>
+    </section>
+
+    <nav class="legacy-tabs" aria-label="生产工作台页面切换">
+      <a data-target="overview" href="frontend_dashboard_v3.server.html#overview">总览</a>
+      <a class="active" aria-current="page" href="foreman_trend_preview.html">工长趋势1</a>
+      <a data-target="diagnosis" href="frontend_dashboard_v3.server.html#diagnosis">炉况诊断</a>
+      <a data-target="trend" href="frontend_dashboard_v3.server.html#trend">原趋势分析</a>
+      <a data-target="optimization" href="frontend_dashboard_v3.server.html#optimization">参数优化建议</a>
+      <a data-target="qa" href="frontend_dashboard_v3.server.html#qa">智能助手</a>
+    </nav>
+  </main>
+  <noscript>此页面需要启用 JavaScript 才能显示实时趋势。</noscript>
+</body>
+
+</html>

@@ -129,6 +129,8 @@ def rows_to_xlsx(rows: list[dict[str, Any]], columns: list[str] | None = None, s
             value = row.get(column)
             if isinstance(value, (dict, list)):
                 value = json.dumps(value, ensure_ascii=False, default=json_default)
+            elif isinstance(value, (datetime, date)):
+                value = json_default(value)
             values.append(value)
         ws.append(values)
     for col in ws.columns:
@@ -519,35 +521,69 @@ def diagnosis_foreman_score_rows(
     end = parse_time(params.get("end", [""])[0], now)
     start = parse_time(params.get("start", [""])[0], end - timedelta(hours=24))
     labels = [label for label in csv_param(params.get("labels", [""])[0]) if label in diagnosis_review.DIAGNOSIS_KEYS]
+    source_mode = (params.get("source", ["live_readonly"])[0] or "live_readonly").strip()
+    if source_mode not in {"live_readonly", "local_fixture"}:
+        raise ValueError("source 仅允许 live_readonly 或 local_fixture")
     limit = min(int(params.get("limit", ["20000"])[0]), 100000)
     snapshot_limit = max(1, min(20000, (limit + len(diagnosis_review.DIAGNOSIS_KEYS) - 1) // len(diagnosis_review.DIAGNOSIS_KEYS)))
-    with connect() as conn:
-        snapshots = conn.execute(
-            """
-            WITH latest AS (
-                SELECT DISTINCT ON (diagnosis_ts)
-                       id, diagnosis_ts, main_label, main_score, raw_scores, updated_at
-                FROM bf_sensor.diagnosis_snapshots
-                WHERE diagnosis_ts >= %s AND diagnosis_ts <= %s
-                ORDER BY diagnosis_ts, updated_at DESC, id DESC
-            )
-            SELECT id, diagnosis_ts, main_label, main_score, raw_scores
-            FROM latest
-            ORDER BY diagnosis_ts DESC
-            LIMIT %s
-            """,
-            (start, end, snapshot_limit),
-        ).fetchall()
 
-    review_status: dict[str, Any] = {"configured": False, "available": False}
+    review_status: dict[str, Any] = {"configured": False, "available": False, "source_mode": source_mode}
     events: list[dict[str, Any]] = []
     try:
         store = diagnosis_review.DiagnosisReviewStore()
         store.ensure_schema()
-        events = store.list_human_score_events(start=start, end=end, labels=labels, limit=100000)
-        review_status = {"configured": True, "available": True}
+        events = [
+            event
+            for event in store.list_human_score_events(start=start, end=end, labels=labels, limit=100000)
+            if event.get("snapshot_source") == source_mode
+        ]
+        review_status = {"configured": True, "available": True, "source_mode": source_mode}
     except Exception as exc:  # noqa: BLE001
-        review_status = {"configured": False, "available": False, "message": str(exc)}
+        review_status = {
+            "configured": False,
+            "available": False,
+            "source_mode": source_mode,
+            "message": str(exc),
+        }
+
+    if source_mode == "local_fixture":
+        snapshots: list[dict[str, Any]] = []
+        seen_snapshots: set[tuple[str, str]] = set()
+        for event in events:
+            diagnosis_ts = diagnosis_review.normalize_timestamp(event.get("diagnosis_ts"))
+            snapshot_key = (str(event.get("diagnosis_snapshot_id") or ""), diagnosis_ts.isoformat())
+            if snapshot_key in seen_snapshots:
+                continue
+            seen_snapshots.add(snapshot_key)
+            snapshots.append(
+                {
+                    "id": event.get("diagnosis_snapshot_id"),
+                    "diagnosis_ts": diagnosis_ts,
+                    "main_label": event.get("system_main_label"),
+                    "main_score": event.get("system_main_score"),
+                    "raw_scores": event.get("system_raw_scores"),
+                }
+            )
+            if len(snapshots) >= snapshot_limit:
+                break
+    else:
+        with connect() as conn:
+            snapshots = conn.execute(
+                """
+                WITH latest AS (
+                    SELECT DISTINCT ON (diagnosis_ts)
+                           id, diagnosis_ts, main_label, main_score, raw_scores, updated_at
+                    FROM bf_sensor.diagnosis_snapshots
+                    WHERE diagnosis_ts >= %s AND diagnosis_ts <= %s
+                    ORDER BY diagnosis_ts, updated_at DESC, id DESC
+                )
+                SELECT id, diagnosis_ts, main_label, main_score, raw_scores
+                FROM latest
+                ORDER BY diagnosis_ts DESC
+                LIMIT %s
+                """,
+                (start, end, snapshot_limit),
+            ).fetchall()
 
     latest_by_id: dict[tuple[str, str], dict[str, Any]] = {}
     latest_by_time: dict[tuple[str, str], dict[str, Any]] = {}
@@ -576,6 +612,7 @@ def diagnosis_foreman_score_rows(
                 {
                     "diagnosis_ts": diagnosis_ts,
                     "diagnosis_snapshot_id": snapshot_id,
+                    "snapshot_source": source_mode,
                     "condition_label": label,
                     "condition_display": diagnosis_review.display_label(label),
                     "system_score": raw_scores.get(label, 0.0),
@@ -597,7 +634,7 @@ def diagnosis_foreman_score_rows(
         if len(rows) >= limit:
             break
     columns = [
-        "diagnosis_ts", "diagnosis_snapshot_id", "condition_label", "condition_display",
+        "diagnosis_ts", "diagnosis_snapshot_id", "snapshot_source", "condition_label", "condition_display",
         "system_score", "system_main_label", "system_main_display", "is_system_main",
         "foreman_score", "foreman_score_status", "suggestion", "suggestion_status",
         "reviewer_username", "reviewer_role", "scored_at", "review_mode",

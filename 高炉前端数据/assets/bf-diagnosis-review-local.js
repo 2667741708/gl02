@@ -1,9 +1,10 @@
 (function(){
   "use strict";
+  function boot(){
   if(window.__BF_DIAGNOSIS_REVIEW_LOCAL__) return;
   window.__BF_DIAGNOSIS_REVIEW_LOCAL__=true;
 
-  var LABELS={normal:"正常顺行",cold:"热制度下行",hot:"热制度上行",lowline:"低料线",channel:"管道行程",hanging:"悬料",slip:"崩料",gas_abnormal:"煤气流异常"};
+  var LABELS={normal:"正常顺行",lowline:"低料线",edge:"边缘煤气流发展",center:"边缘不足/中心过吹",channel:"管道行程",cold:"热制度下行",hot:"热制度上行",column:"崩滑料/悬料"};
   var state={data:null,context:null,openedKey:"",submitting:false,lastFocus:null,timer:null};
   var root=document.createElement("div");
   root.id="bf-diagnosis-review-root";
@@ -52,12 +53,14 @@
     evidenceWrap.innerHTML=evidence.length?'<ul class="bfdr-evidence">'+evidence.map(function(item){return '<li>'+escapeHtml(evidenceText(item))+'</li>';}).join("")+'</ul>':'<div class="bfdr-empty">本次快照未提供文字证据，请结合分数和现场状态判断。</div>';
     var candidates=Array.isArray(ctx.candidates)?ctx.candidates:[];
     scoreList.innerHTML=candidates.map(function(item){var n=Math.max(0,Math.min(100,Number(item.score)||0));return '<div class="bfdr-score-row"><span class="bfdr-score-name">'+escapeHtml(item.label||LABELS[item.key]||item.key)+'</span><span class="bfdr-score-track" aria-hidden="true"><span class="bfdr-score-bar" style="width:'+n+'%"></span></span><span class="bfdr-score-value">'+escapeHtml(scoreText(item.score))+'</span></div>';}).join("");
-    var auth=data.auth||{},reviewed=!!data.reviewed_by_current_user;
-    authBox.classList.toggle("bfdr-hidden",!!auth.authenticated);
-    form.classList.toggle("bfdr-hidden",!auth.authenticated||!auth.can_submit||reviewed);
+    var auth=data.auth||{},reviewed=!!data.reviewed_by_current_user,canSubmit=!!auth.can_submit,loginRequired=auth.login_required!==false;
+    root.querySelector(".bfdr-login").classList.remove("bfdr-hidden");
+    authBox.classList.toggle("bfdr-hidden",canSubmit||!loginRequired);
+    form.classList.toggle("bfdr-hidden",!canSubmit||reviewed);
+    root.querySelector(".bfdr-logout").classList.toggle("bfdr-hidden",!auth.authenticated);
     if(reviewed){badge.textContent="异常已复核 · "+(ctx.main_display_label||LABELS[ctx.main_label]);badge.classList.add("bfdr-hidden");}
     else{badge.textContent="异常待复核 · "+(ctx.main_display_label||LABELS[ctx.main_label])+" · "+scoreText(ctx.main_score)+"分";badge.classList.remove("bfdr-hidden");}
-    if(auth.authenticated&&!auth.can_submit){authBox.classList.remove("bfdr-hidden");authBox.querySelector("h3").textContent="当前角色无权提交复核";root.querySelector(".bfdr-login").classList.add("bfdr-hidden");}
+    if(loginRequired&&auth.authenticated&&!canSubmit){authBox.classList.remove("bfdr-hidden");authBox.querySelector("h3").textContent="当前角色无权提交复核";root.querySelector(".bfdr-login").classList.add("bfdr-hidden");}
     var hasOpened=localStorage.getItem(openedStorageKey(ctx.episode_key))==="1";
     if(!reviewed&&!hasOpened){localStorage.setItem(openedStorageKey(ctx.episode_key),"1");state.openedKey=ctx.episode_key;openModal();}
   }
@@ -83,11 +86,17 @@
   form.addEventListener("submit",async function(event){
     event.preventDefault();if(state.submitting||!state.context)return;var selected=form.querySelector('input[name="bfdr-verdict"]:checked'),status=root.querySelector(".bfdr-submit-status");
     if(!selected){setStatus(status,"请选择复核结论。","error");return;}if(selected.value==="incorrect"&&!mainSelect.value){setStatus(status,"诊断不正确时必须选择实际主炉况。","error");mainSelect.focus();return;}if(mainSelect.value&&secondarySelect.value===mainSelect.value){setStatus(status,"实际主炉况与次炉况不能相同。","error");return;}
-    state.submitting=true;submitBtn.disabled=true;submitBtn.textContent="正在提交…";setStatus(status,"正在保存本机复核事件…");
+    state.submitting=true;submitBtn.disabled=true;submitBtn.textContent="正在提交…";setStatus(status,"正在保存复核事件…");
     var ctx=state.context,payload={episode_key:ctx.episode_key,snapshot_id:ctx.snapshot_id,snapshot_source:ctx.snapshot_source,verdict:selected.value,corrected_main_label:selected.value==="incorrect"?mainSelect.value:null,corrected_secondary_label:selected.value==="incorrect"?(secondarySelect.value||null):null,human_match_score:root.querySelector(".bfdr-human-score").value,suggestion:root.querySelector(".bfdr-suggestion").value,note:root.querySelector(".bfdr-note").value,idempotency_key:"review-"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(16).slice(2)),source_page:location.pathname+location.search,fixture_label:ctx.fixture_label,fixture_case_id:ctx.fixture_case_id};
-    try{var resp=await fetch("/api/diagnosis-reviews",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});var body=await resp.json();if(!resp.ok||!body.ok)throw new Error(body.error||"提交失败");setStatus(status,body.created?"复核已保存到本机事件库。":"该复核请求已保存，无需重复提交。","success");await refresh();setTimeout(closeModal,900);}
+    try{var resp=await fetch("/api/diagnosis-reviews",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify(payload)});var body=await resp.json();if(!resp.ok||!body.ok)throw new Error(body.error||"提交失败");setStatus(status,body.created?"复核已保存到事件库。":"该复核请求已保存，无需重复提交。","success");await refresh();setTimeout(closeModal,900);}
     catch(error){setStatus(status,(error.message||"提交失败")+"。请检查后重试。","error");}finally{state.submitting=false;submitBtn.disabled=false;submitBtn.textContent="提交复核";}
   });
   window.addEventListener("bf:diagnosis-review-fixture",refresh);
   refresh();state.timer=setInterval(refresh,5000);
+  }
+  function bootWhenBodyReady(){if(!document.body)return false;boot();return true;}
+  if(!bootWhenBodyReady()){
+    var bootPoll=setInterval(function(){if(bootWhenBodyReady())clearInterval(bootPoll);},50);
+    document.addEventListener("DOMContentLoaded",function(){if(bootWhenBodyReady())clearInterval(bootPoll);},{once:true});
+  }
 })();

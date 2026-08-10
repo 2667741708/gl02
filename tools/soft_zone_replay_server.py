@@ -1,6 +1,7 @@
 """Independent spatiotemporal replay page for the GL02 cohesive-zone baseline.
 
 REQ-BF3D-C2-REPLAY-SPACE-TIME-20260721
+REQ-BODY-TEMP-INFRARED-REPLAY-20260808
 
 The service intentionally stays outside 8092/8093.  It exposes a small
 read-only HTTP API and serves the static replay UI.  The API returns measured
@@ -41,6 +42,8 @@ from psycopg.rows import dict_row
 
 
 REQUIREMENT_ID = "REQ-BF3D-C2-REPLAY-SPACE-TIME-20260721"
+FEATURE_REQUIREMENT_ID = "REQ-BODY-TEMP-INFRARED-REPLAY-20260808"
+SCHEMA_VERSION = "gl02.body-temperature-replay.v1"
 MODEL_VERSION = "C2-ROOT-BASELINE-2026.07"
 MAX_HOURS = 72
 MAX_FRAMES = 720
@@ -51,7 +54,10 @@ RULE_ENGINE_DIR = PROJECT_ROOT / "炉况规则引擎"
 if str(RULE_ENGINE_DIR) not in sys.path:
     sys.path.insert(0, str(RULE_ENGINE_DIR))
 
-from features.cohesive_zone_estimator import CohesiveZoneEstimator  # noqa: E402
+try:
+    from features.cohesive_zone_estimator import CohesiveZoneEstimator  # type: ignore  # noqa: E402
+except (ImportError, ModuleNotFoundError):
+    CohesiveZoneEstimator = None  # type: ignore[assignment,misc]
 
 
 BODY_LAYOUT: tuple[dict[str, Any], ...] = tuple(
@@ -233,10 +239,16 @@ class ReplayRequest:
     start: datetime
     end: datetime
     step_minutes: int
+    include_cohesive: bool
 
     @property
-    def cache_key(self) -> tuple[str, str, int]:
-        return (self.start.isoformat(), self.end.isoformat(), self.step_minutes)
+    def cache_key(self) -> tuple[str, str, int, bool]:
+        return (
+            self.start.isoformat(),
+            self.end.isoformat(),
+            self.step_minutes,
+            self.include_cohesive,
+        )
 
 
 class SensorRepository:
@@ -257,7 +269,7 @@ class SensorRepository:
         with self.connect() as conn:
             registry_rows = conn.execute(
                 """
-                SELECT variable_name, tag_long_name, unit, description
+                SELECT variable_name, tag_long_name, description
                 FROM bf_sensor.sensor_registry
                 WHERE is_enabled = true
                   AND variable_name = ANY(%s)
@@ -267,7 +279,6 @@ class SensorRepository:
             metadata = {
                 str(row["variable_name"]): {
                     "tag_long_name": str(row["tag_long_name"]),
-                    "unit": str(row.get("unit") or ""),
                     "description": str(row.get("description") or ""),
                 }
                 for row in registry_rows
@@ -341,7 +352,7 @@ def compact_estimate(estimate: dict[str, Any], evaluation_time: datetime) -> dic
 
 
 def build_cohesive_series(raw_frame: pd.DataFrame, display_index: pd.DatetimeIndex) -> list[dict[str, Any]]:
-    if raw_frame.empty:
+    if raw_frame.empty or CohesiveZoneEstimator is None:
         return []
     estimator = CohesiveZoneEstimator()
     items: list[dict[str, Any]] = []
@@ -392,6 +403,8 @@ def build_replay_payload(
     return {
         "ok": bool(timestamps),
         "requirement_id": REQUIREMENT_ID,
+        "feature_requirement_id": FEATURE_REQUIREMENT_ID,
+        "schema_version": SCHEMA_VERSION,
         "model_version": MODEL_VERSION,
         "source": "bf_sensor.one_minute_values",
         "aggregation": f"{request.step_minutes}min_last_valid_in_bucket",
@@ -407,7 +420,11 @@ def build_replay_payload(
             "temperature": round(sum(point["available_count"] for point in temperature_points) / max(1, len(temperature_points) * len(timestamps)), 6),
             "pressure": round(sum(point["available_count"] for point in pressure_points) / max(1, len(pressure_points) * len(timestamps)), 6),
         },
-        "cohesive_zone": build_cohesive_series(raw_frame, sampled.index),
+        "cohesive_zone": (
+            build_cohesive_series(raw_frame, sampled.index)
+            if request.include_cohesive
+            else []
+        ),
         "evidence": {
             "temperature": "measured",
             "static_pressure": "measured",
@@ -421,6 +438,7 @@ def build_replay_payload(
             "温度和静压力点均为实测离散点；点间颜色或软熔带覆盖仅作估计展示，非连续实测场。",
             "静压力只在 20.350m、23.488m、28.976m 三个物理标高存在；炉腹和炉身上部不外推静压力。",
             "软熔带为 C2 炉墙热活动根部代理，未标定、禁止用于控制。",
+            "红外色带由炉体离散测温点插值生成，用于历史回看，不是红外相机实测图像。",
         ],
     }
 
@@ -430,7 +448,9 @@ class ReplayService:
 
     def __init__(self, repository: SensorRepository):
         self.repository = repository
-        self._cache: dict[tuple[str, str, int], tuple[float, dict[str, Any]]] = {}
+        self._cache: dict[
+            tuple[str, str, int, bool], tuple[float, dict[str, Any]]
+        ] = {}
         self._lock = threading.Lock()
 
     def resolve_request(self, query: dict[str, list[str]]) -> ReplayRequest:
@@ -440,6 +460,8 @@ class ReplayService:
         end = _parse_datetime(query.get("end", [""])[0]) if query.get("end", [""])[0] else latest.replace(second=0, microsecond=0)
         start = _parse_datetime(query.get("start", [""])[0]) if query.get("start", [""])[0] else end - timedelta(hours=6)
         step = int(query.get("step_minutes", ["5"])[0] or 5)
+        include_text = str(query.get("include_cohesive", ["0"])[0]).strip().lower()
+        include_cohesive = include_text in {"1", "true", "yes", "on"}
         if step < 1 or step > 60:
             raise ValueError("step_minutes 必须在 1 到 60 之间。")
         if start >= end:
@@ -451,7 +473,12 @@ class ReplayService:
         frame_count = math.ceil((end - start).total_seconds() / 60 / step)
         if frame_count > MAX_FRAMES:
             raise ValueError(f"时间轴最多 {MAX_FRAMES} 帧；请缩短时间窗或增大步长。")
-        return ReplayRequest(start=start, end=end, step_minutes=step)
+        return ReplayRequest(
+            start=start,
+            end=end,
+            step_minutes=step,
+            include_cohesive=include_cohesive,
+        )
 
     def replay(self, query: dict[str, list[str]]) -> dict[str, Any]:
         request = self.resolve_request(query)
@@ -470,6 +497,9 @@ class ReplayService:
     def config(self) -> dict[str, Any]:
         return {
             "requirement_id": REQUIREMENT_ID,
+            "feature_requirement_id": FEATURE_REQUIREMENT_ID,
+            "schema_version": SCHEMA_VERSION,
+            "limits": {"max_hours": MAX_HOURS, "max_frames": MAX_FRAMES},
             "regions": REGIONS,
             "temperature_layers": [
                 {"layer": layer, "height_m": height, "region": region}
@@ -486,6 +516,7 @@ class ReplayService:
                 {"band": "upper", "height_m": 28.976, "region": "stack_middle", "azimuths": "ABCDEF"},
             ],
             "soft_zone": {
+                "available": CohesiveZoneEstimator is not None,
                 "evidence": "estimated",
                 "calibration_status": "uncalibrated",
                 "control_use": "prohibited",
@@ -519,7 +550,10 @@ class ReplayHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
+            logging.info("client disconnected before JSON response completed: %s", self.path)
 
     def _static(self, relative_path: str) -> None:
         if relative_path in {"", "/"}:
@@ -548,9 +582,24 @@ class ReplayHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
         try:
+            if parsed.path == "/favicon.ico":
+                self.send_response(HTTPStatus.NO_CONTENT)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.end_headers()
+                return
             if parsed.path == "/api/health":
                 latest = self.server.service.repository.latest_timestamp()
-                self._json(HTTPStatus.OK, {"ok": bool(latest), "latest_sample_time": latest, "requirement_id": REQUIREMENT_ID})
+                self._json(
+                    HTTPStatus.OK,
+                    {
+                        "ok": bool(latest),
+                        "latest_sample_time": latest,
+                        "requirement_id": REQUIREMENT_ID,
+                        "feature_requirement_id": FEATURE_REQUIREMENT_ID,
+                        "schema_version": SCHEMA_VERSION,
+                        "cohesive_available": CohesiveZoneEstimator is not None,
+                    },
+                )
                 return
             if parsed.path == "/api/config":
                 self._json(HTTPStatus.OK, self.server.service.config())
@@ -578,12 +627,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="现有托管服务 JSON，只读取 GL02 PostgreSQL 环境变量；不会复制或打印凭据。",
     )
     parser.add_argument("--log-level", default="INFO", choices=("DEBUG", "INFO", "WARNING", "ERROR"))
+    parser.add_argument("--log-file", type=Path, default=None)
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    logging.basicConfig(level=getattr(logging, args.log_level), format="%(asctime)s %(levelname)s %(message)s")
+    handlers: list[logging.Handler] = [logging.StreamHandler()]
+    if args.log_file:
+        args.log_file.parent.mkdir(parents=True, exist_ok=True)
+        handlers.append(logging.FileHandler(args.log_file, encoding="utf-8"))
+    logging.basicConfig(
+        level=getattr(logging, args.log_level),
+        format="%(asctime)s %(levelname)s %(message)s",
+        handlers=handlers,
+    )
     if not args.static_dir.is_dir():
         raise SystemExit(f"静态页面目录不存在：{args.static_dir}")
     service = ReplayService(SensorRepository(args.db_config))

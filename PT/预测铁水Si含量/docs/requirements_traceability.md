@@ -528,3 +528,131 @@ boosting。001、002两次均在1004秒超时，没有完整指标产物。
 验证：PNG为高分辨率图片；Word包含图1标题及嵌入图像；标题黑体、正文宋体小四。
 
 状态：`completed_document_visualization`。
+
+## REQ-SI-AVERAGE-CURVE-22012-20260806
+
+从220.12读取最近15天每炉铁水Si算术平均值，使用平均Si目标的当前自适应权重
+模型生成逐炉预测，并在同一张图比较真实和预测趋势；同时核查新增喷煤点位和
+IMES炉料化学分析数据，为后续前5炉Si输入升级做准备。
+
+| 类型 | 位置 |
+|---|---|
+| 平均值目标合同 | [formal_dataset.py](../src/si_semantic_engine/formal_dataset.py) |
+| 220.12数据源审计 | [audit_22012_si_prediction_sources.py](../../../tools/audit_22012_si_prediction_sources.py) |
+| IMES化学审计 | [audit_22012_imes_sinter_chemistry.py](../../../tools/audit_22012_imes_sinter_chemistry.py) |
+| 曲线回放 | [run_22012_si_average_curve.py](../../../tools/run_22012_si_average_curve.py) |
+| 测试 | [test_si_average_curve.py](../tests/test_si_average_curve.py) |
+| 结果报告 | [最近15天平均Si曲线报告](../reports/2026-08-06_22012最近15天逐炉平均Si真实预测曲线.md) |
+
+验收：220炉均有`si_avg`；全窗口MAE 0.04034、±0.05命中73.18%；严格时间外
+155炉MAE 0.03848。逐炉方向一致率约50%，未达逐炉趋势标准。只读执行，未修改
+220.12、生产模型或接口。
+
+状态：`completed_offline_replay_not_production`。
+
+## REQ-SI-V19-CONTEXT-ABLATION-20260806
+
+Offline ablation for prior 1-5 heat mean-Si, current/lagged PCI, and IMES sinter chemistry time-background; V9/V13 and production interfaces remain frozen; chronological split is 1603/344/344.
+
+Implementation: v19_context_features.py, train_v19.py, extract_v19_context_v2.py, replay_v19_si_context_v2.py, test_v19_context_features.py.
+
+Result: chemistry ranked first on April/May/June pre-test selection, but frozen-test MAE did not beat V9 and paired bootstrap crossed zero; no shadow promotion. Status remains experimental_offline. Chemistry is time-background only; batch-to-bin-to-charge-to-heat lineage is unverified.
+
+Status: completed_offline_not_promoted.
+
+
+## REQ-SI-V19-AUGUST-HOLDOUT-20260807
+
+V19 rolling update: July data is included in offline training through 2026-07-26 19:02:00; 158 new August heats are held out as time-out evaluation. Original V19 artifacts remain frozen.
+
+Implementation: train_v19_august_holdout.py and train_v19_august_holdout_v2.py. Results: EXP-SI-V19-AUGUST-HOLDOUT-20260807.
+
+The protocol-selected candidate is pci; all_context is promising on this single August window but cannot be selected from the test result. No production promotion.
+
+Status: completed_offline_time_out_validation.
+
+
+## REQ-SI-V20-OPEN-MINUS-HITRATE-20260807
+
+把目标场景固定为“每炉开口前 1 小时预测平均 Si”，验证能否把昨日样本
+±0.05 命中率从 46.67% 提升到至少 60%，同时 MAE 不恶化。V20 保持离线/影子：
+不替换生产模型、不写 220.12 业务表。
+
+| 类型 | 位置 |
+|---|---|
+| 特征函数 | [v20_open_minus_features.py](../src/si_semantic_engine/v20_open_minus_features.py) |
+| 数据集构建 | [build_open_minus_si_dataset_v20.py](../../../tools/build_open_minus_si_dataset_v20.py) |
+| 训练评估 | [train_open_minus_si_v20.py](../../../tools/train_open_minus_si_v20.py) |
+| 单炉影子预测兼容入口 | [predict_next_heat_si_v19.py](../../../tools/predict_next_heat_si_v19.py) |
+| CLI手册 | [cli_usage.md](../../../docs/cli_usage.md#平均-si-v20-开口前命中率影子实验) |
+| 数据合同 | [data_contract.md](data_contract.md#6-v20-开口前-1-小时平均-si-合同2026-08-07) |
+| 测试 | [test_v20_open_minus_features.py](../tests/test_v20_open_minus_features.py) |
+
+数据合同：`target__Si_mean` 使用修复后汇总表的 `si_avg` 算术平均；主 cutoff 为
+`open_ts - 60min`，同时生成 `120/90/60/30/15/0min` 对照；前 1～5 炉 Si 是 5 个
+独立字段，只使用严格更早且已发布的平均 Si；喷煤和传感器窗口均为
+`[cutoff-window, cutoff)`，当前小时正式喷煤只有数据水位不超过 cutoff 才可用。
+IMES烧结矿化学仅为低置信度时间背景。
+
+验证：2026-08-07 已执行 V20 纯单元测试 `Ran 7 tests / OK`，并对三个 CLI 入口
+执行 `--help` 加载检查。完整数据库回放和训练需在 VPN/220.12 可达时运行。
+
+状态：`implemented_experimental_offline_not_promoted`。
+
+
+## REQ-SI-V21-SENSOR-CACHE-20260808
+
+把 V20 开口前平均 Si 预测中的核心28点和严格133点传感器窗口改为本机预聚合缓存，
+减少 220.12 数据库聚合压力，并验证“直接加入更多物理窗口”是否能提升确认集
+±0.05 命中率。
+
+| 类型 | 位置 |
+|---|---|
+| 缓存构建 | [build_v20_sensor_window_cache.py](../../../tools/build_v20_sensor_window_cache.py) |
+| 缓存合并数据集 | [materialize_v21_dataset_from_sensor_cache.py](../../../tools/materialize_v21_dataset_from_sensor_cache.py) |
+| V20构建器缓存参数 | [build_open_minus_si_dataset_v20.py](../../../tools/build_open_minus_si_dataset_v20.py) |
+| 训练候选过滤 | [train_open_minus_si_v20.py](../../../tools/train_open_minus_si_v20.py) |
+| 单测 | [test_v21_sensor_window_cache.py](../tests/test_v21_sensor_window_cache.py) |
+| 实验报告 | [v21_sensor_cache_20260808.md](v21_sensor_cache_20260808.md) |
+
+数据合同：缓存按 `v20_sample_id` 对齐，窗口严格为
+`[prediction_cutoff_ts - window, prediction_cutoff_ts)`；缺失保持缺失，覆盖率单独记录，
+不使用 0 填充；原始分钟值中的非有限值被过滤；`process133` 排除 `EQ_` 前缀点位。
+
+验证：2026-08-08 在 220.12 只读数据上生成 2268 行 process133 缓存，133 点、
+8379 个窗口特征；同源切出 core28 的 1764 个窗口特征。core28 完整候选验证
+±0.05 `73.33%`、确认 `54.84%`；process133 高维候选子集验证 `72.00%`、确认
+`51.61%`。同数据历史消融确认 `58.06%` 最稳。结论为缓存有效但未提升确认集，
+不晋升影子候选。2026-08-08 用户决策：不再使用全集上下文，默认回到 V19
+August holdout；V20 构建器默认点位改为 `core28`，`process133/all` 必须显式
+指定且仅用于离线研究。
+
+状态：`experimental_offline_paused_reverted_to_v19_default`。
+
+
+## REQ-SI-FUELRATIO-V20-SIDE-BY-SIDE-20260808
+
+在相同炉号、相同开口时间和相同实际平均 Si 标签上，并列评估工长燃料比经验法与
+V20 历史 Si 方法；V19 一键模型仅作为不同时间口径的历史背景，不参与直接排名。
+
+| 类型 | 位置 |
+|---|---|
+| 并列评估程序 | [compare_foreman_fuel_vs_v20_history.py](../../../tools/compare_foreman_fuel_vs_v20_history.py) |
+| 结果说明 | [fuel_ratio_v20_side_by_side_20260808.md](fuel_ratio_v20_side_by_side_20260808.md) |
+| 指标 JSON | [side_by_side_metrics.json](../reports/experiments/EXP-SI-FUELRATIO-V20-COMPARE-20260808/side_by_side_metrics.json) |
+| 逐炉 CSV | [side_by_side_predictions.csv](../reports/experiments/EXP-SI-FUELRATIO-V20-COMPARE-20260808/side_by_side_predictions.csv) |
+
+结果：V20 验证+确认段可对齐 7 炉，历史 Si 法 ±0.05 为 `57.14%`、MAE `0.0580`；
+工长固定 0.30 基准经验法为 `0.00%`、MAE `0.7358`。样本受 MES 日报单炉前块限制，
+只作小样本证据，不替代 V20 完整 75 炉验证/27 炉确认指标。
+
+状态：`completed_offline_small_common_sample_not_promoted`。
+
+## REQ-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808
+
+把 V20 历史 Si 模型作为独立影子功能部署到 8093 与 8094，允许所有能够打开页面的用户：在当前时刻或指定截止时刻预测目标炉次平均 Si；按日期执行开口前 60 分钟历史回放；查看预测曲线、随后发布的实际平均 Si、误差和 ±0.05 命中状态。V20 本身不要求生产账号登录。
+
+实现位置：`高炉前端数据/智能助手/backend/si_v20_shadow.py`、`高炉前端数据/assets/bf-si-v20-shadow-workbench.js`、`tools/patch_si_v20_shadow_workbench_surfaces.py`、`tools/remote_guarded_deploy_si_v20_shadow_workbench.ps1`。实际值固定读取 `bf_assistant.heat_performance_quality_summary.si_avg`；预测只写 `bf_assistant.si_v20_prediction_audit`，不写炉次事实表、不调整生产设定值。当前炉目标和截止时刻后发布的化验严格不进入特征。
+
+2026-08-08 已部署：8093/8094 状态与历史 API 均为 HTTP 200，`require_login=false`；模型 `ablation_history`、14 项历史特征、训练提前量 60 分钟、模型 SHA-256 `FD31DB24EF9B4E9C81BAAE81A46693E5B9F2E539DBEC9C2B75AE95946055FC8C`；8093 守卫恢复，8768/8770/11434 PID 未变化。状态：`deployed_experimental_shadow_public_prediction`，不替换生产默认模型。
+

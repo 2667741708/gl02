@@ -125,11 +125,99 @@ class DiagnosisStore:
         if self.local_csv_path:
             return
         schema_sql = (Path(__file__).resolve().parent / "schema.sql").read_text(encoding="utf-8")
+        abc_schema_sql = (Path(__file__).resolve().parent / "abc_rule_schema.sql").read_text(encoding="utf-8")
         with self.connection_scope() as conn:
             conn.execute(schema_sql)
+            conn.execute(abc_schema_sql)
             self._reset_owned_sequences(conn)
             conn.commit()
         self._zero_audit_table_exists = True
+
+    def persist_abc_evaluation(self, evaluation: dict[str, Any], *, furnace_id: str = "GL02", source_snapshot_id: int | None = None) -> int | None:
+        """Persist a complete internal batch; public endpoints use the safe view."""
+        if self.local_csv_path:
+            return None
+        from abc_rule_engine import public_rule
+
+        timestamp = evaluation.get("evaluation_ts") or evaluation.get("timestamp")
+        config_hash = str(evaluation.get("config_hash") or "")
+        with self.connection_scope() as conn:
+            row = conn.execute(
+                """
+                INSERT INTO bf_sensor.abc_rule_evaluation_batches
+                    (furnace_id, evaluation_ts, catalog_version, config_version, config_hash,
+                     source_snapshot_id, coverage_ratio, data_age_seconds, public_bundle)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
+                ON CONFLICT (furnace_id, evaluation_ts, config_hash)
+                DO UPDATE SET public_bundle=excluded.public_bundle
+                RETURNING id
+                """,
+                (furnace_id, timestamp, evaluation.get("catalog_version"), evaluation.get("config_version"), config_hash,
+                 source_snapshot_id, evaluation.get("quality", {}).get("coverage_ratio"), evaluation.get("quality", {}).get("data_age_seconds"),
+                 json.dumps(evaluation.get("public", {}), ensure_ascii=False)),
+            ).fetchone()
+            batch_id = int(row["id"] if isinstance(row, dict) else row[0]) if row else None
+            if batch_id is None:
+                return None
+            for item in evaluation.get("evaluations", []):
+                conn.execute(
+                    """
+                    INSERT INTO bf_sensor.abc_rule_evaluation_items
+                        (batch_id, rule_id, category, display_name, score, confidence, status,
+                         formula_terms, weights, thresholds, normalized_values, contributions,
+                         missing_features, public_detail)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb)
+                    ON CONFLICT (batch_id, rule_id) DO UPDATE SET
+                        score=excluded.score, confidence=excluded.confidence, status=excluded.status,
+                        formula_terms=excluded.formula_terms, weights=excluded.weights,
+                        thresholds=excluded.thresholds, normalized_values=excluded.normalized_values,
+                        contributions=excluded.contributions, missing_features=excluded.missing_features,
+                        public_detail=excluded.public_detail
+                    """,
+                    (batch_id, item["rule_id"], item["category"], item["display_name"], item["score"], item["confidence"], item["status"],
+                     json.dumps(item.get("formula_terms", []), ensure_ascii=False), json.dumps(item.get("weights", {}), ensure_ascii=False),
+                     json.dumps(item.get("thresholds", {}), ensure_ascii=False), json.dumps({x["feature_key"]: x["normalized_value"] for x in item.get("contributions", [])}, ensure_ascii=False),
+                     json.dumps(item.get("contributions", []), ensure_ascii=False), json.dumps(item.get("missing_features", []), ensure_ascii=False),
+                     json.dumps(public_rule(item), ensure_ascii=False)),
+                )
+            conn.commit()
+            return batch_id
+
+    def persist_abc_alerts(self, evaluation: dict[str, Any]) -> int:
+        """Append/refresh B/C alert lifecycle rows without issuing control commands."""
+        if self.local_csv_path:
+            return 0
+        from abc_rule_engine import public_rule
+        alerts = [item for item in evaluation.get("evaluations", []) if item.get("alert_state") in {"yellow", "amber", "deep_amber", "red"}]
+        if not alerts:
+            return 0
+        changed = 0
+        with self.connection_scope() as conn:
+            for item in alerts:
+                row = conn.execute(
+                    """
+                    SELECT id FROM bf_assistant.abc_alert_episodes
+                    WHERE rule_id=%s AND state IN ('active','acknowledged','field_confirmed')
+                    ORDER BY last_seen_at DESC LIMIT 1
+                    """, (item["rule_id"],)
+                ).fetchone()
+                if row:
+                    episode_id = row["id"] if isinstance(row, dict) else row[0]
+                    conn.execute("UPDATE bf_assistant.abc_alert_episodes SET last_seen_at=now(), latest_score=%s, latest_public_detail=%s::jsonb WHERE id=%s", (item["score"], _json(public_rule(item)), episode_id))
+                    event_type = "upgraded" if item.get("category") == "C" else "triggered"
+                else:
+                    inserted = conn.execute(
+                        """
+                        INSERT INTO bf_assistant.abc_alert_episodes(rule_id,category,state,first_seen_at,last_seen_at,latest_score,latest_public_detail)
+                        VALUES (%s,%s,'active',now(),now(),%s,%s::jsonb) RETURNING id
+                        """, (item["rule_id"], item["category"], item["score"], _json(public_rule(item)))
+                    ).fetchone()
+                    episode_id = inserted["id"] if isinstance(inserted, dict) else inserted[0]
+                    event_type = "triggered"
+                conn.execute("INSERT INTO bf_assistant.abc_alert_event_log(episode_id,rule_id,event_type,detail) VALUES (%s,%s,%s,%s::jsonb)", (episode_id, item["rule_id"], event_type, _json({"alert_state": item.get("alert_state"), "read_only": True})))
+                changed += 1
+            conn.commit()
+        return changed
 
     def reset_owned_sequences(self) -> int:
         if self.local_csv_path:
@@ -312,8 +400,10 @@ class DiagnosisStore:
                 wide[col] = pd.to_numeric(wide[col], errors="coerce")
         if "T_top" not in wide.columns:
             top_cols = [c for c in ["T_top_A", "T_top_B", "T_top_C", "T_top_D"] if c in wide.columns]
-            if top_cols:
-                wide = pd.concat([wide, wide[top_cols].mean(axis=1).rename("T_top")], axis=1)
+            if len(top_cols) == 4:
+                top_values = wide[top_cols].apply(pd.to_numeric, errors="coerce")
+                aligned_top = top_values.mean(axis=1).where(top_values.notna().all(axis=1))
+                wide = pd.concat([wide, aligned_top.rename("T_top")], axis=1)
         return wide
 
     def data_coverage(self, df: pd.DataFrame, start: datetime, end: datetime, required_variables: list[str]) -> dict[str, Any]:
@@ -554,12 +644,12 @@ class DiagnosisStore:
                     """
                     INSERT INTO bf_sensor.daily_baselines (
                         baseline_day, baseline_window_start, baseline_window_end, baseline_days,
-                        variable_name, median_ref, iqr_ref, p10, p50, p90,
+                        variable_name, median_ref, iqr_ref, p10, p25, p50, p75, p90,
                         sample_count, expected_minutes, coverage_ratio, source, updated_at
                     )
                     VALUES (
                         %(baseline_day)s, %(baseline_window_start)s, %(baseline_window_end)s, %(baseline_days)s,
-                        %(variable_name)s, %(median_ref)s, %(iqr_ref)s, %(p10)s, %(p50)s, %(p90)s,
+                        %(variable_name)s, %(median_ref)s, %(iqr_ref)s, %(p10)s, %(p25)s, %(p50)s, %(p75)s, %(p90)s,
                         %(sample_count)s, %(expected_minutes)s, %(coverage_ratio)s, %(source)s::jsonb, now()
                     )
                     ON CONFLICT (baseline_day, baseline_days, variable_name)
@@ -569,7 +659,9 @@ class DiagnosisStore:
                         median_ref=excluded.median_ref,
                         iqr_ref=excluded.iqr_ref,
                         p10=excluded.p10,
+                        p25=excluded.p25,
                         p50=excluded.p50,
+                        p75=excluded.p75,
                         p90=excluded.p90,
                         sample_count=excluded.sample_count,
                         expected_minutes=excluded.expected_minutes,
@@ -615,6 +707,9 @@ class DiagnosisStore:
             row["variable_name"]: {
                 "median_ref": float(row["median_ref"]),
                 "iqr_ref": float(row["iqr_ref"]),
+                "coverage_ratio": float(row["coverage_ratio"]) if row.get("coverage_ratio") is not None else None,
+                "sample_count": int(row["sample_count"]) if row.get("sample_count") is not None else None,
+                "expected_minutes": int(row["expected_minutes"]) if row.get("expected_minutes") is not None else None,
             }
             for row in rows
         }

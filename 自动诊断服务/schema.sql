@@ -119,7 +119,9 @@ CREATE TABLE IF NOT EXISTS bf_sensor.daily_baselines (
     median_ref double precision NOT NULL DEFAULT 0,
     iqr_ref double precision NOT NULL DEFAULT 0,
     p10 double precision,
+    p25 double precision,
     p50 double precision,
+    p75 double precision,
     p90 double precision,
     sample_count integer NOT NULL DEFAULT 0,
     expected_minutes integer NOT NULL DEFAULT 0,
@@ -132,6 +134,12 @@ CREATE TABLE IF NOT EXISTS bf_sensor.daily_baselines (
 
 CREATE INDEX IF NOT EXISTS idx_daily_baselines_day
     ON bf_sensor.daily_baselines (baseline_day DESC, variable_name);
+
+ALTER TABLE bf_sensor.daily_baselines
+    ADD COLUMN IF NOT EXISTS p25 double precision;
+
+ALTER TABLE bf_sensor.daily_baselines
+    ADD COLUMN IF NOT EXISTS p75 double precision;
 
 CREATE TABLE IF NOT EXISTS bf_sensor.diagnosis_queues (
     queue_id text PRIMARY KEY,

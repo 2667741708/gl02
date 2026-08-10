@@ -326,6 +326,7 @@ def catalog() -> dict[str, Any]:
             "vastbase_operations": bool(
                 os.getenv("IMES_OPS_DB_PASSWORD")
                 or _load_env_file(EXTERNAL_ENV).get("IMES_OPS_DB_PASSWORD")
+                or _load_env_file(LEGACY_IMES_ENV).get("IMES_DB_PASSWORD")
             ),
             "vastbase_laboratory": bool(
                 os.getenv("IMES_LAB_DB_PASSWORD")

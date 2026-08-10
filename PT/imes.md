@@ -1,19 +1,25 @@
 # IMES / Vastbase 交接说明
 
-更新时间：2026-07-16
+更新时间：2026-08-05
 
 ## 当前结论
 
 - IMES Web：`http://10.10.181.209:8080/imes.web/`，账号 `2gldmx`。
-- 口令已由用户提供，但不写入仓库；使用时通过本机密码管理或临时环境变量注入。
-- 登录接口为 `POST /imes.web/login.do`，成功后进入 `/imes.web/mes/desktop.do`，会话使用 `JSESSIONID`；登录页有 4 位数字验证码。2026-07-15 已实际登录成功。
-- 仓库现有 Vastbase 直连目标为 `10.10.181.195:5432/vastbase`。2026-07-15 已确认 TCP 可达，但 `2gldmx` 在该数据库目标上认证失败，所以它不能直接替代数据库账号。
+- 2026-08-05 起，VPN 客户端优先直接打开 `http://10.30.220.12:18080/`；220.12
+  会转发到 IMES Web。Vastbase 使用 `10.30.220.12:15433`，pSpace 使用
+  `10.30.220.12:18889`。这三个入口只对核实的 VPN 客户端放行；旧本机
+  `127.0.0.1` SSH 回环脚本继续作为应急兼容入口，不再是默认的唯一方式。
+- 口令由用户授权保存在 Git 忽略的本机专用配置 `PT/imes_web.local.env`；使用时只通过当前进程环境变量注入，不复制到普通文档、脚本、前端、日志或接口响应。
+- 登录接口为 `POST /imes.web/login.do`，成功后进入 `/imes.web/mes/desktop.do`，会话使用 `JSESSIONID`；登录页有 4 位数字验证码。2026-07-15 已实际登录成功；2026-08-05 又通过 `10.30.220.12:18080` 完成验证码登录，并访问炉次化验、生产实绩和炉渣检验真实业务页，代理日志均为 HTTP 200。
+- Vastbase 正式库目标为 `10.10.181.195:5432/vastbase`，业务只读角色为 `lg_fq`。完整凭据只保存在 Git 忽略的 `PT/imes_vastbase.local.env`，不在本说明重复记录。
 - 该账号可见 10 个业务菜单，覆盖料仓、变料、生产计划、配料、原料投入、批次投料、生产实绩、炉次化验和炉渣检验；已验证 12 个白名单查询数据集。
 - 截图显示目标业务画面为“23488高炉炉身中部静压力检测”，包含 `PE424022A` 至 `PE424022F` 等压力测点；当前账号的 10 个菜单没有该入口，需另提供实际页面 URL 或现场网络取证。
 
 ## 程序入口
 
 - [IMES Web 只读导出](../tools/export_imes_web_readonly.py)：用 `IMES_WEB_USER/IMES_WEB_PASSWORD/IMES_WEB_CAPTCHA` 登录，只调用已核实查询接口；支持 `--list-datasets`、`--all-datasets`、任意支持日期范围、批次业务日自动逐日展开、分页、JSON Lines 和 manifest。12 个数据集完整说明见 [MES 数据集说明](../docs/mes数据集.md)。
+- [IMES Web 本地 GUI 启动器](../tools/imes_web_launcher.py)：点击“启动转发”后建立仅绑定 `127.0.0.1:15433`（Vastbase）和 `127.0.0.1:18080`（IMES Web）的 220.12 跳板，再点击“打开 IMES 页面”访问 `http://127.0.0.1:18080/imes.web/`；SSH 密码只从当前进程环境变量或 GUI 临时输入读取，不写入文件、命令行、日志或页面。GUI 会同时检查 Web HTTP 与 Vastbase TCP，关闭窗口会停止本次转发。Windows 可直接双击 [start_imes_web_gui.cmd](../tools/start_imes_web_gui.cmd)；无 GUI 时使用 [start_imes_web_vastbase_relay_local.cmd](../tools/start_imes_web_vastbase_relay_local.cmd)。
+- [本机 MCP 注册表与 Web 适配器](../高炉前端数据/智能助手/backend/mcp_host/server_registry.json)：统一加载 `gl02-data`、`imes-readonly`、`imes-web-readonly` 三个只读服务，共 35 个 Host 可见工具；Web 查询仅走白名单接口，验证码/受控会话缺失时明确返回 `IMES_WEB_CAPTCHA_REQUIRED`。
 - [安全版 Vastbase 直连导出](../tools/export_vastbase_direct.py)：使用 `IMES_DB_*` 环境变量，当前覆盖生产实绩、炉次条件、铁水元素和炉渣检验。
 - [历史本机特例导出](../tools/export_vastbase_local.py)：按用户明确授权保留历史凭据硬编码，不得把该模式扩散到新脚本或文档。
 - [IMES 镜像表导出](../tools/export_imes_to_excel.py)：从 `bf_imes.raw_rows` 展开导出，不使用 Web 账号。
@@ -38,10 +44,24 @@ PythonSDK/MCP 完成，或使用 `127.0.0.1:18889` 回环转发；不得因目�
 | 直连端口 | `5432` | Vastbase PostgreSQL 兼容端口 |
 | 初始数据库 | `vastbase` | 登录时的数据库名 |
 | 截图所示管理账号 | `vbadmin` | 高权限运维账号，不用于日常查询、前端、MCP 或自动值守 |
-| 业务只读角色 | `lg_fq` | 首字符是小写字母 `l`；实际登录和视图权限仍须只读核查 |
+| 业务只读角色 | `lg_fq` | 首字符是小写字母 `l`；本机专用配置已保存该角色，历史只读登录证据见下文 |
 | 完整本机凭据 | `PT/imes_vastbase.local.env` | 用户明确授权本机保存；已由根目录 `.gitignore` 排除，不得提交或外发 |
 
-截图里的口令已按用户明确授权保存到本机专用配置 `PT/imes_vastbase.local.env`，但不重复写入本说明、`AGENTS.md`、脚本或日志。该配置不得提交 Git 或对外发送。截图字体容易把 `lg_fq` 的小写字母 `l` 误读成数字 `1`；本机配置已按合法角色名 `lg_fq` 保存。新建业务账号和授权仍应由数据库管理员按最小权限原则执行，本项目不会自动执行 `CREATE ROLE` 或 `GRANT`。
+业务只读口令已按用户明确授权保存到本机专用配置 `PT/imes_vastbase.local.env`，但不重复写入本说明、`AGENTS.md`、脚本或日志。该配置不得提交 Git 或对外发送。截图字体容易把 `lg_fq` 的小写字母 `l` 误读成数字 `1`；本机配置已按合法角色名 `lg_fq` 保存。新建业务账号和授权仍应由数据库管理员按最小权限原则执行，本项目不会自动执行 `CREATE ROLE` 或 `GRANT`。
+
+### 2026-08-05 凭据与连通性复核
+
+- 用户提供的业务只读口令与本机受控配置 `PT/imes_vastbase.local.env` 中的 `IMES_DB_PASSWORD` 完全匹配；本说明不记录口令明文。
+- 目标合同为 `host=10.10.181.195`、`port=5432`、`database=vastbase`、`user=lg_fq`。因此“账号是 `lg_fq`、端口是 `5432`”可以确认。
+- 当前工作区的受限网络探针返回 Windows `10013`/连接超时，未能在本轮再次取得服务器端 `current_user`；不能把本轮结果表述为新的在线认证验收。此前 2026-07-16 只读证据已确认 `current_user=lg_fq`、会话只读且授权视图可查询。
+- 恢复 VPN/路由后，使用下方 `psql` 只读验证命令重新执行；只要返回 `current_user=lg_fq`、`current_database=vastbase` 和 `transaction_read_only=on`，即可完成本次在线复核。
+
+### 2026-08-05 化验账号与当前炉次选择修复
+
+- 远端只读复核已经证明 `operations/gl2#dmx` 可以读取 `2#20260805-065` 的 3 条正式铁水化验，Si 为 `0.20、0.25、0.24`，算术平均为 `0.23%`；此前把 `operations` 判定为错误账号是不准确的。
+- 本机 MCP 的统一受控账号仍由 `PT/imes_vastbase.local.env` 的 `IMES_DB_USER/IMES_DB_PASSWORD` 提供，默认同时覆盖 `operations` 和 `laboratory`；只有完成独立授权后才通过 `IMES_OPS_DB_*` 或 `IMES_LAB_DB_*` 显式覆盖，模型不得自行猜测账号。
+- 化验工具默认 `IMES_CHEMISTRY_ACCOUNT_PROFILE=operations`，精确查询必须传正式 MES `meltno`，例如 `2#20260805-065`。当前/上一炉工具已改为按 `COALESCE(opentime, workdate) DESC, meltno DESC` 选择，再单独判断活动状态；超过 72 小时的未关口历史记录只标记为 `latest_known`，不会抢占当前炉次。
+- 该修复不改变 Vastbase 数据、不把缺失 Si 填成 0；`NO_SI_SAMPLES` 仅表示被选中的正式炉次没有已发布的有效 Si 样本。Web MCP 的验证码/会话 Cookie 仍需受控注入，不能自动读取浏览器会话。
 
 ### 方式一：Navicat 直接连接
 
@@ -114,7 +134,7 @@ Remove-Item Env:IMES_DB_USER -ErrorAction SilentlyContinue
 
 本配置的长期安全边界同步记录在 [数据库账号配置说明](../docs/数据库账号配置说明.md#一期-mes-正式库-vastbase)。
 
-## `lg_fq` 已授权查询视图（2026-07-16 实测）
+## `lg_fq` 已授权查询视图（2026-07-16 实测，2026-08-05 仍为当前合同）
 
 2026-07-16 15:08 使用本机专用凭据直连 `10.10.181.195:5432/vastbase`，数据库实际返回 `current_user=lg_fq`、`transaction_read_only=on`。下列五个对象均为 `public` schema 下的视图，五个视图全部存在且 `has_table_privilege(..., 'SELECT')=true`，因此可以明确使用该账号读取对应数据：
 

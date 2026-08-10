@@ -80,7 +80,7 @@ def test_billboard_stream_publishes_133_physical_points_with_point_meta():
     frame = bridge.read_frame()
 
     assert frame["type"] == "tick"
-    assert len(frame["values"]) == 140
+    assert len(frame["values"]) == 157
     assert len(frame["point_meta"]) == 133
     assert set(frame["point_meta"]) == set(bridge_module.BILLBOARD_SENSOR_IDS)
     assert frame["data_quality"]["billboard_expected"] == 133
@@ -89,9 +89,29 @@ def test_billboard_stream_publishes_133_physical_points_with_point_meta():
     assert frame["values"]["T_throat_A"] is not None
     assert frame["values"]["P_static_lower_A"] is not None
     assert frame["values"]["P_static_upper_F"] is not None
+    assert frame["values"]["PCI_previous_hour"] is not None
+    assert frame["values"]["BlastEnergy"] is not None
+    assert frame["values"]["BlastSpeedStd"] is not None
+    assert frame["values"]["BlastSpeedActual"] is not None
+    assert frame["values"]["CO2_top"] is not None
+    assert frame["values"]["CO_top"] is not None
+    assert frame["values"]["H2_top"] is not None
+    for sensor_id in (
+        "Q_soft_water",
+        "P_soft_water",
+        "Q_high_pressure_water",
+        "P_high_pressure_water",
+        "P_medium_pressure_water",
+        "ExpansionTankLevel",
+        "Q_N2",
+        "P_N2",
+        "P_O2_valve_in",
+        "P_O2_valve_out",
+    ):
+        assert frame["values"][sensor_id] is not None
     assert frame["point_meta"]["P_static_middle_C"] == {
         "timestamp": "2026/07/26 12:00:05.000",
         "quality": "Good",
     }
     assert all("tag" not in item for item in frame["point_meta"].values())
-    assert pspace.batch_sizes == [100, 35]
+    assert pspace.batch_sizes == [100, 52]

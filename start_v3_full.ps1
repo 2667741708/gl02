@@ -13,6 +13,14 @@
 )
 
 $ErrorActionPreference = "Stop"
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw "start_v3_full.ps1 只允许使用 PowerShell 7 Core；请运行 pwsh.exe -NoLogo -NoProfile -File .\start_v3_full.ps1"
+}
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $utf8NoBom
+[Console]::OutputEncoding = $utf8NoBom
+$OutputEncoding = $utf8NoBom
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Logs = Join-Path $Root "logs"
 New-Item -ItemType Directory -Force -Path $Logs | Out-Null
@@ -168,7 +176,7 @@ if (-not $SkipLocalSyncLoop) {
     $syncLoop = Join-Path $Root "tools\start_local_pg_sync_loop.ps1"
     if (Test-Path -LiteralPath $syncLoop) {
         Write-Host "[V3] Starting 220.12 -> local PostgreSQL sync loop every $LocalSyncIntervalSeconds seconds..."
-        Start-Process -FilePath "powershell.exe" `
+        Start-Process -FilePath "pwsh.exe" `
             -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $syncLoop, "-IntervalSeconds", "$LocalSyncIntervalSeconds") `
             -WorkingDirectory $Root `
             -RedirectStandardOutput (Join-Path $Logs "local_pg_sync_loop.out.log") `

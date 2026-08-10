@@ -1,0 +1,317 @@
+# 配置参考
+
+## 炉次质量回看同步参数（2026-08-07）
+
+`tools/sync_22012_heat_performance_quality.py` 的关键参数：`--repair-days` 为回看日期范围，`--repair-page-size` 为单页行数（1–500），`--repair-max-rows` 为单轮最大扫描行数（上限50000），`--audit-detail-limit` 为每类缺口明细上限，`--no-repair` 关闭异常回看，`--dry-run` 禁止 PostgreSQL 写入。达到最大扫描行数时必须返回 `repair_truncated=true`。`--dry-run` 的 `repaired` 固定为0，拟修复数量看 `repair_prepared`。
+
+## 8093/8094 每5分钟单炉况智能分析
+
+追踪编号：`REQ-8093-8094-DIAGNOSIS-REVIEW-AI-20260806`
+
+| 环境变量 | 生产值 | 作用 |
+|---|---:|---|
+| `BF_DIAGNOSIS_AI_ANALYSIS_ENABLED` | `1` | 启用查询、重试和分析功能 |
+| `BF_DIAGNOSIS_AI_ANALYSIS_BACKGROUND_ENABLED` | `1` | 启用后台新桶检查；本机固定场景设为0 |
+| `BF_DIAGNOSIS_AI_ANALYSIS_BUCKET_MINUTES` | `5` | 按诊断时间划分5分钟桶 |
+| `BF_DIAGNOSIS_AI_ANALYSIS_POLL_SECONDS` | `30` | 检查新桶的周期；不是模型调用周期 |
+| `BF_DIAGNOSIS_AI_ANALYSIS_RETRY_SECONDS` | `120` | 失败后的最短重试冷却 |
+| `BF_DIAGNOSIS_AI_ANALYSIS_HISTORY_LIMIT` | `12` | 进入白名单Prompt的最近诊断点上限 |
+
+数据库复用 `BF_DIAG_REVIEW_PG*` 回环配置，模型复用当前受控模型。8093和8094均显式启用上述变量及 `BF_DIAGNOSIS_REVIEW_ENABLED=1`、`BF_DIAG_REVIEW_REQUIRE_LOGIN=0`。修改启动期变量后只受控重启对应代理；不得重启8768、8770、11434或数据库。8094必须继续使用共享 `ollama_proxy_server.py`，不得恢复过时的8769/隔离代理启动方式。
+
+## 8093/8094 智能助手知识检索模式
+
+追踪编号：`OPS-8093-KNOWLEDGE-KEYWORD-MODE-20260805`
+
+| 配置 | 现行值 | 生效位置 | 作用 |
+|---|---|---|---|
+| `BF_QA_KNOWLEDGE_SEARCH_MODE` | 8093=`keyword`；8094=`keyword` | 代理服务启动期环境变量 | 让 PostgreSQL 知识库只做关键词/词法检索，不调用 embedding |
+| `BF_QA_KNOWLEDGE_ENABLED` | 未显式设置，代码默认 `true` | 智能助手后端 | 启用知识库链路 |
+| `BF_QA_KNOWLEDGE_INTENT_GATE_ENABLED` | 未显式设置，代码默认 `true` | 智能助手后端 | 仅在知识意图命中时检索 |
+| `BF_QA_KNOWLEDGE_TOP_K` | 未显式设置，代码默认 `6` | 智能助手后端 | 限制注入 Prompt 的知识证据数量 |
+| `OLLAMA_MAX_LOADED_MODELS` | `1` | `BFOllama11434` | 共享 11434 只允许批准的 27.8B 驻留 |
+
+### 取值含义
+
+- `keyword`：使用 PostgreSQL 关键词/词法候选，保留知识意图门控、证据打包和 Prompt 注入；不请求 embedding。当前 8093/8094 生产链路固定使用此值。
+- `vector`：使用 pgvector 与 embedding。不得直接用于当前共享 11434；需要先把 embedding 迁到独立端口/运行时。
+- `hybrid`：合并关键词与向量候选。后端代码默认值仍为 `hybrid`，所以环境变量缺失时会回退并可能请求 embedding；在单模型驻留生产链路中应视为配置漂移，不是允许的现行状态。
+
+### 生效与验证
+
+该变量在代理启动时读取，修改服务配置后必须只受控重启对应代理。8093 固定使用 [remote_guarded_deploy_8093_keyword_knowledge_mode.ps1](../tools/remote_guarded_deploy_8093_keyword_knowledge_mode.ps1)，不得直接改 JSON 后只看文件，也不得重启 8094、8768、8770、11434 或数据库。
+
+完成标准必须同时满足：
+
+1. 8093 服务配置包含 `BF_QA_KNOWLEDGE_SEARCH_MODE=keyword`。
+2. 8093 实际监听进程环境显示 `keyword`。
+3. 不传 `mode` 的 `/api/qa/knowledge/search` 返回 `search_mode=keyword`、`enabled=true` 并有证据。
+4. `/api/ps` 仍只驻留批准的 27.8B，没有 `nomic-embed-text`。
+5. 一次知识问题 SSE 的准备态显示知识检索启用且未跳过，最终完整收到 `start -> delta -> final -> done`。
+6. 验收期间无守卫重启，8768/8094/8770/11434 未发生无关变化。
+
+### 现行证据与回滚
+
+- 2026-08-05 07:25 部署后 8093 配置 SHA-256：`8A24C83DF93008DD8E358682558E8755442D87052A09FB24F39778F2EAF51FDE`。
+- 备份：`logs/deploy_backups/8093_knowledge_keyword_20260805_072445`。
+- 2026-08-05 08:44 单次真实知识问答：默认 keyword 命中 2 条证据，总耗时 `23.8856s`，报告 `logs/acceptance/8093_keyword_knowledge_20260805_20260805_084403/assistant_keyword_knowledge_sse_once.json`。
+- 失败回滚由受控部署器自动执行；手工恢复前必须先核对目标路径和备份内容，恢复后重新验证实际进程环境、默认搜索、SSE、守卫状态和隔离项。
+
+详细 Prompt/RAG 说明见 [8093/8094 Prompt 固定 KV 前缀与知识库回答链路](8093_8094_Prompt固定KV前缀与知识库回答链路_20260805.md)，智能助手复发处理见 [DOCX 修复手册](8093智能助手不可用原因与正式修复手册_20260804.docx)。
+
+## 本机 IMES/Vastbase/Web 转发与 MCP 注册表
+
+追踪编号：`OPS-IMES-LOCAL-MULTI-MCP-RELAY-20260805`
+
+| 项目 | 现行值 | 说明 |
+|---|---|---|
+| `BF_QA_MCP_SERVER_REGISTRY` | 默认 `高炉前端数据/智能助手/backend/mcp_host/server_registry.json` | 本机注册 `gl02-data`、`imes-readonly`、`imes-web-readonly` |
+| `IMES_MCP_CONNECTION_MODE` | `relay` | 本机 IMES/Vastbase MCP 只连 `127.0.0.1:15433` |
+| `IMES_RELAY_DB_HOST/PORT` | `127.0.0.1` / `15433` | 220.12 跳板到 `10.10.181.195:5432` |
+| `IMES_WEB_URL` | `http://127.0.0.1:18080/imes.web/` | 220.12 跳板到 `10.10.181.209:8080` |
+| `IMES_WEB_CAPTCHA` | 当前进程临时值 | 验证码登录时注入，不写文档/日志 |
+| `IMES_WEB_SESSION_COOKIE` | 受控进程临时值 | 可选；不读取浏览器 Cookie，不返回会话值 |
+| `IMES_DB_USER/IMES_DB_PASSWORD` | 本机受控 env 中的统一只读账号 | 同时作为 `operations` 与 `laboratory` 的默认覆盖；密码不得写入普通文档、日志或接口响应 |
+| `IMES_OPS_DB_USER/IMES_OPS_DB_PASSWORD` | 未设置时继承 `IMES_DB_*` | 仅在远端明确配置独立作业账号时覆盖；未配置时兼容历史 `operations` 回退 |
+| `IMES_LAB_DB_USER/IMES_LAB_DB_PASSWORD` | 未设置时继承 `IMES_DB_*` | 仅在明确配置实验室账号时覆盖，不由模型自行切换 |
+| `IMES_CHEMISTRY_ACCOUNT_PROFILE` | `operations` | 当前远端已实测可读取 2026-08-05 的 065 化验；只有在实验室账号完成授权验收后才可设为 `laboratory` |
+| `IMES_ACTIVE_HEAT_MAX_AGE_HOURS` | `72` | 当前炉次活动判定的新鲜度上限；过期未关口记录只作为 `latest_known`，不覆盖正式最新排序 |
+| `IMES_HEAT_TIME_RANGE_MAX_HOURS` | `168` | 口语时间段反查炉次的最大跨度，代码硬上限同为168小时；超出时拒绝，避免一次查询过多炉次 |
+
+组合转发入口为 [start_imes_web_vastbase_relay_local.cmd](../tools/start_imes_web_vastbase_relay_local.cmd)，
+GUI 为 [imes_web_launcher.py](../tools/imes_web_launcher.py)。组合入口只绑定本机回环，
+MCP 查询失败时不得静默切换到 `10.10.181.195:5432` 直连；SSLVPN 是否具备直连路由需单独验收。
+
+## 8093 智能助手自动恢复工具
+
+追踪编号：`OPS-8093-ASSISTANT-AUTO-RECOVERY-20260805`
+
+| 配置 | 默认值 | 约束 |
+|---|---|---|
+| `BF_22012_HOST` | `10.30.220.12` | 覆盖目标主机；仍必须通过全连通门禁 |
+| `BF_22012_USER` | `administrator` | SSH 用户；不得把密码写到普通文档/命令日志 |
+| `BF_22012_SSH_PASSWORD` | 无 | 可选受控环境变量；输出只记录变量名，不记录值 |
+| 远端 package 根 | `C:\ProgramData\BFV4\assistant-auto-recovery\packages` | ASCII 受控目录；immutable package ID + manifest SHA |
+| VPN 恢复上限 | `90s` | 仅必需私网端口不全时启动 aTrust；不计入服务恢复计时 |
+| 合并诊断上限 | `120s` | 目标 1–2 分钟完成分类 |
+| 单修复阶段上限 | `600s` | 10–15 分钟总服务预算的一部分 |
+| SSE 验收上限 | `420s` | 每次 recover 只允许一次 POST，不自动重试 |
+| 自动知识模式 | `keyword` | 空值/hybrid 的已知漂移直接恢复；vector 需独立 embedding |
+| 自动修复哈希 | 已记录的旧/现行基线 | 未知配置/守卫哈希拒绝覆盖 |
+
+现行包 ID 为 `20260805_v2_72eff4ce55d3`，manifest SHA-256 为 `6459A6DCEC292E27C2F3B85E30046251F35050A44241BB0F1F469A920155467E`。PowerShell 文件按部署字节加 UTF-8 BOM；远端执行固定使用短 `-File` 命令。完整用法见 [CLI](cli_usage.md)，生产分类/修复边界见 [专项文档](8093智能助手自动诊断修复验收工具_20260805.md)。
+
+## 诊断分数高炉大模型复核
+
+追踪编号：`REQ-OPT-MULTI-CONDITION-LLM-REVIEW-20260805`
+
+| 环境变量 | 默认值 | 说明 |
+|---|---:|---|
+| `BF_DIAGNOSIS_MODEL_REVIEW_ENABLED` | `1` | `0/false/no/off` 关闭只读复核接口；关闭不影响规则建议 |
+| `BF_DIAGNOSIS_MODEL_REVIEW_CACHE_SECONDS` | `900` | 相同诊断快照、所选炉况和模型身份的内存缓存秒数；最小按模块约束为 1 秒 |
+
+模型身份继续复用代理服务现有的受控模型配置，不新增浏览器可选内部模型 ID。缓存仅驻留进程内存，重启即清空；接口不写 PostgreSQL，也不保存完整 Prompt/回答到前端。
+## 工长趋势独立页端口映射
+
+追踪编号：`OPS-FOREMAN-TREND-STANDALONE-PREVIEW-20260805`
+
+| 配置/地址 | 现行值 | 作用与约束 |
+|---|---|---|
+| 本机页面/流 | `8092` / `8767` | 本机以 `--db-profile 22012` 时，8767 读取 220.12 PostgreSQL 分钟实际数据。 |
+| 220.12 页面/流 | `8093` / `8768` | 生产入口固定为 `/foreman_trend_preview.html?ws_port=8768`；8768 是既有 PostgreSQL 分钟流，不改为 8770 pSpace 秒级流。 |
+| 夹具开关 | `fixture=1` | 仅布局校验；显式显示非生产状态，禁止用于生产值验证。 |
+| 远端文件根 | `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\高炉前端数据` | 只允许新增/更新该独立页及其专用 CSS、JS；禁止替换正式趋势页。 |
+
+该映射没有新增密钥、数据库连接字段或服务环境变量。更新静态文件后必须使用受控部署器并以带 `ws_port=8768` 的 cache-bust URL 验证。
+## 220.12 VPN 直达 IMES/Vastbase/pSpace（2026-08-05）
+
+| 配置 | 当前值 | 说明与风险 |
+| --- | --- | --- |
+| Nginx IMES 入口 | `10.30.220.12:18080/imes.web/` | 上游固定 `10.10.181.209:8080`；端口根地址302跳转；旧页仍在 `/g13.html` |
+| Vastbase 入口 | `10.30.220.12:15433` | Windows v4tov4 portproxy 到 `10.10.181.195:5432`；浏览器不能打开 |
+| pSpace 入口 | `10.30.220.12:18889` | Windows v4tov4 portproxy 到 `10.22.181.243:8889`；仍需 SDK/MCP 业务认证 |
+| 入站来源 | `10.30.200.18` | 当前 VPN 客户端精确地址；VPN 地址变化后必须受控更新，禁止放开到任意来源 |
+| Nginx 标记 | `OPS-22012-IMES-WEB-PROXY-20260805` | 补丁器幂等验收信号；不得手工重复插入 |
+
+这些入口不改变 MCP 的只读账号、SQL 限制或 pSpace 业务认证；它们只改变网络路径。
+
+## pSpace实时流与分钟同步现行配置
+
+追踪编号：`REQ-PSPACE-MINUTE-CANONICAL-AVERAGE-20260805`
+
+| 配置 | 现行值 | 语义 |
+|---|---:|---|
+| 8770轮询 | 约1秒 | `RealReadList` 当前值桥接；不经过PostgreSQL |
+| `continuous_poll_seconds` | 30 | 增量同步循环频率，不是半小时，也不是当前值刷新周期 |
+| `continuous_lookback_minutes` | 10 | 每轮回看窗口，用upsert补齐迟到分钟 |
+| `source_mode/source_interval_seconds` | `raw / 5` | 读取pSpace约5秒原始历史 |
+| `source_aggregate` | `average` | 分钟桶对有效Good raw做算术平均 |
+| `target_aggregate/target_interval_seconds` | `PS_RAW_AVERAGE / 60` | 自2026-08-05 21:55起的新分钟标签和间隔 |
+| `minute_completion_lag_seconds` | `60` | 查询发起时刻减60秒以前的分钟才标记闭合 |
+| `persist_raw_5s/raw_retention_days` | `true / 30` | 同次raw读取写入短期明细并保留30天 |
+| 历史回填 | `PS_HIS_AVERAGE / 60` | 另一套历史平均语义 |
+| 长期/短期保留 | 3年 / 30天 | 分别对应分钟主表与5秒原始表 |
+| 共享单实例锁 | `<项目根>\logs\realtime_sync_pg.lock` | 中文主目录与镜像目录必须争用同一排他锁 |
+
+旧 `PS_RAW_SAMPLE` 截止2026-08-05 21:54保持原标签；配置切换只负责新分钟，不伪装历史。pSpace账号与密码位于220.12 Machine环境变量，禁止写入该配置或普通文档。
+
+## 220.12 8093 四服务 MCP 生产注册表（2026-08-05）
+
+追踪编号：`REQ-22012-IMES-MCP-SYNC-20260805`
+
+| 配置 | 生产值 | 说明 |
+| --- | --- | --- |
+| `BF_QA_MCP_SERVER_REGISTRY` | `F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/mcp_host/server_registry.json` | 8093 统一服务目录 |
+| 已启用服务 | `gl02-data`、`gl02-extended`、`imes-readonly`、`imes-web-readonly` | 传感器/图表、历史炉况/炉身温度、MES数据库、IMES Web |
+| `IMES_MCP_CONNECTION_MODE` | `direct_22012` | 生产机直连厂内数据库，不使用本机回环转发 |
+| `IMES_RELAY_DB_HOST/PORT` | `10.10.181.195:5432` | Vastbase 只读入口；凭据值来自 Machine 环境变量 |
+| `IMES_ACTIVE_HEAT_MAX_AGE_HOURS` | `72` | 防止历史未关口记录被误认为当前炉次 |
+| `IMES_WEB_URL` | `http://10.10.181.209:8080/imes.web/` | 220.12 到 IMES Web 的厂内上游 |
+
+`22012_BFV4PreviewProxy8093.json` 只登记 `IMES_DB_*`、`IMES_WEB_*` 等 Machine
+环境变量名，禁止把密码或 Cookie 值写入注册表、普通文档、部署结果和 MCP 响应。
+IMES Web MCP 即使已注册，也仍需有效登录态/验证码；数据库 MCP 可独立正常运行。
+
+## 8093 部署互斥与 Failed to fetch 页面容错（2026-08-06）
+
+追踪编号：`REQ-8093-ASSISTANT-FETCH-RESILIENCE-20260806`
+
+| 配置/合同 | 现行值 | 作用 |
+| --- | --- | --- |
+| 全局命名互斥 | `Global\BFV4PreviewProxy8093Deployment` | 阻止多个新部署/恢复流程并行停启 8093 |
+| 服务恢复退避 | `15s`，最多 `2` 次启动 | 等待旧进程/SCM 竞态收敛，不形成快速重启环 |
+| 只读 GET | 最多 3 次，退避 `1.5s/3s` | 吸收短暂端口或反向代理抖动 |
+| 问答 POST/SSE | 自动重试 `false` | 禁止重复会话、重复模型推理和重复工具调用 |
+| 页面运行标记 | `OPS-8093-QA-FETCH-RESILIENCE-20260806` | 诊断器识别容错页面是否实际上线 |
+| 页面 SHA-256 | `4394D60B059CD65BDDA16D63A680F19B57880B6822C6ECE87A4190AFEAAFAC00` | 2026-08-06 10:41 生产热更新基线 |
+
+8093 实际知识检索继续固定为 `BF_QA_KNOWLEDGE_SEARCH_MODE=keyword`；现行多 MCP 配置已验收 SHA-256 为 `7541DB038ADD3CAB3F7DBDC6205117D049F4C440C636037EE92A5CC0E9517C5B`。页面容错不改变 Prompt、RAG、MCP、数据库或模型配置。
+
+## 炉况19项核心证据（2026-08-06）
+
+追踪编号：`REQ-8093-8094-DIAGNOSIS-CORE-19-TRENDS-20260806`
+
+本功能不增加环境变量和数据库连接。它复用既有只读诊断/分钟值/基线连接；`/api/diagnosis-core-evidence`不调用模型，因此不依赖Ollama、调剂引擎或知识库完成。智能详细分析仍由既有 `BF_DIAGNOSIS_AI_ANALYSIS_ENABLED` 与5分钟桶配置控制，两条链路不得再次合并成同一可用性门槛。
+
+## 当前项目数据库同步模块快照（2026-08-07）
+
+追踪编号：`REQ-IMES-MATERIAL-FUEL-AUDIT-AND-DB-MODULE-SYNC-20260806`
+
+| 配置 | 路径 | 口径 |
+| --- | --- | --- |
+| 点位清单 | `数据库同步和存取/config/点位清单.tsv` | 153行：151物理、2派生；确认项19项；新增 `CO_top=SIO_CC_GF2_T0112`、`CO2_top=SIO_CC_GF2_T0113`、`H2_top=SIO_CC_GF2_T0111` |
+| 同步配置 | `数据库同步和存取/config/sync_config.json` | pSpace raw约5秒、分钟有效样本平均、30秒轮询、10分钟回看、分钟3年、raw30天 |
+| IMES清单 | `数据库同步和存取/config/IMES可读数据清单.tsv` | IMES Web接口、业务标签、目标表、时间范围与补采边界 |
+| 同步清单 | `数据库同步和存取/module_sync_manifest.json` | 43个白名单文件的字节数和SHA-256 |
+
+快照不包含 `.env` 或明文密码。料速和燃料比尚未加入点位清单或正式派生表；其候选公式和待确认语义见 [专项报告](IMES料速与燃料比只读核验_20260806.md)。
+
+## 工长趋势同步配置入口（2026-08-07）
+
+| 配置/入口 | 现行口径 | 验收重点 |
+| --- | --- | --- |
+| `数据库同步和存取/run_realtime_sync_pg_bg.ps1` | 每轮显式传 `--config <ScriptRoot>\\config\\sync_config.json` | 不能依赖当前工作目录或 Python 默认路径 |
+| `config/sync_config.json:point_catalog_tsv` | `数据库同步和存取/config/点位清单.tsv` | 153 行、151 物理点、2 派生点 |
+| `tools/remote_deploy_foreman_points_coal_20260806.ps1` | 入口、配置、清单和注册器同包原子替换 | 注册确认19项后再恢复 `BlastFurnaceV3PgContinuousSync30s` |
+
+一次失败部署曾留下“注册表已更新、清单回滚、`tags_ok=148`”的部分状态；后续必须用入口哈希、清单标记、`sync_runs.tags_ok` 和新增点 `one_minute_values` Good 行共同验收。
+
+2026-08-07 已完成上述受控部署：入口与配置哈希已和本机候选一致，最近完成同步轮次为 `tags_ok=151,tags_error=0`，CO/H2/CO2 及三项 BT 点均有最新 Good 分钟值。
+
+## REQ-ABC33-FURNACE-RULES-20260807
+
+唯一可编辑数值配置为 [abc_furnace_rules.v1.json](../自动诊断服务/config/abc_furnace_rules.v1.json)。`quality` 定义覆盖率、最大数据年龄和窗口；`score_bands` 固定 A 维护分、B 55分黄色/70分琥珀/85分确认、C 70分红色报警；`rules` 必须完整包含 A1–A9、B1–B13、C1–C11。公式实现来自 [abc_rule_engine.py](../自动诊断服务/abc_rule_engine.py)，JSON 不执行任意表达式。
+当前已显式登记手册中的公共阶段阈值：`TopTempRange=10..35`、`TopPressRange=8..25`、`DPHigh=0.8..1.5`、`PIBad=0.6..1.2`；其余阶段阈值继续由 `z60_default/z15std_default` 和后台发布流程维护。
+
+## 220.12炉体温度回放配置（2026-08-08）
+
+| 配置 | 值/来源 |
+|---|---|
+| 页面 | `http://10.30.220.12:8892/` |
+| 计划任务 | `\BlastFurnaceServices\SoftZoneTemperatureReplay8892`，SYSTEM、开机启动、失败重试3次 |
+| 远端根目录 | `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW` |
+| 数据库配置 | 复用受控只读配置`tools\service_configs\22012_BFV4PreviewProxy8093.json`，API和日志不输出凭据 |
+| 数据范围 | 最多72小时、最多720帧；默认6小时、5分钟步长 |
+| 防火墙 | `BlastFurnaceSoftZoneReplay8892`，仅Domain/Private TCP 8892 |
+| 日志 | `logs\soft_zone_replay_8892.log` |
+
+远端V4当前没有C2根部代理模块，`cohesive_available=false`。这是可选覆盖层，不影响80点炉体温度回放。
+
+## V20 平均 Si 影子工作台配置（2026-08-08）
+
+追踪编号：`REQ-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808`
+
+| 配置 | 默认值 | 说明 |
+|---|---|---|
+| `BF_SI_V20_MODEL_PATH` | `智能助手/backend/models/si_v20_history_portable_v1.json.gz` | 便携 ExtraTrees 模型路径 |
+| `BF_SI_V20_REQUIRE_LOGIN` | `false` | V20预测与回放默认无需登录；仅在未来明确恢复权限时设为 `true` |
+| 数据库连接 | 复用 `BF_HEAT_PERFORMANCE_*` / `GL02_*` | 不新增明文凭据 |
+| 模型状态 | `experimental_shadow` | 不替换生产默认模型 |
+
+8093/8094 共用同一模型和审计表；取消登录后的最新部署备份位于远端 `backups/si_v20_shadow_20260808/20260808_131338`。
+
+### V20 访问与本地数据库边界
+
+- 2026-08-08 用户明确要求 V20 不配置生产账号；`predict/replay` 允许所有能访问8093/8094页面的用户执行。
+- 该设置不改变后台管理、人工复核和其他接口的既有权限；`BF_LOGIN_*` 与会话配置不再是 V20 依赖。
+- 数据库：V20 复用 220.12 本机 `GL02_*`/`BF_HEAT_PERFORMANCE_*` 连接，只读本机同步数据。平均Si的上游业务来源仍是IMES铁水化验，但由独立同步程序提前实时/回看下载到220.12；不得从V20请求链实时访问外部IMES。
+
+## 工长趋势 pSpace 实时扩展（2026-08-08）
+
+| 配置/入口 | 口径 |
+|---|---|
+| 既有任务 | `\BlastFurnaceServices\V4BillboardPspace8770`，使用 `V3/tools/pspace_8092_realtime_bridge.py` |
+| 页面 | `http://10.30.220.12:8093/foreman_trend_preview.html?ws_port=8768&pspace_ws_port=8770` |
+| 页面资源版本 | `20260806-pspace-extra-r3` |
+| 实时合同 | 157 个流值、133 个Billboard值、17 个工长扩展值；扩展值缺失保持 `--`，不补零 |
+| 数据源 | 既有 pSpace 采集链；本次不新增读取进程或上游连接 |
+| 验收 | `tools/verify_billboard_pspace_8770.py`、`tools/inspect_foreman_trend_remote_points.cjs` |
+## 220.12 IMESRealtime 一分钟调度（2026-08-09）
+
+追踪编号：`OPS-IMES-REALTIME-1MIN-20260809`
+
+| 配置 | 当前值 | 说明 |
+|---|---:|---|
+| 计划任务 | `\GL02SensorSync\IMESRealtime` | 原Action与Principal保持不变 |
+| 重复周期 | `PT1M` | 每一分钟尝试触发 |
+| 重叠策略 | `IgnoreNew` | 上一轮未结束时不启动重叠实例 |
+| 部署器 | `tools/set_22012_imes_realtime_1min.ps1` | 自动备份任务XML并在失败时恢复 |
+| 下游汇总周期 | 5分钟 | `HeatPerformanceQualitySync`本次未修改 |
+
+单轮IMES同步实测可能超过两分钟，因此`PT1M`不等于每分钟必然完成一轮；实际完成频率受单轮耗时和`IgnoreNew`共同约束。完整证据见[部署记录](handoffs/2026-08-09-imes-realtime-1min.md)。
+# V20可配置预测周期（2026-08-09）
+
+| 配置 | 默认 | 可选值 | 保存位置 | 说明 |
+|---|---:|---|---|---|
+| `cadence_minutes` | `60` | `1/10/30/60/1440` | `bf_assistant.si_v20_prediction_schedule` | 生产自动预测周期；分别对应1分钟、10分钟、30分钟、1小时和1天 |
+| `enabled` | `true` | `true/false` | 同上 | 启用或暂停后台预测；不影响历史查询 |
+| `furnace_no` | `2` | 数字炉号 | 同上 | 当前工作台默认2号炉 |
+| 分发任务周期 | `1min` | 固定 | `\BlastFurnaceServices\SiV20ScheduledShadowPrediction` | 只负责检查配置是否到期，页面改周期不修改该任务 |
+
+`cadence_minutes`不是传感器采样间隔，而是生成预测审计点的间隔。模型在每个时间槽仍按自己的历史Si和截止时间窗口构建输入。生产仍为影子模式，不允许通过该配置写控制设定值。
+
+## ABC33 30天基线配置（2026-08-09）
+
+|配置|生产值|说明|
+|---|---:|---|
+|`baseline_days`|30|基线日之前的连续30个完整自然日|
+|`minimum_effective_coverage`|0.75|137项必需原始/派生基线的失败关闭门禁|
+|普通状态量最大保持|5分钟|仅用于状态语义，不跨长断档、不补零|
+|炉体温度最大保持|15分钟|适配变化触发/非满分钟上报|
+|`T_top`对齐|四点各自最多保持5分钟后同分钟求均值|四点不齐则该分钟不生成派生值|
+|`T_taphole_mean`对齐|严格同分钟|两个铁口任一点缺失则该分钟不生成均值|
+|膨胀罐液位|分钟观测→小时均值→日均值→30日分位数|不按43200个分钟点计算覆盖率|
+
+每日入口为 `tools/run_v4_daily_baseline.ps1`，历史重建入口为 `tools/run_abc33_baseline_rebuild.ps1`，严格验证入口为 `tools/verify_abc33_baseline_coverage.py`。完整生产状态见[交接记录](handoffs/2026-08-09-abc33-baseline-coverage-repair.md)。
+
+## V20严格整点预测配置（2026-08-10）
+
+|配置|默认值|说明|
+|---|---:|---|
+|`BF_SI_V20_STRICT_MODEL_PATH`|`智能助手/backend/models/si_v20_strict_context_lgbm_v1.json.gz`|7549特征、420树的便携完整上下文模型|
+|严格任务周期|1分钟|只检查/重试整点槽，不改变60分钟槽边界|
+|补槽回看|24小时|首次运行或短时故障后补齐；历史大范围回放需显式离线执行|
+|重试间隔|1分钟|失败槽保留，不推进成成功|
+|任务名|`\BlastFurnaceServices\SiV20StrictHourlyPrediction`|独立常开，不受操作者配置影响|
+
+严格通道只读220.12本地业务库；禁止在预测请求中访问外部IMES。炉料化学本地镜像不可用时保留缺失与水位审计，不回退外部连接。

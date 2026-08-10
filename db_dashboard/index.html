@@ -353,6 +353,12 @@
               <option value="data_quality_low">data_quality_low</option>
             </select>
           </label>
+          <label id="scoreSourceFilter" style="display:none">记录来源
+            <select id="scoreSource">
+              <option value="live_readonly">真实只读诊断</option>
+              <option value="local_fixture">本机测试记录</option>
+            </select>
+          </label>
           <label id="qualityFilter" style="display:none">质量窗口
             <select id="kinds" multiple>
               <option value="recent_60min">recent_60min</option>
@@ -428,6 +434,7 @@
         const labels = [...$('labels').selectedOptions].map(o => o.value).join(',');
         if (labels) params.set('labels', labels);
       }
+      if (state.tab === 'foreman-score') params.set('source', $('scoreSource').value);
       if (state.tab === 'quality') {
         const kinds = [...$('kinds').selectedOptions].map(o => o.value).join(',');
         if (kinds) params.set('kinds', kinds);
@@ -599,8 +606,9 @@
       document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
       $('variableLabel').style.display = (tab === 'sensor' || tab === 'baseline') ? '' : 'none';
       $('labelFilter').style.display = (tab === 'diagnosis' || tab === 'foreman-score') ? '' : 'none';
+      $('scoreSourceFilter').style.display = tab === 'foreman-score' ? '' : 'none';
       $('qualityFilter').style.display = tab === 'quality' ? '' : 'none';
-      $('limitInput').value = tab === 'sensor' ? '20000' : (tab === 'summary' ? '200' : '100000');
+      $('limitInput').value = (tab === 'sensor' || tab === 'foreman-score') ? '20000' : (tab === 'summary' ? '200' : '100000');
       query();
     }
     async function query() {
@@ -617,7 +625,9 @@
         if (state.tab === 'foreman-score') {
           const store = data.review_store || {};
           $('syncMsg').textContent = store.available
-            ? '高炉长评分来自本机复核事件库；未提交评分的时间点显示“未打分”。'
+            ? (store.source_mode === 'local_fixture'
+              ? '当前仅显示本机测试记录，与真实诊断记录隔离。'
+              : '高炉长评分来自本机复核事件库；未提交评分的时间点显示“未打分”。')
             : `本机复核事件库不可用：${store.message || '未配置'}`;
         }
         if (state.tab === 'summary') {

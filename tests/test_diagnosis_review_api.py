@@ -42,6 +42,44 @@ def test_role_defaults_to_group_leader(monkeypatch):
     assert review.role_is_allowed("值班长")
 
 
+def test_submission_identity_requires_login_by_default():
+    config = review.load_review_config()
+    assert config.require_login is True
+    assert review.submission_identity(None, config) is None
+
+
+def test_no_login_mode_uses_fixed_server_side_onsite_identity(monkeypatch):
+    monkeypatch.setenv("BF_DIAG_REVIEW_REQUIRE_LOGIN", "0")
+    monkeypatch.setenv("BF_DIAG_REVIEW_ANONYMOUS_USERNAME", "onsite-8093")
+    monkeypatch.setenv("BF_DIAG_REVIEW_ANONYMOUS_ROLE", "现场高炉长")
+    config = review.load_review_config()
+    identity = review.submission_identity(None, config)
+    assert identity == {
+        "sub": "onsite-8093",
+        "role": "现场高炉长",
+        "identity_mode": "onsite_anonymous",
+    }
+
+
+def test_allowed_signed_session_keeps_named_identity_in_no_login_mode(monkeypatch):
+    monkeypatch.setenv("BF_DIAG_REVIEW_REQUIRE_LOGIN", "0")
+    identity = review.submission_identity({"sub": "zhgl", "role": "高组长"})
+    assert identity == {
+        "sub": "zhgl",
+        "role": "高组长",
+        "identity_mode": "signed_session",
+    }
+
+
+def test_password_can_be_resolved_from_named_machine_environment(monkeypatch):
+    monkeypatch.setenv("BF_DIAG_REVIEW_PGHOST", "127.0.0.1")
+    monkeypatch.setenv("BF_DIAG_REVIEW_PGDATABASE", "bf_trend")
+    monkeypatch.setenv("BF_DIAG_REVIEW_PGUSER", "gl02_sync")
+    monkeypatch.setenv("GL02_PGPASSWORD", "machine-secret")
+    monkeypatch.setenv("BF_DIAG_REVIEW_PGPASSWORD_ENV", "GL02_PGPASSWORD")
+    assert review.load_review_config(require_store=True).pg_password == "machine-secret"
+
+
 def test_login_account_success_and_failure():
     accounts = {"zhgl": {"password": "local-secret", "role": "高组长"}}
     assert review.authenticate_account(accounts, "zhgl", "local-secret") == {"username": "zhgl", "role": "高组长"}
@@ -105,6 +143,7 @@ def test_review_table_template_formats_without_json_brace_collision():
     assert "DEFAULT '{}'::jsonb" in ddl
     assert "diagnosis_manual_score_events" in ddl
     assert "human_match_score SMALLINT" in ddl
+    assert "identity_mode TEXT NOT NULL" in ddl
 
 
 def test_manual_score_accepts_score_or_suggestion_and_binds_snapshot():

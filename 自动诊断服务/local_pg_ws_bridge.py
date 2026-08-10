@@ -22,7 +22,18 @@ if str(RULE_ENGINE_DIR) not in sys.path:
     sys.path.insert(0, str(RULE_ENGINE_DIR))
 
 from features.prediction_features import build_prediction_feature_frame, recommended_covariates_for  # noqa: E402
-from recommendation_adapter import generate_recommendation  # noqa: E402
+from recommendation_adapter import (  # noqa: E402
+    ENGINE_VERSION as RECOMMENDATION_ENGINE_VERSION,
+    generate_recommendation_bundle,
+)
+from recommendation_audit_store import (
+    latest_foreman_guidance,
+    persist_foreman_guidance,
+    persist_recommendation_bundle,
+)  # noqa: E402
+from abc_feature_builder import build_feature_snapshot as build_abc_feature_snapshot  # noqa: E402
+from abc_rule_engine import evaluate as evaluate_abc, load_config as load_abc_config, public_bundle as abc_public_bundle  # noqa: E402
+from abc_runtime_store import persist_bundle as persist_abc_bundle  # noqa: E402
 
 
 HOST = os.getenv("BF_WS_HOST", "0.0.0.0")
@@ -31,6 +42,9 @@ HISTORY_HOURS = float(os.getenv("BF_WS_HISTORY_HOURS", "8"))
 DIAGNOSIS_HISTORY_HOURS = float(os.getenv("BF_WS_DIAGNOSIS_HISTORY_HOURS", "2"))
 DIAGNOSIS_HISTORY_LIMIT = int(os.getenv("BF_WS_DIAGNOSIS_HISTORY_LIMIT", "96"))
 TICK_SECONDS = float(os.getenv("BF_WS_TICK_SECONDS", "30"))
+RECOMMENDATION_AUDIT_ENABLED = os.getenv(
+    "BF_RECOMMENDATION_AUDIT_ENABLED", "1"
+).strip().lower() not in {"0", "false", "no", "off"}
 CHRONOS_BASE_URL = os.getenv("BF_CHRONOS_BASE_URL", "").rstrip("/")
 CHRONOS_TIMEOUT_SECONDS = float(os.getenv("BF_CHRONOS_TIMEOUT_SECONDS", "900"))
 COHESIVE_ZONE_ENABLED = os.getenv("BF_WS_COHESIVE_ZONE_ENABLED", "1").strip().lower() not in {
@@ -154,6 +168,25 @@ FRONTEND_VARIABLES.extend(
     for suffix in "ABCDEFGH"
 )
 
+# Inputs used by the server-side ABC common-feature builder.  They must not be
+# added to FRONTEND_VARIABLES: the production websocket contract intentionally
+# exposes only operator-facing variables, while cooling/N2 and sectional
+# static-pressure points remain internal evidence inputs.
+ABC_SERVER_ONLY_VARIABLES = (
+    "BlastEnergy",
+    "Q_soft_water",
+    "P_soft_water",
+    "Q_high_pressure_water",
+    "P_high_pressure_water",
+    "Q_medium_pressure_water",
+    "P_medium_pressure_water",
+    "ExpansionTankLevel",
+    "Q_N2",
+    "P_N2",
+    *COHESIVE_ZONE_STATIC_PRESSURE_VARIABLES,
+)
+ABC_HISTORY_VARIABLES = tuple(dict.fromkeys((*FRONTEND_VARIABLES, *ABC_SERVER_ONLY_VARIABLES)))
+
 BASELINE_COMPARE_VARIABLES = [
     "P_top",
     "P_top_gas_A",
@@ -188,16 +221,25 @@ BASELINE_COMPARE_VARIABLES = [
 DIAGNOSIS_SCORE_KEYS = ("normal", "lowline", "edge", "center", "channel", "cold", "hot", "column")
 
 CHRONOS_TARGET_IDS = (
-    "PI",
-    "DP_total",
-    "DP_lower",
-    "DP_upper",
-    "GasUtil",
+    "P_top",
+    "P_top_gas_A",
+    "P_top_gas_B",
+    "P_top_gas_C",
+    "P_top_gas_D",
     "T_top",
     "T_top_A",
     "T_top_B",
     "T_top_C",
     "T_top_D",
+    "Q_blast",
+    "P_blast_cold",
+    "P_blast",
+    "T_blast",
+    "GasUtil",
+    "DP_upper",
+    "DP_lower",
+    "DP_total",
+    "PI",
 )
 
 CHRONOS_CORE_COVARIATES = (
@@ -206,6 +248,10 @@ CHRONOS_CORE_COVARIATES = (
     "P_blast",
     "P_blast_cold",
     "P_top",
+    "P_top_gas_A",
+    "P_top_gas_B",
+    "P_top_gas_C",
+    "P_top_gas_D",
     "L",
     "L_south",
     "L_north",
@@ -223,6 +269,15 @@ CHRONOS_CORE_COVARIATES = (
 )
 
 CHRONOS_TARGET_STRATEGY = {
+    "P_top": {"context_minutes": 480, "feature_type": "detailed"},
+    "P_top_gas_A": {"context_minutes": 480, "feature_type": "detailed"},
+    "P_top_gas_B": {"context_minutes": 480, "feature_type": "detailed"},
+    "P_top_gas_C": {"context_minutes": 480, "feature_type": "detailed"},
+    "P_top_gas_D": {"context_minutes": 480, "feature_type": "detailed"},
+    "Q_blast": {"context_minutes": 480, "feature_type": "summary"},
+    "P_blast_cold": {"context_minutes": 240, "feature_type": "summary"},
+    "P_blast": {"context_minutes": 240, "feature_type": "summary"},
+    "T_blast": {"context_minutes": 480, "feature_type": "summary"},
     "PI": {"context_minutes": 480, "feature_type": "detailed"},
     "DP_total": {"context_minutes": 120, "feature_type": "summary"},
     "DP_lower": {"context_minutes": 120, "feature_type": "summary"},
@@ -306,6 +361,33 @@ def empty_history_payload() -> dict[str, Any]:
     for var in FRONTEND_VARIABLES:
         history[var] = []
     return history
+
+
+def fetch_abc_baselines(conn, evaluation_time: datetime | None = None) -> dict[str, dict[str, Any]]:
+    """Load the 30-day baseline applicable to an evaluation timestamp.
+
+    Historical replay must never use a future baseline.  If the exact day was
+    not materialised, use the latest earlier baseline and preserve its actual
+    ``baseline_day`` in every row for audit.
+    """
+    evaluation_day = (evaluation_time or datetime.now()).date()
+    row = conn.execute(
+        """SELECT max(baseline_day) AS day
+           FROM bf_sensor.daily_baselines
+           WHERE baseline_days=30 AND baseline_day <= %s""",
+        (evaluation_day,),
+    ).fetchone()
+    day = row["day"] if row else None
+    if not day:
+        return {}
+    rows = conn.execute(
+        """SELECT variable_name, median_ref, iqr_ref, p25, p75,
+                  coverage_ratio, sample_count, baseline_day,
+                  baseline_window_start, baseline_window_end, updated_at
+           FROM bf_sensor.daily_baselines WHERE baseline_days=30 AND baseline_day=%s""",
+        (day,),
+    ).fetchall()
+    return {str(item["variable_name"]): dict(item) for item in rows}
 
 
 def empty_values_payload() -> dict[str, Any]:
@@ -507,6 +589,87 @@ def fetch_history(conn, since: datetime) -> dict[str, Any]:
     return history
 
 
+def fetch_abc_history(conn, since: datetime, evaluation_time: datetime) -> dict[str, Any]:
+    """Return an internal-only, minute-aligned ABC feature window.
+
+    The complete minute grid is deliberate: missing acquisition minutes remain
+    ``None`` so z60/std15/slope30 coverage checks cannot be defeated by
+    compressing sparse samples.  Server-only cooling/N2/static-pressure points
+    never flow into the ordinary websocket ``history`` payload.
+    """
+    mapping = fetch_variable_map(conn)
+    selected_mapping = {
+        variable: mapping[variable]
+        for variable in ABC_HISTORY_VARIABLES
+        if variable != "T_top" and mapping.get(variable)
+    }
+    tag_to_var = {tag: variable for variable, tag in selected_mapping.items()}
+    rows = []
+    if tag_to_var:
+        rows = conn.execute(
+            """SELECT tag_long_name, date_trunc('minute', ts) AS minute_ts,
+                      avg(value) AS value
+               FROM bf_sensor.one_minute_values
+               WHERE ts >= %s AND ts <= %s AND tag_long_name = ANY(%s)
+               GROUP BY tag_long_name, date_trunc('minute', ts)
+               ORDER BY minute_ts ASC""",
+            (since, evaluation_time, sorted(tag_to_var)),
+        ).fetchall()
+    by_minute: dict[datetime, dict[str, float | None]] = {}
+    for row in rows:
+        variable = tag_to_var.get(row["tag_long_name"])
+        if not variable:
+            continue
+        by_minute.setdefault(row["minute_ts"], {})[variable] = finite_float(row["value"])
+
+    start_minute = since.replace(second=0, microsecond=0)
+    end_minute = evaluation_time.replace(second=0, microsecond=0)
+    timestamps: list[datetime] = []
+    cursor = start_minute
+    while cursor <= end_minute:
+        timestamps.append(cursor)
+        cursor += timedelta(minutes=1)
+    history: dict[str, Any] = {
+        "timestamps": [item.isoformat(sep=" ") for item in timestamps],
+    }
+    for variable in ABC_HISTORY_VARIABLES:
+        if variable == "T_top":
+            values = []
+            for ts in timestamps:
+                sample = by_minute.get(ts, {})
+                top = [
+                    sample.get(name)
+                    for name in ("T_top_A", "T_top_B", "T_top_C", "T_top_D")
+                    if sample.get(name) is not None
+                ]
+                values.append(sum(top) / len(top) if top else None)
+            history[variable] = values
+        else:
+            history[variable] = [by_minute.get(ts, {}).get(variable) for ts in timestamps]
+    return history
+
+
+def abc_aligned_current(history: dict[str, Any]) -> dict[str, float]:
+    """Take only values present in the final common minute bucket.
+
+    Cross-sensor ranges must not combine five-minute-old A with current B/C/D.
+    Standardized window features still use the full sparse 90-minute history.
+    """
+    timestamps = history.get("timestamps") or []
+    if not timestamps:
+        return {}
+    index = len(timestamps) - 1
+    result: dict[str, float] = {}
+    for variable in ABC_HISTORY_VARIABLES:
+        series = history.get(variable) or []
+        if index >= len(series):
+            continue
+        value = finite_float(series[index])
+        if value is not None:
+            result[variable] = value
+    return result
+
+
 def fetch_chronos_feature_frame(conn, since: datetime) -> pd.DataFrame:
     """Build the Chronos feature table from all enabled physical PostgreSQL points."""
     mapping = fetch_variable_map(conn)
@@ -599,8 +762,26 @@ def latest_values(conn) -> tuple[str | None, dict[str, Any]]:
     timestamps = history.get("timestamps") or []
     if not timestamps:
         return None, {var: None for var in FRONTEND_VARIABLES}
-    idx = len(timestamps) - 1
-    return timestamps[idx], {var: (history.get(var) or [None])[idx] if history.get(var) else None for var in FRONTEND_VARIABLES}
+    # Different tags can land a minute or two apart.  Using the final timestamp
+    # of the union for every variable incorrectly turns otherwise fresh values
+    # into None.  Select each variable's own latest finite value, but never
+    # carry it forward beyond the five-minute production freshness gate.
+    latest_ts = parse_ts(timestamps[-1])
+    values: dict[str, Any] = {}
+    for var in FRONTEND_VARIABLES:
+        series = history.get(var) or []
+        selected = None
+        for idx in range(min(len(series), len(timestamps)) - 1, -1, -1):
+            value = finite_float(series[idx])
+            if value is None:
+                continue
+            sample_ts = parse_ts(timestamps[idx])
+            age_seconds = max(0.0, (latest_ts - sample_ts).total_seconds())
+            if age_seconds <= 300:
+                selected = value
+            break
+        values[var] = selected
+    return timestamps[-1], values
 
 
 def finite_float(value: Any) -> float | None:
@@ -1386,6 +1567,19 @@ def call_chronos_service(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+async def handle_foreman_guidance_request(websocket, request: dict[str, Any]) -> bool:
+    if request.get("type") != "foreman_guidance_save":
+        return False
+    request_id = request.get("request_id")
+    try:
+        result = await asyncio.to_thread(save_foreman_guidance_request, request)
+        message = {"type": "foreman_guidance_saved", "request_id": request_id, **result}
+    except Exception as exc:
+        message = {"type": "foreman_guidance_error", "request_id": request_id, "state": "rejected", "read_only": True, "error_type": type(exc).__name__, "message": str(exc)}
+    await websocket.send(json.dumps(message, ensure_ascii=False, default=json_default))
+    return True
+
+
 async def handle_chronos_request(websocket, request: dict[str, Any]) -> None:
     request_type = request.get("type")
     if request_type not in {"chronos_predict", "chronos_predict_recommended_batch"}:
@@ -1440,7 +1634,7 @@ def build_baseline_compare(conn, current_values: dict[str, Any] | None = None) -
     rows = conn.execute(
         """
         SELECT baseline_day, baseline_window_start, baseline_window_end,
-               variable_name, median_ref, iqr_ref, p10, p90, sample_count,
+               variable_name, median_ref, iqr_ref, p10, p25, p75, p90, sample_count,
                coverage_ratio, updated_at
         FROM bf_sensor.daily_baselines
         WHERE baseline_day = %s
@@ -1461,12 +1655,8 @@ def build_baseline_compare(conn, current_values: dict[str, Any] | None = None) -
         if current is None or reference is None:
             continue
         scale = max(abs(iqr or 0), 1e-6)
-        normal_low = finite_float(row["p10"])
-        normal_high = finite_float(row["p90"])
-        if normal_low is None:
-            normal_low = reference - scale
-        if normal_high is None:
-            normal_high = reference + scale
+        normal_low = finite_float(row["p25"])
+        normal_high = finite_float(row["p75"])
         updated_values.append(row["updated_at"])
         items.append(
             {
@@ -1495,6 +1685,40 @@ def build_baseline_compare(conn, current_values: dict[str, Any] | None = None) -
     }
 
 
+def build_foreman_recommendation_context(
+    conn: Any,
+    current_values: dict[str, Any] | None,
+    current_ts: Any,
+) -> dict[str, Any]:
+    """Attach the exact 30-day pressure quartiles required by the control contract."""
+    context = dict(current_values or {})
+    context["current_values_timestamp"] = current_ts
+    context["P_blast_cold_timestamp"] = current_ts
+    row = conn.execute(
+        """
+        SELECT baseline_day, p25, p75, sample_count, coverage_ratio, updated_at
+        FROM bf_sensor.daily_baselines
+        WHERE baseline_days = 30
+          AND variable_name = 'P_blast_cold'
+        ORDER BY baseline_day DESC, updated_at DESC
+        LIMIT 1
+        """
+    ).fetchone()
+    if row:
+        baseline = {
+            "p25": row["p25"],
+            "p75": row["p75"],
+            "baseline_day": row["baseline_day"],
+            "sample_count": row["sample_count"],
+            "coverage_ratio": row["coverage_ratio"],
+            "updated_at": row["updated_at"],
+        }
+        context["pressure_baseline"] = baseline
+        for key, value in baseline.items():
+            context[f"pressure_baseline_{key}"] = value
+    return context
+
+
 def normalize_diagnosis_scores(raw_scores: Any) -> dict[str, float]:
     raw = raw_scores if isinstance(raw_scores, dict) else {}
     scores: dict[str, float] = {}
@@ -1509,8 +1733,14 @@ def diagnosis_snapshot_payload(
     *,
     include_diagnosis_json: bool = True,
     current_values: dict[str, Any] | None = None,
+    audit_conn: Any | None = None,
 ) -> dict[str, Any]:
     payload = dict(row.get("diagnosis_json") or {}) if include_diagnosis_json else {}
+    # Never pass server-side ABC formula snapshots through the production
+    # WebSocket.  Only the allowlisted public contract is reconstructed below.
+    internal_abc = payload.pop("abc_rule_bundle_internal", None)
+    payload.pop("abc_rule_bundle_admin", None)
+    payload.pop("abc_config_hash", None)
     raw_scores = normalize_diagnosis_scores(row.get("raw_scores") or payload.get("raw_scores") or payload.get("scores"))
     timestamp = row["diagnosis_ts"]
     main_label = row.get("main_label") or payload.get("main_label") or payload.get("label") or "normal"
@@ -1538,23 +1768,132 @@ def diagnosis_snapshot_payload(
             "raw": raw_scores,
         }
     )
+    try:
+        if isinstance(internal_abc, dict) and internal_abc.get("evaluations"):
+            abc_internal = internal_abc
+        else:
+            # The legacy diagnosis snapshot stores derived features in
+            # ``feature_snapshot`` while the live bridge owns the current raw
+            # sensor values.  ABC33 requires both.  The previous adapter passed
+            # only the derived snapshot and also looked for quality fields on
+            # unselected SQL columns, forcing coverage to 0 and all 33 rules to
+            # ``needs_data`` despite healthy production data.
+            combined_values = dict(current_values or {})
+            combined_values.update(payload.get("feature_snapshot") or row.get("feature_snapshot") or {})
+            coverage_source = payload.get("data_coverage") or row.get("data_coverage") or {}
+            coverage = finite_float(coverage_source.get("coverage_ratio"))
+            source_age = finite_float(payload.get("source_lag_seconds"))
+            if source_age is None:
+                source_age = finite_float(row.get("source_lag_seconds"))
+            if isinstance(timestamp, datetime):
+                anchor = timestamp.replace(tzinfo=None)
+            elif timestamp:
+                # one_minute_values/diagnosis_ts are PostgreSQL timestamps
+                # without time zone.  Preserve the displayed plant wall-clock
+                # fields if an API string happens to carry +08:00; converting
+                # it to UTC would query the wrong eight-hour history window.
+                anchor = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00")).replace(tzinfo=None)
+            else:
+                anchor = datetime.now()
+            abc_history: dict[str, Any] = {}
+            abc_baseline: dict[str, Any] = {}
+            if audit_conn is not None:
+                # Keep optional ABC tables and feature queries off the live
+                # read transaction.  PostgreSQL marks a transaction aborted
+                # after any statement error, even when Python catches it.
+                with psycopg.connect(**pg_params(), row_factory=dict_row) as abc_read_conn:
+                    abc_history = fetch_abc_history(abc_read_conn, anchor - timedelta(minutes=89), anchor)
+                    abc_baseline = fetch_abc_baselines(abc_read_conn, anchor)
+            if abc_history:
+                for variable in ABC_HISTORY_VARIABLES:
+                    combined_values.pop(variable, None)
+                combined_values.update(abc_aligned_current(abc_history))
+            abc_config = load_abc_config()
+            abc_features, abc_quality = build_abc_feature_snapshot(
+                combined_values,
+                baseline=abc_baseline,
+                history=abc_history,
+                data_age_seconds=source_age,
+                coverage_ratio=coverage if coverage is not None else 0.0,
+                thresholds=abc_config.get("feature_thresholds") or {},
+            )
+            abc_internal = evaluate_abc(abc_features, quality=abc_quality, timestamp=timestamp, config=abc_config)
+        payload["abc_rule_bundle"] = abc_internal.get("public") or abc_public_bundle(abc_internal["evaluations"])
+        if audit_conn is not None and abc_internal.get("evaluations"):
+            # ABC persistence is deliberately isolated from the live read
+            # transaction.  A schema mismatch in an audit table must not
+            # abort the connection used to build the production payload.
+            try:
+                with psycopg.connect(**pg_params(), row_factory=dict_row) as abc_audit_conn:
+                    persist_abc_bundle(abc_audit_conn, abc_internal, source_snapshot_id=row.get("id"))
+            except Exception as persist_exc:
+                print(f"abc audit persistence failed: {type(persist_exc).__name__}", file=sys.stderr)
+    except Exception as exc:
+        payload["abc_rule_bundle"] = {"schema_version": "abc_rule_bundle.v1", "state": "needs_data", "error_type": type(exc).__name__, "rules": [], "alerts": []}
     if include_diagnosis_json:
         try:
-            payload["recommendation"] = generate_recommendation(payload, current_values)
+            bundle = generate_recommendation_bundle(payload, current_values)
+            audit_result: dict[str, Any]
+            if RECOMMENDATION_AUDIT_ENABLED:
+                if audit_conn is None:
+                    raise RuntimeError("recommendation audit connection is unavailable")
+                # Recommendation audit writes use their own connection for
+                # the same reason as ABC persistence above.  The contract may
+                # fail closed when audit storage is unavailable, but it must
+                # never poison the live sensor read transaction.
+                with psycopg.connect(**pg_params(), row_factory=dict_row) as recommendation_audit_conn:
+                    audit_result = persist_recommendation_bundle(
+                        recommendation_audit_conn,
+                        payload,
+                        current_values,
+                        bundle,
+                        diagnosis_snapshot_id=row.get("id"),
+                        write_source="ws_bridge",
+                    )
+                bundle = audit_result.pop("bundle")
+            else:
+                audit_result = {
+                    "state": "disabled",
+                    "audit_schema_version": "recommendation_audit.v2",
+                    "read_only": True,
+                }
+            payload["recommendation"] = bundle["active_plan"]
+            payload["recommendation_bundle"] = bundle
+            payload["recommendation_audit"] = audit_result
             payload["recommendation_status"] = {
                 "state": "ready",
                 "engine": "blast_furnace_recommendation_engine",
-                "version": "v4-complete",
+                "version": RECOMMENDATION_ENGINE_VERSION,
+                "audit_state": audit_result.get("state"),
+                "audit_batch_id": audit_result.get("batch_id"),
             }
         except Exception as exc:
             payload.pop("recommendation", None)
+            payload.pop("recommendation_bundle", None)
+            payload["recommendation_audit"] = {
+                "state": "failed",
+                "audit_schema_version": "recommendation_audit.v2",
+                "error_type": type(exc).__name__,
+                "read_only": True,
+            }
             payload["recommendation_status"] = {
                 "state": "failed",
                 "engine": "blast_furnace_recommendation_engine",
                 "error_type": type(exc).__name__,
+                "reason": "full_audit_persistence_required",
             }
+    if audit_conn is not None:
+        try:
+            with psycopg.connect(**pg_params(), row_factory=dict_row) as guidance_conn:
+                payload["foreman_guidance"] = latest_foreman_guidance(guidance_conn)
+        except Exception as exc:
+            payload["foreman_guidance"] = {"state": "unavailable", "read_only": True, "reason": type(exc).__name__, "fallback_policy": "computed_cold_pressure_when_no_foreman_guidance"}
     return payload
 
+
+def save_foreman_guidance_request(request: dict[str, Any]) -> dict[str, Any]:
+    with psycopg.connect(**pg_params(), row_factory=dict_row) as conn:
+        return persist_foreman_guidance(conn, request)
 
 def fetch_diagnosis_history(conn) -> list[dict[str, Any]]:
     anchor_row = conn.execute("SELECT max(diagnosis_ts) AS ts FROM bf_sensor.diagnosis_snapshots").fetchone()
@@ -1612,9 +1951,16 @@ def latest_diagnosis(conn, current_values: dict[str, Any] | None = None) -> dict
                 "state": "empty",
                 "engine": "blast_furnace_recommendation_engine",
             },
+            "abc_rule_bundle": {
+                "schema_version": "abc_rule_bundle.v1",
+                "state": "needs_data",
+                "rules": [],
+                "alerts": [],
+                "public_contract": "production-safe.v1",
+            },
             "baseline_compare": build_baseline_compare(conn, current_values),
         }
-    payload = diagnosis_snapshot_payload(row, current_values=current_values)
+    payload = diagnosis_snapshot_payload(row, current_values=current_values, audit_conn=conn)
     payload["baseline_compare"] = build_baseline_compare(conn, current_values)
     return payload
 
@@ -1655,6 +2001,7 @@ def build_init_payload() -> dict[str, Any]:
             diagnosis_history = fetch_diagnosis_history(conn)
             ts = (history.get("timestamps") or [datetime.now().isoformat(sep=" ")])[-1]
             values = {var: (history.get(var) or [None])[-1] if history.get(var) else None for var in FRONTEND_VARIABLES}
+            recommendation_values = build_foreman_recommendation_context(conn, values, ts)
             bf3d_snapshot = safe_build_bf3d_snapshot(conn, ts)
             return {
                 "type": "init",
@@ -1663,7 +2010,7 @@ def build_init_payload() -> dict[str, Any]:
                 "diagnosis_history": diagnosis_history,
                 "values": values,
                 "data_quality": latest_quality(conn, ts),
-                "diagnosis": latest_diagnosis(conn, values),
+                "diagnosis": latest_diagnosis(conn, recommendation_values),
                 "bf3d_snapshot": bf3d_snapshot,
                 "source": source_payload(),
                 "replay": replay_payload(),
@@ -1678,6 +2025,7 @@ def build_tick_payload() -> dict[str, Any]:
             ts, values = latest_values(conn)
             diagnosis_history = fetch_diagnosis_history(conn)
             payload_timestamp = ts or datetime.now().isoformat(sep=" ")
+            recommendation_values = build_foreman_recommendation_context(conn, values, payload_timestamp)
             bf3d_snapshot = safe_build_bf3d_snapshot(conn, payload_timestamp)
             return {
                 "type": "tick",
@@ -1685,7 +2033,7 @@ def build_tick_payload() -> dict[str, Any]:
                 "values": values,
                 "diagnosis_history": diagnosis_history,
                 "data_quality": latest_quality(conn, ts),
-                "diagnosis": latest_diagnosis(conn, values),
+                "diagnosis": latest_diagnosis(conn, recommendation_values),
                 "bf3d_snapshot": bf3d_snapshot,
                 "source": source_payload(),
                 "replay": replay_payload(),
@@ -1700,11 +2048,16 @@ CLIENTS: set[Any] = set()
 async def handler(websocket):
     CLIENTS.add(websocket)
     try:
-        await websocket.send(json.dumps(build_init_payload(), ensure_ascii=False, default=json_default))
+        # PostgreSQL history queries are synchronous and may be slow. Running
+        # them on the event loop prevents all new WebSocket handshakes.
+        init_payload = await asyncio.to_thread(build_init_payload)
+        await websocket.send(json.dumps(init_payload, ensure_ascii=False, default=json_default))
         async for message in websocket:
             try:
                 request = json.loads(message)
             except json.JSONDecodeError:
+                continue
+            if await handle_foreman_guidance_request(websocket, request):
                 continue
             await handle_chronos_request(websocket, request)
     finally:
@@ -1716,7 +2069,8 @@ async def ticker() -> None:
         await asyncio.sleep(TICK_SECONDS)
         if not CLIENTS:
             continue
-        payload = json.dumps(build_tick_payload(), ensure_ascii=False, default=json_default)
+        tick_payload = await asyncio.to_thread(build_tick_payload)
+        payload = json.dumps(tick_payload, ensure_ascii=False, default=json_default)
         dead = []
         for ws in list(CLIENTS):
             try:

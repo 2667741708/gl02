@@ -16,6 +16,8 @@ def test_proxy_exposes_review_routes_and_conditional_injection():
     assert "bf-diagnosis-review-local.js" in text
     assert "BF_SKIP_ASSISTANT_STARTUP" in text
     assert "store = self.review_store()" in text
+    assert "diagnosis_review.submission_identity(session, config)" in text
+    assert '"login_required": config.require_login' in text
     assert "ON CONFLICT (idempotency_key) DO NOTHING" in (ROOT / "高炉前端数据" / "智能助手" / "backend" / "diagnosis_review.py").read_text(encoding="utf-8")
 
 
@@ -26,6 +28,8 @@ def test_frontend_contract_has_three_states_and_seven_score_source():
     assert 'cold:"热制度下行"' in text and 'hot:"热制度上行"' in text
     assert "ctx.candidates" in text
     assert "bfdr-human-score" in text and "bfdr-suggestion" in text
+    assert 'form.classList.toggle("bfdr-hidden",!canSubmit||reviewed)' in text
+    assert '!auth.authenticated||!auth.can_submit||reviewed' not in text
 
 
 def test_modal_is_scrollable_and_uses_required_chinese_font():
@@ -46,9 +50,15 @@ def test_manual_diagnosis_scoring_contract_and_dashboard_projection():
     dashboard_html = (ROOT / "db_dashboard" / "index.html").read_text(encoding="utf-8")
     assert ".diag-rank-card" in manual
     assert "data-bfdms-label" in manual
+    assert "if(name.textContent!==LABELS[key])" in manual
     assert "/api/diagnosis-manual-scores" in manual
     assert "关闭且不保存" in manual
+    assert 'form.classList.toggle("bfdms-hidden",!canSubmit)' in manual
+    assert '!auth.authenticated||!auth.can_submit' not in manual
     assert "system_score" in dashboard_server and "foreman_score_status" in dashboard_server
     assert "/api/diagnosis-foreman-scores" in dashboard_server
+    assert 'source_mode not in {"live_readonly", "local_fixture"}' in dashboard_server
+    assert "elif isinstance(value, (datetime, date))" in dashboard_server
     assert 'data-tab="foreman-score"' in dashboard_html
+    assert '<option value="local_fixture">本机测试记录</option>' in dashboard_html
     assert "未打分" in dashboard_html

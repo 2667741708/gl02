@@ -42,6 +42,20 @@
         "service": "blast-furnace-gl02-data-mcp",
         "tools": ["query_gl02_feature_statistics"]
       }
+    },
+    {
+      "object_id": "furnace_diagnosis_history",
+      "object_type": "calculation",
+      "display_name": "历史炉况分数",
+      "aliases": ["炉况分数", "管道分数", "诊断分数", "历史炉况", "前几次炉况"],
+      "unit": null,
+      "capabilities": ["history", "trend", "latest", "filter_label"],
+      "status": "enabled",
+      "description": "读取 bf_sensor.diagnosis_snapshots 的历史主分数及管道分数",
+      "executor": {
+        "service": "blast-furnace-gl02-extended-mcp",
+        "tools": ["query_furnace_diagnosis_history"]
+      }
     }
   ]
 }

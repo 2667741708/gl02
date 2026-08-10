@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>平均 Si 独立预测工作台</title>
+  <style>
+    :root{--bg:#08161d;--panel:#0d2530;--panel2:#102e3a;--line:#315968;--text:#eaf4f6;--muted:#a7c0c7;--green:#65d39d;--cyan:#5cb8e8;--amber:#e8be68;--red:#f18b80;--shadow:0 16px 44px rgba(0,0,0,.36)}
+    *{box-sizing:border-box} body{margin:0;background:linear-gradient(140deg,#061219,#0a2029 55%,#08161d);color:var(--text);font:14px/1.55 SimSun,"宋体",serif;min-width:320px}
+    button,input,select{font:inherit} button{cursor:pointer}.shell{max-width:1700px;margin:0 auto;padding:14px 18px 28px}.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 12px;border:1px solid var(--line);background:#0a202a;box-shadow:var(--shadow)}.topbar h1{margin:0;font-size:21px}.badge{padding:3px 8px;border:1px solid #a97e39;border-radius:4px;color:#f3d28c;background:#302711;font-size:12px}.source{color:var(--muted);font-size:12px}.grow{flex:1}.btn{border:1px solid #4d7f91;border-radius:4px;background:#103846;color:var(--text);padding:7px 12px}.btn:hover,.btn:focus-visible{background:#1a5264;outline:1px solid #8ad2df}.btn.primary{background:#15533f;border-color:#58bd92}.btn.warn{background:#4a3818;border-color:#bd8d40}.layout{display:grid;grid-template-columns:minmax(370px,.85fr) minmax(560px,1.55fr);gap:12px;margin-top:12px}.panel{border:1px solid var(--line);background:rgba(9,30,39,.93);box-shadow:var(--shadow);min-width:0}.panel h2{margin:0;padding:10px 12px;border-bottom:1px solid #294955;background:#0d2a35;font-size:16px}.panel-body{padding:11px}.notice{margin-bottom:10px;padding:8px 10px;border-left:3px solid var(--amber);background:#2c250f;color:#eed495;font-size:12px}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.field{display:flex;flex-direction:column;gap:4px}.field.full{grid-column:1/-1}.field label{color:var(--muted);font-size:12px}.field input,.field select{width:100%;height:33px;border:1px solid #3d6b7b;border-radius:3px;background:#071b24;color:var(--text);padding:0 7px}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.candidate-grid{display:grid;gap:7px;margin-bottom:10px}.candidate{padding:8px 9px;border:1px solid #426b79;border-radius:4px;background:#102f3b;color:var(--text);text-align:left}.candidate.selected{border-color:var(--green);box-shadow:0 0 0 1px rgba(101,211,157,.28)}.candidate.estimated{border-color:#a77d37;background:#302712}.candidate strong,.candidate small{display:block}.candidate small{margin-top:3px;color:#c2d5da;font-size:12px}.status-line{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0}.chip{padding:4px 7px;border:1px solid #355d6b;background:#0b2630;color:#c9dce0;font-size:12px}.chip.good{border-color:#3c8e6d;color:#9aebc1}.chip.warn{border-color:#a77d37;color:#f0d28c}.chip.bad{border-color:#a6514c;color:#ffb6ad}.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.result{padding:9px;border:1px solid #315866;background:#0b2530;min-height:74px}.result span{display:block;color:var(--muted);font-size:12px}.result strong{display:block;margin-top:5px;font-size:23px;color:var(--green)}.result.warn strong{color:var(--amber)}.result small{display:block;margin-top:4px;color:#c1d4d9}.subhead{display:flex;align-items:center;gap:8px;margin:13px 0 6px;color:#d8ebee;font-size:14px}.subhead:after{content:"";height:1px;flex:1;background:#315866}.history-tools{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px;align-items:end}.history-tools .actions{margin:0}.chart-wrap{height:350px;margin-top:10px;border:1px solid #315866;background:#071a23;padding:8px}.chart{width:100%;height:100%;display:block}.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;color:#c9dce0;font-size:12px}.legend i{display:inline-block;width:17px;height:3px;margin-right:4px;vertical-align:middle;background:var(--cyan)}.legend i.pred{background:var(--green)}.legend i.band{height:9px;background:rgba(101,211,157,.25);border:1px solid rgba(101,211,157,.55)}.table-wrap{overflow:auto;border:1px solid #315866;margin-top:9px}.table{width:100%;min-width:1060px;border-collapse:collapse;font-size:12px}.table th{position:sticky;top:0;background:#123644;color:#e1f0f2;text-align:left;padding:7px;white-space:nowrap}.table td{border-top:1px solid #244552;padding:7px;white-space:nowrap}.hit{color:var(--green)}.miss{color:var(--red)}.wait{color:var(--amber)}.readiness{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.readiness-item{padding:7px;border:1px solid #2d5260;background:#0a222c}.readiness-item span{display:block;color:var(--muted);font-size:11px}.readiness-item b{display:block;margin-top:3px;color:#eaf4f6}.details{margin-top:8px}.details summary{cursor:pointer;color:#a9dbe2;padding:5px 0}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:260px;overflow:auto;padding:7px;border:1px solid #2d5260;background:#071b23}.detail-grid div{padding:4px 6px;background:#0c2933;font-size:11px;overflow-wrap:anywhere}.detail-grid span{color:var(--muted)}.empty{padding:24px;text-align:center;border:1px dashed #3a626e;color:var(--muted)}.error{padding:9px;border-left:3px solid var(--red);background:#321b1b;color:#ffc0ba}.row-link{color:#a8e3ed;text-decoration:underline;cursor:pointer}
+    .schedule-box{margin-top:10px;padding:9px;border:1px solid #426b79;background:#0a222c}.schedule-grid{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px;align-items:end}.export-box{margin-top:9px;padding:9px;border:1px solid #315866;background:#091f28}.export-grid{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr)) auto;gap:8px;align-items:end}.export-note{margin-top:6px;color:var(--muted);font-size:12px}.hourly-panel{margin-top:12px}.hourly-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.hourly-head h2{flex:1}.hourly-panel .table{min-width:1420px}.wrap-values{white-space:normal!important;min-width:150px;overflow-wrap:anywhere}
+    @media(max-width:1050px){.layout{grid-template-columns:1fr}.history-tools,.schedule-grid,.export-grid{grid-template-columns:repeat(2,minmax(140px,1fr))}}
+    @media(max-width:600px){.shell{padding:8px}.topbar h1{font-size:17px}.fields,.history-tools,.schedule-grid,.export-grid,.result-grid,.readiness{grid-template-columns:1fr}.chart-wrap{height:260px}.panel h2{font-size:15px}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header class="topbar"><h1>平均 Si 独立预测工作台</h1><span class="badge">V20 · experimental shadow</span><span id="modelMeta" class="source">正在读取模型与数据源…</span><span id="refreshMeta" class="source">每60秒自动刷新</span><span class="grow"></span><button id="refresh" class="btn">刷新数据</button><a class="btn" href="/">返回总览</a></header>
+  <div id="globalNotice" class="notice" style="margin-top:12px">只写预测审计记录，不调整高炉设定值。实际平均 Si 来自 220.12 本地汇总表；候选开口时间若为估计值，会明确标记。</div>
+  <div class="layout">
+    <section class="panel">
+      <h2>当前炉次预测与数据就绪度</h2>
+      <div class="panel-body">
+        <div class="subhead">1. 选择候选炉次</div>
+        <div id="candidates" class="candidate-grid"><div class="empty">正在读取 220.12 本地候选炉次…</div></div>
+        <div class="fields">
+          <div class="field"><label for="target">目标炉次</label><input id="target" list="targetList" placeholder="2#YYYYMMDD-NNN"><datalist id="targetList"></datalist></div>
+          <div class="field"><label for="openTs">正式/预计开口时间</label><input id="openTs" type="datetime-local"></div>
+          <div class="field"><label for="cutoffMode">预测截止口径</label><select id="cutoffMode"><option value="now">服务器当前时刻</option><option value="open_minus_60">开口前60分钟</option><option value="explicit">指定历史时刻</option></select></div>
+          <div class="field"><label for="cutoffTs">指定截止时刻</label><input id="cutoffTs" type="datetime-local" disabled></div>
+        </div>
+        <div class="actions"><button id="readinessBtn" class="btn">检查数据就绪度</button><button id="predictBtn" class="btn primary">开始预测平均 Si</button></div>
+        <div class="subhead">严格整点预测（独立常开）</div>
+        <div class="schedule-box">
+          <div id="strictHourlyStatus" class="source">正在核对严格整点任务、当前时间槽和完整上下文模型…</div>
+          <div class="actions"><button id="strictHourlyBtn" class="btn warn">补跑当前严格整点</button></div>
+          <div class="source" style="margin-top:5px;color:#e8be68">例如02:00时间槽只读取来源时间和首次入库时间均不晚于02:00:00的数据；实际炉次固定匹配预测完成后最先开口的一炉。该通道不受下方可调周期影响。</div>
+        </div>
+        <div class="subhead">生产自动定时预测</div>
+        <div class="schedule-box">
+          <div class="fields">
+            <div class="field"><label for="scheduleCadence">自动预测周期</label><select id="scheduleCadence"><option value="1">每1分钟</option><option value="10">每10分钟</option><option value="30">每30分钟</option><option value="60" selected>每1小时（默认）</option><option value="1440">每1天</option></select></div>
+            <div class="field"><label for="scheduleEnabled">后台状态</label><select id="scheduleEnabled"><option value="true">启用</option><option value="false">暂停</option></select></div>
+          </div>
+          <div class="actions"><button id="saveScheduleBtn" class="btn primary">保存自动预测周期</button></div>
+          <div id="scheduleStatus" class="source" style="margin-top:6px">正在读取数据库定时配置…</div>
+          <div class="source" style="margin-top:4px;color:#e8be68">V20正式训练口径仍是开口前60分钟；其他时刻/高频结果用于影子趋势观察，页面会单独统计，不能与开口前60分钟命中率混算。</div>
+        </div>
+        <div class="subhead">2. 预测结果</div>
+        <div id="prediction" class="empty">选择候选炉次后可查看数据就绪度并发起预测。</div>
+        <div class="subhead">3. 输入摘要</div>
+        <div id="readiness" class="readiness"><div class="empty">尚未检查</div></div>
+        <details class="details"><summary>展开完整特征、来源与泄漏审计</summary><div id="featureDetails" class="detail-grid"><div>执行数据就绪度检查后显示</div></div></details>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>历史实际 Si 与预测趋势</h2>
+      <div class="panel-body">
+        <div class="history-tools">
+          <div class="field"><label for="from">开始日期</label><input id="from" type="date"></div>
+          <div class="field"><label for="to">结束日期</label><input id="to" type="date"></div>
+          <div class="field"><label for="filter">显示筛选</label><select id="filter"><option value="all">全部炉次</option><option value="actual_only">仅实际实绩</option><option value="predicted">已有预测</option><option value="compared">已完成对比</option><option value="hit">±0.05命中</option><option value="miss">±0.05未命中</option></select></div>
+          <div class="actions"><button id="historyBtn" class="btn">查询历史炉次</button><button id="replayBtn" class="btn warn">按开口前60分钟回放</button><button id="strictHourlyHistoryBtn" class="btn primary">严格整点预测汇总</button><button id="hourlyHistoryBtn" class="btn">旧整点兼容记录</button></div>
+        </div>
+        <div class="export-box">
+          <div class="export-grid">
+            <div class="field"><label for="meltFrom">起始炉次（可填完整炉号或序号）</label><input id="meltFrom" placeholder="例如 2#20260808-084 或 084"></div>
+            <div class="field"><label for="meltTo">结束炉次（可填完整炉号或序号）</label><input id="meltTo" placeholder="例如 2#20260808-112 或 112"></div>
+            <div class="actions"><button id="applyRangeBtn" class="btn">应用炉次范围</button><button id="downloadPredictionBtn" class="btn primary">下载预测曲线 CSV</button><button id="downloadActualBtn" class="btn">下载实际 Si 曲线 CSV</button></div>
+          </div>
+          <div id="exportStatus" class="export-note">日期范围由上方开始/结束日期控制；导出内容与当前日期、炉次和显示筛选保持一致。</div>
+        </div>
+        <div class="schedule-box">
+          <div class="schedule-grid">
+            <div class="field"><label for="batchStartTs">批量开始时刻</label><input id="batchStartTs" type="datetime-local"></div>
+            <div class="field"><label for="batchEndTs">批量结束时刻</label><input id="batchEndTs" type="datetime-local"></div>
+            <div class="field"><label for="batchCadence">历史预测时间粒度</label><select id="batchCadence"><option value="1">每1分钟</option><option value="10">每10分钟</option><option value="30">每30分钟</option><option value="60" selected>每1小时</option><option value="1440">每1天</option></select></div>
+            <div class="field"><label for="specifiedTs">指定预测时刻</label><input id="specifiedTs" type="datetime-local"></div>
+          </div>
+          <div class="actions"><button id="batchReplayBtn" class="btn warn">按时间粒度批量预测</button><button id="specifiedReplayBtn" class="btn">预测指定时刻</button><button id="scheduledHistoryBtn" class="btn primary">查询定时预测曲线</button></div>
+          <div id="scheduledReplayStatus" class="source" style="margin-top:6px">批量回放会保存运行批次和每个时间点的预测；单次最多5000个时间点。</div>
+        </div>
+        <div id="metrics" class="status-line"><span class="chip">等待历史数据</span></div>
+        <div class="legend"><span><i></i>实际平均Si</span><span><i class="pred"></i>V20预测P50</span><span><i class="band"></i>P10–P90区间</span></div>
+        <div class="chart-wrap"><canvas id="chart" class="chart"></canvas></div>
+        <div id="historyError"></div>
+        <div class="source" style="margin-top:7px">三种口径严格分开：开口前60分钟历史回放；独立常开的严格整点预测；操作者可调的定时趋势预测。严格整点实际炉次只按已固化的“预测完成后第一炉”匹配。</div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>炉次/开口</th><th>预测发起</th><th>预测完成</th><th>特征截止</th><th>提前量</th><th>预测P50</th><th>P10–P90</th><th>实际平均Si</th><th>样本数</th><th>误差</th><th>±0.05</th><th>记录</th></tr></thead><tbody id="historyRows"><tr><td colspan="12" class="empty">正在读取历史数据…</td></tr></tbody></table></div>
+      </div>
+    </section>
+  </div>
+  <section class="panel hourly-panel">
+    <div class="hourly-head"><h2>每小时 Si 预测与炉次化验汇总</h2><span id="hourlyTableStatus" class="source">正在读取严格整点与60分钟自动预测记录…</span><button id="downloadHourlyTableBtn" class="btn">下载汇总 CSV</button></div>
+    <div class="panel-body">
+      <div class="notice">每个自然小时一行。优先展示严格整点预测；严格槽失败或仍在重试时，明确标记并显示独立60分钟任务的预测作为临时对照。页面每60秒自动刷新，缺失值不会转为0。</div>
+      <div class="table-wrap"><table class="table"><thead><tr><th>预测整点</th><th>预测来源/状态</th><th>预测平均Si</th><th>P10–P90</th><th>对应炉次</th><th>实际开口时间</th><th>实际堵口时间</th><th>各次化验Si</th><th>平均Si</th><th>误差/±0.05</th></tr></thead><tbody id="hourlyTableRows"><tr><td colspan="10" class="empty">正在读取每小时汇总…</td></tr></tbody></table></div>
+    </div>
+  </section>
+</main>
+<script src="/assets/bf-si-v20-workbench.js?v=20260810-hourly-table-r2"></script>
+</body>
+</html>

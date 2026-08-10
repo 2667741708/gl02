@@ -1,0 +1,154 @@
+变量名	中文名/标高	节点分支	短名	点ID/长名	描述	状态/用途
+O2_rate	富氧率	BT	SIO_GL02_BT_T0115	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0115	2号炉本体_富氧率	实时显示；和 Q_O2 富氧流量分开展示
+TFT	理论燃烧温度	BT	SIO_GL02_BT_T0104	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0104	2号炉本体_理论燃烧温度	可显示、可入库；当前炉况规则未直接使用
+GasUtil	煤气利用率	CC/GF2	SIO_CC_GF2_T0115	\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0115	2号炉干法除尘_煤气利用率	跨子树明确可用
+CO2_top	二氧化碳	CC/GF2	SIO_CC_GF2_T0113	\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0113	2号炉干法除尘_二氧化碳	2号炉pSpace实测确认；跨子树明确可用；单位%
+P_top	顶压平均	LD	SIO_GL02_LD_T0034	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0034	2号炉炉顶_顶压平均	明确可用
+P_top_gas_A	顶压A/上升管煤气压力A	LD	SIO_GL02_LD_T0067	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0067	2号炉炉顶_上升管煤气压力A	明确可用
+P_top_gas_B	顶压B/上升管煤气压力B	LD	SIO_GL02_LD_T0068	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0068	2号炉炉顶_上升管煤气压力B	明确可用
+P_top_gas_C	顶压C/上升管煤气压力C	LD	SIO_GL02_LD_T0069	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0069	2号炉炉顶_上升管煤气压力C	明确可用
+P_top_gas_D	顶压D/上升管煤气压力D	LD	SIO_GL02_LD_T0070	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0070	2号炉炉顶_上升管煤气压力D	明确可用
+L	雷达探尺/主料线	LD	SIO_GL02_LD_T0046	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0046	2号炉炉顶_高炉炉体料位雷达探尺	明确可用
+L_south	南探尺/南尺	LD	SIO_GL02_LD_T0075	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0075	2号炉炉顶_下限位24米	高置信候选；建议现场对表确认
+L_north	北探尺/北尺	LD	SIO_GL02_LD_T0076	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0076	2号炉炉顶_下极限位6米	高置信候选；建议现场对表确认
+T_top_A	顶温A/上升管煤气温度A	LD	SIO_GL02_LD_T0040	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0040	2号炉炉顶_上升管煤气温度	明确可用
+T_top_B	顶温B/上升管煤气温度B	LD	SIO_GL02_LD_T0064	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0064	2号炉炉顶_上升管煤气温度	明确可用
+T_top_C	顶温C/上升管煤气温度C	LD	SIO_GL02_LD_T0072	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0072	2号炉炉顶_上升管煤气温度	明确可用
+T_top_D	顶温D/上升管煤气温度D	LD	SIO_GL02_LD_T0043	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0043	2号炉炉顶_上升管煤气温度	明确可用
+T_top	综合顶温	LD	派生	T_top_A-D avg	顶温 A-D 四点平均	派生可用
+PI	透气性指数	BT	SIO_GL02_BT_T0101	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0101	2号炉本体_透气性指数	明确可用
+DP_total	全炉压差	BT	SIO_GL02_BT_T0132	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0132	2号炉本体_全炉压差	明确可用
+DP_lower	下部压差	BT	SIO_GL02_BT_T0102	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0102	2号炉本体_下部压差	明确可用
+DP_upper	上部压差	BT	SIO_GL02_BT_T0135	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0135	2号炉本体_上部压差	明确可用
+T_blast	热风温度	BT	SIO_GL02_BT_T0006	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0006	2号炉本体_热风温度	明确可用
+P_blast	热风压力	BT	SIO_GL02_BT_T0149	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0149	2号炉本体_高炉本体热风压力	明确可用
+P_blast_cold	冷风压力	RF	SIO_GL02_RF_T0047	\冀南钢铁\SIO\GL02\RF\SIO_GL02_RF_T0047	2号炉热风炉_冷风管道压力	明确可用
+Q_blast	冷风管道流量/风量	RF	SIO_GL02_RF_T0073	\冀南钢铁\SIO\GL02\RF\SIO_GL02_RF_T0073	2号炉热风炉_冷风管道流量	明确可用
+PCI_rate	喷煤量/喷煤强度	PC	SIO_GL02_PC_T0007	\冀南钢铁\SIO\GL02\PC\SIO_GL02_PC_T0007	2号炉喷吹_喷煤量累积瞬时值	可用，需标注口径
+PCI_set	喷煤设定	PC	SIO_GL02_PC_T0001	\冀南钢铁\SIO\GL02\PC\SIO_GL02_PC_T0001	2号炉喷吹_一小时喷煤重量设定执行变量	明确可用
+Q_O2	富氧流量	CX	SIO_GL02_CX_T0288	\冀南钢铁\SIO\GL02\CX\SIO_GL02_CX_T0288	2号炉槽下_富氧流量	明确可用
+T_taphole_1	1#出铁口温度	BT	SIO_GL02_BT_T0001	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0001	2号炉本体_1号出铁口温度	明确可用
+T_taphole_2	2#出铁口温度	BT	SIO_GL02_BT_T0002	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0002	2号炉本体_2号出铁口温度	明确可用
+T_throat_A	炉喉温度A，37.200m	BT	SIO_GL02_BT_T0235	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0235	2号炉本体_炉喉温度A	可显示、可入库；不接成顶温A
+T_throat_B	炉喉温度B，37.200m	BT	SIO_GL02_BT_T0236	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0236	2号炉本体_炉喉温度B	可显示、可入库；不接成顶温B
+T_throat_C	炉喉温度C，37.200m	BT	SIO_GL02_BT_T0237	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0237	2号炉本体_炉喉温度C	可显示、可入库；不接成顶温C
+T_throat_D	炉喉温度D，37.200m	BT	SIO_GL02_BT_T0238	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0238	2号炉本体_炉喉温度D	可显示、可入库；不接成顶温D
+P_static_20m35	静压力20.35米	BT	SIO_GL02_BT_T0152	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0152	2号炉本体_静压力_20.35米压力	可显示、可入库；不替代A-F圆周压力
+P_static_23m49	静压力23.49米	BT	SIO_GL02_BT_T0153	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0153	2号炉本体_静压力_23.49米压力	可显示、可入库；不替代A-F圆周压力
+P_static_28m98	静压力28.98米	BT	SIO_GL02_BT_T0154	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0154	2号炉本体_静压力_28.98米压力	可显示、可入库；不替代A-F圆周压力
+P_static_lower_A	20.35米炉腰静压力A	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0102	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0102	2#高炉本体-20350 高炉炉腰部静压力A	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_lower_B	20.35米炉腰静压力B	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0103	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0103	2#高炉本体-20350 高炉炉腰部静压力B	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_lower_C	20.35米炉腰静压力C	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0104	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0104	2#高炉本体-20350 高炉炉腰部静压力C	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_lower_D	20.35米炉腰静压力D	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0105	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0105	2#高炉本体-20350 高炉炉腰部静压力D	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_lower_E	20.35米炉腰静压力E	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0107	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0107	2#高炉本体-20350 高炉炉腰部静压力E	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_lower_F	20.35米炉腰静压力F	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0108	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0108	2#高炉本体-20350 高炉炉腰部静压力F	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_middle_A	23.49米炉身下部静压力A	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0068	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0068	2#高炉本体-23488 高炉炉身下部静压力A	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_middle_B	23.49米炉身下部静压力B	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0069	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0069	2#高炉本体-23488 高炉炉身下部静压力B	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_middle_C	23.49米炉身下部静压力C	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0070	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0070	2#高炉本体-23488 高炉炉身下部静压力C	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_middle_D	23.49米炉身下部静压力D	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0071	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0071	2#高炉本体-23488 高炉炉身下部静压力D	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_middle_E	23.49米炉身下部静压力E	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0072	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0072	2#高炉本体-23488 高炉炉身下部静压力E	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_middle_F	23.49米炉身下部静压力F	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0110	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0110	2#高炉本体-23488 高炉炉身下部静压力F	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_upper_A	28.98米炉身中部静压力A	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0075	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0075	2#高炉本体-28976 高炉炉身中部静压力A	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_upper_B	28.98米炉身中部静压力B	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0076	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0076	2#高炉本体-28976 高炉炉身中部静压力B	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_upper_C	28.98米炉身中部静压力C	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0077	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0077	2#高炉本体-28976 高炉炉身中部静压力C	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_upper_D	28.98米炉身中部静压力D	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0078	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0078	2#高炉本体-28976 高炉炉身中部静压力D	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_upper_E	28.98米炉身中部静压力E	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0079	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0079	2#高炉本体-28976 高炉炉身中部静压力E	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+P_static_upper_F	28.98米炉身中部静压力F	EQ/SI0/GL02/BT	EQ_SIO_GL02_BT_T0080	\冀南二期\EQ\SI0\GL02\BT\EQ_SIO_GL02_BT_T0080	2#高炉本体-28976 高炉炉身中部静压力F	物理点；按既有raw 5秒读取、1分钟聚合、幂等入库
+T_body_L7_A	7层炉腹下温度A，16.860m	BT	SIO_GL02_BT_T0155	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0155	2号炉本体_7层炉腹下温度A	明确可用；参与T_body_lower聚合
+T_body_L7_B	7层炉腹下温度B，16.860m	BT	SIO_GL02_BT_T0156	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0156	2号炉本体_7层炉腹下温度B	明确可用；参与T_body_lower聚合
+T_body_L7_C	7层炉腹下温度C，16.860m	BT	SIO_GL02_BT_T0157	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0157	2号炉本体_7层炉腹下温度C	明确可用；参与T_body_lower聚合
+T_body_L7_D	7层炉腹下温度D，16.860m	BT	SIO_GL02_BT_T0158	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0158	2号炉本体_7层炉腹下温度D	明确可用；参与T_body_lower聚合
+T_body_L7_E	7层炉腹下温度E，16.860m	BT	SIO_GL02_BT_T0159	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0159	2号炉本体_7层炉腹下温度E	明确可用；参与T_body_lower聚合
+T_body_L7_F	7层炉腹下温度F，16.860m	BT	SIO_GL02_BT_T0160	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0160	2号炉本体_7层炉腹下温度F	明确可用；参与T_body_lower聚合
+T_body_L7_G	7层炉腹下温度G，16.860m	BT	SIO_GL02_BT_T0161	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0161	2号炉本体_7层炉腹下温度G	明确可用；参与T_body_lower聚合
+T_body_L7_H	7层炉腹下温度H，16.860m	BT	SIO_GL02_BT_T0162	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0162	2号炉本体_7层炉腹下温度H	明确可用；参与T_body_lower聚合
+T_body_L8_A	8层炉腹上温度A，18.335m	BT	SIO_GL02_BT_T0163	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0163	2号炉本体_8层炉腹上温度A	明确可用；参与T_body_lower聚合
+T_body_L8_B	8层炉腹上温度B，18.335m	BT	SIO_GL02_BT_T0164	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0164	2号炉本体_8层炉腹上温度B	明确可用；参与T_body_lower聚合
+T_body_L8_C	8层炉腹上温度C，18.335m	BT	SIO_GL02_BT_T0165	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0165	2号炉本体_8层炉腹上温度C	明确可用；参与T_body_lower聚合
+T_body_L8_D	8层炉腹上温度D，18.335m	BT	SIO_GL02_BT_T0166	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0166	2号炉本体_8层炉腹上温度D	明确可用；参与T_body_lower聚合
+T_body_L8_E	8层炉腹上温度E，18.335m	BT	SIO_GL02_BT_T0167	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0167	2号炉本体_8层炉腹上温度E	明确可用；参与T_body_lower聚合
+T_body_L8_F	8层炉腹上温度F，18.335m	BT	SIO_GL02_BT_T0168	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0168	2号炉本体_8层炉腹上温度F	明确可用；参与T_body_lower聚合
+T_body_L8_G	8层炉腹上温度G，18.335m	BT	SIO_GL02_BT_T0169	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0169	2号炉本体_8层炉腹上温度G	明确可用；参与T_body_lower聚合
+T_body_L8_H	8层炉腹上温度H，18.335m	BT	SIO_GL02_BT_T0170	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0170	2号炉本体_8层炉腹上温度H	明确可用；参与T_body_lower聚合
+T_body_L9_A	9层炉腰温度A，20.125m	BT	SIO_GL02_BT_T0171	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0171	2号炉本体_9层炉腰温度A	明确可用；参与T_body_lower聚合
+T_body_L9_B	9层炉腰温度B，20.125m	BT	SIO_GL02_BT_T0172	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0172	2号炉本体_9层炉腰温度B	明确可用；参与T_body_lower聚合
+T_body_L9_C	9层炉腰温度C，20.125m	BT	SIO_GL02_BT_T0173	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0173	2号炉本体_9层炉腰温度C	明确可用；参与T_body_lower聚合
+T_body_L9_D	9层炉腰温度D，20.125m	BT	SIO_GL02_BT_T0174	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0174	2号炉本体_9层炉腰温度D	明确可用；参与T_body_lower聚合
+T_body_L9_E	9层炉腰温度E，20.125m	BT	SIO_GL02_BT_T0175	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0175	2号炉本体_9层炉腰温度E	明确可用；参与T_body_lower聚合
+T_body_L9_F	9层炉腰温度F，20.125m	BT	SIO_GL02_BT_T0176	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0176	2号炉本体_9层炉腰温度F	明确可用；参与T_body_lower聚合
+T_body_L9_G	9层炉腰温度G，20.125m	BT	SIO_GL02_BT_T0177	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0177	2号炉本体_9层炉腰温度G	明确可用；参与T_body_lower聚合
+T_body_L9_H	9层炉腰温度H，20.125m	BT	SIO_GL02_BT_T0178	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0178	2号炉本体_9层炉腰温度H	明确可用；参与T_body_lower聚合
+T_body_L10_A	10层炉身下温度A，21.860m	BT	SIO_GL02_BT_T0179	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0179	2号炉本体_10层炉身下温度A	明确可用；参与T_body_middle聚合
+T_body_L10_B	10层炉身下温度B，21.860m	BT	SIO_GL02_BT_T0180	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0180	2号炉本体_10层炉身下温度B	明确可用；参与T_body_middle聚合
+T_body_L10_C	10层炉身下温度C，21.860m	BT	SIO_GL02_BT_T0181	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0181	2号炉本体_10层炉身下温度C	明确可用；参与T_body_middle聚合
+T_body_L10_D	10层炉身下温度D，21.860m	BT	SIO_GL02_BT_T0182	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0182	2号炉本体_10层炉身下温度D	明确可用；参与T_body_middle聚合
+T_body_L10_E	10层炉身下温度E，21.860m	BT	SIO_GL02_BT_T0183	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0183	2号炉本体_10层炉身下温度E	明确可用；参与T_body_middle聚合
+T_body_L10_F	10层炉身下温度F，21.860m	BT	SIO_GL02_BT_T0184	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0184	2号炉本体_10层炉身下温度F	明确可用；参与T_body_middle聚合
+T_body_L10_G	10层炉身下温度G，21.860m	BT	SIO_GL02_BT_T0185	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0185	2号炉本体_10层炉身下温度G	明确可用；参与T_body_middle聚合
+T_body_L10_H	10层炉身下温度H，21.860m	BT	SIO_GL02_BT_T0186	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0186	2号炉本体_10层炉身下温度H	明确可用；参与T_body_middle聚合
+T_body_L11_A	11层炉身下温度A，23.711m	BT	SIO_GL02_BT_T0187	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0187	2号炉本体_11层炉身下温度A	明确可用；参与T_body_middle聚合
+T_body_L11_B	11层炉身下温度B，23.711m	BT	SIO_GL02_BT_T0188	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0188	2号炉本体_11层炉身下温度B	明确可用；参与T_body_middle聚合
+T_body_L11_C	11层炉身下温度C，23.711m	BT	SIO_GL02_BT_T0189	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0189	2号炉本体_11层炉身下温度C	明确可用；参与T_body_middle聚合
+T_body_L11_D	11层炉身下温度D，23.711m	BT	SIO_GL02_BT_T0190	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0190	2号炉本体_11层炉身下温度D	明确可用；参与T_body_middle聚合
+T_body_L11_E	11层炉身下温度E，23.711m	BT	SIO_GL02_BT_T0191	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0191	2号炉本体_11层炉身下温度E	明确可用；参与T_body_middle聚合
+T_body_L11_F	11层炉身下温度F，23.711m	BT	SIO_GL02_BT_T0192	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0192	2号炉本体_11层炉身下温度F	明确可用；参与T_body_middle聚合
+T_body_L11_G	11层炉身下温度G，23.711m	BT	SIO_GL02_BT_T0193	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0193	2号炉本体_11层炉身下温度G	明确可用；参与T_body_middle聚合
+T_body_L11_H	11层炉身下温度H，23.711m	BT	SIO_GL02_BT_T0194	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0194	2号炉本体_11层炉身下温度H	明确可用；参与T_body_middle聚合
+T_body_L12_A	12层炉身下温度A，25.441m	BT	SIO_GL02_BT_T0195	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0195	2号炉本体_12层炉身下温度A	明确可用；参与T_body_middle聚合
+T_body_L12_B	12层炉身下温度B，25.441m	BT	SIO_GL02_BT_T0196	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0196	2号炉本体_12层炉身下温度B	明确可用；参与T_body_middle聚合
+T_body_L12_C	12层炉身下温度C，25.441m	BT	SIO_GL02_BT_T0197	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0197	2号炉本体_12层炉身下温度C	明确可用；参与T_body_middle聚合
+T_body_L12_D	12层炉身下温度D，25.441m	BT	SIO_GL02_BT_T0198	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0198	2号炉本体_12层炉身下温度D	明确可用；参与T_body_middle聚合
+T_body_L12_E	12层炉身下温度E，25.441m	BT	SIO_GL02_BT_T0199	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0199	2号炉本体_12层炉身下温度E	明确可用；参与T_body_middle聚合
+T_body_L12_F	12层炉身下温度F，25.441m	BT	SIO_GL02_BT_T0200	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0200	2号炉本体_12层炉身下温度F	明确可用；参与T_body_middle聚合
+T_body_L12_G	12层炉身下温度G，25.441m	BT	SIO_GL02_BT_T0201	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0201	2号炉本体_12层炉身下温度G	明确可用；参与T_body_middle聚合
+T_body_L12_H	12层炉身下温度H，25.441m	BT	SIO_GL02_BT_T0202	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0202	2号炉本体_12层炉身下温度H	明确可用；参与T_body_middle聚合
+T_body_L13_A	13层炉身下温度A，27.171m	BT	SIO_GL02_BT_T0203	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0203	2号炉本体_13层炉身下温度A	明确可用；参与T_body_middle聚合
+T_body_L13_B	13层炉身下温度B，27.171m	BT	SIO_GL02_BT_T0204	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0204	2号炉本体_13层炉身下温度B	明确可用；参与T_body_middle聚合
+T_body_L13_C	13层炉身下温度C，27.171m	BT	SIO_GL02_BT_T0205	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0205	2号炉本体_13层炉身下温度C	明确可用；参与T_body_middle聚合
+T_body_L13_D	13层炉身下温度D，27.171m	BT	SIO_GL02_BT_T0206	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0206	2号炉本体_13层炉身下温度D	明确可用；参与T_body_middle聚合
+T_body_L13_E	13层炉身下温度E，27.171m	BT	SIO_GL02_BT_T0207	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0207	2号炉本体_13层炉身下温度E	明确可用；参与T_body_middle聚合
+T_body_L13_F	13层炉身下温度F，27.171m	BT	SIO_GL02_BT_T0208	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0208	2号炉本体_13层炉身下温度F	明确可用；参与T_body_middle聚合
+T_body_L13_G	13层炉身下温度G，27.171m	BT	SIO_GL02_BT_T0209	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0209	2号炉本体_13层炉身下温度G	明确可用；参与T_body_middle聚合
+T_body_L13_H	13层炉身下温度H，27.171m	BT	SIO_GL02_BT_T0210	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0210	2号炉本体_13层炉身下温度H	明确可用；参与T_body_middle聚合
+T_body_L14_A	14层炉身中温度A，28.901m	BT	SIO_GL02_BT_T0211	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0211	2号炉本体_14层炉身中温度A	明确可用；参与T_body_upper聚合
+T_body_L14_B	14层炉身中温度B，28.901m	BT	SIO_GL02_BT_T0212	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0212	2号炉本体_14层炉身中温度B	明确可用；参与T_body_upper聚合
+T_body_L14_C	14层炉身中温度C，28.901m	BT	SIO_GL02_BT_T0213	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0213	2号炉本体_14层炉身中温度C	明确可用；参与T_body_upper聚合
+T_body_L14_D	14层炉身中温度D，28.901m	BT	SIO_GL02_BT_T0214	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0214	2号炉本体_14层炉身中温度D	明确可用；参与T_body_upper聚合
+T_body_L14_E	14层炉身中温度E，28.901m	BT	SIO_GL02_BT_T0215	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0215	2号炉本体_14层炉身中温度E	明确可用；参与T_body_upper聚合
+T_body_L14_F	14层炉身中温度F，28.901m	BT	SIO_GL02_BT_T0216	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0216	2号炉本体_14层炉身中温度F	明确可用；参与T_body_upper聚合
+T_body_L14_G	14层炉身中温度G，28.901m	BT	SIO_GL02_BT_T0217	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0217	2号炉本体_14层炉身中温度G	明确可用；参与T_body_upper聚合
+T_body_L14_H	14层炉身中温度H，28.901m	BT	SIO_GL02_BT_T0218	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0218	2号炉本体_14层炉身中温度H	明确可用；参与T_body_upper聚合
+T_body_L15_A	15层炉身上温度A，30.631m	BT	SIO_GL02_BT_T0219	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0219	2号炉本体_15层炉身上温度A	明确可用；参与T_body_upper聚合
+T_body_L15_B	15层炉身上温度B，30.631m	BT	SIO_GL02_BT_T0220	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0220	2号炉本体_15层炉身上温度B	明确可用；参与T_body_upper聚合
+T_body_L15_C	15层炉身上温度C，30.631m	BT	SIO_GL02_BT_T0221	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0221	2号炉本体_15层炉身上温度C	明确可用；参与T_body_upper聚合
+T_body_L15_D	15层炉身上温度D，30.631m	BT	SIO_GL02_BT_T0222	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0222	2号炉本体_15层炉身上温度D	明确可用；参与T_body_upper聚合
+T_body_L15_E	15层炉身上温度E，30.631m	BT	SIO_GL02_BT_T0223	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0223	2号炉本体_15层炉身上温度E	明确可用；参与T_body_upper聚合
+T_body_L15_F	15层炉身上温度F，30.631m	BT	SIO_GL02_BT_T0224	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0224	2号炉本体_15层炉身上温度F	明确可用；参与T_body_upper聚合
+T_body_L15_G	15层炉身上温度G，30.631m	BT	SIO_GL02_BT_T0225	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0225	2号炉本体_15层炉身上温度G	明确可用；参与T_body_upper聚合
+T_body_L15_H	15层炉身上温度H，30.631m	BT	SIO_GL02_BT_T0226	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0226	2号炉本体_15层炉身上温度H	明确可用；参与T_body_upper聚合
+T_body_L16_A	16层炉身上温度A，32.361m	BT	SIO_GL02_BT_T0227	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0227	2号炉本体_16层炉身上温度A	明确可用；参与T_body_upper聚合
+T_body_L16_B	16层炉身上温度B，32.361m	BT	SIO_GL02_BT_T0228	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0228	2号炉本体_16层炉身上温度B	明确可用；参与T_body_upper聚合
+T_body_L16_C	16层炉身上温度C，32.361m	BT	SIO_GL02_BT_T0229	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0229	2号炉本体_16层炉身上温度C	明确可用；参与T_body_upper聚合
+T_body_L16_D	16层炉身上温度D，32.361m	BT	SIO_GL02_BT_T0230	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0230	2号炉本体_16层炉身上温度D	明确可用；参与T_body_upper聚合
+T_body_L16_E	16层炉身上温度E，32.361m	BT	SIO_GL02_BT_T0231	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0231	2号炉本体_16层炉身上温度E	明确可用；参与T_body_upper聚合
+T_body_L16_F	16层炉身上温度F，32.361m	BT	SIO_GL02_BT_T0232	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0232	2号炉本体_16层炉身上温度F	明确可用；参与T_body_upper聚合
+T_body_L16_G	16层炉身上温度G，32.361m	BT	SIO_GL02_BT_T0233	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0233	2号炉本体_16层炉身上温度G	明确可用；参与T_body_upper聚合
+T_body_L16_H	16层炉身上温度H，32.361m	BT	SIO_GL02_BT_T0234	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0234	2号炉本体_16层炉身上温度H	明确可用；参与T_body_upper聚合
+PCI_previous_hour	上小时喷煤量	PC	SIO_GL02_PC_T0004	\冀南钢铁\SIO\GL02\PC\SIO_GL02_PC_T0004	2号炉喷吹_上小时喷煤量累计	2号炉SIO实测确认；单位t；按整点归属上一完整小时
+BlastEnergy	鼓风动能	BT	SIO_GL02_BT_T0136	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0136	2号炉本体_鼓风动能	2号炉SIO实测确认；工长趋势显示
+BlastSpeedStd	标准风速	BT	SIO_GL02_BT_T0133	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0133	2号炉本体_标准风速	2号炉SIO实测确认；单位m/s
+BlastSpeedActual	实际风速	BT	SIO_GL02_BT_T0134	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0134	2号炉本体_实际风速	2号炉SIO实测确认；单位m/s
+Q_soft_water	软水流量	BT	SIO_GL02_BT_T0056	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0056	2号炉本体_软水回水主管流量	2号炉SIO实测确认；单位m3/h
+P_soft_water	软水压力	BT	SIO_GL02_BT_T0137	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0137	2号炉本体_软水给水总管压力	2号炉SIO实测确认；单位MPa
+Q_high_pressure_water	高压水流量	BT	SIO_GL02_BT_T0021	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0021	2号炉本体_高压水流量	2号炉SIO实测确认；单位m3/h
+P_high_pressure_water	高压水压力	BT	SIO_GL02_BT_T0148	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0148	2号炉本体_高压供水压力	2号炉SIO实测确认；单位MPa
+P_medium_pressure_water	中压水压力	BT	SIO_GL02_BT_T0147	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0147	2号炉本体_中压供水压力	2号炉SIO实测确认；单位MPa
+ExpansionTankLevel	膨胀罐液位	BT	SIO_GL02_BT_T0097	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0097	2号炉本体_膨胀罐液位	2号炉SIO实测确认；单位m
+Hopper_weight	罐重	LD	SIO_GL02_LD_T0059	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0059	2号炉炉顶_称量罐实际重量称重	2号炉SIO实测确认；单位t
+Q_N2	氮气流量	LD	SIO_GL02_LD_T0045	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0045	2号炉炉顶_进下阀箱和进气密箱氮气流量	2号炉SIO实测确认；单位Nm3/h
+P_N2	氮气压力	LD	SIO_GL02_LD_T0073	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0073	2号炉炉顶_氮气总管调压阀后压力	2号炉SIO实测确认；单位kPa
+P_O2_valve_in	阀前富氧压力	CX	SIO_GL02_CX_T0289	\冀南钢铁\SIO\GL02\CX\SIO_GL02_CX_T0289	2号炉槽下_富氧压力	2号炉SIO实测确认；单位MPa
+P_O2_valve_out	阀后富氧压力	CX	SIO_GL02_CX_T0291	\冀南钢铁\SIO\GL02\CX\SIO_GL02_CX_T0291	2号炉槽下_阀后富氧	2号炉SIO实测确认；单位MPa
+PCI_current_hour	本小时喷煤量	PC	派生	PCI_rate integral from hour start	喷煤实际速率从本小时整点按真实时间间隔积分	派生实时计算；单位t；无直接pSpace点位时使用
+CO_top	一氧化碳	CC/GF2	SIO_CC_GF2_T0112	\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0112	2号炉干法除尘_一氧化碳	2号炉pSpace实测确认；跨子树明确可用；现场画面口径单位%
+H2_top	氢气	CC/GF2	SIO_CC_GF2_T0111	\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0111	2号炉干法除尘_氢气	2号炉pSpace实测确认；跨子树明确可用；现场画面口径单位%

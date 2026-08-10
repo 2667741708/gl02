@@ -81,12 +81,12 @@ Blender 候选、18 点独立 Overlay GLB、机器报告和前后/分层证据�
 
 ## PostgreSQL 同步策略
 
-18 点已加入正式 `点位清单.tsv`，和原 115 点使用完全相同的链路：
+18 点已加入正式 `点位清单.tsv`，与当前133个物理点使用完全相同的链路：
 
 ```text
-pSpace raw 5秒数据
-  → source_aggregate=sample（每分钟最后一个有效样本）
-  → target_aggregate=PS_RAW_SAMPLE
+pSpace raw 约5秒数据（同一次读取写raw短期表）
+  → source_aggregate=average（每分钟有效Good样本算术平均）
+  → target_aggregate=PS_RAW_AVERAGE / semantic_version=valid_raw_mean_v1
   → target_interval_seconds=60
   → bf_sensor.one_minute_values
   → ON CONFLICT(tag_long_name, ts) 幂等更新

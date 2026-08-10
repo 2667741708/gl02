@@ -67,6 +67,33 @@ python -m src.si_semantic_engine.cli --help
 
 预期：退出码0，无语法错误，帮助文本包含 `--config` 和 `--features`。
 
+## TEST-SI-V20-OPEN-MINUS-20260807
+
+覆盖需求：`REQ-SI-V20-OPEN-MINUS-HITRATE-20260807`
+
+测试文件：[test_v20_open_minus_features.py](../tests/test_v20_open_minus_features.py)
+
+运行：
+
+```powershell
+$env:PYTHONPATH='D:\文件\冀南钢铁运行中第二版本\PT\预测铁水Si含量\src'
+$env:PYTHONDONTWRITEBYTECODE='1'
+python -B -m unittest 'PT\预测铁水Si含量\tests\test_v20_open_minus_features.py'
+```
+
+2026-08-07 实测：`Ran 7 tests / OK`。
+
+覆盖内容：
+
+- `open_ts - lead_minutes` 生成预测截止时刻；
+- 多提前量样本分别保留；
+- 前 1～5 炉平均 Si 来自严格更早且已发布炉次；
+- 当前炉目标即便 label 时间早于 cutoff 也不能进入输入；
+- 未发布前炉会被跳过，并形成未化验炉次间隔；
+- PCI 窗口只读取 cutoff 前分钟值，不用未来分钟值也不补 0；
+- 特征合并拒绝 `target__*` 泄漏列；
+- ±0.05 命中率按 `abs(prediction-actual) <= 0.05` 计算。
+
 ## 后续必须补充
 
 - 数据泄漏反例测试；
@@ -207,3 +234,106 @@ current heat target used = false
 - Word报告人工/程序核验主标题黑体22磅、正文宋体12磅小四。
 - 算法流程图为2400×1350 RGB PNG；Word检测到1个内嵌图形和“图1”题注；
   已实现Si分支使用实线，待真实标签的温度/热状态分支使用虚线。
+
+## TEST-SI-AVERAGE-CURVE-20260806
+
+覆盖需求：`REQ-SI-AVERAGE-CURVE-22012-20260806`
+
+运行：
+
+```powershell
+python -m unittest 'PT.预测铁水Si含量.tests.test_si_average_curve' 'PT.预测铁水Si含量.tests.test_formal_v3' -v
+python -m py_compile .\tools\audit_22012_si_prediction_sources.py .\tools\audit_22012_imes_sinter_chemistry.py .\tools\run_22012_si_average_curve.py .\tools\rebuild_si_average_curve_from_cache.py
+```
+
+2026-08-06实测：`Ran 13 tests / OK`，四个脚本语法检查通过。
+
+新增覆盖：
+
+- 同炉多样本目标使用算术平均而不是中位数；
+- 平均值目标同步重建前炉历史；
+- 前炉Si只来自更早炉次且已在截止时刻前发布；
+- V9残差分量必须加回历史Si基线后再按自适应权重融合；
+- 曲线PNG和误差/趋势指标可生成。
+
+## REQ-SI-V19-CONTEXT-ABLATION-20260806
+
+Offline ablation for prior 1-5 heat mean-Si, current/lagged PCI, and IMES sinter chemistry time-background; V9/V13 and production interfaces remain frozen; chronological split is 1603/344/344.
+
+Implementation: v19_context_features.py, train_v19.py, extract_v19_context_v2.py, replay_v19_si_context_v2.py, test_v19_context_features.py.
+
+Result: chemistry ranked first on April/May/June pre-test selection, but frozen-test MAE did not beat V9 and paired bootstrap crossed zero; no shadow promotion. Status remains experimental_offline. Chemistry is time-background only; batch-to-bin-to-charge-to-heat lineage is unverified.
+
+Status: completed_offline_not_promoted.
+
+
+## REQ-SI-V19-AUGUST-HOLDOUT-20260807
+
+V19 rolling update: July data is included in offline training through 2026-07-26 19:02:00; 158 new August heats are held out as time-out evaluation. Original V19 artifacts remain frozen.
+
+Implementation: train_v19_august_holdout.py and train_v19_august_holdout_v2.py. Results: EXP-SI-V19-AUGUST-HOLDOUT-20260807.
+
+The protocol-selected candidate is pci; all_context is promising on this single August window but cannot be selected from the test result. No production promotion.
+
+Status: completed_offline_time_out_validation.
+
+
+## TEST-SI-V21-SENSOR-CACHE-20260808
+
+覆盖需求：`REQ-SI-V21-SENSOR-CACHE-20260808`
+
+运行：
+
+```powershell
+python -m unittest 'PT\预测铁水Si含量\tests\test_v21_sensor_window_cache.py'
+python .\tools\build_v20_sensor_window_cache.py --help
+python .\tools\build_open_minus_si_dataset_v20.py --help
+python .\tools\materialize_v21_dataset_from_sensor_cache.py --help
+python .\tools\train_open_minus_si_v20.py --help
+```
+
+2026-08-08 实测：`test_v21_sensor_window_cache.py` 2 项通过；四个 CLI help 均可解析。process133 缓存修正版 stderr 为空。
+
+新增覆盖：
+
+- 传感器窗口只使用 `[cutoff-window, cutoff)`，不读取 cutoff 时刻及之后分钟值；
+- 缓存合并优先使用 `v20_sample_id`，避免同一炉次不同提前量串特征；
+- `process133` 口径排除 `EQ_` 前缀点位；
+- 高维训练器支持候选进度事件和 `--candidate-names` 子集运行。
+
+
+## TEST-SI-FUELRATIO-V20-SIDE-BY-SIDE-20260808
+
+覆盖需求：`REQ-SI-FUELRATIO-V20-SIDE-BY-SIDE-20260808`
+
+运行：
+
+```powershell
+python -m py_compile .\tools\compare_foreman_fuel_vs_v20_history.py
+python .\tools\compare_foreman_fuel_vs_v20_history.py --help
+python .\tools\compare_foreman_fuel_vs_v20_history.py
+```
+
+2026-08-08 实测：语法检查和 CLI help 通过；程序成功按炉号+开口时间一对一匹配
+15 炉，其中 V20 validation+confirm 共同样本 7 炉；报表 Si 与 220.12 平均 Si 最大
+差值 `0.005`；CSV、JSON、PNG、Markdown 四类产物生成成功。
+
+边界：MES Web 每个日报 HTML 当前只直接暴露一个炉前块，确认段仅 2 个共同样本，
+不得据此宣称总体稳定性或调整生产模型。
+
+## TEST-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808
+
+覆盖需求：`REQ-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808`
+
+```powershell
+python -m unittest .\tests\test_si_v20_shadow_workbench.py -v
+python -m pytest .\tests\test_heat_performance_quality.py .\tests\test_heat_performance_quality_query.py .\tests\test_heat_query_tank_display.py -q
+node --check .\高炉前端数据\assets\bf-si-v20-shadow-workbench.js
+node .\tools\verify_si_v20_shadow_ui.cjs
+node .\tools\verify_si_v20_shadow_remote_ui.cjs
+```
+
+结果：原 V20 专项 4 项通过，既有炉次质量 14 项通过；便携模型 256 行与原模型最大绝对差 `2.78e-16`；本地 Chromium/Firefox/WebKit 共 18 个视口通过；远端 8093/8094 各以 `1366x768`、`390x844` 验证入口、抽屉、历史页、状态 API、无横向溢出和零页面错误。2026-08-08 权限调整后新增“默认不要求登录”单测，专项测试总数为5项。远端两端 `status.require_login=false`；未登录对 `2#20260808-109`、截止 `05:50` 的预测成功追加审计，预测 `0.307718`、实际 `0.4025`、绝对误差 `0.094782`、±0.05未命中。该单炉仅用于接口验收，不作为模型效果结论。
+
+证据：`logs/si_v20_shadow_ui_20260808/ui_matrix.json`、`logs/si_v20_shadow_remote_20260808/remote_ui_smoke.json`。
+

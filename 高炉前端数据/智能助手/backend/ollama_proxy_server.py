@@ -17,10 +17,11 @@ import time
 import threading
 import uuid
 import zipfile
-from datetime import datetime, timedelta, timezone
+from dataclasses import asdict, replace
+from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, unquote, urlparse
 from urllib.request import Request, urlopen
@@ -28,13 +29,35 @@ import xml.etree.ElementTree as ET
 from zoneinfo import ZoneInfo
 
 from assistant_pg import db_connect as _assistant_pg_connect, ensure_column, raw_pg_connect as _assistant_raw_pg_connect
+import diagnosis_model_review
+import diagnosis_ai_analysis_api
 import diagnosis_review
+import diag_ai_evidence
+from heat_performance_quality import HeatPerformanceQualityStore
+import si_v20_shadow
 from mcp_conversation_context import (
+    context_with_cross_source_snapshot,
     context_with_tool_trace,
     enrich_routing_question,
     update_tool_context,
 )
 from mcp_tool_policy import ToolPolicyLimits, validate_tool_call
+from mcp_host import (
+    McpClientManager,
+    McpHostError,
+    McpServerRegistry,
+    load_server_registry,
+    select_mcp_servers,
+)
+from mcp_host.cross_source_plan import (  # noqa: E402
+    CrossSourceFact,
+    CrossSourcePlan,
+    CrossSourceStep,
+    CrossSourceSnapshot,
+    failed_snapshot,
+    partial_snapshot,
+    success_snapshot,
+)
 
 try:
     from bf_knowledge_rag import (
@@ -70,6 +93,16 @@ PORT = int(os.environ.get("BF_PROXY_PORT", "8092"))
 ASSISTANT_BACKEND_DIR = Path(__file__).resolve().parent
 ASSISTANT_DIR = ASSISTANT_BACKEND_DIR.parent
 BASE_DIR = Path(os.environ.get("BF_FRONTEND_DIR", str(ASSISTANT_DIR.parent))).resolve()
+ABC_SERVICE_DIR = BASE_DIR.parent / "自动诊断服务"
+if str(ABC_SERVICE_DIR) not in sys.path:
+    sys.path.insert(0, str(ABC_SERVICE_DIR))
+from abc_rule_engine import public_rule  # noqa: E402
+from abc_rule_catalog import RULE_BY_ID  # noqa: E402
+from abc_rule_engine import load_config as load_abc_config  # noqa: E402
+from abc_public_review import build_public_review  # noqa: E402
+from abc_rule_config_store import publish_atomic as publish_abc_config  # noqa: E402
+from abc_term_semantics import term_semantics as abc_term_semantics  # noqa: E402
+ABC_CONFIG_PATH = ABC_SERVICE_DIR / "config" / "abc_furnace_rules.v1.json"
 INDEX_FILE = os.environ.get("BF_INDEX_FILE", "frontend_dashboard_v3.server.html")
 OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://10.30.220.12:11434").rstrip("/")
 PUBLIC_MODEL_NAME = os.environ.get("BF_PUBLIC_MODEL_NAME", "高炉大模型服务")
@@ -96,6 +129,36 @@ QA_TREND_HOURS = float(os.environ.get("BF_QA_TREND_HOURS", "8"))
 QA_TREND_DIAGNOSIS_LIMIT = int(os.environ.get("BF_QA_TREND_DIAGNOSIS_LIMIT", "96"))
 QA_TREND_CADENCE_MINUTES = int(os.environ.get("BF_QA_TREND_CADENCE_MINUTES", "5"))
 QA_TREND_WINDOW_MINUTES = int(os.environ.get("BF_QA_TREND_WINDOW_MINUTES", "60"))
+DIAGNOSIS_MODEL_REVIEW_ENABLED = os.environ.get(
+    "BF_DIAGNOSIS_MODEL_REVIEW_ENABLED", "1"
+).strip().lower() not in {"0", "false", "off", "no"}
+DIAGNOSIS_MODEL_REVIEW_CACHE_SECONDS = float(
+    os.environ.get("BF_DIAGNOSIS_MODEL_REVIEW_CACHE_SECONDS", "900")
+)
+_DIAGNOSIS_MODEL_REVIEW_CACHE = diagnosis_model_review.DiagnosisModelReviewCache(
+    ttl_seconds=DIAGNOSIS_MODEL_REVIEW_CACHE_SECONDS
+)
+DIAGNOSIS_AI_ANALYSIS_ENABLED = os.environ.get(
+    "BF_DIAGNOSIS_AI_ANALYSIS_ENABLED", "0"
+).strip().lower() not in {"0", "false", "off", "no"}
+DIAGNOSIS_AI_ANALYSIS_BACKGROUND_ENABLED = os.environ.get(
+    "BF_DIAGNOSIS_AI_ANALYSIS_BACKGROUND_ENABLED", "1"
+).strip().lower() not in {"0", "false", "off", "no"}
+DIAGNOSIS_AI_ANALYSIS_BUCKET_MINUTES = max(
+    1, int(os.environ.get("BF_DIAGNOSIS_AI_ANALYSIS_BUCKET_MINUTES", "5"))
+)
+DIAGNOSIS_AI_ANALYSIS_POLL_SECONDS = max(
+    10.0, float(os.environ.get("BF_DIAGNOSIS_AI_ANALYSIS_POLL_SECONDS", "30"))
+)
+DIAGNOSIS_AI_ANALYSIS_RETRY_SECONDS = max(
+    30.0, float(os.environ.get("BF_DIAGNOSIS_AI_ANALYSIS_RETRY_SECONDS", "120"))
+)
+DIAGNOSIS_AI_ANALYSIS_HISTORY_LIMIT = max(
+    2, min(24, int(os.environ.get("BF_DIAGNOSIS_AI_ANALYSIS_HISTORY_LIMIT", "12")))
+)
+_DIAGNOSIS_AI_ANALYSIS_LOCK = threading.Lock()
+_DIAGNOSIS_AI_ANALYSIS_STOP = threading.Event()
+_DIAGNOSIS_AI_ANALYSIS_THREAD: threading.Thread | None = None
 QA_PROMPT_VALUE_KEYS = tuple(
     key.strip()
     for key in os.environ.get(
@@ -139,6 +202,12 @@ MCP_DATA_SERVER_PATH = Path(
         str(ASSISTANT_DIR / "mcp" / "bf_data_mcp_server.py"),
     )
 )
+MCP_SERVER_REGISTRY_PATH = Path(
+    os.environ.get(
+        "BF_QA_MCP_SERVER_REGISTRY",
+        str(ASSISTANT_BACKEND_DIR / "mcp_host" / "server_registry.json"),
+    )
+)
 _MCP_DATA_MODULE: Any | None = None
 QA_MCP_TOOLS_ENABLED = os.environ.get("BF_QA_MCP_TOOLS", "1").strip().lower() not in {"0", "false", "no"}
 QA_MCP_TOOL_MODE = os.environ.get("BF_QA_MCP_TOOL_MODE", "auto").strip().lower()
@@ -165,11 +234,13 @@ QA_KNOWLEDGE_INTENT_GATE = os.environ.get("BF_QA_KNOWLEDGE_INTENT_GATE", "1").st
 QA_KNOWLEDGE_TOP_K = int(os.environ.get("BF_QA_KNOWLEDGE_TOP_K", "6"))
 QA_KNOWLEDGE_DB_PATH = Path(os.environ.get("BF_QA_KNOWLEDGE_DB", "__postgresql_bf_assistant_rag__"))
 QA_KNOWLEDGE_SEARCH_MODE = os.environ.get("BF_QA_KNOWLEDGE_SEARCH_MODE", "hybrid").strip().lower()
+DIAGNOSIS_ADVICE_SOURCE = "foreman_knowledge_only"
 QA_MCP_BRIDGE_SYSTEM_PROMPT = (
-    "你可以使用冀南钢铁 GL02 高炉数据库查询能力。"
+    "你可以使用冀南钢铁GL02传感器/图表和MES/IMES业务数据库查询能力。"
     "你要结合当前问题与最近对话自主决定是否调用工具，并可以在限定轮数内按“查目录→查数据→做计算/绘图→总结”的顺序连续调用。"
     "追问省略了变量或时间范围时，优先继承最近对话中已经明确的对象；仍有多个可能对象时先查目录，不能唯一确定时再向用户追问。"
-    "跨传感器、炉次、铁水/炉渣化验、进料成分、报表、历史问答、计算或图表能力的对象发现，优先调用search_business_objects；"
+    "跨传感器、报表、历史问答、计算或图表能力的对象发现，优先调用search_business_objects；"
+    "MES炉次、铁水/炉渣化验和进料成分不明确时调用imes__resolve_imes_natural_language；"
     "仅在已确认是GL02传感器且需要更细点位匹配时调用find_gl02_variables。"
     "涉及实时值、历史值、统计值、变量点位、报表事实、历史问答、趋势图、曲线图、多个变量对比图时，必须先查询或生成，不得编造。"
     "默认高炉范围是 \\冀南钢铁\\SIO\\GL02，不得混用 \\冀南二期\\EQ\\SI0\\GL02。"
@@ -181,6 +252,15 @@ QA_MCP_BRIDGE_SYSTEM_PROMPT = (
     "不确定变量时先调用 find_gl02_variables；variables 必须使用变量目录解析出的标准变量，不得猜测名称；多点查询允许部分点无数据并逐项说明。"
     "当用户要求炉身、炉腹、炉缸或炉体温度各层各方位的大矩阵，并要求每格显示当前值和最近趋势时，"
     "调用 plot_gl02_body_temperature_matrix；默认使用 7-16 层、A-F 方位，明确要求 A-H 时扩展到 H。"
+    "炉次、铁水/炉渣化验、硅含量、进料成分等MES业务必须使用imes__前缀的只读工具；"
+    "当前炉次号调用imes__get_current_heat_context；当前炉次Si及已发布试样调用imes__query_current_heat_chemistry；"
+    "当前与上一炉次Si摘要调用imes__get_current_previous_heat_si_summary。"
+    "查询任意指定炉次的铁水化学成分时，优先一次调用imes__query_heat_chemistry；"
+    "用户只给大概日期、钟点或上午/下午等时间段时，调用imes__query_heat_chemistry_by_time_range，"
+    "把原始口语时间放入time_reference，由工具确定对应正式meltno并返回每罐/每试样结果；"
+    "heat_reference可填写正式meltno、带日期炉次号或2-4位短炉号，components只填写用户要求的C/Si/Mn/P/S/Ti/V/Cr/Cu/Ni/As，"
+    "该工具会自行解析炉次，不要预先重复调用炉次解析工具。"
+    "你只能从本轮提供的已注册工具Schema中选择工具并构造参数，不得发明工具名、不得生成SQL。"
     "工具调用会经过服务端白名单和 JSON Schema 校验；收到 TOOL_POLICY_REJECTED 时应修正工具名或参数，不得绕过校验。"
     "不得生成 SQL、数据库连接参数或生产写操作。"
     "如果查询返回无数据或变量缺失，必须明确说明。最终回答要引用查询结果中的变量、时间窗、数值、图片路径或报表路径。"
@@ -685,6 +765,11 @@ def inject_trend_history_loader(data: bytes, target: Path) -> bytes:
     if target.name != INDEX_FILE or target.suffix.lower() != ".html":
         return data
     text = data.decode("utf-8", errors="replace")
+    # OPS-8093-STABLE-GLB-URL-REWRITE-20260806-R1
+    text = text.replace(
+        "models/GL02_FURNACE_BODY_R1.glb?t=${Date.now()}",
+        "models/GL02_FURNACE_BODY_R1.glb?v=20260806-static-stability-r1",
+    )
     injections = []
     if "__BF_TREND_HISTORY_PATCHED__" not in text:
         injections.append(trend_history_injection())
@@ -692,10 +777,10 @@ def inject_trend_history_loader(data: bytes, target: Path) -> bytes:
         injections.append(automation_monitor_injection())
     if diagnosis_review.review_enabled() and "__BF_DIAGNOSIS_REVIEW_LOCAL__" not in text:
         injections.append(
-            '<link rel="stylesheet" href="/assets/bf-diagnosis-review-local.css">\n'
-            '<link rel="stylesheet" href="/assets/bf-diagnosis-manual-score-local.css">\n'
-            '<script defer src="/assets/bf-diagnosis-review-local.js"></script>\n'
-            '<script defer src="/assets/bf-diagnosis-manual-score-local.js"></script>'
+            '<link rel="stylesheet" href="/assets/bf-diagnosis-review-local.css?v=20260806-core19-r10-foreman-knowledge">\n'
+            '<link rel="stylesheet" href="/assets/bf-diagnosis-manual-score-local.css?v=20260806-core19-r10-foreman-knowledge">\n'
+            '<script src="/assets/bf-diagnosis-review-local.js?v=20260806-core19-r10-foreman-knowledge"></script>\n'
+            '<script src="/assets/bf-diagnosis-manual-score-local.js?v=20260806-core19-r10-foreman-knowledge"></script>'
         )
     if not injections:
         return data
@@ -3530,7 +3615,12 @@ def qa_mcp_body_temperature_variables(question: str) -> list[str]:
     if symbolic:
         return list(dict.fromkeys(f"T_body_L{int(layer)}_{position.upper()}" for layer, position in symbolic))
     body_terms = ("炉体温度", "炉身温度", "炉温", "炉墙温度", "炉壳温度", "炉身炉腹炉缸")
-    if not any(term in text for term in body_terms):
+    point_temperature = re.search(
+        r"(?<!\d)(?:[7-9]|1[0-6])\s*层\s*[A-H]\s*(?:点)?\s*(?:温度|炉温|和|、|，|,|$)",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if not any(term in text for term in body_terms) and not point_temperature:
         return []
 
     layers: list[int] = []
@@ -3718,6 +3808,81 @@ def qa_mcp_variable(question: str) -> str | None:
     return variables[0] if variables else None
 
 
+def qa_mcp_server_registry() -> McpServerRegistry:
+    """Load the multi-server contract while preserving the legacy GL02 override."""
+
+    registry = load_server_registry(MCP_SERVER_REGISTRY_PATH)
+    servers = tuple(
+        replace(server, script_path=MCP_DATA_SERVER_PATH.resolve())
+        if server.server_id == "gl02-data"
+        else server
+        for server in registry.servers
+    )
+    return McpServerRegistry(version=registry.version, servers=servers)
+
+
+def qa_mcp_imes_plan(question: str) -> dict[str, Any] | None:
+    """Build zero-planner-round calls for frequent official MES heat questions."""
+
+    text = (
+        str(question or "")
+        .split("\n[服务端对话状态：", 1)[0]
+        .replace("鸬鹚", "炉次")
+    )
+    lowered = text.lower()
+    heat_terms = ("炉次", "炉号", "铁次", "meltno")
+    current_terms = ("当前", "现在", "目前", "本炉", "这一炉", "这炉")
+    previous_terms = ("上一炉", "上一个炉次", "前一炉", "上一炉次", "前炉")
+    silicon_terms = ("硅", "si", "silicon")
+    has_heat = any(term in lowered for term in heat_terms)
+    has_current = any(term in lowered for term in current_terms)
+    has_previous = any(term in lowered for term in previous_terms if term != "前炉") or (
+        "前炉" in lowered
+        and not any(term in lowered for term in ("当前炉", "目前炉"))
+    )
+    has_silicon = any(term in lowered for term in silicon_terms)
+    has_time_range = bool(
+        re.search(r"最近\s*\d{1,3}\s*(分钟|小时)", lowered)
+        or re.search(r"\d{4}[-年/]\d{1,2}[-月/]\d{1,2}", lowered)
+        or re.search(r"\d{1,2}月\d{1,2}[日号]{0,1}", lowered)
+        or re.search(r"\d{1,2}(点|时|:\d{2})", lowered)
+        or any(
+            term in lowered
+            for term in ("今天", "今日", "昨天", "昨日", "前天", "凌晨", "上午", "中午", "下午", "傍晚", "晚上", "夜里")
+        )
+    )
+    if has_previous and has_silicon:
+        return {"tool": "imes__get_current_previous_heat_si_summary", "arguments": {}}
+    if has_current and has_silicon:
+        return {"tool": "imes__query_current_heat_chemistry", "arguments": {"components": ["si"]}}
+    if has_silicon and has_time_range:
+        return {
+            "tool": "imes__query_heat_chemistry_by_time_range",
+            "arguments": {"time_reference": text, "components": ["si"]},
+        }
+    if has_heat and has_current:
+        return {"tool": "imes__get_current_heat_context", "arguments": {}}
+    return None
+
+
+def qa_mcp_imes_query_intent(question: str) -> bool:
+    """Recognize MES fact requests before the legacy GL02-only context gate."""
+
+    text = str(question or "").lower().replace("鸬鹚", "炉次")
+    domains = ("炉次", "炉号", "铁次", "铁水", "炉渣", "渣样", "化验", "进料", "烧结矿", "meltno", "imes", "mes")
+    fact_cues = ("当前", "现在", "上一炉", "前一炉", "某一炉", "某个炉", "多少", "是多少", "含量", "成分", "平均", "分布", "取样", "试样", "查", "看", "列出")
+    explicit_heat_reference = bool(
+        re.search(r"\d{1,3}#\d{8}-\d{3,4}", text)
+        or re.search(r"\d{8}-\d{3,4}", text)
+        or re.search(r"(?<!\d)\d{2,4}\s*(?:这炉|那炉|炉|炉次)", text)
+    )
+    chemistry_cues = ("碳", "硅", "锰", "磷", "硫", "钛", "钒", "铬", "铜", "镍", "砷", "c", "si", "mn")
+    return (
+        any(term in text for term in domains)
+        and any(term in text for term in fact_cues)
+    ) or (explicit_heat_reference and any(term in text for term in chemistry_cues))
+
+
 def qa_mcp_chart_plan(question: str) -> dict[str, Any] | None:
     """Build a deterministic MCP chart call from colloquial Chinese requests."""
     text = str(question or "")
@@ -3854,11 +4019,23 @@ def qa_mcp_sensor_query_plan(question: str) -> dict[str, Any] | None:
     """Batch clear sensor requests without an extra LLM planning round."""
 
     text = str(question or "")
+    user_text = text.split("\n[服务端对话状态：", 1)[0]
     variables = qa_mcp_variables(text)
     if not variables:
         return None
-    intent_match = re.search(r"查询意图：(latest|history|statistics)", text)
-    intent = intent_match.group(1) if intent_match else ""
+    # The suffix may carry the previous turn's intent.  A temporal phrase in
+    # the current user request must override that stale context, especially for
+    # cross-source questions such as “上一炉 Si 平均值 + 当前顶压”.
+    intent = ""
+    if any(term in user_text for term in ("现在", "当前", "目前", "最新")):
+        intent = "latest"
+    elif any(term in user_text for term in ("平均", "最高", "最低", "统计", "波动", "稳不稳")):
+        intent = "statistics"
+    elif any(term in user_text for term in ("历史", "趋势", "走势", "变化", "最近", "过去")):
+        intent = "history"
+    if not intent:
+        intent_match = re.search(r"查询意图：(latest|history|statistics)", text)
+        intent = intent_match.group(1) if intent_match else ""
     if not intent:
         if any(term in text for term in ("现在", "当前", "最新", "是多少", "多少")):
             intent = "latest"
@@ -3884,6 +4061,391 @@ def qa_mcp_sensor_query_plan(question: str) -> dict[str, Any] | None:
             }
         )
     return {"tool": "query_gl02_sensors", "arguments": arguments}
+
+
+# ---------------------------------------------------------------------------
+# Cross-source plan builder (REQ-8093-CROSS-SOURCE-MCP-20260805)
+# ---------------------------------------------------------------------------
+
+
+def _detect_heat_reference(question: str) -> str | None:
+    """Detect if the question contains a heat-number reference.
+
+    Returns the raw heat reference string, or None.
+    """
+    text = str(question or "").split("\n[服务端对话状态：", 1)[0]
+    # Full formal: 2#20260805-072
+    m = re.search(r"(?<!\d)(\d{1,3}#\d{8}-\d{3,4})(?!\d)", text)
+    if m:
+        return m.group(1)
+    # Date-prefix: 20260805-072 (standalone)
+    m = re.search(r"(?<!\d)(\d{8}-\d{3,4})(?!\d)", text)
+    if m:
+        return m.group(1)
+    # Spoken short form: "072这炉", "072的", etc — look for 2-4 digit pattern
+    # near heat-related terms
+    m = re.search(r"(?<!\d)(\d{2,4})\s*(?:这炉|那炉|炉|号炉|炉次)", text)
+    if m:
+        return m.group(1)
+    # Bare short number with "炉次" or similar context
+    m = re.search(r"(?:炉次|炉号|铁次|那炉|这炉)\s*(\d{2,4})(?!\d)", text)
+    if m:
+        return m.group(1)
+    return None
+
+
+def _step_server_id(
+    source_domain: str,
+    service_selection: "DomainSelection",
+) -> str:
+    """Map a source domain to the server_id selected by the domain router."""
+    domain_map = {
+        "imes": ("imes-readonly",),
+        "gl02": ("gl02-data", "gl02-extended"),
+    }
+    candidates = domain_map.get(source_domain, ())
+    for sid in service_selection.server_ids:
+        if sid in candidates:
+            return sid
+    # Fallback: return first matching from candidates not in selection
+    return candidates[0] if candidates else ""
+
+
+def build_cross_source_plans(
+    question: str,
+    service_selection: "DomainSelection",
+) -> CrossSourcePlan | None:
+    """Build a CrossSourcePlan when a question requires 2+ data sources.
+
+    Returns None for single-source questions (let the existing fast path
+    handle them).  Returns a CrossSourcePlan with 2+ steps and distinct
+    server_ids when the question genuinely spans MES + GL02.
+
+    Rules:
+    - Only activates when 2+ different server_ids are needed.
+    - GL02 internal priority: chart > correlation > sensor query.
+    - P_top stays in query_gl02_sensors, never enters history tools.
+    - Heat reference detected from question text; exact formats resolved
+      synchronously via regex; spoken short forms become dependency steps.
+    - find_gl02_variables NEVER appears in a cross-source plan.
+    """
+    cross_source_enabled = os.environ.get("BF_QA_MCP_CROSS_SOURCE_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
+    if not cross_source_enabled:
+        return None
+
+    if len(set(service_selection.server_ids)) < 2:
+        return None  # Single source → existing fast path
+
+    text = str(question or "").split("\n[服务端对话状态：", 1)[0]
+
+    # --- Build candidate plans from all four planners ---
+    imes_plan = qa_mcp_imes_plan(question)
+    chart_plan = qa_mcp_chart_plan(question)
+    standard_plan = qa_mcp_standard_analysis_plan(question)
+    sensor_plan = qa_mcp_sensor_query_plan(question)
+
+    # --- Detect explicit heat chemistry request ---
+    heat_ref = _detect_heat_reference(question)
+    has_chemistry_request = bool(heat_ref) and any(
+        term in text.lower()
+        for term in ("硅", "si", "锰", "mn", "磷", "p", "硫", "s", "碳", "c",
+                     "化验", "成分", "含量", "铁水")
+    )
+
+    steps: list[CrossSourceStep] = []
+    requested_fact_ids: list[str] = []
+    step_counter = 0
+
+    # --- MES steps ---
+    imes_server = _step_server_id("imes", service_selection)
+
+    if has_chemistry_request and heat_ref:
+        step_counter += 1
+        # Check if heat_ref needs DB resolution
+        if re.fullmatch(r"\d{2,4}", heat_ref):
+            # Spoken short form → resolve first, then query chemistry
+            resolve_step_id = f"s{step_counter}_resolve_heat"
+            steps.append(CrossSourceStep(
+                step_id=resolve_step_id,
+                server_id=imes_server,
+                source_domain="imes",
+                tool="imes__resolve_spoken_heat_reference",
+                arguments={"heat_reference": heat_ref},
+                depends_on=(),
+                # Resolution metadata is carried in the snapshot, not shown
+                # as a user-requested fact.
+                produces_fact_ids=(),
+                required_for_answer=True,
+                required_for_analysis=True,
+            ))
+            step_counter += 1
+            chem_step_id = f"s{step_counter}_chemistry"
+            steps.append(CrossSourceStep(
+                step_id=chem_step_id,
+                server_id=imes_server,
+                source_domain="imes",
+                tool="imes__query_hot_metal_chemistry_by_heat",
+                arguments={"heat_no": heat_ref},
+                depends_on=(resolve_step_id,),
+                argument_bindings={
+                    "heat_no": f"steps.{resolve_step_id}.resolved_heat_no",
+                },
+                produces_fact_ids=("hot_metal_chemistry",),
+                required_for_answer=True,
+                required_for_analysis=True,
+            ))
+            requested_fact_ids.extend(("hot_metal_chemistry",))
+        else:
+            # Exact format → query directly
+            chem_step_id = f"s{step_counter}_chemistry"
+            steps.append(CrossSourceStep(
+                step_id=chem_step_id,
+                server_id=imes_server,
+                source_domain="imes",
+                tool="imes__query_hot_metal_chemistry_by_heat",
+                arguments={"heat_no": heat_ref},
+                depends_on=(),
+                produces_fact_ids=("hot_metal_chemistry",),
+                required_for_answer=True,
+                required_for_analysis=True,
+            ))
+            requested_fact_ids.append("hot_metal_chemistry")
+
+    elif imes_plan:
+        step_counter += 1
+        sid = f"s{step_counter}_imes"
+        steps.append(CrossSourceStep(
+            step_id=sid,
+            server_id=imes_server,
+            source_domain="imes",
+            tool=imes_plan["tool"],
+            arguments=imes_plan["arguments"],
+            depends_on=(),
+            produces_fact_ids=(
+                "current_heat_no", "previous_heat_no", "si_avg",
+                "si_values", "sample_count",
+            ) if imes_plan["tool"] == "imes__get_current_previous_heat_si_summary"
+            else ("imes_result",),
+            required_for_answer=True,
+            required_for_analysis=True,
+        ))
+        if imes_plan["tool"] == "imes__get_current_previous_heat_si_summary":
+            requested_fact_ids.extend((
+                "current_heat_no", "previous_heat_no", "si_avg",
+                "si_values", "sample_count",
+            ))
+        else:
+            requested_fact_ids.append("imes_result")
+
+    # --- GL02 steps (priority: chart > correlation > sensor) ---
+    gl02_server = _step_server_id("gl02", service_selection)
+
+    if chart_plan:
+        step_counter += 1
+        sid = f"s{step_counter}_gl02_chart"
+        steps.append(CrossSourceStep(
+            step_id=sid,
+            server_id=gl02_server,
+            source_domain="gl02",
+            tool=chart_plan["tool"],
+            arguments=chart_plan["arguments"],
+            depends_on=(),
+            produces_fact_ids=("chart",),
+            required_for_answer=False,     # display step
+            required_for_analysis=False,
+        ))
+        requested_fact_ids.append("chart")
+    elif standard_plan:
+        step_counter += 1
+        sid = f"s{step_counter}_gl02_analysis"
+        steps.append(CrossSourceStep(
+            step_id=sid,
+            server_id=gl02_server,
+            source_domain="gl02",
+            tool=standard_plan["tool"],
+            arguments=standard_plan["arguments"],
+            depends_on=(),
+            produces_fact_ids=("correlation_analysis",),
+            required_for_answer=True,
+            required_for_analysis=True,
+        ))
+        requested_fact_ids.append("correlation_analysis")
+    elif sensor_plan:
+        # Split body-temperature capability calls from ordinary GL02 sensor
+        # calls. This keeps T_body_L13_C on the extended service while P_top
+        # remains a sensor fact, even when both are requested together.
+        args = dict(sensor_plan["arguments"])
+        all_variables = list(args.get("variables") or [])
+        body_variables = [
+            str(v) for v in all_variables
+            if re.fullmatch(r"T_body_L(7|8|9|1[0-6])_([A-H])", str(v))
+        ]
+        sensor_variables = [str(v) for v in all_variables if str(v) not in body_variables]
+        analysis_required = bool(
+            any(term in text for term in ("分析", "判断", "比较", "相关", "是否一致", "怎么样", "正常吗"))
+        )
+        if body_variables and "gl02-extended" in service_selection.server_ids:
+            for body_variable in body_variables:
+                match = re.fullmatch(r"T_body_L(7|8|9|1[0-6])_([A-H])", body_variable)
+                if not match:
+                    continue
+                step_counter += 1
+                steps.append(CrossSourceStep(
+                    step_id=f"s{step_counter}_gl02_body_temperature",
+                    server_id="gl02-extended",
+                    source_domain="gl02",
+                    tool="gl02ext__query_body_temperature",
+                    arguments={
+                        "layer": int(match.group(1)),
+                        "position": match.group(2),
+                        "include_history": False,
+                    },
+                    depends_on=(),
+                    produces_fact_ids=(body_variable,),
+                    required_for_answer=True,
+                    required_for_analysis=analysis_required,
+                ))
+                requested_fact_ids.append(body_variable)
+        if sensor_variables or not body_variables:
+            step_counter += 1
+            sid = f"s{step_counter}_gl02_sensor"
+            tool_name = "query_gl02_sensors"
+            variables = sensor_variables or all_variables
+            if sensor_variables:
+                args["variables"] = sensor_variables
+            steps.append(CrossSourceStep(
+                step_id=sid,
+                server_id=gl02_server,
+                source_domain="gl02",
+                tool=tool_name,
+                arguments=args,
+                depends_on=(),
+                produces_fact_ids=tuple(str(v) for v in variables) if isinstance(variables, list) else ("sensor_result",),
+                required_for_answer=True,
+                required_for_analysis=analysis_required,
+            ))
+            if isinstance(variables, list):
+                requested_fact_ids.extend(str(v) for v in variables)
+            else:
+                requested_fact_ids.append("sensor_result")
+
+    # --- Require at least 2 distinct server_ids ---
+    distinct_servers = {s.server_id for s in steps}
+    if len(distinct_servers) < 2:
+        return None  # Single source → fall through to fast path
+
+    if not steps:
+        return None
+
+    return CrossSourcePlan(
+        steps=tuple(steps),
+        requested_fact_ids=tuple(requested_fact_ids),
+        analysis_requested=any(
+            term in text for term in ("分析", "判断", "是否一致", "怎么样", "正常吗")
+        ),
+        requested_heat_reference=heat_ref,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Cross-source answer formatter
+# ---------------------------------------------------------------------------
+
+
+def format_cross_source_answer(
+    snapshot: CrossSourceSnapshot,
+    analysis_text: str | None = None,
+) -> str:
+    """Build a deterministic answer from a CrossSourceSnapshot.
+
+    Rules:
+    - Fact queries: deterministic formatter only, no model call.
+    - Partial data: output facts + missing facts + source_status, no model call.
+    - Analysis: only when all evidence present AND user explicitly requested
+      analysis.  Model output is appended AFTER the fact table.
+    - Model failure/truncation → facts still returned, analysis_status=failed.
+    """
+    lines: list[str] = []
+    lines.append("## 跨源数据查询结果\n")
+
+    # --- Fact table ---
+    if snapshot.facts:
+        lines.append("| 查询项 | 数值 | 单位 | 数据时间 | 来源 | 状态 |")
+        lines.append("|--------|------|------|----------|------|------|")
+        for fact in snapshot.facts:
+            status = "缺失" if fact.missing else "正常"
+            value_str = (
+                "—" if fact.missing
+                else f"{fact.value}" if fact.value is not None
+                else "—"
+            )
+            unit_str = fact.unit or ""
+            time_str = fact.data_time or "—"
+            source_str = fact.source_service or "—"
+            lines.append(
+                f"| {fact.label} | {value_str} | {unit_str} | {time_str} | {source_str} | {status} |"
+            )
+        lines.append("")
+
+    # --- Missing facts ---
+    if snapshot.missing_fact_ids:
+        lines.append("### 缺失数据\n")
+        for fid in snapshot.missing_fact_ids:
+            lines.append(f"- **{fid}**：数据源未返回有效结果")
+        lines.append("")
+
+    # --- Source status ---
+    if snapshot.source_status:
+        lines.append("### 数据源状态\n")
+        for ss in snapshot.source_status:
+            ok_mark = "✓" if ss.get("ok") else "✗"
+            lines.append(
+                f"- {ok_mark} **{ss.get('server_id', 'unknown')}** "
+                f"→ {ss.get('tool', 'unknown')} "
+                f"({ss.get('elapsed_ms', 0):.0f}ms"
+                f"{', 缓存命中' if ss.get('cache_hit') else ''})"
+            )
+        lines.append("")
+
+    # --- Heat reference ---
+    if snapshot.heat_reference:
+        hr = snapshot.heat_reference
+        if isinstance(hr, dict):
+            resolved = hr.get("resolved_heat_no") or "—"
+            policy = hr.get("resolution_policy") or "—"
+            lines.append(f"**炉次参考**：{resolved}（解析策略：{policy}）\n")
+
+    # --- Analysis (only when allowed) ---
+    if analysis_text and snapshot.analysis_allowed:
+        lines.append("## 分析\n")
+        lines.append(analysis_text)
+        lines.append("")
+    elif analysis_text and not snapshot.analysis_allowed:
+        lines.append("> ⚠️ 证据不完整，已跳过分析。以上为已有事实。\n")
+
+    # --- Footer ---
+    if snapshot.partial:
+        lines.append(
+            f"_部分结果 — 已返回 {sum(1 for f in snapshot.facts if not f.missing)}/"
+            f"{len(snapshot.facts)} 项事实，"
+            f"{len(snapshot.missing_fact_ids)} 项缺失。_"
+        )
+    elif snapshot.complete:
+        lines.append(
+            f"_完整结果 — {len(snapshot.facts)} 项事实全部返回，"
+            f"总耗时 {snapshot.total_elapsed_ms:.0f}ms。_"
+        )
+
+    return "\n".join(lines)
+
+
+def cross_source_snapshot_payload(snapshot: CrossSourceSnapshot) -> dict[str, Any]:
+    """Return the JSON-safe evidence contract used by SSE and follow-ups."""
+
+    payload = asdict(snapshot)
+    payload["facts"] = payload.get("facts", [])[-8:]
+    payload["source_status"] = payload.get("source_status", [])[-8:]
+    return payload
 
 
 def last_user_question(messages: list[dict[str, Any]]) -> str:
@@ -4196,6 +4758,8 @@ def qa_mcp_should_use_tools(question: str, payload: dict[str, Any], mcp_prefetch
         return True
     if qa_mcp_direct_tool_intent(question):
         return True
+    if qa_mcp_imes_query_intent(question):
+        return True
     if qa_mcp_chart_plan(question) is not None:
         return True
     if (
@@ -4319,6 +4883,42 @@ def normalize_tool_calls(message: dict[str, Any]) -> list[dict[str, Any]]:
     return normalized
 
 
+def qa_mcp_planner_tools(
+    question: str, tools: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Select a small registered-schema catalog for one planning request.
+
+    The function never creates tool definitions.  It only removes unrelated
+    schemas from the live MCP registry response, so the model remains free to
+    choose among relevant registered tools while prompt size and misrouting
+    risk stay bounded.
+    """
+
+    text = str(question or "").lower()
+    explicit_heat = bool(
+        re.search(r"\d{1,3}#\d{8}-\d{3,4}", text)
+        or re.search(r"\d{8}-\d{3,4}", text)
+        or re.search(r"(?<!\d)\d{2,4}\s*(?:这炉|那炉|炉|炉次)", text)
+    )
+    chemistry_terms = (
+        "铁水", "化验", "成分", "含量", "碳", "硅", "锰", "磷", "硫",
+        "钛", "钒", "铬", "铜", "镍", "砷", "si", "mn",
+    )
+    if explicit_heat and any(term in text for term in chemistry_terms):
+        preferred = {
+            "imes__query_heat_chemistry",
+            "imes__query_hot_metal_chemistry_by_heat",
+        }
+        selected = [
+            item
+            for item in tools
+            if (item.get("function") or {}).get("name") in preferred
+        ]
+        if selected:
+            return selected
+    return tools
+
+
 def truncate_tool_text(text: str, max_chars: int = QA_MCP_MAX_RESULT_CHARS) -> str:
     text = str(text or "")
     if len(text) <= max_chars:
@@ -4405,6 +5005,143 @@ def deterministic_mcp_answer(tool_name: str, result_text: str) -> str:
             return f"{float(value):.3f}".rstrip("0").rstrip(".")
         except (TypeError, ValueError):
             return str(value if value is not None else "无")
+
+    if tool_name == "imes__get_current_heat_context":
+        current = payload.get("current_heat_no") or "未查到"
+        previous = payload.get("previous_heat_no") or "未查到"
+        status = "正在出铁" if payload.get("status") == "active" else "最近已知炉次"
+        return (
+            f"当前炉次：{current}（{status}）；上一炉次：{previous}。\n"
+            f"查询时点：{payload.get('as_of_time') or '未知'}；来源：{payload.get('source_object') or 'MES炉次作业条件'}。"
+        )
+    if tool_name == "imes__query_heat_chemistry_by_time_range":
+        window = payload.get("time_range") or {}
+        lines = [
+            f"查询时间段：{window.get('start') or '未知'} 至 {window.get('end') or '未知'}。",
+        ]
+        heats = payload.get("heats") or []
+        if not heats:
+            lines.append("该时间段附近未找到可确认的正式炉次。")
+            return "\n".join(lines)
+        lines.append(
+            f"匹配到 {len(heats)} 个炉次；最可能炉次：{payload.get('primary_heat_no') or '未查到'}。"
+        )
+        for heat in heats:
+            chemistry = heat.get("chemistry") or {}
+            si_summary = (chemistry.get("summary") or {}).get("si") or {}
+            match_label = "时间重叠" if heat.get("match_kind") == "overlap" else "最近炉次"
+            if si_summary.get("avg") is None:
+                si_text = "暂无有效Si试样"
+            else:
+                si_text = (
+                    f"Si平均 {number(si_summary.get('avg'))}%（"
+                    f"{si_summary.get('count') or 0} 个试样，"
+                    f"{number(si_summary.get('min'))}%～{number(si_summary.get('max'))}%）"
+                )
+            lines.append(
+                f"炉次 {heat.get('heat_no') or '未编号'}（{match_label}）："
+                f"开口 {heat.get('open_time') or '未知'}，"
+                f"结束 {heat.get('close_time') or '尚未记录'}；{si_text}。"
+            )
+            for sample in chemistry.get("samples") or []:
+                si_value = (sample.get("components") or {}).get("si")
+                time_type = sample.get("sample_time_type")
+                time_label = {
+                    "take_sample_time": "取样时间",
+                    "judge_time": "化验判定时间",
+                    "publish_time": "结果发布时间",
+                }.get(time_type, "样本时间")
+                lines.append(
+                    f"- 试样 {sample.get('sample_no') or '未编号'}，"
+                    f"铁罐 {sample.get('tank_no') or '未关联'}，"
+                    f"Si {number(si_value)}%，{time_label} "
+                    f"{sample.get('sample_time') or '未知'}"
+                )
+        lines.append(f"来源：{payload.get('source_service') or 'imes-readonly'}。")
+        return "\n".join(lines)
+
+    if tool_name in {
+        "imes__query_heat_chemistry",
+        "imes__query_current_heat_chemistry",
+    }:
+        heat_no = payload.get("resolved_heat_no") or payload.get("requested_heat_reference") or "未查到"
+        if payload.get("missing"):
+            opening = payload.get("open_time") or ((payload.get("heat_time_window") or {}).get("start"))
+            return (
+                f"炉次 {heat_no}（开口时间 {opening or '未知'}）"
+                "暂无已发布的铁水化验数据，缺失值不按0计算。"
+            )
+        component_labels = {
+            "c": "C", "si": "Si", "mn": "Mn", "p": "P", "s": "S",
+            "ti": "Ti", "v": "V", "cr": "Cr", "cu": "Cu", "ni": "Ni", "as": "As",
+        }
+        lines = [f"炉次：{heat_no}"]
+        if tool_name == "imes__query_current_heat_chemistry":
+            status = "正在出铁，结果为当前已发布试样的阶段性统计" if payload.get("provisional") else "最近已知炉次"
+            lines.append(
+                f"状态：{status}；开口时间：{payload.get('open_time') or '未知'}；"
+                f"结束时间：{payload.get('close_time') or '尚未记录'}。"
+            )
+        else:
+            heat_window = payload.get("heat_time_window") or {}
+            if heat_window.get("start"):
+                lines.append(
+                    f"开口时间：{heat_window.get('start')}；"
+                    f"结束时间：{heat_window.get('end') or '尚未记录'}。"
+                )
+        summary = payload.get("summary") or {}
+        for component in payload.get("components") or []:
+            item = summary.get(component) or {}
+            name = component_labels.get(component, str(component))
+            if item.get("missing") or item.get("avg") is None:
+                lines.append(f"{name}：无有效样本")
+                continue
+            lines.append(
+                f"{name}：平均 {number(item.get('avg'))}%（范围 "
+                f"{number(item.get('min'))}%～{number(item.get('max'))}%，"
+                f"{item.get('count')} 个样本）"
+            )
+        samples = payload.get("samples") or []
+        if samples:
+            lines.append("试样明细：")
+            for sample in samples:
+                values = []
+                for component in payload.get("components") or []:
+                    value = (sample.get("components") or {}).get(component)
+                    if value is not None:
+                        values.append(f"{component_labels.get(component, component)} {number(value)}%")
+                time_type = sample.get("sample_time_type")
+                time_label = {
+                    "take_sample_time": "取样时间",
+                    "judge_time": "化验判定时间",
+                    "publish_time": "结果发布时间",
+                }.get(time_type, "样本时间")
+                lines.append(
+                    f"- 试样 {sample.get('sample_no') or '未编号'}，"
+                    f"铁罐 {sample.get('tank_no') or '未关联'}："
+                    f"{('，'.join(values) or '所选成分无数据')}；"
+                    f"{time_label} {sample.get('sample_time') or sample.get('take_sample_time') or '未知'}"
+                )
+        lines.append(
+            f"数据时间：{payload.get('data_time') or '未知'}；来源："
+            f"{payload.get('source_service') or 'imes-readonly'}"
+        )
+        return "\n".join(lines)
+
+    if tool_name == "imes__get_current_previous_heat_si_summary":
+        if payload.get("missing"):
+            return (
+                f"当前炉次为 {payload.get('current_heat_no') or '未查到'}，上一炉次为 "
+                f"{payload.get('previous_heat_no') or '未查到'}；该上一炉次没有有效Si试样，不能把缺失值当作0。\n"
+                f"查询时点：{payload.get('as_of_time') or '未知'}。"
+            )
+        values = "、".join(number(value) for value in payload.get("si_values") or [])
+        return (
+            f"当前炉次：{payload.get('current_heat_no') or '未查到'}；上一炉次：{payload.get('previous_heat_no') or '未查到'}。\n"
+            f"上一炉次铁水Si平均值为 {number(payload.get('si_avg'))}%（{payload.get('sample_count') or 0} 个有效试样，"
+            f"范围 {number(payload.get('si_min'))}%–{number(payload.get('si_max'))}%，试样值：{values or '无'}）。\n"
+            f"查询时点：{payload.get('as_of_time') or '未知'}；来源：MES正式炉次与铁水化验表。"
+        )
 
     if tool_name in {"plot_gl02_trends", "plot_gl02_analysis", "plot_gl02_body_temperature_matrix"}:
         variables = [str(item) for item in payload.get("variables") or [] if str(item)]
@@ -4501,28 +5238,20 @@ async def qa_mcp_tool_loop_async(
     routing_question: str = "",
 ) -> dict[str, Any]:
     try:
-        from mcp import ClientSession, StdioServerParameters
-        from mcp.client.stdio import stdio_client
-    except ImportError as exc:
+        registry = qa_mcp_server_registry()
+    except Exception as exc:  # noqa: BLE001
         return {
             "ok": False,
             "tool_used": False,
             "answer": "",
-            "error": f"数据库查询 Python 依赖缺失：{exc}；当前解释器={sys.executable}，查询解释器={QA_MCP_PYTHON}",
+            "error": f"MCP服务注册表不可用：{type(exc).__name__}: {exc}",
         }
 
-    if not MCP_DATA_SERVER_PATH.exists():
-        return {"ok": False, "tool_used": False, "answer": "", "error": f"数据库查询服务不存在: {MCP_DATA_SERVER_PATH}"}
-
-    env = dict(os.environ)
-    server_params = StdioServerParameters(
-        command=QA_MCP_PYTHON,
-        args=[str(MCP_DATA_SERVER_PATH)],
-        env=env,
-    )
     working_messages = qa_messages_with_mcp_prompt(messages)
     trace: list[dict[str, Any]] = []
     execution_started = time.monotonic()
+    question = routing_question or last_user_question(working_messages)
+    service_selection = select_mcp_servers(question, registry)
 
     def tool_timeout_seconds() -> float:
         remaining = QA_MCP_EXECUTION_BUDGET_SECONDS - (time.monotonic() - execution_started)
@@ -4530,29 +5259,214 @@ async def qa_mcp_tool_loop_async(
             raise TimeoutError(f"MCP执行预算已用尽（{QA_MCP_EXECUTION_BUDGET_SECONDS:.0f}秒）")
         return max(0.1, min(QA_MCP_TOOL_TIMEOUT_SECONDS, remaining))
 
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            tools_response = await session.list_tools()
-            tools = [mcp_tool_to_ollama_tool(tool) for tool in tools_response.tools]
-            tool_names = {tool.name for tool in tools_response.tools}
-            tool_schemas = {tool.name: tool.inputSchema for tool in tools_response.tools}
+    manager = McpClientManager(registry, QA_MCP_PYTHON)
+    async with manager:
+        try:
+            bindings = await manager.attach(service_selection.server_ids)
+        except McpHostError as exc:
+            return {
+                "ok": False,
+                "tool_used": False,
+                "answer": "",
+                "error": f"MCP服务不可用：{exc}",
+                "server_selection": {
+                    "server_ids": list(service_selection.server_ids),
+                    "domains": list(service_selection.matched_domains),
+                    "reasons": list(service_selection.reasons),
+                },
+            }
+        # A partial attach is not a request-level failure.  The cross-source
+        # executor records the unavailable server as a missing source and
+        # returns already successful facts deterministically.  A total attach
+        # failure still raises McpHostError above.
+        async with manager.execution_scope() as session:
+            tools = manager.ollama_tools()
+            tool_names = {binding.exposed_name for binding in bindings}
+            tool_schemas = {binding.exposed_name: binding.input_schema for binding in bindings}
+            tool_servers = {binding.exposed_name: binding.server_id for binding in bindings}
             policy_limits = ToolPolicyLimits(
                 max_argument_chars=max(1000, QA_MCP_MAX_ARGUMENT_CHARS),
                 max_array_items=max(1, QA_MCP_MAX_ARRAY_ITEMS),
             )
             tool_call_count = 0
 
-            question = routing_question or last_user_question(working_messages)
+            # --- Cross-source plan path (REQ-8093-CROSS-SOURCE-MCP-20260805) ---
+            cross_source_plan = build_cross_source_plans(question, service_selection)
+            if cross_source_plan is not None and len(set(s.step_id for s in cross_source_plan.steps)) >= 2:
+                # Execute via cross-source DAG executor
+                child_timeout = float(
+                    os.environ.get(
+                        "BF_QA_MCP_CROSS_SOURCE_CHILD_TIMEOUT_SECONDS", "15"
+                    )
+                )
+                cross_source_budget = float(
+                    os.environ.get(
+                        "BF_QA_MCP_CROSS_SOURCE_BUDGET_SECONDS", "45"
+                    )
+                )
+                from mcp_host.cross_source_executor import execute_cross_source_plan
+
+                snapshot = await execute_cross_source_plan(
+                    plan=cross_source_plan,
+                    manager=manager,
+                    session=session,
+                    tool_schemas=tool_schemas,
+                    tool_servers=tool_servers,
+                    policy_limits=policy_limits,
+                    tool_cache_get=qa_mcp_tool_cache_get,
+                    tool_cache_put=qa_mcp_tool_cache_put,
+                    execution_started=execution_started,
+                    budget_seconds=cross_source_budget,
+                    child_timeout_seconds=child_timeout,
+                    emit=emit,
+                )
+
+                # Build trace from source_status
+                for ss in snapshot.source_status or ():
+                    trace.append({
+                        "round": 0,
+                        "route": "cross_source_dag",
+                        "tool": ss.get("tool", ""),
+                        "server_id": ss.get("server_id", ""),
+                        "arguments": ss.get("arguments", {}),
+                        "cache_hit": ss.get("cache_hit", False),
+                        "policy": {"ok": ss.get("ok", False), "policy": "live_mcp_schema_readonly"},
+                        "result": {"ok": ss.get("ok"), "error_code": ss.get("error_code")},
+                        "orchestration_id": snapshot.orchestration_id,
+                        "step_id": ss.get("step_id"),
+                        "required_for_analysis": ss.get("required_for_analysis"),
+                        "elapsed_ms": ss.get("elapsed_ms"),
+                    })
+                cross_snapshot_payload = cross_source_snapshot_payload(snapshot)
+
+                if not snapshot.ok:
+                    return {
+                        "ok": False,
+                        "tool_used": True,
+                        "answer": "",
+                        "error": "跨源数据查询失败，所有来源均未返回有效结果。",
+                        "tool_trace": trace,
+                        "mcp_cross_source": {
+                            "orchestration_id": snapshot.orchestration_id,
+                            "complete": snapshot.complete,
+                            "partial": snapshot.partial,
+                            "analysis_allowed": snapshot.analysis_allowed,
+                            "error_code": snapshot.error_code,
+                            "total_elapsed_ms": snapshot.total_elapsed_ms,
+                        },
+                        "cross_source_snapshot": cross_snapshot_payload,
+                    }
+
+                # Fact-only queries: deterministic formatter, no model call
+                if not cross_source_plan.analysis_requested or not snapshot.analysis_allowed:
+                    answer = format_cross_source_answer(snapshot)
+                    return {
+                        "ok": True,
+                        "tool_used": True,
+                        "answer": answer,
+                        "tool_trace": trace,
+                        "answer_route": "cross_source_deterministic_formatter",
+                        "mcp_cross_source": {
+                            "orchestration_id": snapshot.orchestration_id,
+                            "complete": snapshot.complete,
+                            "partial": snapshot.partial,
+                            "analysis_allowed": snapshot.analysis_allowed,
+                            "error_code": snapshot.error_code,
+                            "step_count": len(cross_source_plan.steps),
+                            "success_count": sum(1 for f in snapshot.facts if not f.missing),
+                            "total_elapsed_ms": snapshot.total_elapsed_ms,
+                        },
+                        "cross_source_snapshot": cross_snapshot_payload,
+                    }
+
+                # Analysis requested + evidence complete → one low-temp model call
+                fact_answer = format_cross_source_answer(snapshot)
+                analysis_max_tokens = int(
+                    os.environ.get(
+                        "BF_QA_MCP_CROSS_SOURCE_ANALYSIS_MAX_TOKENS", "360"
+                    )
+                )
+                analysis_messages = [
+                    {"role": "system", "content": (
+                        "你是高炉工艺助手。以下为已确认的跨数据源查询事实。"
+                        "你只能基于这些事实进行解释，不得编造、猜测或建议操作。"
+                        "输出应简洁，只解释用户问到的数据之间的关系。"
+                    )},
+                    {"role": "user", "content": (
+                        f"用户问题：{question}\n\n"
+                        f"以下为查询结果：\n{fact_answer}\n\n"
+                        f"请基于以上事实回答用户的分析需求。"
+                    )},
+                ]
+                try:
+                    analysis_response = call_ollama_chat_obj(
+                        analysis_messages,
+                        tools=None,
+                        temperature=0.1,
+                        max_tokens=analysis_max_tokens,
+                    )
+                    analysis_text = clean_llm_output(
+                        (analysis_response.get("message") or {}).get("content")
+                        or analysis_response.get("response") or ""
+                    )
+                except Exception:
+                    analysis_text = None
+
+                answer = format_cross_source_answer(snapshot, analysis_text)
+                return {
+                    "ok": True,
+                    "tool_used": True,
+                    "answer": answer,
+                    "tool_trace": trace,
+                    "answer_route": "cross_source_with_analysis",
+                    "mcp_cross_source": {
+                        "orchestration_id": snapshot.orchestration_id,
+                        "complete": snapshot.complete,
+                        "partial": snapshot.partial,
+                        "analysis_allowed": snapshot.analysis_allowed,
+                        "error_code": snapshot.error_code,
+                        "analysis_status": "ok" if analysis_text else "failed",
+                        "step_count": len(cross_source_plan.steps),
+                        "success_count": sum(1 for f in snapshot.facts if not f.missing),
+                        "total_elapsed_ms": snapshot.total_elapsed_ms,
+                    },
+                    "cross_source_snapshot": cross_snapshot_payload,
+                }
+
+            # --- Existing single-plan fast path (unchanged) ---
+            imes_plan = qa_mcp_imes_plan(question)
             chart_plan = qa_mcp_chart_plan(question)
             standard_plan = qa_mcp_standard_analysis_plan(question)
             sensor_plan = qa_mcp_sensor_query_plan(question)
-            deterministic_plan = chart_plan or standard_plan or sensor_plan
+            # Body-temperature-only questions may attach the extended server
+            # whose exposed tool is namespaced and layer/position based.
+            if (
+                sensor_plan
+                and "gl02-extended" in service_selection.server_ids
+                and "gl02-data" not in service_selection.server_ids
+            ):
+                body_variables = sensor_plan.get("arguments", {}).get("variables") or []
+                if len(body_variables) == 1:
+                    body_match = re.fullmatch(
+                        r"T_body_L(7|8|9|1[0-6])_([A-H])", str(body_variables[0])
+                    )
+                    if body_match:
+                        sensor_plan = {
+                            "tool": "gl02ext__query_body_temperature",
+                            "arguments": {
+                                "layer": int(body_match.group(1)),
+                                "position": body_match.group(2),
+                                "include_history": False,
+                            },
+                        }
+            deterministic_plan = imes_plan or chart_plan or standard_plan or sensor_plan
             if deterministic_plan and deterministic_plan["tool"] in tool_names:
                 name = deterministic_plan["tool"]
                 args = deterministic_plan["arguments"]
                 route = (
-                    "deterministic_chart"
+                    "deterministic_imes_query"
+                    if imes_plan
+                    else "deterministic_chart"
                     if chart_plan
                     else "standard_composite_analysis"
                     if standard_plan
@@ -4605,6 +5519,7 @@ async def qa_mcp_tool_loop_async(
                     "round": 0,
                     "route": route,
                     "tool": name,
+                    "server_id": tool_servers.get(name),
                     "arguments": args,
                     "cache_hit": cache_hit,
                     "policy": {"ok": True, "policy": policy["policy"]},
@@ -4643,9 +5558,10 @@ async def qa_mcp_tool_loop_async(
 
             for round_index in range(max(1, QA_MCP_MAX_TOOL_ROUNDS)):
                 planner_messages = qa_mcp_planner_messages(working_messages)
+                planner_tools = qa_mcp_planner_tools(question, tools)
                 response = call_ollama_chat_obj(
                     planner_messages,
-                    tools=tools,
+                    tools=planner_tools,
                     temperature=QA_MCP_PLANNER_TEMPERATURE,
                     max_tokens=QA_MCP_PLANNER_MAX_TOKENS,
                 )
@@ -4668,7 +5584,21 @@ async def qa_mcp_tool_loop_async(
                     args = tool_call["arguments"]
                     tool_call_count += 1
                     if emit:
-                        emit("tool_start", {"tool": name, "arguments": args, "round": round_index + 1})
+                        emit(
+                            "tool_start",
+                            {
+                                "tool": name,
+                                "arguments": args,
+                                "round": round_index + 1,
+                                "route": "model_planner",
+                                "server_id": tool_servers.get(name),
+                                "planner_call": {
+                                    "name": name,
+                                    "arguments": args,
+                                },
+                                "planner_catalog_size": len(planner_tools),
+                            },
+                        )
                     if tool_call_count > max(1, QA_MCP_MAX_TOOL_CALLS):
                         policy = {
                             "ok": False,
@@ -4719,6 +5649,7 @@ async def qa_mcp_tool_loop_async(
                         "round": round_index + 1,
                         "route": "model_planner",
                         "tool": name,
+                        "server_id": tool_servers.get(name),
                         "arguments": args,
                         "cache_hit": cache_hit,
                         "policy": {
@@ -4733,6 +5664,26 @@ async def qa_mcp_tool_loop_async(
                         emit("tool_result", trace_item)
                     if tool_call_count >= max(1, QA_MCP_MAX_TOOL_CALLS):
                         break
+
+                if (
+                    len(tool_calls) == 1
+                    and trace
+                    and trace[-1].get("tool") == "imes__query_heat_chemistry"
+                    and trace[-1].get("policy", {}).get("ok")
+                    and not qa_mcp_agent_planning_intent(question)
+                ):
+                    direct_answer = deterministic_mcp_answer(
+                        "imes__query_heat_chemistry", result_text
+                    )
+                    if direct_answer:
+                        return {
+                            "ok": True,
+                            "tool_used": True,
+                            "answer": direct_answer,
+                            "messages": working_messages,
+                            "tool_trace": trace,
+                            "answer_route": "model_planner_then_deterministic_formatter",
+                        }
 
                 if stop_after_tool_round:
                     return {
@@ -4857,7 +5808,12 @@ def qa_should_search_knowledge(question: str, mcp_prefetch: dict[str, Any] | Non
     return True, "default_knowledge_search"
 
 
-def qa_search_knowledge(question: str, mode: str | None = None, mcp_prefetch: dict[str, Any] | None = None) -> dict[str, Any]:
+def qa_search_knowledge(
+    question: str,
+    mode: str | None = None,
+    mcp_prefetch: dict[str, Any] | None = None,
+    connection: Any | None = None,
+) -> dict[str, Any]:
     if not QA_KNOWLEDGE_ENABLED:
         return {"enabled": False, "evidence": [], "message": "知识库检索已关闭"}
     should_search, reason = qa_should_search_knowledge(question, mcp_prefetch)
@@ -4873,6 +5829,7 @@ def qa_search_knowledge(question: str, mode: str | None = None, mcp_prefetch: di
         db_path=QA_KNOWLEDGE_DB_PATH,
         top_k=QA_KNOWLEDGE_TOP_K,
         mode=mode or QA_KNOWLEDGE_SEARCH_MODE,
+        connection=connection,
     )
 
 
@@ -5035,6 +5992,388 @@ def qa_sse_event(event: str, payload: object) -> bytes:
     return f"event: {event}\n".encode("utf-8") + b"data: " + json_bytes(payload) + b"\n\n"
 
 
+def load_five_minute_diagnosis_context(
+    target_label: str | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Read the latest diagnosis and trusted evidence for one selected condition."""
+    review_store = diagnosis_review.DiagnosisReviewStore()
+    normalized_rows = review_store.read_latest_diagnosis_rows(
+        limit=max(32, DIAGNOSIS_AI_ANALYSIS_HISTORY_LIMIT)
+    )
+    canonical = diagnosis_review.derive_current_episode(
+        normalized_rows, furnace_id="BF"
+    )
+    if canonical.get("available"):
+        evidence_rows = review_store.read_diagnosis_evidence_rows(
+            diagnosis_ts=canonical["diagnosis_ts"],
+            variables=diag_ai_evidence.SENSOR_VARIABLES,
+            window_minutes=60,
+            baseline_days=30,
+        )
+        variable_stats = diag_ai_evidence.build_variable_stats(
+            evidence_rows.get("sensor_rows") or [],
+            evidence_rows.get("baseline_rows") or [],
+            canonical["diagnosis_ts"],
+        )
+        feature_snapshot = canonical.get("feature_snapshot")
+        feature_snapshot = feature_snapshot if isinstance(feature_snapshot, Mapping) else {}
+        rule_drivers = diag_ai_evidence.build_rule_driver_context(
+            feature_snapshot, variable_stats
+        )
+        secondary_rows = canonical.get("secondary")
+        secondary_rows = secondary_rows if isinstance(secondary_rows, list) else []
+        secondary_label = next(
+            (
+                str(row.get("label"))
+                for row in secondary_rows
+                if isinstance(row, Mapping) and row.get("label")
+            ),
+            None,
+        )
+        selected_label = str(target_label or canonical.get("main_label") or "normal")
+        if selected_label not in diagnosis_model_review.DIAGNOSIS_LABELS:
+            selected_label = str(canonical.get("main_label") or "normal")
+        diagnosis_payload = {
+            "timestamp": canonical.get("diagnosis_ts"),
+            "main_label": canonical.get("main_label"),
+            "main_score": canonical.get("main_score"),
+            "secondary_label": secondary_label,
+            "target_label": selected_label,
+            "raw_scores": canonical.get("raw_scores") or {},
+            "feature_snapshot": feature_snapshot,
+        }
+        evidence_terms = "、".join(
+            item
+            for item in diagnosis_model_review._text_list(
+                canonical.get("evidence"), limit=6
+            )
+            if item
+        )
+        knowledge_question = (
+            f"{diagnosis_model_review.DISPLAY_NAMES[selected_label]}的现象特征、"
+            "复查传感器、数据变化、候选调节方向和现场复盘依据。"
+            f"本次只分析{diagnosis_model_review.DISPLAY_NAMES[selected_label]}。"
+            f"当前证据：{evidence_terms or '以规则变量和趋势为准'}。"
+        )
+        if QA_KNOWLEDGE_ENABLED:
+            knowledge_pack = search_knowledge(
+                knowledge_question,
+                db_path=QA_KNOWLEDGE_DB_PATH,
+                top_k=max(8, min(QA_KNOWLEDGE_TOP_K, 10)),
+                mode=QA_KNOWLEDGE_SEARCH_MODE,
+                source_doc_ids=[diag_ai_evidence.FOREMAN_KNOWLEDGE_DOC_ID],
+            )
+        else:
+            knowledge_pack = {
+                "enabled": False,
+                "evidence": [],
+                "message": "知识库检索已关闭",
+                "retrieval_mode": QA_KNOWLEDGE_SEARCH_MODE,
+                "source_doc_ids": [diag_ai_evidence.FOREMAN_KNOWLEDGE_DOC_ID],
+            }
+        knowledge_context = diag_ai_evidence.normalize_knowledge_pack(
+            knowledge_pack, limit=10
+        )
+        recommendation_context = (
+            diag_ai_evidence.build_foreman_knowledge_recommendation_bundle(
+                diagnosis_payload,
+                diag_ai_evidence.latest_values(variable_stats),
+                knowledge_context,
+                variable_stats,
+                target_label=selected_label,
+            )
+            if DIAGNOSIS_ADVICE_SOURCE == "foreman_knowledge_only"
+            else {
+                "available": False,
+                "conditions": {},
+                "engine_meta": {"read_only": True},
+                "source_mode": DIAGNOSIS_ADVICE_SOURCE,
+                "read_only": True,
+                "error": "智能分析只允许使用64主题知识库",
+            }
+        )
+        canonical.update(
+            {
+                "variable_stats": variable_stats,
+                "rule_drivers": rule_drivers,
+                "recommendation_context": recommendation_context,
+                "sensor_deviation_summary": recommendation_context.get(
+                    "sensor_deviation_summary"
+                ),
+                "knowledge_context": knowledge_context,
+            }
+        )
+    history = list(reversed(normalized_rows[:DIAGNOSIS_AI_ANALYSIS_HISTORY_LIMIT]))
+    return canonical, history
+
+
+def current_five_minute_analysis_context(
+    target_label: str | None = None,
+) -> dict[str, Any]:
+    """Return the normalized, server-owned context for the current five-minute bucket."""
+    canonical, history = load_five_minute_diagnosis_context(target_label)
+    return diagnosis_model_review.normalize_five_minute_context(
+        canonical,
+        history,
+        bucket_minutes=DIAGNOSIS_AI_ANALYSIS_BUCKET_MINUTES,
+    )
+
+
+def current_core_variable_evidence(target_label: str) -> dict[str, Any]:
+    """Return trusted core curves without model, recommendation, or knowledge work."""
+    review_store = diagnosis_review.DiagnosisReviewStore()
+    normalized_rows = review_store.read_latest_diagnosis_rows(
+        limit=max(32, DIAGNOSIS_AI_ANALYSIS_HISTORY_LIMIT)
+    )
+    canonical = diagnosis_review.derive_current_episode(
+        normalized_rows, furnace_id="BF"
+    )
+    if not canonical.get("available"):
+        raise RuntimeError("current diagnosis is unavailable")
+    evidence_rows = review_store.read_diagnosis_evidence_rows(
+        diagnosis_ts=canonical["diagnosis_ts"],
+        variables=diag_ai_evidence.SENSOR_VARIABLES,
+        window_minutes=60,
+        baseline_days=30,
+    )
+    variable_stats = diag_ai_evidence.build_variable_stats(
+        evidence_rows.get("sensor_rows") or [],
+        evidence_rows.get("baseline_rows") or [],
+        canonical["diagnosis_ts"],
+    )
+    feature_snapshot = canonical.get("feature_snapshot")
+    feature_snapshot = feature_snapshot if isinstance(feature_snapshot, Mapping) else {}
+    rule_drivers = diag_ai_evidence.build_rule_driver_context(
+        feature_snapshot, variable_stats
+    )
+    selected_driver_rows = [
+        dict(item)
+        for item in (rule_drivers.get(target_label) or [])
+        if isinstance(item, Mapping)
+    ][:8]
+    core_rows = diag_ai_evidence.build_core_variable_evidence(
+        variable_stats, selected_driver_rows
+    )
+    context = diagnosis_model_review.normalize_five_minute_context(
+        canonical,
+        [],
+        bucket_minutes=DIAGNOSIS_AI_ANALYSIS_BUCKET_MINUTES,
+    )
+    return {
+        "schema_version": "diagnosis_core_evidence.v1",
+        "state": "available",
+        "target_label": target_label,
+        "target_display_name": diagnosis_model_review.DISPLAY_NAMES[target_label],
+        "diagnosis_ts": context.get("diagnosis_ts"),
+        "bucket_ts": context.get("bucket_ts"),
+        "bucket_minutes": context.get("bucket_minutes"),
+        "rule_score": float((context.get("scores") or {}).get(target_label, 0.0)),
+        "core_variable_evidence": core_rows,
+        "core_variable_count": len(diag_ai_evidence.CORE_EVIDENCE_VARIABLES),
+        "core_series_window_minutes": 60,
+        "read_only": True,
+    }
+
+
+def five_minute_analysis_store() -> diagnosis_review.DiagnosisReviewStore:
+    """Return the loopback-only PostgreSQL store used by diagnosis review features."""
+    store = diagnosis_review.DiagnosisReviewStore()
+    store.ensure_schema()
+    return store
+
+
+def _analysis_retry_due(row: dict[str, Any] | None) -> bool:
+    if not row or row.get("generation_state") != "failed":
+        return True
+    updated = row.get("updated_at")
+    if not isinstance(updated, datetime):
+        return True
+    if updated.tzinfo is None:
+        updated = updated.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - updated).total_seconds() >= DIAGNOSIS_AI_ANALYSIS_RETRY_SECONDS
+
+
+def run_five_minute_analysis_once(
+    *, target_label: str | None = None, retry_failed: bool = False
+) -> dict[str, Any]:
+    """Generate only one selected condition for the latest diagnosis bucket."""
+    if not DIAGNOSIS_AI_ANALYSIS_ENABLED:
+        return {"state": "disabled"}
+    if not _DIAGNOSIS_AI_ANALYSIS_LOCK.acquire(blocking=False):
+        return {"state": "reasoning", "queued": False}
+    context: dict[str, Any] | None = None
+    store: diagnosis_review.DiagnosisReviewStore | None = None
+    try:
+        context = current_five_minute_analysis_context(target_label)
+        label = str(target_label or context.get("main_label") or "normal")
+        prompt_version = diagnosis_model_review.single_condition_prompt_version(label)
+        store = five_minute_analysis_store()
+        existing = store.get_ai_analysis(
+            furnace_id=str(context["furnace_id"]),
+            bucket_ts=context["bucket_ts"],
+            prompt_version=prompt_version,
+        )
+        if existing and existing.get("generation_state") == "completed":
+            return existing
+        if existing and existing.get("generation_state") == "failed":
+            if not retry_failed and not _analysis_retry_due(existing):
+                return existing
+        internal_model = normalize_model(None)
+        snapshot_hash = diagnosis_model_review.five_minute_analysis_key(
+            context, internal_model, target_label=label
+        )
+        store.begin_ai_analysis(
+            context,
+            prompt_version=prompt_version,
+            snapshot_hash=snapshot_hash,
+            model_public_name=PUBLIC_MODEL_NAME,
+        )
+        messages = diagnosis_model_review.build_single_condition_analysis_messages(
+            context, label
+        )
+        answer = call_ollama_chat(messages, temperature=0.05, max_tokens=1200)
+        parsed = diagnosis_model_review.parse_single_condition_analysis_payload(
+            answer, label, context
+        )
+        completed = diagnosis_model_review.build_completed_five_minute_analysis(
+            context,
+            {"analyses": [parsed["analysis"]]},
+            public_model_name=PUBLIC_MODEL_NAME,
+            snapshot_hash=snapshot_hash,
+        )
+        store.complete_ai_analysis(
+            furnace_id=str(context["furnace_id"]),
+            bucket_ts=context["bucket_ts"],
+            prompt_version=prompt_version,
+            snapshot_hash=snapshot_hash,
+            analyses=completed["analyses"],
+        )
+        return completed
+    except Exception as exc:  # noqa: BLE001
+        if context is not None and store is not None:
+            try:
+                store.fail_ai_analysis(
+                    furnace_id=str(context["furnace_id"]),
+                    bucket_ts=context["bucket_ts"],
+                    prompt_version=diagnosis_model_review.single_condition_prompt_version(
+                        str(target_label or context.get("main_label") or "normal")
+                    ),
+                    error_code=type(exc).__name__,
+                )
+            except Exception:
+                pass
+        print(
+            "five-minute diagnosis AI analysis failed: "
+            + sanitize_model_exposure(type(exc).__name__)
+        )
+        return {"state": "failed", "error_type": type(exc).__name__}
+    finally:
+        _DIAGNOSIS_AI_ANALYSIS_LOCK.release()
+
+
+def queue_five_minute_analysis(
+    *, target_label: str | None = None, retry_failed: bool = False
+) -> bool:
+    """Queue a non-blocking generation attempt; duplicate work is lock-deduplicated."""
+    if not DIAGNOSIS_AI_ANALYSIS_ENABLED or _DIAGNOSIS_AI_ANALYSIS_LOCK.locked():
+        return False
+    thread = threading.Thread(
+        target=run_five_minute_analysis_once,
+        kwargs={"target_label": target_label, "retry_failed": retry_failed},
+        name=f"diagnosis-ai-analysis-{target_label or 'main'}",
+        daemon=True,
+    )
+    thread.start()
+    return True
+
+
+def _five_minute_analysis_scheduler() -> None:
+    _DIAGNOSIS_AI_ANALYSIS_STOP.wait(3.0)
+    while not _DIAGNOSIS_AI_ANALYSIS_STOP.is_set():
+        run_five_minute_analysis_once()
+        _DIAGNOSIS_AI_ANALYSIS_STOP.wait(DIAGNOSIS_AI_ANALYSIS_POLL_SECONDS)
+
+
+def start_five_minute_analysis_scheduler() -> None:
+    """Start the single daemon scheduler after the proxy startup checks pass."""
+    global _DIAGNOSIS_AI_ANALYSIS_THREAD
+    if not DIAGNOSIS_AI_ANALYSIS_ENABLED or not DIAGNOSIS_AI_ANALYSIS_BACKGROUND_ENABLED:
+        return
+    if _DIAGNOSIS_AI_ANALYSIS_THREAD and _DIAGNOSIS_AI_ANALYSIS_THREAD.is_alive():
+        return
+    five_minute_analysis_store()
+    _DIAGNOSIS_AI_ANALYSIS_THREAD = threading.Thread(
+        target=_five_minute_analysis_scheduler,
+        name="diagnosis-ai-analysis-scheduler",
+        daemon=True,
+    )
+    _DIAGNOSIS_AI_ANALYSIS_THREAD.start()
+
+
+def public_five_minute_analysis(
+    context: Mapping[str, Any],
+    row: Mapping[str, Any] | None,
+    target_label: str,
+) -> dict[str, Any]:
+    """Build a browser-safe response for one selected furnace condition."""
+    state = str((row or {}).get("generation_state") or "preparing")
+    analyses = (row or {}).get("analyses")
+    analyses = analyses if isinstance(analyses, list) else []
+    selected = next(
+        (item for item in analyses if isinstance(item, Mapping) and item.get("label") == target_label),
+        None,
+    )
+    if state == "completed" and selected is None:
+        state = "failed"
+    variable_stats = context.get("variable_stats")
+    variable_stats = variable_stats if isinstance(variable_stats, Mapping) else {}
+    rule_drivers = context.get("rule_drivers")
+    rule_drivers = rule_drivers if isinstance(rule_drivers, Mapping) else {}
+    selected_driver_rows = [
+        dict(item)
+        for item in (rule_drivers.get(target_label) or [])
+        if isinstance(item, Mapping)
+    ][:8]
+    core_variable_evidence = diag_ai_evidence.build_core_variable_evidence(
+        variable_stats, selected_driver_rows
+    )
+    return {
+        "schema_version": diagnosis_model_review.FIVE_MINUTE_SCHEMA_VERSION,
+        "state": state,
+        "target_label": target_label,
+        "target_display_name": diagnosis_model_review.DISPLAY_NAMES[target_label],
+        "diagnosis_ts": context.get("diagnosis_ts"),
+        "bucket_ts": context.get("bucket_ts"),
+        "bucket_minutes": context.get("bucket_minutes"),
+        "main_label": context.get("main_label"),
+        "main_display_name": diagnosis_model_review.DISPLAY_NAMES.get(
+            str(context.get("main_label") or "normal"), "正常顺行"
+        ),
+        "rule_score": float((context.get("scores") or {}).get(target_label, 0.0)),
+        "analysis": dict(selected) if selected else None,
+        # Trusted sensor evidence is available before model prose completes.
+        # This keeps operator curves usable during preparing/failed states.
+        "core_variable_evidence": core_variable_evidence,
+        "core_variable_count": len(diag_ai_evidence.CORE_EVIDENCE_VARIABLES),
+        "core_series_window_minutes": 60,
+        "attempt_count": int((row or {}).get("attempt_count") or 0),
+        "created_at": (row or {}).get("completed_at") or (row or {}).get("updated_at"),
+        "retry_after_seconds": int(DIAGNOSIS_AI_ANALYSIS_RETRY_SECONDS),
+        "read_only": True,
+        "score_semantics": "规则符合度与模型证据吻合度，均不是概率",
+    }
+
+
+# OPS-8093-HTTP-STATIC-STABILITY-20260806-R1
+class BlastFurnaceThreadingHTTPServer(ThreadingHTTPServer):
+    """Threaded server sized for browser cold-start resource bursts."""
+
+    request_queue_size = max(32, int(os.environ.get("BF_8093_HTTP_REQUEST_QUEUE_SIZE", "128")))
+    daemon_threads = True
+    block_on_close = False
+    allow_reuse_address = True
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "BlastFurnaceOllamaProxy/1.0"
 
@@ -5054,17 +6393,77 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/ollama/status":
             self.handle_ollama_status()
             return
+        if parsed.path == "/api/qa/mcp/health":
+            self.handle_qa_mcp_health()
+            return
+        if parsed.path == "/api/heat-performance-quality":
+            self.handle_heat_performance_quality(parsed.query)
+            return
+        if parsed.path == "/api/si-v20/status":
+            self.handle_si_v20_status(parsed.query)
+            return
+        if parsed.path == "/api/si-v20/history":
+            self.handle_si_v20_history(parsed.query)
+            return
+        if parsed.path == "/api/si-v20/hourly-history":
+            self.handle_si_v20_hourly_history(parsed.query)
+            return
+        if parsed.path == "/api/si-v20/strict-hourly/status":
+            self.handle_si_v20_strict_hourly_status()
+            return
+        if parsed.path == "/api/si-v20/strict-hourly/history":
+            self.handle_si_v20_strict_hourly_history(parsed.query)
+            return
+        if parsed.path == "/api/si-v20/hourly-table":
+            self.handle_si_v20_hourly_table(parsed.query)
+            return
+        if parsed.path == "/api/si-v20/schedule":
+            self.handle_si_v20_schedule_status()
+            return
+        if parsed.path == "/api/si-v20/scheduled-history":
+            self.handle_si_v20_scheduled_history(parsed.query)
+            return
+        if parsed.path == "/api/si-v20/data-readiness":
+            self.handle_si_v20_data_readiness(parsed.query)
+            return
+        if parsed.path == "/api/si-v20/prediction-detail":
+            self.handle_si_v20_prediction_detail(parsed.query)
+            return
         if parsed.path == "/api/auth/status":
             self.handle_auth_status()
             return
         if parsed.path == "/api/diagnosis-review-context":
             self.handle_diagnosis_review_context(parsed.query)
             return
+        if parsed.path == "/api/diagnosis-ai-analysis":
+            self.handle_diagnosis_ai_analysis_get(parsed.query)
+            return
+        if parsed.path == "/api/diagnosis-core-evidence":
+            self.handle_diagnosis_core_evidence_get(parsed.query)
+            return
         if parsed.path == "/api/diagnosis-reviews":
             self.handle_diagnosis_reviews_get(parsed.query)
             return
         if parsed.path == "/api/diagnosis-manual-scores":
             self.handle_diagnosis_manual_scores_get(parsed.query)
+            return
+        if parsed.path == "/api/furnace-rules/latest":
+            self.handle_furnace_rules_latest()
+            return
+        if parsed.path.startswith("/api/furnace-rules/") and parsed.path.endswith("/detail"):
+            self.handle_furnace_rule_detail(unquote(parsed.path).split("/")[3])
+            return
+        if parsed.path.startswith("/api/furnace-rules/") and parsed.path.endswith("/trends"):
+            self.handle_furnace_rule_trends(unquote(parsed.path).split("/")[3])
+            return
+        if parsed.path.startswith("/api/admin/furnace-rules/evaluations/"):
+            self.handle_admin_furnace_rule_detail(unquote(parsed.path))
+            return
+        if parsed.path == "/api/admin/furnace-rules/latest-full":
+            self.handle_admin_furnace_rules_latest_full()
+            return
+        if parsed.path == "/api/admin/furnace-rules/config":
+            self.handle_admin_abc_config_get()
             return
         if parsed.path == "/api/qa/bootstrap":
             self.handle_qa_bootstrap(parsed.query)
@@ -5077,6 +6476,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/qa/knowledge/search":
             self.handle_qa_knowledge_search(parsed.query)
+            return
+        if parsed.path == "/api/qa/knowledge/chunk":
+            self.handle_qa_knowledge_chunk(parsed.query)
             return
         if parsed.path == "/api/qa/knowledge/vector/search":
             self.handle_qa_knowledge_search(parsed.query, forced_mode="vector")
@@ -5114,7 +6516,7 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/short-window/conversation":
             self.handle_short_window_conversation(parsed.query)
             return
-        self.serve_static(parsed.path)
+        self.serve_static(parsed.path, parsed.query)
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
@@ -5135,6 +6537,39 @@ class Handler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/diagnosis-manual-scores":
             self.handle_diagnosis_manual_scores_post()
+            return
+        if parsed.path == "/api/diagnosis/model-review":
+            self.handle_diagnosis_model_review_post()
+            return
+        if parsed.path == "/api/diagnosis-ai-analysis/retry":
+            self.handle_diagnosis_ai_analysis_retry()
+            return
+        if parsed.path == "/api/si-v20/predict":
+            self.handle_si_v20_predict()
+            return
+        if parsed.path == "/api/si-v20/hourly-predict":
+            self.handle_si_v20_hourly_predict()
+            return
+        if parsed.path == "/api/si-v20/strict-hourly/predict":
+            self.handle_si_v20_strict_hourly_predict()
+            return
+        if parsed.path == "/api/si-v20/strict-hourly/dispatch":
+            self.handle_si_v20_strict_hourly_dispatch()
+            return
+        if parsed.path == "/api/si-v20/replay":
+            self.handle_si_v20_replay()
+            return
+        if parsed.path == "/api/si-v20/schedule/configure":
+            self.handle_si_v20_schedule_configure()
+            return
+        if parsed.path == "/api/si-v20/schedule/dispatch":
+            self.handle_si_v20_schedule_dispatch()
+            return
+        if parsed.path == "/api/si-v20/scheduled-replay":
+            self.handle_si_v20_scheduled_replay()
+            return
+        if parsed.path == "/api/admin/furnace-rules/config/publish":
+            self.handle_admin_abc_config_publish()
             return
         if parsed.path == "/api/qa/conversations":
             self.handle_qa_new_conversation()
@@ -5174,6 +6609,76 @@ class Handler(BaseHTTPRequestHandler):
         if not raw:
             return {}
         return json.loads(raw.decode("utf-8"))
+
+    def handle_diagnosis_model_review_post(self) -> None:
+        """Generate or return a cached, read-only model review for one diagnosis score.
+
+        Corresponding requirement:
+        REQ-OPT-MULTI-CONDITION-LLM-REVIEW-20260805.
+        """
+        if not DIAGNOSIS_MODEL_REVIEW_ENABLED:
+            self.send_json(
+                {
+                    "ok": False,
+                    "model_review": {
+                        "schema_version": diagnosis_model_review.SCHEMA_VERSION,
+                        "state": "failed",
+                        "message": "后台高炉大模型复核未启用",
+                        "read_only": True,
+                    },
+                },
+                status=503,
+            )
+            return
+        try:
+            body = self.read_json_body()
+            context = diagnosis_model_review.normalize_review_context(body)
+            internal_model = normalize_model(None)
+            cache_key = diagnosis_model_review.review_cache_key(context, internal_model)
+            if not bool(body.get("force")):
+                cached = _DIAGNOSIS_MODEL_REVIEW_CACHE.get(cache_key)
+                if cached:
+                    self.send_json({"ok": True, "model_review": cached})
+                    return
+
+            messages = diagnosis_model_review.build_review_messages(context)
+            answer = call_ollama_chat(messages, temperature=0.05, max_tokens=1200)
+            parsed = diagnosis_model_review.parse_model_payload(answer)
+            review = diagnosis_model_review.build_completed_review(
+                context,
+                parsed,
+                public_model_name=PUBLIC_MODEL_NAME,
+                snapshot_hash=cache_key,
+            )
+            _DIAGNOSIS_MODEL_REVIEW_CACHE.put(cache_key, review)
+            self.send_json({"ok": True, "model_review": review})
+        except diagnosis_model_review.ModelReviewValidationError as exc:
+            self.send_json(
+                {
+                    "ok": False,
+                    "model_review": {
+                        "schema_version": diagnosis_model_review.SCHEMA_VERSION,
+                        "state": "failed",
+                        "message": str(exc),
+                        "read_only": True,
+                    },
+                },
+                status=400,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {
+                    "ok": False,
+                    "model_review": {
+                        "schema_version": diagnosis_model_review.SCHEMA_VERSION,
+                        "state": "failed",
+                        "message": "后台高炉大模型复核暂不可用，请稍后重试",
+                        "error_type": type(exc).__name__,
+                        "read_only": True,
+                    },
+                },
+                status=502,
+            )
 
     def handle_auth_status(self) -> None:
         accounts = configured_login_accounts()
@@ -5228,40 +6733,215 @@ class Handler(BaseHTTPRequestHandler):
     def current_review_session(self) -> dict[str, Any] | None:
         return diagnosis_review.session_from_cookie(self.headers.get("Cookie", ""))
 
+    def _abc_connection(self):
+        return _assistant_raw_pg_connect()
+
+    def _abc_admin_required(self) -> bool:
+        session = self.current_review_session()
+        role = str((session or {}).get("role") or "")
+        if not session or not ("admin" in role.lower() or "管理" in role):
+            self.send_json({"ok": False, "error": "admin_required"}, status=403)
+            return False
+        return True
+
+    def _abc_admin_write_required(self) -> bool:
+        if not self._abc_admin_required():
+            return False
+        origin = str(self.headers.get("Origin") or "").strip()
+        host = str(self.headers.get("Host") or "").strip()
+        parsed_origin = urlparse(origin) if origin else None
+        if not parsed_origin or parsed_origin.netloc != host or parsed_origin.scheme not in {"http", "https"}:
+            self.send_json({"ok": False, "error": "same_origin_required"}, status=403)
+            return False
+        if self.headers.get("X-BF-Admin-Action") != "publish-abc-rule-config":
+            self.send_json({"ok": False, "error": "admin_action_header_required"}, status=403)
+            return False
+        return True
+
+    def handle_furnace_rules_latest(self) -> None:
+        try:
+            with self._abc_connection() as conn:
+                batch = conn.execute(
+                    "SELECT id, evaluation_ts, catalog_version, config_version, public_bundle FROM bf_sensor.abc_rule_evaluation_batches ORDER BY evaluation_ts DESC, id DESC LIMIT 1"
+                ).fetchone()
+            if not batch:
+                self.send_json({"ok": True, "schema_version": "abc_rule_bundle.v1", "rules": [], "alerts": [], "state": "needs_data"})
+                return
+            data = dict(batch) if isinstance(batch, Mapping) else {"id": batch[0], "evaluation_ts": batch[1], "catalog_version": batch[2], "config_version": batch[3], "public_bundle": batch[4]}
+            bundle = data.get("public_bundle") or {}
+            self.send_json({"ok": True, "evaluation_id": data.get("id"), "evaluation_ts": data.get("evaluation_ts"), "catalog_version": data.get("catalog_version"), "config_version": data.get("config_version"), **bundle})
+        except Exception as exc:
+            self.send_json({"ok": False, "state": "needs_data", "error_type": type(exc).__name__}, status=503)
+
+    def handle_furnace_rule_detail(self, rule_id: str) -> None:
+        if rule_id not in RULE_BY_ID:
+            self.send_json({"ok": False, "error": "unknown_rule"}, status=404)
+            return
+        try:
+            with self._abc_connection() as conn:
+                row = conn.execute(
+                    """
+                    SELECT i.batch_id, b.evaluation_ts, i.public_detail
+                    FROM bf_sensor.abc_rule_evaluation_items i
+                    JOIN bf_sensor.abc_rule_evaluation_batches b ON b.id=i.batch_id
+                    WHERE i.rule_id=%s ORDER BY b.evaluation_ts DESC, b.id DESC LIMIT 1
+                    """, (rule_id,)
+                ).fetchone()
+                if row:
+                    raw_ts = row["evaluation_ts"] if isinstance(row, Mapping) else row[1]
+                    sensor_review = build_public_review(conn, rule_id, raw_ts)
+                else:
+                    sensor_review = None
+            if not row:
+                self.send_json({"ok": True, "state": "needs_data", "rule_id": rule_id})
+                return
+            data = dict(row) if isinstance(row, Mapping) else {"batch_id": row[0], "evaluation_ts": row[1], "public_detail": row[2]}
+            detail = public_rule(data.get("public_detail") or {"rule_id": rule_id})
+            self.send_json({
+                "ok": True,
+                "schema_version": "furnace_rule_detail.v2",
+                "evaluation_id": data.get("batch_id"),
+                "evaluation_ts": data.get("evaluation_ts"),
+                "detail": detail,
+                "sensor_review": sensor_review,
+            })
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
+    def handle_furnace_rule_trends(self, rule_id: str) -> None:
+        if rule_id not in RULE_BY_ID:
+            self.send_json({"ok": False, "error": "unknown_rule"}, status=404)
+            return
+        try:
+            with self._abc_connection() as conn:
+                rows = conn.execute(
+                    """
+                    SELECT b.evaluation_ts, i.score, i.confidence, i.status
+                    FROM bf_sensor.abc_rule_evaluation_items i
+                    JOIN bf_sensor.abc_rule_evaluation_batches b ON b.id=i.batch_id
+                    WHERE i.rule_id=%s ORDER BY b.evaluation_ts DESC, b.id DESC LIMIT 72
+                    """, (rule_id,)
+                ).fetchall()
+            self.send_json({"ok": True, "schema_version": "furnace_rule_trends.v1", "rule_id": rule_id, "points": [dict(row) if isinstance(row, Mapping) else {"evaluation_ts": row[0], "score": row[1], "confidence": row[2], "status": row[3]} for row in reversed(rows)]})
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
+    def handle_admin_furnace_rule_detail(self, path: str) -> None:
+        if not self._abc_admin_required():
+            return
+        parts = path.split("/")
+        if len(parts) < 7:
+            self.send_json({"ok": False, "error": "invalid_path"}, status=400)
+            return
+        try:
+            evaluation_id = int(parts[5])
+        except ValueError:
+            self.send_json({"ok": False, "error": "invalid_evaluation_id"}, status=400)
+            return
+        rule_id = parts[6]
+        try:
+            with self._abc_connection() as conn:
+                row = conn.execute("SELECT * FROM bf_sensor.abc_rule_evaluation_items WHERE batch_id=%s AND rule_id=%s", (evaluation_id, rule_id)).fetchone()
+            if not row:
+                self.send_json({"ok": False, "error": "not_found"}, status=404)
+                return
+            data = dict(row) if isinstance(row, Mapping) else {"rule_id": rule_id}
+            self.send_json({"ok": True, "schema_version": "furnace_rule_admin_detail.v1", "evaluation": data}, headers={"Cache-Control": "no-store"})
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
+    def handle_admin_furnace_rules_latest_full(self) -> None:
+        if not self._abc_admin_required():
+            return
+        try:
+            with self._abc_connection() as conn:
+                batch = conn.execute(
+                    "SELECT id,evaluation_ts,catalog_version,config_version FROM bf_sensor.abc_rule_evaluation_batches ORDER BY evaluation_ts DESC,id DESC LIMIT 1"
+                ).fetchone()
+                if not batch:
+                    self.send_json({"ok": True, "schema_version": "abc_rule_admin_runtime.v1", "rules": [], "state": "needs_data"}, headers={"Cache-Control": "no-store"})
+                    return
+                rows = conn.execute(
+                    """SELECT rule_id,category,display_name,score,confidence,status,weights,
+                              normalized_values,contributions,missing_features
+                       FROM bf_sensor.abc_rule_evaluation_items
+                       WHERE batch_id=%s ORDER BY category,rule_id""",
+                    (batch["id"],),
+                ).fetchall()
+            rules = []
+            for raw in rows:
+                item = dict(raw)
+                contributions = []
+                for value in item.get("contributions") or []:
+                    term = str(value.get("feature_key") or "")
+                    contributions.append({**value, "physical": abc_term_semantics(term)})
+                item["contributions"] = contributions
+                rules.append(item)
+            self.send_json({
+                "ok": True,
+                "schema_version": "abc_rule_admin_runtime.v1",
+                "evaluation_id": batch["id"],
+                "evaluation_ts": batch["evaluation_ts"],
+                "catalog_version": batch["catalog_version"],
+                "config_version": batch["config_version"],
+                "rules": rules,
+            }, headers={"Cache-Control": "no-store"})
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
+    def handle_admin_abc_config_get(self) -> None:
+        if not self._abc_admin_required():
+            return
+        try:
+            config = load_abc_config(ABC_CONFIG_PATH)
+            config.pop("config_path", None)
+            config.pop("config_hash", None)
+            catalog = []
+            for rule_id in sorted(RULE_BY_ID):
+                spec = RULE_BY_ID[rule_id]
+                overrides = ((config.get("rules") or {}).get(rule_id) or {}).get("weight_overrides") or {}
+                terms = []
+                for term, default_weight in spec.terms.items():
+                    terms.append({
+                        "feature_key": term,
+                        "default_weight": float(default_weight),
+                        "effective_weight": float(overrides.get(term, default_weight)),
+                        "physical": abc_term_semantics(term),
+                    })
+                catalog.append({"rule_id": rule_id, "category": spec.category, "display_name": spec.display_name, "direction": spec.direction, "terms": terms})
+            self.send_json({"ok": True, "schema_version": "abc_rule_config_admin.v2", "config": config, "catalog": catalog}, headers={"Cache-Control": "no-store"})
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
+    def handle_admin_abc_config_publish(self) -> None:
+        if not self._abc_admin_write_required():
+            return
+        try:
+            body = self.read_json_body()
+            config = dict(body.get("config")) if isinstance(body.get("config"), Mapping) else None
+            if config is not None:
+                for key in ("config_hash", "published_by", "change_reason"):
+                    config.pop(key, None)
+            reason = str(body.get("reason") or "").strip()
+            session = self.current_review_session() or {}
+            actor = str(session.get("sub") or "").strip()
+            if config is None or not reason or not actor:
+                self.send_json({"ok": False, "error": "config_reason_and_admin_are_required"}, status=400)
+                return
+            result = publish_abc_config(config, ABC_CONFIG_PATH, reason=reason, actor=actor)
+            self.send_json({"ok": True, "schema_version": "abc_rule_config_publish.v1", "published": result}, headers={"Cache-Control": "no-store"})
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
     def review_store(self) -> diagnosis_review.DiagnosisReviewStore:
         store = diagnosis_review.DiagnosisReviewStore()
         store.ensure_schema()
         return store
 
     def latest_review_diagnosis_rows(self) -> list[dict[str, Any]]:
-        with self.pg_connect() as conn:
-            rows = conn.execute(
-                """
-                SELECT * FROM (
-                    SELECT DISTINCT ON (diagnosis_ts)
-                           id, diagnosis_ts, main_label, main_score, main_confidence,
-                           secondary_label, secondary_score, secondary_confidence,
-                           evidence, raw_scores, data_coverage, updated_at
-                    FROM bf_sensor.diagnosis_snapshots
-                    ORDER BY diagnosis_ts DESC, updated_at DESC, id DESC
-                ) snapshots
-                ORDER BY diagnosis_ts DESC
-                LIMIT 288
-                """
-            ).fetchall()
-        result = []
-        for row in rows:
-            item = dict(row)
-            secondary = []
-            if item.get("secondary_label"):
-                secondary.append({
-                    "label": item.get("secondary_label"),
-                    "score": item.get("secondary_score"),
-                    "confidence": item.get("secondary_confidence"),
-                })
-            item["secondary"] = secondary
-            result.append(item)
-        return result
+        return diagnosis_review.DiagnosisReviewStore().read_latest_diagnosis_rows(limit=288)
 
     def canonical_review_context(self, params: dict[str, list[str]]) -> dict[str, Any]:
         fixture_label = (params.get("fixture") or [""])[0]
@@ -5280,16 +6960,18 @@ class Handler(BaseHTTPRequestHandler):
         try:
             context = self.canonical_review_context(params)
             session = self.current_review_session()
+            config = diagnosis_review.load_review_config(require_store=False)
+            identity = diagnosis_review.submission_identity(session, config)
             reviewed = False
             review_storage = {"configured": False, "writable": False}
             try:
-                config = diagnosis_review.load_review_config(require_store=True)
-                review_storage["configured"] = config.store_configured
+                store_config = diagnosis_review.load_review_config(require_store=True)
+                review_storage["configured"] = store_config.store_configured
                 store = self.review_store()
-                if session and context.get("episode_key"):
+                if identity and context.get("episode_key"):
                     items = store.list_events(
                         episode_key=str(context["episode_key"]),
-                        reviewer_username=str(session.get("sub") or ""),
+                        reviewer_username=str(identity.get("sub") or ""),
                         limit=1,
                     )
                     reviewed = bool(items)
@@ -5303,9 +6985,11 @@ class Handler(BaseHTTPRequestHandler):
                 "reviewed_by_current_user": reviewed,
                 "auth": {
                     "authenticated": bool(session),
-                    "username": session.get("sub") if session else None,
-                    "role": session.get("role") if session else None,
-                    "can_submit": bool(session and diagnosis_review.role_is_allowed(str(session.get("role") or ""))),
+                    "username": identity.get("sub") if identity else None,
+                    "role": identity.get("role") if identity else None,
+                    "can_submit": bool(identity),
+                    "login_required": config.require_login,
+                    "identity_mode": identity.get("identity_mode") if identity else None,
                 },
                 "review_storage": review_storage,
             })
@@ -5345,10 +7029,12 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "error": "复核功能未启用"}, status=404)
             return
         session = self.current_review_session()
-        if not session:
+        config = diagnosis_review.load_review_config(require_store=False)
+        identity = diagnosis_review.submission_identity(session, config)
+        if not identity and not session:
             self.send_json({"ok": False, "error": "请先登录"}, status=401)
             return
-        if not diagnosis_review.role_is_allowed(str(session.get("role") or "")):
+        if not identity:
             self.send_json({"ok": False, "error": "当前角色无权提交复核"}, status=403)
             return
         try:
@@ -5364,7 +7050,7 @@ class Handler(BaseHTTPRequestHandler):
             if not canonical.get("available") or not canonical.get("is_abnormal"):
                 raise diagnosis_review.ReviewValidationError("当前没有可复核的异常炉况")
             review = diagnosis_review.validate_review_payload(payload, canonical)
-            event, created = self.review_store().insert_event(canonical, review, session)
+            event, created = self.review_store().insert_event(canonical, review, identity)
             self.send_json({"ok": True, "created": created, "event": event}, status=201 if created else 200)
         except diagnosis_review.ReviewValidationError as exc:
             self.send_json({"ok": False, "error": str(exc)}, status=400)
@@ -5389,7 +7075,11 @@ class Handler(BaseHTTPRequestHandler):
             items = self.review_store().list_human_score_events(
                 start=(params.get("start") or [None])[0],
                 end=(params.get("end") or [None])[0],
-                labels=diagnosis_review._split_csv((params.get("labels") or [""])[0]),
+                labels=tuple(
+                    item.strip()
+                    for item in (params.get("labels") or [""])[0].split(",")
+                    if item.strip()
+                ),
                 limit=int((params.get("limit") or ["5000"])[0]),
             )
             self.send_json({"ok": True, "items": items})
@@ -5401,10 +7091,12 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "error": "复核功能未启用"}, status=404)
             return
         session = self.current_review_session()
-        if not session:
+        config = diagnosis_review.load_review_config(require_store=False)
+        identity = diagnosis_review.submission_identity(session, config)
+        if not identity and not session:
             self.send_json({"ok": False, "error": "请先登录"}, status=401)
             return
-        if not diagnosis_review.role_is_allowed(str(session.get("role") or "")):
+        if not identity:
             self.send_json({"ok": False, "error": "当前角色无权提交高炉长评分"}, status=403)
             return
         try:
@@ -5419,7 +7111,7 @@ class Handler(BaseHTTPRequestHandler):
             if not canonical.get("available"):
                 raise diagnosis_review.ReviewValidationError("当前没有可评分的炉况诊断快照")
             manual_score = diagnosis_review.validate_manual_score_payload(payload, canonical)
-            event, created = self.review_store().insert_manual_score_event(canonical, manual_score, session)
+            event, created = self.review_store().insert_manual_score_event(canonical, manual_score, identity)
             self.send_json({"ok": True, "created": created, "event": event}, status=201 if created else 200)
         except diagnosis_review.ReviewValidationError as exc:
             self.send_json({"ok": False, "error": str(exc)}, status=400)
@@ -5526,6 +7218,56 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(payload, status=200)
         except Exception as exc:  # noqa: BLE001
             self.send_json({"ok": False, "error": f"trend history failed: {exc}"}, status=502)
+
+    def handle_qa_mcp_health(self) -> None:
+        """Expose a cheap, read-only MCP Host contract for the 8093 guard.
+
+        This endpoint deliberately does not query production databases or invoke
+        a model. It verifies that the configured registry, cross-source modules,
+        conversation context, and unified catalog are present in this process.
+        """
+        required_modules = {
+            "cross_source_plan": ASSISTANT_BACKEND_DIR / "mcp_host" / "cross_source_plan.py",
+            "cross_source_executor": ASSISTANT_BACKEND_DIR / "mcp_host" / "cross_source_executor.py",
+            "conversation_context": ASSISTANT_BACKEND_DIR / "mcp_conversation_context.py",
+        }
+        catalog_manifest = ASSISTANT_DIR / "mcp" / "catalog" / "catalog_manifest.json"
+        module_status = {
+            name: {"present": path.is_file(), "path": path.name}
+            for name, path in required_modules.items()
+        }
+        registry_status: dict[str, Any] = {"present": MCP_SERVER_REGISTRY_PATH.is_file()}
+        registry_error: str | None = None
+        try:
+            registry = load_server_registry(MCP_SERVER_REGISTRY_PATH)
+            registry_status["server_ids"] = sorted(str(item.server_id) for item in registry.servers)
+        except Exception as exc:  # noqa: BLE001
+            registry_error = str(exc)
+            registry_status["error"] = registry_error
+        catalog_status = {"present": catalog_manifest.is_file(), "path": catalog_manifest.name}
+        module_ok = all(item["present"] for item in module_status.values())
+        registry_ok = bool(registry_status.get("present")) and registry_error is None
+        catalog_ok = bool(catalog_status["present"])
+        ok = module_ok and registry_ok and catalog_ok
+        self.send_json(
+            {
+                "ok": ok,
+                "schema": "ops.8093.mcp-health.v1",
+                "cross_source_enabled": os.environ.get("BF_QA_MCP_CROSS_SOURCE_ENABLED", "1")
+                .strip()
+                .lower()
+                not in {"0", "false", "off", "no"},
+                "registry": registry_status,
+                "modules": module_status,
+                "catalog": catalog_status,
+                "checks": {
+                    "registry_loaded": registry_ok,
+                    "cross_source_modules_present": module_ok,
+                    "catalog_manifest_present": catalog_ok,
+                },
+            },
+            status=200 if ok else 503,
+        )
 
     def handle_ollama_status(self) -> None:
         result: dict[str, Any] = {
@@ -6408,6 +8150,50 @@ class Handler(BaseHTTPRequestHandler):
         pack = search_knowledge(question, db_path=QA_KNOWLEDGE_DB_PATH, top_k=max(1, min(top_k, 20)), mode=mode)
         self.send_json({"ok": True, **pack})
 
+    def handle_qa_knowledge_chunk(self, query: str) -> None:
+        params = parse_qs(query)
+        chunk_id = (params.get("chunk_id") or [""])[0].strip()
+        if not chunk_id or len(chunk_id) > 160 or not re.fullmatch(r"[A-Za-z0-9_.-]+", chunk_id):
+            self.send_json({"ok": False, "error": "invalid knowledge chunk id"}, status=400)
+            return
+        try:
+            with _assistant_raw_pg_connect() as conn:
+                row = conn.execute(
+                    """
+                    SELECT chunk_id, doc_id, title, content, source_file,
+                           knowledge_category, chunk_type, created_at
+                    FROM bf_assistant.rag_chunk
+                    WHERE chunk_id = %s
+                      AND doc_id = %s
+                    LIMIT 1
+                    """,
+                    (chunk_id, diag_ai_evidence.FOREMAN_KNOWLEDGE_DOC_ID),
+                ).fetchone()
+            if not row:
+                self.send_json({"ok": False, "error": "knowledge chunk not found"}, status=404)
+                return
+            item = dict(row)
+            if (params.get("format") or [""])[0].lower() == "html":
+                title = html.escape(str(item.get("title") or "知识依据"))
+                content = html.escape(str(item.get("content") or ""))
+                source = html.escape(str(item.get("source_file") or ""))
+                document = (
+                    "<!doctype html><html lang='zh-CN'><head><meta charset='utf-8'>"
+                    "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+                    "<title>" + title + "</title>"
+                    "<style>body{font-family:SimSun,宋体,serif;max-width:960px;margin:32px auto;padding:0 20px;color:#263238;line-height:1.8}"
+                    "h1{font-size:26px;border-bottom:1px solid #b0bec5;padding-bottom:12px}"
+                    "pre{white-space:pre-wrap;background:#f5f7f8;padding:18px;border-left:4px solid #607d8b}"
+                    "small{color:#607d8b}</style></head><body><h1>" + title
+                    + "</h1><small>来源：" + source + "；只读知识依据</small><pre>"
+                    + content + "</pre></body></html>"
+                )
+                self.send_html(document)
+                return
+            self.send_json({"ok": True, "item": item, "read_only": True})
+        except Exception as exc:  # noqa: BLE001
+            self.send_json({"ok": False, "error": f"knowledge chunk unavailable: {exc}"}, status=503)
+
     def handle_qa_knowledge_pgvector_rebuild(self) -> None:
         try:
             payload = self.read_json_body()
@@ -6763,25 +8549,24 @@ class Handler(BaseHTTPRequestHandler):
             timing_ms["assistant_before_pg"] = round((time.perf_counter() - db_started) * 1000, 1)
             pg_started = time.perf_counter()
             try:
-                with self.pg_connect() as pg_conn:
-                    latest_pg_started = time.perf_counter()
-                    pg_snapshot = self.latest_pg_snapshot_for_qa(pg_conn)
-                    timing_ms["pg_latest"] = round((time.perf_counter() - latest_pg_started) * 1000, 1)
-                    same_trend_window = (pg_snapshot or {}).get("pg_window_minutes") == QA_TREND_WINDOW_MINUTES
-                    latest_diagnosis_ts = (
-                        ((pg_snapshot or {}).get("diagnosis") or {}).get("diagnosis_ts")
-                        if same_trend_window
-                        else None
-                    )
-                    trend_pg_started = time.perf_counter()
-                    trend_snapshots, trend_meta = self.recent_pg_diagnosis_snapshots_for_qa(
-                        hours=QA_TREND_HOURS,
-                        limit=QA_TREND_DIAGNOSIS_LIMIT,
-                        conn=pg_conn,
-                        latest_ts=latest_diagnosis_ts,
-                        context_version=(pg_snapshot or {}).get("pg_context_version") if same_trend_window else None,
-                    )
-                    timing_ms["pg_trend"] = round((time.perf_counter() - trend_pg_started) * 1000, 1)
+                latest_pg_started = time.perf_counter()
+                pg_snapshot = self.latest_pg_snapshot_for_qa(conn)
+                timing_ms["pg_latest"] = round((time.perf_counter() - latest_pg_started) * 1000, 1)
+                same_trend_window = (pg_snapshot or {}).get("pg_window_minutes") == QA_TREND_WINDOW_MINUTES
+                latest_diagnosis_ts = (
+                    ((pg_snapshot or {}).get("diagnosis") or {}).get("diagnosis_ts")
+                    if same_trend_window
+                    else None
+                )
+                trend_pg_started = time.perf_counter()
+                trend_snapshots, trend_meta = self.recent_pg_diagnosis_snapshots_for_qa(
+                    hours=QA_TREND_HOURS,
+                    limit=QA_TREND_DIAGNOSIS_LIMIT,
+                    conn=conn,
+                    latest_ts=latest_diagnosis_ts,
+                    context_version=(pg_snapshot or {}).get("pg_context_version") if same_trend_window else None,
+                )
+                timing_ms["pg_trend"] = round((time.perf_counter() - trend_pg_started) * 1000, 1)
             except Exception as exc:  # noqa: BLE001
                 trend_meta = {"trend_error": sanitize_model_exposure(exc)}
             timing_ms["pg_context"] = round((time.perf_counter() - pg_started) * 1000, 1)
@@ -6855,7 +8640,11 @@ class Handler(BaseHTTPRequestHandler):
             mcp_prefetch = qa_mcp_prefetch(routing_question)
             timing_ms["mcp_prefetch"] = round((time.perf_counter() - mcp_started) * 1000, 1)
             knowledge_started = time.perf_counter()
-            knowledge_pack = qa_search_knowledge(question, mcp_prefetch=mcp_prefetch)
+            knowledge_pack = qa_search_knowledge(
+                question,
+                mcp_prefetch=mcp_prefetch,
+                connection=conn,
+            )
             timing_ms["knowledge"] = round((time.perf_counter() - knowledge_started) * 1000, 1)
             use_mcp_tools = qa_mcp_should_use_tools(routing_question, payload, mcp_prefetch)
             hidden_context = {
@@ -6939,6 +8728,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             prepared = self.prepare_qa_chat(payload, question)
             mcp_tool_trace: list[dict[str, Any]] = []
+            tool_result: dict[str, Any] = {}
             if prepared.get("use_mcp_tools"):
                 tool_result = run_qa_mcp_tool_loop(
                     prepared["messages"],
@@ -6950,6 +8740,12 @@ class Handler(BaseHTTPRequestHandler):
                     prepared["hidden_context"].get("mcp_conversation_context"),
                     mcp_tool_trace,
                 )
+                # Save cross-source facts for follow-up resolution
+                if tool_result.get("mcp_cross_source"):
+                    prepared["hidden_context"]["mcp_conversation_context"] = context_with_cross_source_snapshot(
+                        prepared["hidden_context"].get("mcp_conversation_context"),
+                        tool_result.get("cross_source_snapshot"),
+                    )
                 if tool_result.get("ok") is False and not tool_result.get("answer"):
                     answer = f"数据库查询失败：{tool_result.get('error') or '未知错误'}"
                 else:
@@ -6981,6 +8777,8 @@ class Handler(BaseHTTPRequestHandler):
                         "mcp_prefetch": {k: v for k, v in prepared.get("mcp_prefetch", {}).items() if k != "context_text"},
                         "mcp_tool_calling": bool(prepared.get("use_mcp_tools")),
                         "mcp_tool_trace": mcp_tool_trace,
+                        "mcp_cross_source": tool_result.get("mcp_cross_source"),
+                        "cross_source_snapshot": tool_result.get("cross_source_snapshot"),
                     }
                 )
         except HTTPError as exc:
@@ -7031,6 +8829,7 @@ class Handler(BaseHTTPRequestHandler):
 
         answer_parts: list[str] = []
         mcp_tool_trace: list[dict[str, Any]] = []
+        tool_result: dict[str, Any] = {}
         model_timing: dict[str, Any] = {}
         try:
             stream_messages = prepared["messages"]
@@ -7048,6 +8847,12 @@ class Handler(BaseHTTPRequestHandler):
                     prepared["hidden_context"].get("mcp_conversation_context"),
                     mcp_tool_trace,
                 )
+                # Save cross-source facts for follow-up resolution
+                if tool_result.get("mcp_cross_source"):
+                    prepared["hidden_context"]["mcp_conversation_context"] = context_with_cross_source_snapshot(
+                        prepared["hidden_context"].get("mcp_conversation_context"),
+                        tool_result.get("cross_source_snapshot"),
+                    )
                 if tool_result.get("tool_used") and tool_result.get("needs_final"):
                     stream_messages = tool_result.get("messages") or prepared["messages"]
                 elif tool_result.get("ok") is False and not tool_result.get("answer"):
@@ -7081,6 +8886,8 @@ class Handler(BaseHTTPRequestHandler):
                         "mcp_prefetch": {k: v for k, v in prepared.get("mcp_prefetch", {}).items() if k != "context_text"},
                         "mcp_tool_calling": bool(prepared.get("use_mcp_tools")),
                         "mcp_tool_trace": mcp_tool_trace,
+                        "mcp_cross_source": tool_result.get("mcp_cross_source"),
+                        "cross_source_snapshot": tool_result.get("cross_source_snapshot"),
                     }
                 self.write_qa_event("final", final_payload)
                 self.write_qa_event("done", {"ok": True})
@@ -7154,6 +8961,8 @@ class Handler(BaseHTTPRequestHandler):
                     "mcp_tool_calling": bool(prepared.get("use_mcp_tools")),
                     "mcp_tool_trace": mcp_tool_trace,
                     "model_timing": model_timing,
+                    "mcp_cross_source": tool_result.get("mcp_cross_source"),
+                    "cross_source_snapshot": tool_result.get("cross_source_snapshot"),
                 }
             self.write_qa_event("final", final_payload)
             self.write_qa_event("done", {"ok": True})
@@ -7263,6 +9072,452 @@ class Handler(BaseHTTPRequestHandler):
         }
         self.send_json(payload)
 
+    def handle_heat_performance_quality(self, query: str) -> None:
+        """Return read-only IMES-style heat/sample/output quality facts."""
+
+        params = parse_qs(query)
+        try:
+            limit = max(1, min(int(params.get("limit", ["12"])[0]), 100))
+        except ValueError:
+            self.send_json({"ok": False, "error": "limit must be an integer"}, status=400)
+            return
+        meltno = str(params.get("meltno", [""])[0]).strip() or None
+        search = str(params.get("q", [""])[0]).strip() or None
+        date_from = str(params.get("date_from", [""])[0]).strip() or None
+        date_to = str(params.get("date_to", [""])[0]).strip() or None
+        for name, value in (("date_from", date_from), ("date_to", date_to)):
+            if value:
+                try:
+                    datetime.strptime(value, "%Y-%m-%d")
+                except ValueError:
+                    self.send_json({"ok": False, "error": f"{name} must be YYYY-MM-DD"}, status=400)
+                    return
+        has_samples = str(params.get("has_samples", ["0"])[0]).lower() in {"1", "true", "yes"}
+        include_future = str(params.get("include_future", ["0"])[0]).lower() in {"1", "true", "yes"}
+        try:
+            payload = HeatPerformanceQualityStore().list_rows(
+                limit=limit,
+                meltno=meltno,
+                query=search,
+                date_from=date_from,
+                date_to=date_to,
+                has_samples=has_samples,
+                include_future=include_future,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {
+                    "ok": False,
+                    "error_code": "HEAT_PERFORMANCE_QUERY_FAILED",
+                    "error": sanitize_model_exposure(exc),
+                    "items": [],
+                    "read_only": True,
+                },
+                status=503,
+            )
+            return
+        self.send_json(payload, status=200 if payload.get("ok") else 503)
+
+    # REQ-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808
+    def _si_v20_operator_session(self) -> dict[str, Any] | None:
+        session = self.current_review_session()
+        if si_v20_shadow.require_login() and not session:
+            self.send_json(
+                {
+                    "ok": False,
+                    "error_code": "SI_V20_LOGIN_REQUIRED",
+                    "error": "请先使用生产账号登录，再发起V20影子预测或历史回放。",
+                },
+                status=401,
+            )
+            return None
+        return session or {"sub": "local_operator", "role": "operator"}
+
+    def handle_si_v20_status(self, query: str) -> None:
+        params = parse_qs(query)
+        try:
+            target_limit = max(1, min(int(params.get("limit", ["120"])[0]), 300))
+            payload = si_v20_shadow.SiV20ShadowService().status(target_limit=target_limit)
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {
+                    "ok": False,
+                    "error_code": "SI_V20_STATUS_UNAVAILABLE",
+                    "error": sanitize_model_exposure(exc),
+                },
+                status=503,
+            )
+            return
+        self.send_json(payload)
+
+    def handle_si_v20_history(self, query: str) -> None:
+        params = parse_qs(query)
+        parsed_dates: dict[str, date | None] = {"date_from": None, "date_to": None}
+        for name in parsed_dates:
+            value = str(params.get(name, [""])[0]).strip()
+            if not value:
+                continue
+            try:
+                parsed_dates[name] = datetime.strptime(value, "%Y-%m-%d").date()
+            except ValueError:
+                self.send_json({"ok": False, "error": f"{name} must be YYYY-MM-DD"}, status=400)
+                return
+        try:
+            limit = max(1, min(int(params.get("limit", ["1000"])[0]), 2000))
+        except ValueError:
+            self.send_json({"ok": False, "error": "limit must be an integer"}, status=400)
+            return
+        meltno = str(params.get("meltno", [""])[0]).strip() or None
+        latest_per_heat = str(params.get("latest_per_heat", ["1"])[0]).lower() in {
+            "1", "true", "yes",
+        }
+        try:
+            payload = si_v20_shadow.SiV20ShadowService().history(
+                date_from=parsed_dates["date_from"],
+                date_to=parsed_dates["date_to"],
+                meltno=meltno,
+                limit=limit,
+                latest_per_heat=latest_per_heat,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {
+                    "ok": False,
+                    "error_code": "SI_V20_HISTORY_UNAVAILABLE",
+                    "error": sanitize_model_exposure(exc),
+                    "items": [],
+                },
+                status=503,
+            )
+            return
+        self.send_json(payload)
+
+    def handle_si_v20_hourly_history(self, query: str) -> None:
+        params = parse_qs(query)
+        parsed_dates: dict[str, date | None] = {"date_from": None, "date_to": None}
+        for name in parsed_dates:
+            value = str(params.get(name, [""])[0]).strip()
+            if not value:
+                continue
+            try:
+                parsed_dates[name] = datetime.strptime(value, "%Y-%m-%d").date()
+            except ValueError:
+                self.send_json({"ok": False, "error": f"{name} must be YYYY-MM-DD"}, status=400)
+                return
+        try:
+            limit = max(1, min(int(params.get("limit", ["1000"])[0]), 2000))
+            payload = si_v20_shadow.SiV20ShadowService().hourly_history(
+                date_from=parsed_dates["date_from"],
+                date_to=parsed_dates["date_to"],
+                limit=limit,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {
+                    "ok": False,
+                    "error_code": "SI_V20_HOURLY_HISTORY_UNAVAILABLE",
+                    "error": sanitize_model_exposure(exc),
+                    "items": [],
+                },
+                status=503,
+            )
+            return
+        self.send_json(payload)
+
+    def handle_si_v20_strict_hourly_status(self) -> None:
+        try:
+            payload = si_v20_shadow.SiV20ShadowService().strict_hourly_status()
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {"ok": False, "error_code": "SI_V20_STRICT_HOURLY_STATUS_UNAVAILABLE", "error": sanitize_model_exposure(exc)},
+                status=503,
+            )
+            return
+        self.send_json(payload, headers={"Cache-Control": "no-store"})
+
+    def handle_si_v20_strict_hourly_history(self, query: str) -> None:
+        params = parse_qs(query)
+        parsed_dates: dict[str, date | None] = {"date_from": None, "date_to": None}
+        for name in parsed_dates:
+            value = str(params.get(name, [""])[0]).strip()
+            if not value:
+                continue
+            try:
+                parsed_dates[name] = datetime.strptime(value, "%Y-%m-%d").date()
+            except ValueError:
+                self.send_json({"ok": False, "error": f"{name} must be YYYY-MM-DD"}, status=400)
+                return
+        try:
+            limit = max(1, min(int(params.get("limit", ["5000"])[0]), 5000))
+            payload = si_v20_shadow.SiV20ShadowService().strict_hourly_history(
+                date_from=parsed_dates["date_from"],
+                date_to=parsed_dates["date_to"],
+                meltno_from=str(params.get("meltno_from", [""])[0]).strip() or None,
+                meltno_to=str(params.get("meltno_to", [""])[0]).strip() or None,
+                limit=limit,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {"ok": False, "error_code": "SI_V20_STRICT_HOURLY_HISTORY_UNAVAILABLE", "error": sanitize_model_exposure(exc), "items": []},
+                status=503,
+            )
+            return
+        self.send_json(payload, headers={"Cache-Control": "no-store"})
+
+    def handle_si_v20_hourly_table(self, query: str) -> None:
+        params = parse_qs(query)
+        parsed_dates: dict[str, date | None] = {"date_from": None, "date_to": None}
+        for name in parsed_dates:
+            value = str(params.get(name, [""])[0]).strip()
+            if not value:
+                continue
+            try:
+                parsed_dates[name] = datetime.strptime(value, "%Y-%m-%d").date()
+            except ValueError:
+                self.send_json({"ok": False, "error": f"{name} must be YYYY-MM-DD"}, status=400)
+                return
+        try:
+            limit = max(1, min(int(params.get("limit", ["5000"])[0]), 5000))
+            payload = si_v20_shadow.SiV20ShadowService().hourly_table(
+                date_from=parsed_dates["date_from"],
+                date_to=parsed_dates["date_to"],
+                limit=limit,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {"ok": False, "error_code": "SI_V20_HOURLY_TABLE_UNAVAILABLE", "error": sanitize_model_exposure(exc), "items": []},
+                status=503,
+            )
+            return
+        self.send_json(payload, headers={"Cache-Control": "no-store"})
+
+    def handle_si_v20_schedule_status(self) -> None:
+        try:
+            payload = si_v20_shadow.SiV20ShadowService().schedule_status()
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {"ok": False, "error_code": "SI_V20_SCHEDULE_UNAVAILABLE", "error": sanitize_model_exposure(exc)},
+                status=503,
+            )
+            return
+        self.send_json(payload, headers={"Cache-Control": "no-store"})
+
+    def handle_si_v20_scheduled_history(self, query: str) -> None:
+        params = parse_qs(query)
+        parsed_dates: dict[str, date | None] = {"date_from": None, "date_to": None}
+        for name in parsed_dates:
+            value = str(params.get(name, [""])[0]).strip()
+            if not value:
+                continue
+            try:
+                parsed_dates[name] = datetime.strptime(value, "%Y-%m-%d").date()
+            except ValueError:
+                self.send_json({"ok": False, "error": f"{name} must be YYYY-MM-DD"}, status=400)
+                return
+        try:
+            cadence_raw = str(params.get("cadence_minutes", [""])[0]).strip()
+            cadence = si_v20_shadow.validate_cadence_minutes(cadence_raw) if cadence_raw else None
+            run_raw = str(params.get("schedule_run_id", [""])[0]).strip()
+            run_id = int(run_raw) if run_raw else None
+            limit = max(1, min(int(params.get("limit", ["5000"])[0]), 10000))
+            payload = si_v20_shadow.SiV20ShadowService().scheduled_history(
+                date_from=parsed_dates["date_from"],
+                date_to=parsed_dates["date_to"],
+                cadence_minutes=cadence,
+                schedule_run_id=run_id,
+                limit=limit,
+            )
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {"ok": False, "error_code": "SI_V20_SCHEDULED_HISTORY_UNAVAILABLE", "error": sanitize_model_exposure(exc), "items": []},
+                status=503,
+            )
+            return
+        self.send_json(payload)
+
+    def handle_si_v20_data_readiness(self, query: str) -> None:
+        params = parse_qs(query)
+        payload = {
+            "target_meltno": str(params.get("target_meltno", [""])[0]).strip(),
+            "target_open_ts": str(params.get("target_open_ts", [""])[0]).strip() or None,
+            "cutoff_mode": str(params.get("cutoff_mode", ["now"])[0]).strip(),
+            "cutoff_ts": str(params.get("cutoff_ts", [""])[0]).strip() or None,
+        }
+        if not payload["target_meltno"]:
+            self.send_json({"ok": False, "error": "target_meltno不能为空"}, status=400)
+            return
+        try:
+            result = si_v20_shadow.SiV20ShadowService().data_readiness(payload)
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {
+                    "ok": False,
+                    "error_code": "SI_V20_READINESS_UNAVAILABLE",
+                    "error": sanitize_model_exposure(exc),
+                },
+                status=503,
+            )
+            return
+        self.send_json(result)
+
+    def handle_si_v20_prediction_detail(self, query: str) -> None:
+        params = parse_qs(query)
+        try:
+            prediction_id = int(str(params.get("prediction_id", [""])[0]).strip())
+        except ValueError:
+            self.send_json({"ok": False, "error": "prediction_id必须是整数"}, status=400)
+            return
+        try:
+            result = si_v20_shadow.SiV20ShadowService().prediction_detail(prediction_id)
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=404)
+            return
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {
+                    "ok": False,
+                    "error_code": "SI_V20_DETAIL_UNAVAILABLE",
+                    "error": sanitize_model_exposure(exc),
+                },
+                status=503,
+            )
+            return
+        self.send_json(result)
+
+    def _handle_si_v20_write(self, action: str) -> None:
+        session = self._si_v20_operator_session()
+        if session is None:
+            return
+        try:
+            payload = self.read_json_body()
+        except Exception:
+            self.send_json({"ok": False, "error": "请求JSON格式不正确"}, status=400)
+            return
+        service = si_v20_shadow.SiV20ShadowService()
+        try:
+            if action == "predict":
+                result = service.predict(
+                    payload,
+                    username=str(session.get("sub") or "operator"),
+                    role=str(session.get("role") or "operator"),
+                )
+            elif action == "hourly_predict":
+                result = service.hourly_predict(
+                    payload,
+                    username=str(session.get("sub") or "operator"),
+                    role=str(session.get("role") or "operator"),
+                )
+            else:
+                result = service.replay(
+                    payload,
+                    username=str(session.get("sub") or "operator"),
+                    role=str(session.get("role") or "operator"),
+                )
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(
+                {
+                    "ok": False,
+                    "error_code": "SI_V20_PREDICTION_FAILED",
+                    "error": sanitize_model_exposure(exc),
+                },
+                status=503,
+            )
+            return
+        self.send_json(result)
+
+    def handle_si_v20_predict(self) -> None:
+        self._handle_si_v20_write("predict")
+
+    def handle_si_v20_hourly_predict(self) -> None:
+        self._handle_si_v20_write("hourly_predict")
+
+    def handle_si_v20_strict_hourly_predict(self) -> None:
+        session = self._si_v20_operator_session()
+        if session is None:
+            return
+        try:
+            payload = self.read_json_body()
+            result = si_v20_shadow.SiV20ShadowService().strict_hourly_predict(
+                payload,
+                username=str(session.get("sub") or "operator"),
+                role=str(session.get("role") or "operator"),
+            )
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        except Exception as exc:  # noqa: BLE001
+            self.send_json({"ok": False, "error_code": "SI_V20_STRICT_HOURLY_PREDICT_FAILED", "error": sanitize_model_exposure(exc)}, status=503)
+            return
+        self.send_json(result, status=200 if result.get("ok") else 207)
+
+    def handle_si_v20_strict_hourly_dispatch(self) -> None:
+        try:
+            result = si_v20_shadow.SiV20ShadowService().dispatch_strict_hourly()
+        except Exception as exc:  # noqa: BLE001
+            self.send_json({"ok": False, "error_code": "SI_V20_STRICT_HOURLY_DISPATCH_FAILED", "error": sanitize_model_exposure(exc)}, status=503)
+            return
+        self.send_json(result, status=200 if result.get("ok") else 207)
+
+    def handle_si_v20_replay(self) -> None:
+        self._handle_si_v20_write("replay")
+
+    def handle_si_v20_schedule_configure(self) -> None:
+        session = self._si_v20_operator_session()
+        if session is None:
+            return
+        try:
+            payload = self.read_json_body()
+            result = si_v20_shadow.SiV20ShadowService().configure_schedule(
+                payload,
+                username=str(session.get("sub") or "operator"),
+            )
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        except Exception as exc:  # noqa: BLE001
+            self.send_json({"ok": False, "error_code": "SI_V20_SCHEDULE_CONFIG_FAILED", "error": sanitize_model_exposure(exc)}, status=503)
+            return
+        self.send_json(result)
+
+    def handle_si_v20_schedule_dispatch(self) -> None:
+        try:
+            result = si_v20_shadow.SiV20ShadowService().dispatch_due_schedules()
+        except Exception as exc:  # noqa: BLE001
+            self.send_json({"ok": False, "error_code": "SI_V20_SCHEDULE_DISPATCH_FAILED", "error": sanitize_model_exposure(exc)}, status=503)
+            return
+        self.send_json(result, status=200 if result.get("ok") else 207)
+
+    def handle_si_v20_scheduled_replay(self) -> None:
+        session = self._si_v20_operator_session()
+        if session is None:
+            return
+        try:
+            payload = self.read_json_body()
+            result = si_v20_shadow.SiV20ShadowService().scheduled_replay(
+                payload,
+                username=str(session.get("sub") or "operator"),
+                role=str(session.get("role") or "operator"),
+            )
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+            return
+        except Exception as exc:  # noqa: BLE001
+            self.send_json({"ok": False, "error_code": "SI_V20_SCHEDULED_REPLAY_FAILED", "error": sanitize_model_exposure(exc)}, status=503)
+            return
+        self.send_json(result, status=200 if result.get("ok") else 207)
+
     def forward_response(self, resp, content_type: str) -> None:
         data = resp.read()
         self.send_response(getattr(resp, "status", 200))
@@ -7273,7 +9528,7 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-    def serve_static(self, request_path: str) -> None:
+    def serve_static(self, request_path: str, request_query: str = "") -> None:
         rel = unquote(request_path.lstrip("/")).replace("\\", "/")
 
         # Keep old bookmarks working when the frontend directory name is
@@ -7288,6 +9543,8 @@ class Handler(BaseHTTPRequestHandler):
 
         if not rel or rel in {"frontend_dashboard_v3.html", "frontend_dashboard_v3.server.html"}:
             rel = INDEX_FILE
+        if rel == "furnace-rule-admin.html" and not self._abc_admin_required():
+            return
         target = (BASE_DIR / rel).resolve()
         if BASE_DIR not in target.parents and target != BASE_DIR:
             self.send_json({"error": "path outside static root"}, status=403)
@@ -7299,9 +9556,38 @@ class Handler(BaseHTTPRequestHandler):
         content_type = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
         if target.suffix.lower() in {".html", ".js", ".css"}:
             content_type += "; charset=utf-8"
+        is_html = target.suffix.lower() == ".html"
+        etag = None
+        if not is_html:
+            stat = target.stat()
+            etag = f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
+            if self.headers.get("If-None-Match") == etag:
+                self.send_response(304)
+                self.add_cors()
+                self.send_header("ETag", etag)
+                self.send_header("Cache-Control", "public, max-age=300")
+                self.end_headers()
+                return
         self.send_response(200)
         self.add_cors()
         self.send_header("Content-Type", content_type)
+        if is_html:
+            self.send_header("Cache-Control", "no-store")
+        elif any(key in parse_qs(request_query) for key in ("v", "release")):
+            self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+        else:
+            self.send_header("Cache-Control", "public, max-age=300")
+        if etag:
+            self.send_header("ETag", etag)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def send_html(self, document: str, status: int = 200) -> None:
+        data = document.encode("utf-8")
+        self.send_response(status)
+        self.add_cors()
+        self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
@@ -7325,6 +9611,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 
+diagnosis_ai_analysis_api.install_handler(Handler, globals())
+
+
 def main() -> None:
     skip_assistant_startup = os.environ.get("BF_SKIP_ASSISTANT_STARTUP", "0").strip().lower() in {"1", "true", "yes"}
     if skip_assistant_startup:
@@ -7342,7 +9631,16 @@ def main() -> None:
         else:
             detail = knowledge_runtime.get("message") or (knowledge_runtime.get("vector") or {}).get("message") or "unknown"
             print(f"knowledge retrieval startup check failed: {sanitize_model_exposure(detail)}")
-    server = ThreadingHTTPServer((HOST, PORT), Handler)
+    if DIAGNOSIS_AI_ANALYSIS_ENABLED:
+        try:
+            start_five_minute_analysis_scheduler()
+            print("five-minute diagnosis AI analysis scheduler initialized")
+        except Exception as exc:  # noqa: BLE001
+            print(
+                "five-minute diagnosis AI analysis startup failed: "
+                + sanitize_model_exposure(type(exc).__name__)
+            )
+    server = BlastFurnaceThreadingHTTPServer((HOST, PORT), Handler)
     print(f"8092 proxy/static server: http://{HOST}:{PORT}/")
     print(f"model upstream: {OLLAMA_BASE_URL}")
     server.serve_forever()
@@ -7350,8 +9648,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-
-
-

@@ -5,6 +5,7 @@ $targetHtml = Join-Path $root "高炉前端数据\frontend_dashboard_v3.8094_pre
 $patcher = "C:\Users\Administrator\AppData\Local\Temp\patch_8094_cad_bottom_band.py"
 $taskPath = "\BlastFurnaceServices\"
 $taskName = "V3AutoPreviewProxy8094"
+$revisionMarker = "BUG-BF3D-CAD-PANEL-BODY-GAP-20260804-R2"
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $backup = Join-Path $root "backups\8094_cad_bottom_band_$stamp"
 $deployed = $false
@@ -56,7 +57,13 @@ try {
     & "C:\Program Files\Python311\python.exe" -X utf8 $patcher --path $targetHtml
     $served = Invoke-HttpWithRetry -Uri "http://127.0.0.1:8094/?cad_bottom_band_fix=$stamp"
     $servedHtml = [string]$served.Content
-    if ($served.StatusCode -ne 200 -or $servedHtml -notmatch "BUG-BF3D-CAD-BOTTOM-BAND-20260804" -or $servedHtml -notmatch "bottom: 0 !important") {
+    if (
+        $served.StatusCode -ne 200 -or
+        $servedHtml -notmatch "BUG-BF3D-CAD-BOTTOM-BAND-20260804" -or
+        $servedHtml -notmatch $revisionMarker -or
+        $servedHtml -notmatch "padding-bottom: 0 !important" -or
+        $servedHtml -notmatch "bottom: 0 !important"
+    ) {
         throw "8094 did not serve the CAD bottom-band fix"
     }
     $html8093After = (Invoke-HttpWithRetry -Uri "http://127.0.0.1:8093/?cad_bottom_band_probe=$stamp").Content
@@ -86,6 +93,7 @@ try {
         pid8770Unchanged = ($null -eq $pid8770Before -or $pid8770After -eq $pid8770Before)
         htmlSha256 = (Get-FileHash -LiteralPath $targetHtml -Algorithm SHA256).Hash
         marker = "BUG-BF3D-CAD-BOTTOM-BAND-20260804"
+        revisionMarker = $revisionMarker
     } | ConvertTo-Json -Depth 4
 }
 catch {

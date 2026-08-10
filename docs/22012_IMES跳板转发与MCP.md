@@ -1,5 +1,88 @@
 # 220.12 IMES 跳板转发与 MCP
 
+## 0. 2026-08-05：220.12 VPN 直达入口已经上线
+
+用户已明确把目标拓扑调整为“VPN 客户端只访问 220.12，再由 220.12 转发到数据源”，
+而不是每次在客户端启动 SSH 回环转发器。当前入口如下：
+
+| VPN 客户端入口 | 220.12 转发目标 | 协议与用途 |
+| --- | --- | --- |
+| `http://10.30.220.12:18080/` | `10.10.181.209:8080` | Nginx 根地址跳转到 `/imes.web/`，用于 IMES Web 登录 |
+| `10.30.220.12:15433` | `10.10.181.195:5432` | Vastbase/PostgreSQL 协议，只能由数据库驱动和只读账号使用 |
+| `10.30.220.12:18889` | `10.22.181.243:8889` | pSpace TCP 协议，只能由既有 SDK/MCP 与业务账号使用 |
+
+18080 原有 `g13.html` 没有删除，仍可直接访问
+`http://10.30.220.12:18080/g13.html`。Nginx 配置使用标记
+`OPS-22012-IMES-WEB-PROXY-20260805`；15433/18889 使用 Windows
+`portproxy`。三个入站规则只允许部署时核实的 VPN 客户端地址
+`10.30.200.18`，不得改成任意来源。
+
+部署入口为 [受控部署器](../tools/remote_deploy_22012_direct_source_relays.ps1)，
+配置补丁为 [Nginx补丁器](../tools/patch_22012_nginx_imes_web.py)，只读复核为
+[直接转发探针](../tools/remote_probe_22012_direct_relays.ps1)。部署会备份 Nginx、
+portproxy 和受保护端口 PID；失败自动回滚，只重载 Nginx，不停止
+8093/8768/8094/8770。
+
+2026-08-05 实际验收：IMES Web 返回 `HTTP 200 text/html;charset=UTF-8`；用户在
+浏览器提交验证码后，220.12 Nginx 日志确认登录成功并访问
+`/imes.web/mes/desktop.do`、`/imes.web/mes/main.do`、炉次化验、生产实绩和炉渣检验
+业务接口，相关请求均通过 `10.30.220.12:18080` 返回。15433 不仅 TCP 成功，还完成
+Vastbase 认证和 `BEGIN READ ONLY` 验收，服务端身份为
+`10.10.181.195:5432/vastbase`、`transaction_read_only=on`；18889 也已通过现有 pSpace
+SDK/业务账号读取真实静压力点，质量为 `Good`。部署结果证明 8093/8768/8094/8770 PID
+前后完全一致。备份与结果位于远端
+`logs\deploy_backups\22012_direct_source_relays_20260805_151949`。
+
+本页后续“本机回环转发”章节继续保留，作为兼容和应急方案；它不再代表唯一的
+VPN 访问方式。
+
+### 0.1 2026-08-07：冀南新区高炉作业日志的报表源站核验
+
+使用授权 Web 账号登录 IMES 后，菜单“报表管理 → 冀南高炉报表 → 冀南新区高炉作业日志”
+本身可见，说明菜单权限正常；但浏览器点击后加载的是独立报表地址
+`http://10.10.181.205:8080/demo/reportJsp/showInput.jsp?sht=mes/jn_ts_glbb_tb.sht`，
+不是 `/imes.web/` 下的 IMES 请求。
+
+2026-08-07 从 220.12 本机核验：
+
+- `10.30.220.12 -> 10.10.181.205:8080` TCP 连接成功；
+- 同一报表 URL 从 220.12 直接请求返回 `HTTP 200 OK`，响应约 631 KB，页面标题为
+  `Raqsoft Fill Report`；
+- 220.12 的 18080 Nginx 仅配置 `location ^~ /imes.web/` 转发到
+  `10.10.181.209:8080`，其余 `/demo/...` 路径落到本地静态根目录；
+- 因此 `http://10.30.220.12:18080/demo/reportJsp/showInput.jsp?...` 当前返回
+  `HTTP 404`，而从本机浏览器直接访问 `10.10.181.205:8080` 会因 VPN/路由不可达而超时。
+
+结论：报表源站和数据页面在 220.12 网络侧是可用的，原失败点是“报表源站没有纳入
+220.12 的 Web 转发”，不是 IMES 账号权限或报表页面本身无数据。现已新增独立受控端口
+`18084` 转发到 `10.10.181.205:8080`，并对 HTML 中的绝对源站 URL 做同端口重写。本机浏览器
+可使用：
+
+```text
+http://10.30.220.12:18084/demo/reportJsp/showInput.jsp?sht=mes/jn_ts_glbb_tb.sht
+```
+
+注意：`18081` 是其他既有转发/服务端口，不承载该 Raqsoft 报表；访问
+`18081/demo/reportJsp/showInput.jsp?...` 会返回 404。该报表必须使用 `18084`，不要把
+18081 当作报表入口。
+
+部署标记为 `OPS-22012-IMES-REPORT-PROXY-20260808`，部署脚本为
+`tools/remote_deploy_22012_imes_report_proxy.ps1`，未改变 8093/8768/8094/8770 PID。
+该端口只允许已核实的 VPN 客户端地址访问；18080 原有 IMES Web 转发保持不变。
+
+### 0.2 2026-08-08：2# 高炉报表数据落库
+
+报表不是普通 IMES `*Data.do` JSON 接口，程序入口为
+`数据库同步和存取/sync_bf2_operation_log_report.py`，解析器为
+`数据库同步和存取/src/imes_report_client.py`。它按报表日期读取全部返回网格，保留每个单元格的
+`raw_value/display_text/col_no`，并写入 220.12 PostgreSQL `bf_trend.bf_imes`：
+
+- 数据集：`bf2_operation_log_report`；统一明细：`bf_imes.raw_rows`；宽表：`bf_imes.imes_bf2_operation_log_report`；视图：`bf_imes.v_bf2_operation_log_report`。
+- D 列登记为 `report_batch_count`（批数），M 列登记为 `report_fuel_ratio`（按 Raqsoft 页面公式重算）；`material_rate` 为空并返回 `semantic_unconfirmed`，不把批数冒充料速。
+- 2026-02-09 至 2026-08-08 已回填 180 天、4320 行、180 个业务日；最近日期 24 行，重复 `(workdate, report_row_number)` 键 0。
+- 计划任务 `IMESBF2OperationLogReport5m` 已在 220.12 注册，当前 `LastTaskResult=0`，每 5 分钟只同步当天报表并幂等更新。
+- 采集清单已更新为 `数据库同步和存取/config/IMES可读数据清单.tsv`，数据字典和用法同步见 `数据库同步和存取/IMES只读采集说明.md`。
+
 > 2026-07-20 默认策略：用户本机访问 Vastbase 和 pSpace 均默认经过
 > `10.30.220.12` 跳板，并优先使用本页登记的转发脚本、只读脚本和 MCP。
 > 本机目标地址偶发可达不构成自动直连授权。只有程序本身运行在 220.12，
@@ -58,6 +141,27 @@ python .\tools\imes_22012_relay.py --prompt-password --profile imes
 http://127.0.0.1:18080/imes.web/
 ```
 
+如果希望 Web 与 Vastbase 同时可用，推荐使用项目内的组合入口
+[start_imes_web_vastbase_relay_local.cmd](../tools/start_imes_web_vastbase_relay_local.cmd)，
+或直接运行：
+
+```powershell
+python .\tools\imes_22012_relay.py --prompt-password --profile imes
+```
+
+组合 profile 固定建立两个本机回环端口：
+
+```text
+127.0.0.1:15433 -> 220.12 -> 10.10.181.195:5432 (Vastbase)
+127.0.0.1:18080 -> 220.12 -> 10.10.181.209:8080 (IMES Web)
+```
+
+此前 GUI 的问题是把 `--profile all` 与单个 `--forward imes_web:...` 同时传给转发器。
+转发器约定是显式 `--forward` 会替换 profile 默认列表，因此 GUI 实际只启动了 Web，
+没有启动 Vastbase。现已修复 [imes_web_launcher.py](../tools/imes_web_launcher.py)：
+改用 `--profile imes`，并在显示“运行中”前同时检查 Web HTTP 与 Vastbase TCP；
+GUI 的“打开 IMES 页面”仍只打开 Web 地址，不会把数据库协议误当作浏览器页面。
+
 先检查三个 SSH 通道：
 
 ```powershell
@@ -84,6 +188,16 @@ Invoke-WebRequest http://127.0.0.1:18080/imes.web/
 python .\tools\export_vastbase_local.py --host 127.0.0.1 --port 15433 --discover `
   --output-dir .\logs\imes_vastbase_catalog_via_22012
 ```
+
+### 2.2 SSLVPN 与 220.12 跳板关系
+
+SSLVPN 只表示本机可能获得到生产网段的路由；是否能直接访问
+`10.10.181.195:5432` 仍取决于 VPN 路由、ACL、防火墙和 Vastbase 监听策略。
+当前项目已验证、可复现且默认采用的链路是“本机 → 220.12 → Vastbase”，不是把
+SSLVPN 视为自动直连授权。本机专项探针曾返回 Windows `10013`/连接超时，故目前
+不能宣称直连已打通，也不会在 MCP 失败时静默切换直连。若以后要启用直连，必须单独
+完成 TCP、账号、`current_user=lg_fq`、`current_database=vastbase` 和只读事务验收，
+并另行记录链路；在此之前请使用 `127.0.0.1:15433`。
 
 ## 3. Vastbase 权限结果
 
@@ -203,6 +317,41 @@ ORDER BY workdate, meltno, sampleno;
 
 服务入口：[imes_relay_mcp_server.py](../高炉前端数据/智能助手/mcp/imes_relay_mcp_server.py)。它使用 stdio，不监听 HTTP 端口。启动前必须先启动 Vastbase 转发。
 
+本机 MCP Host 的扩展 Web 服务入口为
+[imes_web_mcp_server.py](../高炉前端数据/智能助手/mcp/imes_web_mcp_server.py)。它同样
+使用 stdio，服务 ID 为 `imes-web-readonly`，只调用 IMES Web 白名单接口；默认地址是
+`http://127.0.0.1:18080/imes.web/`。验证码登录需要进程环境中的
+`IMES_WEB_CAPTCHA` 或受控 `IMES_WEB_SESSION_COOKIE`，不共享浏览器 Cookie；缺少凭据时
+返回 `IMES_WEB_CAPTCHA_REQUIRED`，不会伪造查询结果。三服务注册表及按需路由见
+[mcp/README.md](../高炉前端数据/智能助手/mcp/README.md#本机三服务-mcp-注册表扩展-imes-web)。
+
+### 4.1 2026-08-05 炉次化验可见性核查
+
+用户截图证明 IMES Web 页面已经读取到 2026-08-05 的炉次化验索引：最新显示到
+`2#20260805-069`，`069`～`066` 暂无元素值，`2#20260805-065` 已有
+`C=4.99、Si=0.23、Mn=0.22、P=0.157、S=0.04`。因此“Web 有数据”事实成立。
+
+MCP 未返回该数据有两个独立原因：
+
+1. **Web 会话隔离**：浏览器页面持有自己的 `JSESSIONID`，不会自动提供给 stdio
+   MCP。`imes-web-readonly` 没有验证码或受控 `IMES_WEB_SESSION_COOKIE` 时会返回
+   `IMES_WEB_CAPTCHA_REQUIRED`，不会读取浏览器 Cookie。
+2. **当前/上一炉排序错误**：远端只读复核已经证明 `operations` profile 的
+   `gl2#dmx` 可以读取 `2#20260805-065` 的 3 条正式化验记录（Si 为
+   `0.20、0.25、0.24`，均值 `0.23%`）。真正的问题是旧查询先把
+   `closetime IS NULL` 的历史 `2#20240805-056` 排到最前，复合工具随后查询
+   `055`，所以返回 `NO_SI_SAMPLES`。现在已改为先按正式 `meltno/opentime` 最新排序，
+   再判断活动状态；化验账号默认保持已实测可读的 `operations`，并支持显式配置。
+
+另外，问题“当前/上一炉铁水 Si”只会查询当前时点的最近两炉。截图中最近炉次是
+`069`、`068`，两炉元素值都是横杠；它不会自动跳过空值去寻找 `065`。要查 `065`，
+必须使用正式炉次号 `2#20260805-065`，并走已验证的 operations 化验查询或 Web `heat_lab`。
+
+本机核查时 `127.0.0.1:15433` 与 `127.0.0.1:18080` 当前未监听，因此尚未进行新的
+在线查询；截图是此前已登录 Web 会话的有效证据。Web MCP 仍需要受控验证码或
+`IMES_WEB_SESSION_COOKIE`，不能自动读取浏览器 `JSESSIONID`；但这与 Vastbase
+operations 化验查询是两条独立链路，不能把 Web 会话缺失解释成数据库无数据。
+
 ```powershell
 $env:IMES_RELAY_DB_HOST = '127.0.0.1'
 $env:IMES_RELAY_DB_PORT = '15433'
@@ -260,6 +409,23 @@ Python和本机凭据文件，再上传本机MCP文件、保留旧文件备份�
 `py_compile`和两个账号只读冒烟。
 
 MCP 查询样例已经实测返回炉次 `2#20260508-120` 的铁水 `Si=0.27`。
+
+### 2026-08-05：8093 生产四服务目录已同步
+
+此前“220.12 文件尚未替换”的 2026-07-27 状态已经结束。2026-08-05 已通过
+受控部署把 8093 的生产 MCP 注册表扩为 `gl02-data`、`gl02-extended`、
+`imes-readonly`、`imes-web-readonly`，同步 315 项 MES 字段目录和当前炉次 72 小时
+新鲜度修复。生产数据库 MCP 使用 `direct_22012` 访问厂内 Vastbase，不依赖客户端
+SSH 回环或本机 `15433`。
+
+真实自动路由验收返回当前炉次 `2#20260805-072`、上一炉次 `071`、上一炉 3 个
+Si 试样平均 `0.273%`；炉身温度自动路由返回 `T_body_L13_C=89.37`，时间
+`2026-08-05 22:06:00`。本次只重启 8093，8768/8094/8770 PID 未变化。部署备份、
+哈希、回滚和验证命令见
+[生产同步交接](handoffs/2026-08-05-22012-imes-mcp-production-sync.md)。
+
+Web 适配器仍遵守登录边界：没有有效验证码/会话时必须明确返回需要登录，不能因为
+数据库 MCP 已通过就宣称 IMES Web 登录态也已通过。
 
 ## 5. 安全与恢复
 

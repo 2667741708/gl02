@@ -97,3 +97,41 @@ def test_streaming_entry_keeps_multi_round_tool_loop_enabled():
     streaming_block = source[start : start + 12_000]
     assert "stop_after_tool_round=False" in streaming_block
     assert "stop_after_tool_round=True" not in streaming_block
+
+
+def test_spoken_arbitrary_heat_chemistry_enters_registered_tool_planner():
+    question = "065炉的硅、锰、磷分别是多少？"
+    assert proxy.qa_mcp_imes_query_intent(question) is True
+    assert proxy.qa_mcp_should_use_tools(question, {}, {"used": False}) is True
+    assert proxy.qa_mcp_imes_plan(question) is None
+
+
+def test_planner_prompt_prefers_single_registered_heat_chemistry_call():
+    prompt = proxy.QA_MCP_BRIDGE_SYSTEM_PROMPT
+    assert "imes__query_heat_chemistry" in prompt
+    assert "只能从本轮提供的已注册工具Schema中选择工具" in prompt
+    assert "不得生成SQL" in prompt
+
+
+def test_model_planner_sse_exposes_safe_structured_call_not_reasoning():
+    source = (BACKEND_DIR / "ollama_proxy_server.py").read_text(encoding="utf-8")
+    assert '"route": "model_planner"' in source
+    assert '"planner_call": {' in source
+    assert '"server_id": tool_servers.get(name)' in source
+
+
+def test_arbitrary_heat_planner_catalog_uses_only_live_relevant_schemas():
+    tools = [
+        {"type": "function", "function": {"name": "imes__query_heat_chemistry"}},
+        {"type": "function", "function": {"name": "imes__query_hot_metal_chemistry_by_heat"}},
+        {"type": "function", "function": {"name": "imes__query_imes_variables"}},
+        {"type": "function", "function": {"name": "query_gl02_sensors"}},
+    ]
+    selected = proxy.qa_mcp_planner_tools(
+        "查询2#20260805-065炉次的C、Si、Mn、P、S", tools
+    )
+    assert [(item["function"]["name"]) for item in selected] == [
+        "imes__query_heat_chemistry",
+        "imes__query_hot_metal_chemistry_by_heat",
+    ]
+    assert all(item in tools for item in selected)

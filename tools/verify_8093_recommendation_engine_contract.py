@@ -87,11 +87,11 @@ class RecommendationEngineContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("REQ-OPT-FULL-ENGINE-20260715", html)
-        self.assertIn("OptimizationTab=OptimizationEngineCockpitLayout;", html)
+        self.assertIn("OptimizationTab = OptimizationMultiConditionCockpitLayout;", html)
         self.assertIn("function bfRecommendationConfidence", html)
-        self.assertIn("诊断：{fmtTime(d.diagnosis_ts||d.timestamp,'hms')} ｜ 数据：", html)
+        self.assertIn("诊断：{fmtTime(d.diagnosis_ts || d.timestamp, 'hms')} ｜ 数据：", html)
         component = html.split("function OptimizationEngineCockpitLayout", 1)[1].split(
-            "OptimizationTab=OptimizationEngineCockpitLayout;", 1
+            "REQ-OPT-MULTI-CONDITION-LLM-REVIEW-20260805", 1
         )[0]
         self.assertNotIn("a.score", component)
         self.assertNotIn("风险贡献", component)
@@ -102,7 +102,7 @@ class RecommendationEngineContractTests(unittest.TestCase):
         self.assertNotIn("规则判据：", component)
         self.assertNotIn("处置逻辑：", component)
         self.assertIn("{basisEvidence.join", component)
-        self.assertIn("<br/>{basisLogic}", component)
+        self.assertIn("<br />{basisLogic}", component)
         self.assertNotIn("active.reason||rec.explanation", component)
 
     def test_overview_reuses_standardized_engine_and_keeps_three_summaries(self) -> None:
@@ -111,15 +111,15 @@ class RecommendationEngineContractTests(unittest.TestCase):
         )
         self.assertIn("REQ-8093-OVERVIEW-SHARED-RECOMMENDATION-20260715", html)
         component = html.split(
-            "OverviewRight=function BFOverviewRightThreeColumnV12", 1
-        )[1].split("OverviewTab=function BFOverviewTabThreeColumnV12", 1)[0]
+            "OverviewRight = function BFOverviewRightThreeColumnV12", 1
+        )[1].split("OverviewTab = function BFOverviewTabThreeColumnV12", 1)[0]
         self.assertIn("bfRecommendationEngineView(diagnosis)", component)
-        self.assertIn("engine.actions.slice(0,3)", component)
-        self.assertIn("完整引擎 · 前三条摘要", component)
+        self.assertIn("engine.actions.slice(0, 3)", component)
+        self.assertIn("完整 · 前三条摘要", component)
         self.assertIn("action.name", component)
         self.assertIn("action.reason", component)
-        self.assertIn("等待完整建议引擎返回", component)
-        self.assertIn("建议引擎暂不可用", component)
+        self.assertIn("等待完整建议返回", component)
+        self.assertIn("建议暂不可用", component)
         self.assertNotIn("titles=['优化送风制度','调整布料策略']", component)
 
     def test_overview_trend_jump_is_rendered_in_panel_header(self) -> None:
@@ -150,7 +150,7 @@ class RecommendationEngineContractTests(unittest.TestCase):
         self.assertIn("function bfPrimarySecondaryScoreTrendOption", html)
         self.assertIn("function bfBaselineDeviationOption", html)
         component = html.split("function OptimizationEngineCockpitLayout", 1)[1].split(
-            "OptimizationTab=OptimizationEngineCockpitLayout;", 1
+            "REQ-OPT-MULTI-CONDITION-LLM-REVIEW-20260805", 1
         )[0]
         self.assertIn("bf-decision-evidence-grid", component)
         self.assertIn("baselineText", component)
@@ -169,11 +169,11 @@ class RecommendationEngineContractTests(unittest.TestCase):
         self.assertIn("function bfPrimarySecondaryScoreTrendOption", html)
         self.assertIn("function bfBaselineDeviationOption", html)
         component = html.split("function OptimizationEngineCockpitLayout", 1)[1].split(
-            "OptimizationTab=OptimizationEngineCockpitLayout;", 1
+            "REQ-OPT-MULTI-CONDITION-LLM-REVIEW-20260805", 1
         )[0]
-        self.assertIn("炉况演化 / 引擎建议", component)
-        self.assertIn("bfPrimarySecondaryScoreTrendOption(d,buf.diagnosisHistory||[])", component)
-        self.assertIn("bfBaselineDeviationOption(d,evidenceMetricIds)", component)
+        self.assertIn("炉况演化 / 建议", component)
+        self.assertIn("bfPrimarySecondaryScoreTrendOption(d, buf.diagnosisHistory || [])", component)
+        self.assertIn("bfBaselineDeviationOption(d, evidenceMetricIds)", component)
         self.assertIn("bf-risk-insight-grid", component)
         self.assertNotIn("metrics.slice(0,4).map(m=>", component)
 

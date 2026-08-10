@@ -5,28 +5,28 @@
       "object_id": "blast_furnace_heat",
       "object_type": "heat",
       "display_name": "高炉炉次",
-      "aliases": ["炉次", "炉号", "铁次", "某一炉"],
+      "aliases": ["炉次", "鸬鹚", "炉号", "铁次", "某一炉"],
       "unit": null,
-      "capabilities": ["lookup", "production_summary"],
+      "capabilities": ["lookup", "current", "previous", "production_summary"],
       "status": "enabled",
       "description": "按准确炉次号查询炉次生产实绩和作业条件",
       "executor": {
-        "service": "imes-relay-mcp",
-        "tools": ["query_imes_business"]
+        "service": "imes-readonly",
+        "tools": ["get_current_heat_context", "query_imes_object"]
       }
     },
     {
       "object_id": "hot_metal_chemistry",
       "object_type": "hot_metal_analysis",
       "display_name": "铁水化学成分",
-      "aliases": ["铁水化验", "炉次成分", "硅含量", "铁水硅", "锰含量", "碳硅锰磷硫"],
+      "aliases": ["铁水化验", "炉次成分", "鸬鹚硅含量", "硅含量", "铁水硅", "锰含量", "碳硅锰磷硫"],
       "unit": "%",
-      "capabilities": ["lookup_by_heat", "latest_sample", "multi_component"],
+      "capabilities": ["lookup_by_heat", "lookup_by_time_range", "current_partial_heat", "spoken_heat_reference", "component_selection", "latest_sample", "multi_sample", "tank_sample", "multi_component", "previous_heat_summary", "aggregate"],
       "status": "enabled",
-      "description": "按炉次查询铁水C、Si、Mn、P、S等化验结果",
+      "description": "按正式炉次、当前炉次或大概时间段查询铁水C、Si、Mn、P、S等化验及逐罐试样",
       "executor": {
-        "service": "imes-relay-mcp",
-        "tools": ["query_hot_metal_chemistry_by_heat"]
+        "service": "imes-readonly",
+        "tools": ["query_heat_chemistry", "query_current_heat_chemistry", "query_heat_chemistry_by_time_range", "query_hot_metal_chemistry_by_heat", "get_current_previous_heat_si_summary"]
       }
     },
     {
@@ -39,7 +39,7 @@
       "status": "enabled",
       "description": "按炉次查询炉渣样品、成分和碱度等结果",
       "executor": {
-        "service": "imes-relay-mcp",
+        "service": "imes-readonly",
         "tools": ["query_blast_furnace_slag_by_heat"]
       }
     },
@@ -53,7 +53,7 @@
       "status": "enabled",
       "description": "按日期、烧结机和样品查询进料化验结果",
       "executor": {
-        "service": "imes-relay-mcp",
+        "service": "imes-readonly",
         "tools": ["query_sinter_feed_chemistry"]
       }
     }

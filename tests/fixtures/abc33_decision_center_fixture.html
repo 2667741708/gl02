@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ABC33决策中心验收夹具</title>
+  <style>
+    html,body{margin:0;background:#020d17;color:#fff;font-family:SimSun,宋体,serif}
+    .bf-visual-recommendation-page{width:min(1500px,calc(100% - 24px));margin:12px auto;display:flex;flex-direction:column;gap:12px}
+    .bf-condition-switcher-v2,.bf-recommendation-summary-v2,.opt-decision-column{padding:12px;border:1px solid #285c76;background:#071c2c}
+    .bf-recommendation-summary-v2{min-height:70px}.opt-decision-column{min-height:180px}
+  </style>
+  <script>
+    const names={A:'维护',B:'风险',C:'报警'};
+    const rules=[];
+    for(const [category,count] of [['A',9],['B',13],['C',11]])for(let i=1;i<=count;i++)rules.push({rule_id:category+i,category,display_name:names[category]+'炉况'+i,score:i%4===0?null:20+i,status:i%4===0?'needs_data':'eligible',score_available:i%4!==0,confidence:i%4===0?0:.88,alert_state:category==='C'?'red':category==='B'?'yellow':'none',missing_sensors:i%4===0?['P_top','DP_total']:[],primary_review:['P_top','DP_total','Q_blast'],expanded_review:['PI','GasUtil'],manual_review:['现场确认风口和料面'],intervention_order:['确认数据','现场复核','记录结论'],observation_window:'15–30分钟',approval:'须值班工长批准',principle:'按受控工艺手册复核',source_refs:['见习高炉长手册']});
+    const nativeFetch=window.fetch.bind(window);
+    window.fetch=async function(url,options){
+      if(String(url).includes('/api/furnace-rules/latest'))return new Response(JSON.stringify({ok:true,rules}),{status:200,headers:{'Content-Type':'application/json'}});
+      const match=String(url).match(/\/api\/furnace-rules\/(.+)\/detail/);
+      if(match){const detail=rules.find(item=>item.rule_id===decodeURIComponent(match[1]));return new Response(JSON.stringify({ok:true,evaluation_ts:'2026-08-08 11:00:00+08:00',detail}),{status:200,headers:{'Content-Type':'application/json'}})}
+      return nativeFetch(url,options);
+    };
+  </script>
+</head>
+<body>
+  <main class="bf-visual-recommendation-page">
+    <section class="bf-condition-switcher-v2">八类炉况切换</section>
+    <section class="bf-recommendation-summary-v2">冷风压力与喷煤设定建议</section>
+    <section class="opt-decision-column"><h2>AI 决策中心</h2><p>现有四项主证据与决策结论区域</p></section>
+  </main>
+  <script src="../../高炉前端数据/assets/abc-furnace-rules-production.js"></script>
+</body>
+</html>

@@ -202,7 +202,30 @@ BILLBOARD_EXTRA_SENSORS: tuple[SensorSpec, ...] = (
     )
     for sector in "ABCDEF"
 )
-STREAM_SENSORS: tuple[SensorSpec, ...] = SENSORS + BILLBOARD_EXTRA_SENSORS
+# REQ-FOREMAN-PSPACE-EXTRA-METRICS-20260806
+# These values are part of the production foreman screen but not part of the
+# 133-point furnace-body Billboard contract.  They share the existing 8770
+# producer/read cycle; no additional pSpace reader is created.
+FOREMAN_EXTRA_SENSORS: tuple[SensorSpec, ...] = (
+    SensorSpec("CO_top", "一氧化碳", "%", "", "", ("一氧化碳", "CO")),
+    SensorSpec("CO2_top", "二氧化碳", "%", "", "", ("二氧化碳", "CO2")),
+    SensorSpec("H2_top", "氢气", "%", "", "", ("氢气", "H2")),
+    SensorSpec("PCI_previous_hour", "上小时喷煤量", "t", "", "", ("上小时累计喷煤", "上小时喷煤量累计")),
+    SensorSpec("BlastEnergy", "鼓风动能", "kg·m/s", "", "", ("鼓风动能",)),
+    SensorSpec("BlastSpeedStd", "标准风速", "m/s", "", "", ("标准风速",)),
+    SensorSpec("BlastSpeedActual", "实际风速", "m/s", "", "", ("实际风速",)),
+    SensorSpec("Q_soft_water", "软水流量", "m3/h", "", "", ("软水回水主管流量", "软水流量")),
+    SensorSpec("P_soft_water", "软水压力", "MPa", "", "", ("软水给水总管压力", "软水压力")),
+    SensorSpec("Q_high_pressure_water", "高压水流量", "m3/h", "", "", ("高压水流量",)),
+    SensorSpec("P_high_pressure_water", "高压水压力", "MPa", "", "", ("高压供水压力",)),
+    SensorSpec("P_medium_pressure_water", "中压水压力", "MPa", "", "", ("中压供水压力",)),
+    SensorSpec("ExpansionTankLevel", "膨胀罐液位", "m", "", "", ("膨胀罐液位",)),
+    SensorSpec("Q_N2", "氮气流量", "Nm3/h", "", "", ("进下阀箱和进气密箱氮气流量", "氮气流量")),
+    SensorSpec("P_N2", "氮气压力", "kPa", "", "", ("氮气总管调压阀后压力", "氮气压力")),
+    SensorSpec("P_O2_valve_in", "阀前富氧压力", "MPa", "", "", ("富氧压力", "阀前富氧压力")),
+    SensorSpec("P_O2_valve_out", "阀后富氧压力", "MPa", "", "", ("阀后富氧", "阀后富氧压力")),
+)
+STREAM_SENSORS: tuple[SensorSpec, ...] = SENSORS + BILLBOARD_EXTRA_SENSORS + FOREMAN_EXTRA_SENSORS
 STREAM_SENSOR_BY_ID = {sensor.sensor_id: sensor for sensor in STREAM_SENSORS}
 BILLBOARD_SENSOR_IDS: tuple[str, ...] = tuple(
     sensor.sensor_id
@@ -314,6 +337,7 @@ def sio_sensor(
     unit: str = "",
     status: str = "available",
     confidence: str = "high",
+    source: str = "confirmed_sio_gl02",
     note: str = "",
 ) -> dict[str, Any]:
     item: dict[str, Any] = {
@@ -324,7 +348,7 @@ def sio_sensor(
         "status": status,
         "confidence": confidence,
         "source_root": DEFAULT_SIO_GL02_ROOT,
-        "source": "confirmed_sio_gl02",
+        "source": source,
     }
     if note:
         item["note"] = note
@@ -448,6 +472,36 @@ def build_confirmed_sio_gl02_sensors() -> dict[str, dict[str, Any]]:
             source="excel_22012_pspace_confirmed",
             note="跨子树确认点，默认随 GL02 诊断桥接读取。",
         ),
+        "CO2_top": direct_sensor(
+            r"\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0113",
+            "SIO_CC_GF2_T0113",
+            "2号炉干法除尘_二氧化碳",
+            r"\冀南钢铁\SIO\CC\GF2",
+            unit="%",
+            status="available_cross_tree",
+            source="confirmed_foreman_pspace_search_20260807",
+            note="经220.12:18889只读实测为Good；加入工长趋势正式点位。",
+        ),
+        "CO_top": direct_sensor(
+            r"\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0112",
+            "SIO_CC_GF2_T0112",
+            "2号炉干法除尘_一氧化碳",
+            r"\冀南钢铁\SIO\CC\GF2",
+            unit="%",
+            status="available_cross_tree",
+            source="confirmed_foreman_pspace_search_20260807",
+            note="经220.12:18889只读实测为Good；加入工长趋势正式点位。",
+        ),
+        "H2_top": direct_sensor(
+            r"\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0111",
+            "SIO_CC_GF2_T0111",
+            "2号炉干法除尘_氢气",
+            r"\冀南钢铁\SIO\CC\GF2",
+            unit="%",
+            status="available_cross_tree",
+            source="confirmed_foreman_pspace_search_20260807",
+            note="经220.12:18889只读实测为Good；加入工长趋势正式点位。",
+        ),
         "DP_upper": sio_sensor("BT", "SIO_GL02_BT_T0135", "2号炉本体_上部压差"),
         "DP_lower": sio_sensor("BT", "SIO_GL02_BT_T0102", "2号炉本体_下部压差"),
         "DP_total": sio_sensor("BT", "SIO_GL02_BT_T0132", "2号炉本体_全炉压差"),
@@ -559,9 +613,76 @@ def build_confirmed_billboard_extra_sensors() -> dict[str, dict[str, Any]]:
     return sensors
 
 
+def build_confirmed_foreman_extra_sensors() -> dict[str, dict[str, Any]]:
+    """Return pSpace points confirmed by the 2026-08-06 production search."""
+    return {
+        "PCI_previous_hour": sio_sensor(
+            "PC",
+            "SIO_GL02_PC_T0004",
+            "2号炉喷吹_上小时喷煤量累计",
+            unit="t",
+            source="confirmed_foreman_pspace_search_20260806",
+            note="与现场工长趋势画面同时间值核对一致；本小时量由 PCI_rate 分钟历史积分。",
+        ),
+        "BlastEnergy": sio_sensor(
+            "BT", "SIO_GL02_BT_T0136", "2号炉本体_鼓风动能", unit="kg·m/s",
+            source="confirmed_foreman_pspace_search_20260806",
+        ),
+        "BlastSpeedStd": sio_sensor(
+            "BT", "SIO_GL02_BT_T0133", "2号炉本体_标准风速", unit="m/s",
+            source="confirmed_foreman_pspace_search_20260806",
+        ),
+        "BlastSpeedActual": sio_sensor(
+            "BT", "SIO_GL02_BT_T0134", "2号炉本体_实际风速", unit="m/s",
+            source="confirmed_foreman_pspace_search_20260806",
+        ),
+        "Q_soft_water": sio_sensor(
+            "BT", "SIO_GL02_BT_T0056", "2号炉本体_软水回水主管流量", unit="m3/h",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "P_soft_water": sio_sensor(
+            "BT", "SIO_GL02_BT_T0137", "2号炉本体_软水给水总管压力", unit="MPa",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "Q_high_pressure_water": sio_sensor(
+            "BT", "SIO_GL02_BT_T0021", "2号炉本体_高压水流量", unit="m3/h",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "P_high_pressure_water": sio_sensor(
+            "BT", "SIO_GL02_BT_T0148", "2号炉本体_高压供水压力", unit="MPa",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "P_medium_pressure_water": sio_sensor(
+            "BT", "SIO_GL02_BT_T0147", "2号炉本体_中压供水压力", unit="MPa",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "ExpansionTankLevel": sio_sensor(
+            "BT", "SIO_GL02_BT_T0097", "2号炉本体_膨胀罐液位", unit="m",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "Q_N2": sio_sensor(
+            "LD", "SIO_GL02_LD_T0045", "2号炉炉顶_进下阀箱和进气密箱氮气流量", unit="Nm3/h",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "P_N2": sio_sensor(
+            "LD", "SIO_GL02_LD_T0073", "2号炉炉顶_氮气总管调压阀后压力", unit="kPa",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "P_O2_valve_in": sio_sensor(
+            "CX", "SIO_GL02_CX_T0289", "2号炉槽下_富氧压力", unit="MPa",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+        "P_O2_valve_out": sio_sensor(
+            "CX", "SIO_GL02_CX_T0291", "2号炉槽下_阀后富氧", unit="MPa",
+            source="confirmed_foreman_hmi_value_match_20260806",
+        ),
+    }
+
+
 CONFIRMED_SIO_GL02_SENSORS = {
     **build_confirmed_sio_gl02_sensors(),
     **build_confirmed_billboard_extra_sensors(),
+    **build_confirmed_foreman_extra_sensors(),
 }
 
 
@@ -1879,7 +2000,10 @@ class DashboardBridge:
 
     async def register(self, websocket) -> None:
         self.clients.add(websocket)
-        await websocket.send(json.dumps(self.build_init_payload(), ensure_ascii=False))
+        # pSpace/DB access is synchronous.  Keep it away from the asyncio
+        # event loop so a slow source cannot stall WebSocket handshakes.
+        init_payload = await asyncio.to_thread(self.build_init_payload)
+        await websocket.send(json.dumps(init_payload, ensure_ascii=False))
         LOG.info("client connected: total=%s", len(self.clients))
 
     async def unregister(self, websocket) -> None:
@@ -1918,7 +2042,9 @@ class DashboardBridge:
     async def broadcast_loop(self) -> None:
         while True:
             try:
-                payload = self.read_frame()
+                # There must still be exactly one producer/read per polling
+                # cycle; only its blocking execution moves to a worker thread.
+                payload = await asyncio.to_thread(self.read_frame)
                 text = json.dumps(payload, ensure_ascii=False)
                 if self.clients:
                     dead = set()

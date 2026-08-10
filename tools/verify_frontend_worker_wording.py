@@ -98,6 +98,7 @@ def main() -> int:
         "注意事项",
         "关键指标对比",
         "窗口前",
+        "判断把握",
     ]
     if not result.get("fallback"):
         hits = [word for word in forbidden_visible if word in visible_all]
@@ -105,8 +106,8 @@ def main() -> int:
             failures.append("forbidden_visible_words:" + ",".join(hits))
 
     required = {
-        "overview": ["判断把握"],
-        "diagnosis": ["红=严重", "工长关注项", "判断把握"],
+        "overview": [],
+        "diagnosis": ["红=严重", "工长关注项"],
         "optimization": ["强度", "依据", "作用", "现场确认", "参考范围/口径", "15分钟变化"],
         "trend": ["关键指标变化", "窗口起点", "预测终点"],
     }

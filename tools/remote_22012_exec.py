@@ -12,12 +12,12 @@ where ghsc, pythonSDK(1), MCP, and 8092 production services live.
 from __future__ import annotations
 
 import argparse
-import base64
 import getpass
 import os
 import re
 import sys
 import time
+import uuid
 from pathlib import Path
 
 import paramiko
@@ -96,30 +96,51 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prompt-password", action="store_true")
     parser.add_argument("--timeout", type=int, default=3600)
     parser.add_argument("--upload", action="append", type=parse_pair, default=[], help="Upload local=remote before running.")
+    parser.add_argument("--upload-only", action="store_true", help="Upload staged files and exit without starting a remote shell command.")
     parser.add_argument("--download", action="append", type=parse_pair, default=[], help="Download remote=local after running.")
     parser.add_argument("--command", help="PowerShell command to run on 220.12.")
     parser.add_argument("--script", type=Path, help="Local .ps1 file to run on 220.12.")
     parser.add_argument("--python", dest="python_args", help="Run remote Python311 with these arguments from --workdir.")
+    parser.add_argument(
+        "--remote-shell",
+        choices=("pwsh", "windows-powershell"),
+        default="pwsh",
+        help="Remote PowerShell runtime. Defaults to PowerShell 7; Windows PowerShell is explicit legacy bootstrap only.",
+    )
     parser.add_argument("--no-profile", action="store_true", default=True)
     parser.add_argument("--keep-remote-script", action="store_true")
     return parser.parse_args()
 
 
 def connect(args: argparse.Namespace) -> paramiko.SSHClient:
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     connect_timeout = max(1, min(30, args.timeout))
-    client.connect(
-        hostname=args.host,
-        username=args.user,
-        password=resolve_password(args),
-        timeout=connect_timeout,
-        banner_timeout=connect_timeout,
-        auth_timeout=connect_timeout,
-        look_for_keys=False,
-        allow_agent=False,
-    )
-    return client
+    password = resolve_password(args)
+    last_error: Exception | None = None
+    for attempt in range(1, 4):
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            client.connect(
+                hostname=args.host,
+                username=args.user,
+                password=password,
+                timeout=connect_timeout,
+                banner_timeout=connect_timeout,
+                auth_timeout=connect_timeout,
+                look_for_keys=False,
+                allow_agent=False,
+            )
+            transport = client.get_transport()
+            if transport is not None:
+                transport.set_keepalive(10)
+            return client
+        except (paramiko.SSHException, OSError) as exc:
+            last_error = exc
+            client.close()
+            if attempt < 3:
+                time.sleep(2)
+    assert last_error is not None
+    raise last_error
 
 
 def sftp_mkdirs(sftp: paramiko.SFTPClient, remote_path: str) -> None:
@@ -180,9 +201,11 @@ def download_files(sftp: paramiko.SFTPClient, downloads: list[tuple[Path, str]])
         download_one(sftp, str(remote_path), Path(local_path))
 
 
-def build_remote_script(args: argparse.Namespace) -> str:
+def build_remote_script(args: argparse.Namespace, payload_path: str | None = None) -> str:
     if args.script:
-        body = args.script.read_text(encoding="utf-8")
+        if not payload_path:
+            raise ValueError("payload_path is required for --script")
+        body = f'& "{payload_path}"'
     elif args.python_args:
         escaped = args.python_args.replace("`", "``").replace('"', '`"')
         body = f'& "C:\\Program Files\\Python311\\python.exe" -X utf8 {escaped}'
@@ -192,6 +215,7 @@ def build_remote_script(args: argparse.Namespace) -> str:
         raise SystemExit("必须提供 --command、--script 或 --python 之一。")
 
     return f"""
+$ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 $ProgressPreference = "SilentlyContinue"
@@ -203,24 +227,69 @@ exit $LASTEXITCODE
 """.strip()
 
 
-def run_powershell(client: paramiko.SSHClient, script: str, args: argparse.Namespace) -> int:
-    # Use EncodedCommand so Chinese paths are interpreted as UTF-16LE by PowerShell.
-    encoded = base64.b64encode(script.encode("utf-16le")).decode("ascii")
-    profile = "-NoProfile" if args.no_profile else ""
-    command = f"powershell {profile} -ExecutionPolicy Bypass -EncodedCommand {encoded}"
-    _, stdout, stderr = client.exec_command(command, timeout=args.timeout)
-    out = stdout.read().decode("utf-8", errors="replace")
-    err = stderr.read().decode("utf-8", errors="replace")
-    if out:
-        print(out, end="" if out.endswith("\n") else "\n")
-    if err:
-        print(err, file=sys.stderr, end="" if err.endswith("\n") else "\n")
-    return stdout.channel.recv_exit_status()
+def run_powershell(client: paramiko.SSHClient, args: argparse.Namespace) -> int:
+    """Stage UTF-8 scripts and execute them with a short PowerShell 7 -File command."""
+
+    token = uuid.uuid4().hex
+    temp_root = r"C:\Users\Administrator\AppData\Local\Temp"
+    wrapper_path = rf"{temp_root}\bf_remote_exec_{token}.ps1"
+    payload_path = rf"{temp_root}\bf_remote_payload_{token}.ps1" if args.script else None
+    remote_paths = [wrapper_path]
+    if payload_path:
+        remote_paths.append(payload_path)
+
+    sftp = client.open_sftp()
+    try:
+        if args.script and payload_path:
+            payload = args.script.read_bytes()
+            with sftp.file(payload_path, "wb") as remote_payload:
+                remote_payload.write(payload)
+        wrapper = build_remote_script(args, payload_path=payload_path).encode("utf-8")
+        with sftp.file(wrapper_path, "wb") as remote_wrapper:
+            remote_wrapper.write(wrapper)
+    finally:
+        sftp.close()
+
+    if args.remote_shell == "pwsh":
+        executable = r"C:\Program Files\PowerShell\7\pwsh.exe"
+        invocation = (
+            f"& '{executable}' -NoLogo -NoProfile -NonInteractive "
+            f"-ExecutionPolicy Bypass -File '{wrapper_path}'"
+        )
+    else:
+        invocation = (
+            "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass "
+            f"-File '{wrapper_path}'"
+        )
+
+    try:
+        _, stdout, stderr = client.exec_command(invocation, timeout=args.timeout)
+        out = stdout.read().decode("utf-8", errors="replace")
+        err = stderr.read().decode("utf-8", errors="replace")
+        if out:
+            print(out, end="" if out.endswith("\n") else "\n")
+        if err:
+            print(err, file=sys.stderr, end="" if err.endswith("\n") else "\n")
+        return stdout.channel.recv_exit_status()
+    finally:
+        if not args.keep_remote_script:
+            sftp = client.open_sftp()
+            try:
+                for remote_path in remote_paths:
+                    try:
+                        sftp.remove(remote_path)
+                    except OSError:
+                        pass
+            finally:
+                sftp.close()
 
 
 def main() -> int:
     args = parse_args()
-    script = build_remote_script(args)
+    if args.upload_only and not args.upload:
+        raise SystemExit("--upload-only 至少需要一个 --upload。")
+    if not args.upload_only and not (args.script or args.python_args or args.command):
+        raise SystemExit("必须提供 --command、--script 或 --python 之一。")
     client = connect(args)
     try:
         sftp = client.open_sftp()
@@ -229,8 +298,12 @@ def main() -> int:
         finally:
             sftp.close()
 
+        if args.upload_only:
+            print(f"[upload-only] {len(args.upload)} file(s) staged")
+            return 0
+
         print(f"[remote] {args.user}@{args.host} cwd={args.workdir}")
-        exit_code = run_powershell(client, script, args)
+        exit_code = run_powershell(client, args)
         print(f"[exit] {exit_code}")
 
         if args.download:

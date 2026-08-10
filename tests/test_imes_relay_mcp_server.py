@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+from unittest import mock
 import sys
 import unittest
 from pathlib import Path
@@ -122,7 +123,7 @@ class ImesRelayMcpTests(unittest.TestCase):
 
     def test_semantic_resolver_routes_new_chemistry_intents(self):
         cases = {
-            "查2#20260716-101炉次的硅和锰": "query_hot_metal_chemistry_by_heat",
+            "查2#20260716-101炉次的硅和锰": "query_heat_chemistry",
             "这一炉的炉渣成分怎么样": "query_blast_furnace_slag_by_heat",
             "看看今天2号烧结机来料化学成分": "query_sinter_feed_chemistry",
         }
@@ -163,6 +164,63 @@ class ImesRelayMcpTests(unittest.TestCase):
         self.assertEqual(MODULE.normalize_profile("LABORATORY"), "laboratory")
         with self.assertRaisesRegex(ValueError, "unknown account_profile"):
             MODULE.normalize_profile("administrator")
+
+    def test_local_common_vastbase_account_is_used_for_both_profiles(self):
+        with mock.patch.dict(
+            MODULE.os.environ,
+            {"IMES_DB_USER": "lg_fq_test", "IMES_DB_PASSWORD": "secret"},
+            clear=True,
+        ):
+            profiles = MODULE.database_profiles()
+        self.assertEqual(profiles["operations"]["user"], "lg_fq_test")
+        self.assertEqual(profiles["laboratory"]["user"], "lg_fq_test")
+
+    def test_chemistry_tools_use_configured_profile(self):
+        calls = []
+
+        class Cursor:
+            description = [("heatno",), ("batchno",), ("si",)]
+
+            def execute(self, query, params):
+                self.query = query
+                self.params = params
+
+            def fetchall(self):
+                return [("2#20260805-065", "B065", "0.23")]
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        class Connection:
+            def cursor(self):
+                return Cursor()
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        def fake_connection(profile="operations"):
+            calls.append(profile)
+            return Connection()
+
+        with mock.patch.object(MODULE, "connection", fake_connection):
+            result = MODULE.query_hot_metal_chemistry_by_heat("2#20260805-065")
+        # The chemistry result is followed by a read-only operations lookup
+        # to attach the official heat time window.
+        self.assertEqual(calls, [MODULE.CHEMISTRY_ACCOUNT_PROFILE, "operations"])
+        self.assertEqual(result["account_profile"], MODULE.CHEMISTRY_ACCOUNT_PROFILE)
+        self.assertFalse(result["missing"])
+
+        calls.clear()
+        with mock.patch.object(MODULE, "connection", fake_connection):
+            ranged = MODULE.query_hot_metal_silicon("2026-08-05", "2026-08-05")
+        self.assertEqual(calls, [MODULE.CHEMISTRY_ACCOUNT_PROFILE])
+        self.assertEqual(ranged["account_profile"], MODULE.CHEMISTRY_ACCOUNT_PROFILE)
 
     def test_profile_summary_never_returns_password(self):
         config = {

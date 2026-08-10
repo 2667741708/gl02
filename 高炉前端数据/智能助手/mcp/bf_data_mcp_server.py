@@ -177,10 +177,29 @@ STATIC_PRESSURE_EXTENSION = (
     if STATIC_PRESSURE_EXTENSION_PATH.exists()
     else []
 )
+def build_body_temperature_variables() -> list[dict[str, Any]]:
+    """Return the canonical 80 BT points when the optional mapping is absent."""
+    variables: list[dict[str, Any]] = []
+    for layer in range(7, 17):
+        for offset, sector in enumerate("ABCDEFGH"):
+            tag_no = 155 + (layer - 7) * 8 + offset
+            short_name = f"SIO_GL02_BT_T{tag_no:04d}"
+            tag = "\\" + "\u51b6\u5357\u94a2\u94c1" + "\\SIO\\GL02\\BT\\" + short_name
+            variables.append({
+                "variable_name": f"T_body_L{layer}_{sector}",
+                "aliases": ["\u7089\u4f53\u6e29\u5ea6", "\u7089\u8eab\u6e29\u5ea6", f"{layer}\u5c42{sector}\u70b9\u6e29\u5ea6"],
+                "status": "physical", "confidence": "high", "source_branch": "BT",
+                "short_name": short_name, "point_id": tag, "tag_long_name": tag,
+                "description": f"GL02 {layer}\u5c42{sector}\u7089\u8eab\u6e29\u5ea6", "unit": "\u2103",
+            })
+    return variables
+
+
 VARIABLES = merge_variable_catalog(
     CORE_FALLBACK_VARIABLES,
     MAPPING_CONFIG.get("variables", []),
     STATIC_PRESSURE_EXTENSION,
+    build_body_temperature_variables(),
 )
 BUSINESS_OBJECT_CATALOG = load_business_object_catalog(VARIABLES)
 STATIC_PRESSURE_EXTENSION_VARIABLES = {
@@ -2049,6 +2068,70 @@ def query_statistics_derived_t_top(
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     rows, source = query_history_derived_t_top(start_time, end_time, MAX_HISTORY_LIMIT, source_preference=source_preference)
     return statistics_from_rows(rows), source
+
+
+@mcp.tool()
+def query_bf2_operation_log_report(workdate: str = "", limit: int = 200) -> dict[str, Any]:
+    """查询 2# 高炉冀南新区高炉作业日志报表的已落库数据。
+
+    该报表保留全部返回单元格；``fuel_ratio`` 是 Raqsoft 页面公式重算值，
+    ``report_batch_count`` 是 D 列“批数”。料速语义尚未现场确认，因此返回
+    ``material_rate=null`` 和明确的 ``material_rate_status``，避免把批数误报为料速。
+    """
+    day = (workdate or datetime.now(LOCAL_TZ).strftime("%Y-%m-%d"))[:10]
+    try:
+        datetime.strptime(day, "%Y-%m-%d")
+    except ValueError as exc:
+        raise ValueError("workdate 必须是 YYYY-MM-DD") from exc
+    limit = max(1, min(int(limit or 200), 5000))
+    profile = get_profile()
+    if profile.get("engine") != "bf_sensor_postgresql":
+        return {
+            "ok": False,
+            "error": "report_dataset_requires_postgresql",
+            "message": "当前 BF_MCP_DB_PROFILE 不是 bf_sensor_postgresql，未查询报表库。",
+        }
+    psycopg, dict_row = import_psycopg()
+    query = """
+        SELECT workdate, report_row_number, report_id,
+               report_time_raw, report_time_display,
+               report_batch_count, report_coal_ratio, report_fuel_ratio,
+               material_rate, material_rate_status, material_rate_note,
+               report_headers, report_cells, fetched_at, updated_at
+        FROM bf_imes.v_bf2_operation_log_report
+        WHERE workdate = %s::date
+        ORDER BY report_row_number
+        LIMIT %s
+    """
+    try:
+        with psycopg.connect(pg_conninfo(profile), row_factory=dict_row) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SET TRANSACTION READ ONLY")
+                cur.execute(query, (day, limit))
+                rows = [
+                    {key: jsonable(value) for key, value in dict(row).items()}
+                    for row in cur.fetchall()
+                ]
+    except Exception as exc:
+        return {
+            "ok": False,
+            "workdate": day,
+            "error": type(exc).__name__,
+            "message": "报表视图不可用或数据库连接失败；请先执行 IMES 报表迁移/同步。",
+        }
+    return {
+        "ok": True,
+        "source": "bf_imes.v_bf2_operation_log_report",
+        "furnace": "2#高炉",
+        "workdate": day,
+        "rows_count": len(rows),
+        "rows": rows,
+        "semantics": {
+            "report_fuel_ratio": "Raqsoft 页面 M 列公式重算，不是 IMES 原始字段",
+            "report_batch_count": "Raqsoft 页面 D 列批数",
+            "material_rate": "语义待现场确认，当前不由批数推断",
+        },
+    }
 
 
 def latest_snapshot_value(variable_name: str) -> dict[str, Any] | None:

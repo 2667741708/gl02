@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "confirmed_at": "2026-05-09",
+  "instruction_doc": "数据库同步和存取/明确指令.md",
+  "point_catalog_tsv": "数据库同步和存取/config/点位清单.tsv",
+  "database": {
+    "engine": "postgresql",
+    "local_demo_path": "数据库同步和存取/data/gl02_required_1min.sqlite3",
+    "server_22012_recommended_path": "F:/高炉炼铁项目-real-sensor-v2_V3/数据库同步和存取/data/gl02_required_1min.sqlite3",
+    "schema_sql": "数据库同步和存取/schema/sqlite_required_points.sql",
+    "postgresql": {
+      "host": "10.30.220.12",
+      "port": 5432,
+      "database": "bf_trend",
+      "user": "",
+      "password": "",
+      "schema": "bf_sensor",
+      "schema_sql": "数据库同步和存取/schema/postgresql_required_points.sql",
+      "retention_years": 3,
+      "partition_granularity": "month",
+      "connect_timeout_seconds": 10,
+      "env": {
+        "host": "GL02_PGHOST",
+        "port": "GL02_PGPORT",
+        "database": "GL02_PGDATABASE",
+        "user": "GL02_PGUSER",
+        "password": "GL02_PGPASSWORD"
+      }
+    },
+    "note": "默认使用 220.12 PostgreSQL。账号密码不写入配置文件，运行时通过 GL02_PGUSER/GL02_PGPASSWORD 注入；SQLite 只保留为本地演示回退。"
+  },
+  "source": {
+    "pspace_server": "10.22.181.243",
+    "pspace_port": 8889,
+    "user_env": "PSPACE_USER",
+    "password_env": "PSPACE_PASSWORD",
+    "read_policy": "只读读取备份数采服务器 243；不修改 243/244 任何配置、服务或生产数据。",
+    "aggregate": "PS_HIS_AVERAGE",
+    "interval_seconds": 60,
+    "source_mode": "raw",
+    "source_interval_seconds": 5,
+    "source_aggregate": "average",
+    "raw_max_values": 20000,
+    "raw_bounds": 0,
+    "target_aggregate": "PS_RAW_AVERAGE",
+    "target_interval_seconds": 60,
+    "persist_raw_5s": true,
+    "raw_retention_days": 30,
+    "minute_completion_lag_seconds": 60,
+    "minute_semantic_version": "valid_raw_mean_v1"
+  },
+  "sync": {
+    "default_history_days": 90,
+    "chunk_hours": 12,
+    "batch_size": 115,
+    "max_workers": 1,
+    "retries": 3,
+    "retry_sleep_seconds": 8,
+    "continuous_poll_seconds": 30,
+    "continuous_lookback_minutes": 10,
+    "retention_years": 3,
+    "write_mode": "upsert_by_tag_and_timestamp"
+  },
+  "state_materialization": {
+    "enabled": true,
+    "semantic_version": "bounded_state_hold_v1",
+    "scope": "realtime_windows_up_to_2_hours",
+    "note": "原始点位无新样本时按有限时长逐分钟保持；保持记录标记PS_STATE_HOLD/Held，不冒充pSpace原始采样，新原始值到达后同分钟覆盖。",
+    "policies": [
+      {
+        "name": "furnace_body_temperature",
+        "variable_prefix": "T_body_",
+        "maximum_hold_minutes": 20
+      },
+      {
+        "name": "cooling_minute_state",
+        "variables": ["Q_soft_water", "P_soft_water", "Q_high_pressure_water", "P_high_pressure_water", "P_medium_pressure_water"],
+        "maximum_hold_minutes": 10
+      },
+      {
+        "name": "expansion_tank_hourly_state",
+        "variables": ["ExpansionTankLevel"],
+        "maximum_hold_minutes": 70
+      },
+      {
+        "name": "burden_line_probe_state",
+        "variables": ["L_north", "L_south"],
+        "maximum_hold_minutes": 10
+      },
+      {
+        "name": "top_temperature_pressure_state",
+        "variables": ["T_top_A", "T_top_B", "T_top_C", "T_top_D", "P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"],
+        "maximum_hold_minutes": 10
+      },
+      {
+        "name": "circumferential_static_pressure_state",
+        "variable_prefix": "P_static_",
+        "maximum_hold_minutes": 10
+      }
+    ]
+  },
+  "derived": {
+    "T_top": {
+      "method": "avg",
+      "sources": ["T_top_A", "T_top_B", "T_top_C", "T_top_D"],
+      "store": false,
+      "note": "默认查询时派生，不重复入库。"
+    }
+  },
+  "body_temperature_ranges": [
+    {
+      "variable_prefix": "T_body_L7",
+      "label": "7层炉腹下温度A-H，16.860m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0155",
+      "short_end": "SIO_GL02_BT_T0162",
+      "description_prefix": "2号炉本体_7层炉腹下温度",
+      "usage": "明确可用；参与T_body_lower聚合"
+    },
+    {
+      "variable_prefix": "T_body_L8",
+      "label": "8层炉腹上温度A-H，18.335m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0163",
+      "short_end": "SIO_GL02_BT_T0170",
+      "description_prefix": "2号炉本体_8层炉腹上温度",
+      "usage": "明确可用；参与T_body_lower聚合"
+    },
+    {
+      "variable_prefix": "T_body_L9",
+      "label": "9层炉腰温度A-H，20.125m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0171",
+      "short_end": "SIO_GL02_BT_T0178",
+      "description_prefix": "2号炉本体_9层炉腰温度",
+      "usage": "明确可用；参与T_body_lower聚合"
+    },
+    {
+      "variable_prefix": "T_body_L10",
+      "label": "10层炉身下温度A-H，21.860m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0179",
+      "short_end": "SIO_GL02_BT_T0186",
+      "description_prefix": "2号炉本体_10层炉身下温度",
+      "usage": "明确可用；参与T_body_middle聚合"
+    },
+    {
+      "variable_prefix": "T_body_L11",
+      "label": "11层炉身下温度A-H，23.711m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0187",
+      "short_end": "SIO_GL02_BT_T0194",
+      "description_prefix": "2号炉本体_11层炉身下温度",
+      "usage": "明确可用；参与T_body_middle聚合"
+    },
+    {
+      "variable_prefix": "T_body_L12",
+      "label": "12层炉身下温度A-H，25.441m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0195",
+      "short_end": "SIO_GL02_BT_T0202",
+      "description_prefix": "2号炉本体_12层炉身下温度",
+      "usage": "明确可用；参与T_body_middle聚合"
+    },
+    {
+      "variable_prefix": "T_body_L13",
+      "label": "13层炉身下温度A-H，27.171m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0203",
+      "short_end": "SIO_GL02_BT_T0210",
+      "description_prefix": "2号炉本体_13层炉身下温度",
+      "usage": "明确可用；参与T_body_middle聚合"
+    },
+    {
+      "variable_prefix": "T_body_L14",
+      "label": "14层炉身中温度A-H，28.901m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0211",
+      "short_end": "SIO_GL02_BT_T0218",
+      "description_prefix": "2号炉本体_14层炉身中温度",
+      "usage": "明确可用；参与T_body_upper聚合"
+    },
+    {
+      "variable_prefix": "T_body_L15",
+      "label": "15层炉身上温度A-H，30.631m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0219",
+      "short_end": "SIO_GL02_BT_T0226",
+      "description_prefix": "2号炉本体_15层炉身上温度",
+      "usage": "明确可用；参与T_body_upper聚合"
+    },
+    {
+      "variable_prefix": "T_body_L16",
+      "label": "16层炉身上温度A-H，32.361m",
+      "branch": "BT",
+      "short_start": "SIO_GL02_BT_T0227",
+      "short_end": "SIO_GL02_BT_T0234",
+      "description_prefix": "2号炉本体_16层炉身上温度",
+      "usage": "明确可用；参与T_body_upper聚合"
+    }
+  ]
+}

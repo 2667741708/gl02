@@ -16,6 +16,7 @@ from si_semantic_engine.formal_dataset import (  # noqa: E402
     attach_available_si_history,
     canonicalize_history_features,
 )
+from si_semantic_engine.formal_dataset import prepare_training_target  # noqa: E402
 from si_semantic_engine.formal_labels import (  # noqa: E402
     NEXT_SAMPLE_TASK,
     build_label_contract,
@@ -143,6 +144,57 @@ class FormalDatasetTests(unittest.TestCase):
         buffer.seek(0)
         restored = pd.read_csv(buffer)
         pd.testing.assert_frame_equal(canonical, restored)
+
+    # Average-target regression follows; the legacy same-cutoff assertions remain below.
+    def test_mean_target_rebuilds_prior_heat_history(self) -> None:
+        heat_targets = pd.DataFrame(
+            {
+                "official_meltno": ["H1", "H2", "H3"],
+                "prediction_cutoff_ts": [
+                    "2026-07-01 10:00:00",
+                    "2026-07-01 11:00:00",
+                    "2026-07-01 12:00:00",
+                ],
+                "label_available_ts": [
+                    "2026-07-01 10:30:00",
+                    "2026-07-01 11:30:00",
+                    "2026-07-01 12:30:00",
+                ],
+                "target__Si_representative": [0.20, 0.30, 0.40],
+                "target__Si_mean": [0.25, 0.35, 0.45],
+            }
+        )
+        frame = pd.DataFrame(
+            {
+                "official_meltno": ["H2", "H3"],
+                "target__Si_representative": [0.30, 0.40],
+                "target__Si_mean": [0.35, 0.45],
+                "history__available_heat_count": [99, 99],
+                "history__previous_meltno": ["old", "old"],
+                "history__previous_Si_1": [9.99, 9.99],
+                "history__previous_Si_median_3": [9.99, 9.99],
+                "history__previous_Si_slope_3": [9.99, 9.99],
+                "history__previous_Si_median_6": [9.99, 9.99],
+            }
+        )
+
+        output, audit = prepare_training_target(
+            frame,
+            heat_targets,
+            target_column="target__Si_mean",
+        )
+
+        second = output.loc[output["official_meltno"] == "H2"].iloc[0]
+        third = output.loc[output["official_meltno"] == "H3"].iloc[0]
+        self.assertEqual(audit["target_column"], "target__Si_mean")
+        self.assertEqual(
+            audit["history_target_column"], "target__Si_mean"
+        )
+        self.assertAlmostEqual(second["target__Si_representative"], 0.35)
+        self.assertAlmostEqual(third["target__Si_representative"], 0.45)
+        self.assertAlmostEqual(second["history__previous_Si_1"], 0.25)
+        self.assertAlmostEqual(third["history__previous_Si_1"], 0.35)
+        self.assertNotAlmostEqual(third["history__previous_Si_1"], 0.30)
 
     def test_same_cutoff_heat_is_not_available_history(self) -> None:
         rows = pd.DataFrame(

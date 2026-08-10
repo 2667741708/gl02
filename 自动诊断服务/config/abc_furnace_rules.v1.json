@@ -1,0 +1,134 @@
+{
+  "schema_version": "abc_furnace_rules.v1",
+  "requirement_id": "REQ-ABC33-FURNACE-RULES-20260807",
+  "config_version": "20260810.2-score-preview-alerts-off",
+  "enabled": true,
+  "release_control": {
+    "mode": "score_preview",
+    "scores_visible": true,
+    "alerts_enabled": false,
+    "reason": "三天影子回放865个批次已完成；允许展示含有效零分在内的试运行分数，B/C弹窗告警继续关闭，等待现场阈值校准"
+  },
+  "quality": {
+    "minimum_coverage_ratio": 0.75,
+    "maximum_age_seconds": 300,
+    "normal_window_minutes": 30,
+    "fast_event_window_minutes": 5
+  },
+  "score_bands": {
+    "A": {"review_below": 75, "candidate_below": 60},
+    "B": {"observe_from": 40, "popup_from": 55, "amber_from": 70, "confirm_from": 85},
+    "C": {"alarm_from": 70}
+  },
+  "feature_thresholds": {
+    "preset_notice": "以下现场阈值均为系统预设初值，尚未获得现场批准；只允许影子试算，须由高炉长结合历史回放后调整并发布。",
+    "state_hold_minutes": {
+      "default": 5,
+      "furnace_body": 15,
+      "state": "preset_not_site_approved"
+    },
+    "top_temperature_range": {
+      "warn": 10.0,
+      "alarm": 35.0,
+      "unit": "degC",
+      "source": "运营核验文档固定初值",
+      "state": "document_preset_not_site_approved"
+    },
+    "top_pressure_range": {
+      "warn": 8.0,
+      "alarm": 25.0,
+      "unit": "kPa",
+      "source": "运营核验文档固定初值",
+      "state": "document_preset_not_site_approved"
+    },
+    "line": {
+      "primary_variable": "L_south",
+      "effective_value_method": "rolling_max_nonnegative",
+      "effective_window_minutes": 5,
+      "minimum_valid_value": 0.0,
+      "normal_level": 1.3,
+      "normal_level_unit": "m",
+      "normal_level_source": "现场确认南探尺为主基准；220.12近30日南探尺5分钟有效最大值P25约1.206、中位数约1.307、P75约1.417",
+      "state": "site_provisional_not_final_approved",
+      "loss_direction": "higher",
+      "north_working_mean_median": 1.568432,
+      "south_working_mean_median": 1.030864,
+      "south_north_bias_mean": -0.670355,
+      "bias_deviation_warn": 0.255082,
+      "bias_deviation_alarm": 0.510164,
+      "rate_difference_warn": 0.28,
+      "rate_difference_alarm": 0.56,
+      "calibration_note": "220.12标签数据中南探尺5分钟有效最大值平均比北探尺低约0.670m；与现场口述方向不一致，按北探尺准确、南探尺存在固定零偏处理，待现场核对点位方向",
+      "drop_warn": 0.3,
+      "drop_alarm": 0.8
+    },
+    "duration_minutes": {"warn": 15, "alarm": 60, "state": "preset_not_site_approved"},
+    "static_pressure_range": {
+      "minimum_valid_value": 0.1,
+      "minimum_complete_layers": 2,
+      "required_directions_per_layer": 6,
+      "levels": {
+        "lower": {"warn": 30.0, "alarm": 50.0},
+        "middle": {"warn": 25.0, "alarm": 40.0},
+        "upper": {"warn": 135.0, "alarm": 160.0}
+      },
+      "unit": "kPa",
+      "source": "各层30日点位中位数极差与IQR形成的保守影子初值",
+      "known_data_issue": "P_static_lower_C长期为0；下层暂不进入实时最大值，至少要求另外两层完整",
+      "state": "preset_not_site_approved"
+    },
+    "body_temperature_range": {
+      "required_directions_per_layer": 8,
+      "minimum_complete_layers": 8,
+      "levels": {
+        "L7": {"warn": 25.0, "alarm": 35.0},
+        "L8": {"warn": 10.0, "alarm": 20.0},
+        "L9": {"warn": 20.0, "alarm": 30.0},
+        "L10": {"warn": 20.0, "alarm": 35.0},
+        "L11": {"warn": 80.0, "alarm": 130.0},
+        "L12": {"warn": 70.0, "alarm": 125.0},
+        "L13": {"warn": 80.0, "alarm": 140.0},
+        "L14": {"warn": 50.0, "alarm": 100.0},
+        "L15": {"warn": 30.0, "alarm": 50.0},
+        "L16": {"warn": 30.0, "alarm": 45.0}
+      },
+      "unit": "degC",
+      "source": "各层30日点位中位数极差与IQR形成的保守影子初值",
+      "state": "preset_not_site_approved"
+    },
+    "publication_gate": {
+      "history_days": 30,
+      "minimum_batches": 8000,
+      "required_rule_count_per_batch": 33,
+      "maximum_continuous_c_alarm_minutes": 120,
+      "require_manual_review_of_alert_frequency": true
+    }
+  },
+  "term_thresholds": {
+    "default": {"mode": "high", "a": 0.0, "b": 1.0},
+    "TopTempRange": {"mode": "high", "a": 10.0, "b": 35.0},
+    "TopPressRange": {"mode": "high", "a": 8.0, "b": 25.0},
+    "DPHigh": {"mode": "high", "a": 0.8, "b": 1.5},
+    "PIBad": {"mode": "absolute", "a": 0.6, "b": 1.2},
+    "z60_default": {"mode": "high", "a": 0.8, "b": 1.5},
+    "z15std_default": {"mode": "absolute", "a": 0.8, "b": 1.5},
+    "low": {"mode": "low", "a": 0.0, "b": 1.0},
+    "absolute": {"mode": "absolute", "a": 0.0, "b": 1.0}
+  },
+  "rules": {
+    "A1": {"weight_overrides": {}}, "A2": {"weight_overrides": {}}, "A3": {"weight_overrides": {}},
+    "A4": {"weight_overrides": {}}, "A5": {"weight_overrides": {}}, "A6": {"weight_overrides": {}},
+    "A7": {"weight_overrides": {}}, "A8": {"weight_overrides": {}}, "A9": {"weight_overrides": {}},
+    "B1": {"weight_overrides": {}}, "B2": {"weight_overrides": {}}, "B3": {"weight_overrides": {}},
+    "B4": {"weight_overrides": {}}, "B5": {"weight_overrides": {}}, "B6": {"weight_overrides": {}},
+    "B7": {"weight_overrides": {}}, "B8": {"weight_overrides": {}}, "B9": {"weight_overrides": {}},
+    "B10": {"weight_overrides": {}}, "B11": {"weight_overrides": {}}, "B12": {"weight_overrides": {}},
+    "B13": {"weight_overrides": {}},
+    "C1": {"weight_overrides": {}}, "C2": {"weight_overrides": {}}, "C3": {"weight_overrides": {}},
+    "C4": {"weight_overrides": {}}, "C5": {"weight_overrides": {}}, "C6": {"weight_overrides": {}},
+    "C7": {"weight_overrides": {}}, "C8": {"weight_overrides": {}}, "C9": {"weight_overrides": {}},
+    "C10": {"weight_overrides": {}}, "C11": {"weight_overrides": {}}
+  },
+  "catalog_weights_source": "abc_rule_catalog.RULES",
+  "notes": "数值配置只由服务端加载；JSON不包含可执行表达式、数据库连接或凭据。权重默认来自受控目录，可通过weight_overrides做受控草稿覆盖。"
+}

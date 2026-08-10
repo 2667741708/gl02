@@ -29,7 +29,10 @@ import pandas as pd
 import sklearn
 import xgboost
 
-from .formal_dataset import sha256_file
+from .formal_dataset import (
+    prepare_training_target,
+    sha256_file,
+)
 from .train_v3 import TARGET
 from .train_v4 import _feature_sets
 from .train_v6 import (
@@ -206,6 +209,7 @@ def _assemble_features(
     samples_path: Path,
     catalog_path: Path,
     temporal_dir: Path,
+    target_column: str = TARGET,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     frame = pd.read_csv(
         dataset_path, low_memory=False, encoding="utf-8-sig"
@@ -215,6 +219,11 @@ def _assemble_features(
     )
     samples = pd.read_csv(
         samples_path, low_memory=False, encoding="utf-8-sig"
+    )
+    frame, target_audit = prepare_training_target(
+        frame,
+        heat_targets,
+        target_column=target_column,
     )
     frame["prediction_cutoff_ts"] = pd.to_datetime(
         frame["prediction_cutoff_ts"], errors="raise"
@@ -276,6 +285,7 @@ def _assemble_features(
         "chemistry_audit": chemistry_audit,
         "temporal_manifest": temporal_manifest,
         "heat_targets": heat_targets,
+        "target_audit": target_audit,
     }
 
 

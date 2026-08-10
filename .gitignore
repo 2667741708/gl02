@@ -10,11 +10,18 @@ AGENTS.md
 !PT/external_sources.local.env.example
 PT/imes_vastbase.local.env
 PT/external_sources.local.env
+PT/imes_web.local.env
 **/*.pem
 **/*.key
 **/*.pfx
 **/*credentials*
 **/*secrets*
+
+# Local one-off remote helpers that contain machine-specific credentials.
+tools/remote_run_backfill.py
+tools/run_foreman_baseline.py
+tools/ssh_try_direct.py
+tools/sync_cooling_day_by_day.py
 
 # Operating-system and editor files
 .DS_Store
@@ -42,6 +49,11 @@ node_modules/
 .python_packages/
 .tmp/
 .tmp_pylibs/
+.tmp*/
+.tmp*
+.codex_patch_probe.*
+patch_probe.txt
+__patch_heat_performance_quality.py
 
 # Local services, generated output and operational evidence
 logs/
@@ -50,6 +62,7 @@ renders/
 reports/
 backups/
 db_sync_storage/
+/data/
 提交技术报告/
 docs/.ppt_build_*/
 docs/.ppt_self_learning_*/

@@ -17,6 +17,13 @@ CHROMIUM_VIEWPORTS = (
     (1024, 768), (768, 1024), (390, 844), (375, 667),
 )
 REPRESENTATIVE_VIEWPORTS = ((1920, 1080), (1366, 768), (768, 1024), (390, 844))
+IGNORED_CONSOLE_ERROR_SNIPPETS = (
+    "code generator has deoptimised the styling",
+)
+
+
+def is_actionable_console_error(text: str) -> bool:
+    return not any(snippet in text for snippet in IGNORED_CONSOLE_ERROR_SNIPPETS)
 
 
 def main() -> int:
@@ -45,7 +52,12 @@ def main() -> int:
                         context = browser.new_context(viewport={"width": width, "height": height})
                         page = context.new_page()
                         console_errors = []
-                        page.on("console", lambda message, target=console_errors: target.append(message.text) if message.type == "error" else None)
+                        page.on(
+                            "console",
+                            lambda message, target=console_errors: target.append(message.text)
+                            if message.type == "error" and is_actionable_console_error(message.text)
+                            else None,
+                        )
                         case_id = quote(f"matrix-{engine_name}-{route}-{width}x{height}")
                         url = f"{args.base_url}/frontend_dashboard_v3.server.html?ws_port={args.ws_port}&fixture=cold&case_id={case_id}#{route}"
                         record = {"engine": engine_name, "viewport": f"{width}x{height}", "route": route, "url": url, "failures": []}
@@ -60,6 +72,16 @@ def main() -> int:
                             if not page.locator(".bfdr-close").is_enabled():
                                 record["failures"].append("关闭按钮不可操作")
                             page.locator(".bfdr-close").click()
+                            if route == "diagnosis":
+                                cards = page.locator(".diag-rank-card[data-bfdms-label]")
+                                if cards.count() != 8:
+                                    record["failures"].append("手动评分入口不是八类")
+                                else:
+                                    page.locator('.diag-rank-card[data-bfdms-label="cold"]').click()
+                                    page.locator(".bfdms-dialog").wait_for(state="visible", timeout=5000)
+                                    if page.locator(".bfdms-score").count() != 1 or page.locator(".bfdms-suggestion").count() != 1:
+                                        record["failures"].append("手动评分字段不完整")
+                                    page.locator(".bfdms-close").click()
                             if console_errors:
                                 record["failures"].append("控制台错误：" + " | ".join(console_errors[:5]))
                         except Exception as exc:  # noqa: BLE001

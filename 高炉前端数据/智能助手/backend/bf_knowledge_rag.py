@@ -8,9 +8,10 @@ import re
 import socket
 import threading
 import zipfile
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
@@ -663,11 +664,24 @@ def scopes_for_intent(intent_type: str) -> list[str]:
     }.get(intent_type, [TASK_PROCESS_QA])
 
 
+def _normalize_source_doc_ids(source_doc_ids: Sequence[str] | None) -> list[str]:
+    if not source_doc_ids:
+        return []
+    result: list[str] = []
+    for value in source_doc_ids:
+        text = str(value or "").strip()
+        if text and text not in result:
+            result.append(text[:160])
+    return result[:16]
+
+
 def search_knowledge(
     question: str,
     db_path: Path = DEFAULT_DB_PATH,
     top_k: int = 6,
     mode: str | None = None,
+    connection: Any | None = None,
+    source_doc_ids: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     del db_path  # 兼容旧参数；当前运行期固定使用 PostgreSQL bf_assistant.rag_* 表。
     search_mode = normalize_search_mode(mode)
@@ -677,15 +691,27 @@ def search_knowledge(
     vector_enabled = False
     lexical_rows: list[dict[str, Any]] = []
     vector_rows: list[dict[str, Any]] = []
+    source_scope = _normalize_source_doc_ids(source_doc_ids)
     try:
-        with raw_pg_connect() as conn:
+        connection_context = nullcontext(connection) if connection is not None else raw_pg_connect()
+        with connection_context as conn:
             ensure_schema(conn)
             if search_mode in {"keyword", "hybrid"}:
-                lexical_rows = query_keyword_candidates(conn, expanded)
+                lexical_rows = (
+                    query_keyword_candidates(conn, expanded, source_scope)
+                    if source_scope
+                    else query_keyword_candidates(conn, expanded)
+                )
                 if not lexical_rows:
-                    lexical_rows = query_fallback_candidates(conn)
+                    lexical_rows = (
+                        query_fallback_candidates(conn, source_scope)
+                        if source_scope
+                        else query_fallback_candidates(conn)
+                    )
             if search_mode in {"vector", "hybrid"}:
-                vector_pack = query_pgvector_candidates(conn, expanded, max(60, top_k * 12))
+                vector_pack = query_pgvector_candidates(
+                    conn, expanded, max(60, top_k * 12), source_scope
+                )
                 vector_enabled = bool(vector_pack.get("enabled"))
                 vector_message = str(vector_pack.get("message") or "")
                 vector_rows = list(vector_pack.get("rows") or [])
@@ -716,6 +742,7 @@ def search_knowledge(
         "retrieval_mode": search_mode,
         "vector_enabled": vector_enabled,
         "vector_message": vector_message,
+        "source_doc_ids": source_scope,
         "candidate_counts": {
             "keyword": len(lexical_rows),
             "vector": len(vector_rows),
@@ -724,13 +751,28 @@ def search_knowledge(
     }
 
 
-def query_keyword_candidates(conn: Any, expanded: str) -> list[dict[str, Any]]:
-    tokens = re.findall(r"[\u4e00-\u9fffA-Za-z0-9_]{2,}", expanded)
-    where = ""
+def _source_doc_filter(source_doc_ids: Sequence[str], alias: str = "") -> tuple[str, list[str]]:
+    values = _normalize_source_doc_ids(source_doc_ids)
+    if not values:
+        return "", []
+    prefix = f"{alias}." if alias else ""
+    return f"{prefix}doc_id IN ({', '.join(['%s'] * len(values))})", values
+
+
+def query_keyword_candidates(
+    conn: Any, expanded: str, source_doc_ids: Sequence[str] | None = None
+) -> list[dict[str, Any]]:
+    tokens = re.findall(r"[一-鿿A-Za-z0-9_]{2,}", expanded)
+    clauses: list[str] = []
     params: list[Any] = []
     if tokens:
-        where = "WHERE " + " OR ".join("search_text ILIKE %s" for _ in tokens[:16])
+        clauses.append("(" + " OR ".join("search_text ILIKE %s" for _ in tokens[:16]) + ")")
         params.extend(f"%{token}%" for token in tokens[:16])
+    source_clause, source_params = _source_doc_filter(source_doc_ids or [])
+    if source_clause:
+        clauses.append(source_clause)
+        params.extend(source_params)
+    where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
     return conn.execute(
         f"""
         SELECT *
@@ -743,18 +785,29 @@ def query_keyword_candidates(conn: Any, expanded: str) -> list[dict[str, Any]]:
     ).fetchall()
 
 
-def query_fallback_candidates(conn: Any) -> list[dict[str, Any]]:
+def query_fallback_candidates(
+    conn: Any, source_doc_ids: Sequence[str] | None = None
+) -> list[dict[str, Any]]:
+    source_clause, params = _source_doc_filter(source_doc_ids or [])
+    where = f"WHERE {source_clause}" if source_clause else ""
     return conn.execute(
-        """
+        f"""
         SELECT *
         FROM rag_chunk
+        {where}
         ORDER BY source_priority DESC, created_at DESC
         LIMIT 300
-        """
+        """,
+        params,
     ).fetchall()
 
 
-def query_pgvector_candidates(conn: Any, expanded: str, limit: int) -> dict[str, Any]:
+def query_pgvector_candidates(
+    conn: Any,
+    expanded: str,
+    limit: int,
+    source_doc_ids: Sequence[str] | None = None,
+) -> dict[str, Any]:
     vector = ensure_pgvector_schema(conn)
     if not vector.get("ok"):
         return {"enabled": False, "rows": [], "message": vector.get("message") or "pgvector 不可用"}
@@ -772,16 +825,25 @@ def query_pgvector_candidates(conn: Any, expanded: str, limit: int) -> dict[str,
         query_embedding = call_embedding_model(expanded)
     except Exception as exc:  # noqa: BLE001
         return {"enabled": False, "rows": [], "message": str(exc)}
+    source_clause, source_params = _source_doc_filter(source_doc_ids or [], alias="c")
+    source_sql = f" AND {source_clause}" if source_clause else ""
     rows = conn.execute(
-        """
+        f"""
         SELECT c.*, (1 - (e.embedding <=> %s::vector)) AS vector_score
         FROM rag_chunk_embedding e
         JOIN rag_chunk c ON c.chunk_id = e.chunk_id
         WHERE e.embedding_model = %s
+        {source_sql}
         ORDER BY e.embedding <=> %s::vector
         LIMIT %s
         """,
-        (vector_literal(query_embedding), DEFAULT_EMBEDDING_MODEL, vector_literal(query_embedding), int(limit)),
+        (
+            vector_literal(query_embedding),
+            DEFAULT_EMBEDDING_MODEL,
+            *source_params,
+            vector_literal(query_embedding),
+            int(limit),
+        ),
     ).fetchall()
     return {"enabled": True, "rows": rows, "message": vector.get("message") or ""}
 

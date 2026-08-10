@@ -1,0 +1,618 @@
+schema: ops.automation-index.v1
+updated_at: '2026-08-10T01:45:00+08:00'
+entries:
+  - id: OPS-SI-V20-STRICT-HOURLY-20260810
+    name: V20严格自然整点影子预测
+    scope: 22012-si-v20-strict-hourly
+    status: production_deployed_initial_slot_verified
+    task:
+      name: '\BlastFurnaceServices\SiV20StrictHourlyPrediction'
+      dispatcher_interval: 1min
+      slot_interval: 60min
+      operator_configurable: false
+      multiple_instances: IgnoreNew
+    entrypoints:
+      dispatcher: tools/run_si_v20_strict_hourly_dispatcher.py
+      wrapper: tools/run_22012_si_v20_strict_hourly.ps1
+      register: tools/register_22012_si_v20_strict_hourly_task.ps1
+    database:
+      slot_table: bf_assistant.si_v20_strict_hourly_slot
+      audit_table: bf_assistant.si_v20_prediction_audit
+      actual_table: bf_assistant.heat_performance_quality_summary
+    api:
+      status: /api/si-v20/strict-hourly/status
+      history: /api/si-v20/strict-hourly/history
+      dispatch: /api/si-v20/strict-hourly/dispatch
+      predict: /api/si-v20/strict-hourly/predict
+    test: tests/test_si_v20_strict_hourly.py
+    production:
+      deployed_at: '2026-08-10T01:49:10+08:00'
+      backup: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\si_v20_strict_hourly_20260810\20260810_014636'
+      first_slot: '2026-08-10T01:00:00+08:00'
+      first_prediction_p50: 0.318322
+      first_slot_status: success
+      task_last_result: 0
+      continuous_24h_verification_due_after: '2026-08-11T01:00:00+08:00'
+  - id: OPS-ABC33-BASELINE-COVERAGE-20260809
+    name: ABC33全量30天基线重建与每日质量门禁
+    scope: 22012-abc33-all-source-and-derived-baselines
+    status: production_deployed_verified
+    database:
+      source: bf_sensor.one_minute_values
+      target: bf_sensor.daily_baselines
+      required_baselines: 137
+      minimum_effective_coverage: 0.75
+      latest_baseline_day: '2026-08-09'
+      latest_missing: 0
+      latest_below_coverage: 0
+      latest_invalid_statistics: 0
+    reconstruction:
+      entrypoint: tools/run_abc33_baseline_rebuild.ps1
+      completed_at: '2026-08-09T23:49:17+08:00'
+      calculation_log: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\abc33_baseline_rebuild_20260809_234917.json'
+    daily:
+      task: '\BlastFurnace8093DailyBaseline20d'
+      entrypoint: tools/run_v4_daily_baseline.ps1
+      baseline_days: 30
+      failure_policy: fail_closed_on_missing_low_coverage_or_invalid
+    sampling_semantics:
+      normal_state_hold_minutes: 5
+      furnace_body_hold_minutes: 15
+      expansion_tank: observed_minute_to_hour_mean_to_day_mean_to_30day_percentiles
+      taphole_alignment: strict_same_minute
+      top_temperature_alignment: bounded_5_minute_component_hold_then_four_point_mean
+      fill_long_outages_or_zero: false
+    documentation:
+      - docs/handoffs/2026-08-09-abc33-baseline-coverage-repair.md
+  - id: OPS-SI-V20-CONFIGURABLE-SCHEDULE-20260809
+    name: V20可配置分钟级影子预测
+    scope: 22012-si-v20-configurable-schedule
+    status: production_deployed_verified
+    allowed_cadence_minutes: [1, 10, 30, 60, 1440]
+    default_cadence_minutes: 60
+    schedule:
+      task: '\BlastFurnaceServices\SiV20ScheduledShadowPrediction'
+      dispatcher_interval_minutes: 1
+      multiple_instances: IgnoreNew
+      principal: SYSTEM
+      deployed: true
+      deployed_at: '2026-08-09T22:56:08+08:00'
+      last_task_result: 0
+    entrypoints:
+      dispatcher: tools/run_si_v20_schedule_dispatcher.py
+      wrapper: tools/run_22012_si_v20_schedule_dispatcher.ps1
+      registrar: tools/register_22012_si_v20_schedule_task.ps1
+    database:
+      config: bf_assistant.si_v20_prediction_schedule
+      runs: bf_assistant.si_v20_prediction_run
+      points: bf_assistant.si_v20_prediction_audit
+      verified: true
+      default_schedule_id: 1
+      first_verified_slot: '2026-08-09T23:00:00+08:00'
+    api:
+      config_get: GET /api/si-v20/schedule
+      config_set: POST /api/si-v20/schedule/configure
+      dispatch: POST /api/si-v20/schedule/dispatch
+      replay: POST /api/si-v20/scheduled-replay
+      history: GET /api/si-v20/scheduled-history
+    contracts:
+      - page-updates-database-config-not-windows-task
+      - live-match-first-real-open-after-requested-at
+      - replay-match-first-real-open-at-or-after-schedule-slot
+      - max-5000-points-per-replay
+      - audit-only-no-production-control-write
+      - curve-export-by-date-or-melt-range
+  - id: OPS-COOLING-DAILY-BACKFILL-BASELINE-20260809
+    name: 冷却传感器逐日历史回填与30天基线
+    scope: 22012-pspace-to-postgresql-cooling-baseline
+    source: pSpace raw history
+    target:
+      - bf_sensor.one_minute_values
+      - bf_sensor.daily_baselines
+    variables:
+      - Q_soft_water
+      - P_soft_water
+      - Q_high_pressure_water
+      - P_high_pressure_water
+      - P_medium_pressure_water
+      - ExpansionTankLevel
+    one_time:
+      window: latest-90-complete-natural-days-through-2026-08-08
+      mode: daily-read-upsert-verify
+      completed_days: 90
+      failed_days: 0
+      missing_target_days: 0
+      baseline_completed_at: '2026-08-09T22:31:00+08:00'
+    expansion_tank_baseline:
+      minute_to_hour: arithmetic_mean_of_observed_minutes
+      hour_to_day: arithmetic_mean_of_available_hours
+      baseline_statistics: percentiles_of_30_daily_means
+      fill_missing_with_zero: false
+      latest_hourly_samples: 602
+      latest_daily_samples: 30
+      latest_coverage_ratio: 1.0
+    daily:
+      task: '\BlastFurnace8093DailyBaseline20d'
+      entrypoint: tools/run_v4_daily_baseline.ps1
+      baseline_days: 30
+      includes_cooling_only_stage: false
+      included_in_full_abc33_build: true
+    documentation:
+      - docs/handoffs/2026-08-09-pSpace冷却点位逐日原始数据核查.md
+  - id: OPS-SI-V20-DUAL-TIMING-LOCAL-20260809
+    name: V20历史开口前60分钟与生产整点预测双口径
+    scope: 22012-local-imes-summary-si-v20-hourly
+    status: superseded_by_strict_hourly_20260810
+    prediction_modes:
+      historical_replay:
+        request_mode: historical_range_replay
+        cutoff_rule: open_ts-minus-60-minutes
+        actual_match_rule: same-target-meltno
+      production_hourly:
+        request_mode: hourly_schedule
+        cutoff_rule: exact-whole-hour
+        actual_match_rule: first-real-heat-open-after-requested-at
+        idempotency: one-row-per-furnace-and-whole-hour-cutoff
+    local_entrypoints:
+      hourly_runner: tools/run_22012_si_v20_hourly_prediction.ps1
+      hourly_task_registrar: tools/register_22012_si_v20_hourly_task.ps1
+      heat_summary_one_minute_registrar: tools/set_22012_heat_quality_sync_1min.ps1
+    database:
+      source_mirror: bf_imes.raw_rows
+      actual_summary: bf_assistant.heat_performance_quality_summary
+      prediction_audit: bf_assistant.si_v20_prediction_audit
+    api:
+      hourly_predict: POST /api/si-v20/hourly-predict
+      hourly_history: GET /api/si-v20/hourly-history
+    deployment:
+      imes_mirror_one_minute: production_deployed_verified
+      heat_summary_one_minute: superseded_by_current_sync_contract
+      hourly_prediction_task: superseded_by_SiV20StrictHourlyPrediction
+      workbench_r4: superseded_by_20260810_strict_hourly_r1
+    protections:
+      - no-external-imes-query-from-v20-api
+      - no-current-or-future-si-labels-in-features
+      - no-production-control-writes
+      - server-hourly-schedule-does-not-depend-on-browser
+      - completed-refresh-rate-is-limited-by-non-overlap-runtime
+  - id: OPS-SI-V20-HOURLY-PREDICTION-GAP-20260809
+    name: V20整点Si影子预测调度缺口
+    scope: 22012-si-v20-hourly-shadow-prediction
+    api: POST /api/si-v20/hourly-predict
+    audit_table: bf_assistant.si_v20_prediction_audit
+    schedule:
+      task: null
+      interval_minutes: null
+      page_open_timer_only: true
+    production:
+      audited_at: '2026-08-09T20:43:08+08:00'
+      matching_server_task_count: 0
+      hourly_schedule_rows: 1
+      strict_preopen_hourly_rows: 0
+      status: not_strictly_automated
+    audit_tools:
+      - tools/remote_audit_si_v20_hourly_tasks.ps1
+      - tools/audit_si_v20_prediction_cadence.ps1
+    limitation: browser-must-remain-open-and-the-only-hourly-row-was-requested-after-actual-open
+  - id: OPS-IMES-REALTIME-1MIN-20260809
+    name: 220.12 IMES实时镜像一分钟调度
+    scope: 22012-imes-to-bf_imes-raw_rows
+    entrypoint: tools/set_22012_imes_realtime_1min.ps1
+    target: bf_imes.raw_rows
+    schedule:
+      task: '\GL02SensorSync\IMESRealtime'
+      interval_minutes: 1
+      multiple_instances: IgnoreNew
+      principal: preserved
+    protections:
+      - preserve-task-action-and-principal
+      - backup-original-task-xml
+      - rollback-on-deployment-failure
+      - no-overlapping-imes-sync
+      - preserve-8093-8768-8094-8770-pids
+    production:
+      deployed_at: '2026-08-09T19:42:38+08:00'
+      state: Running
+      rollback_applied: false
+      latest_verified_mirror_at: '2026-08-09T19:44:39+08:00'
+      max_meltno: '2#20260809-126'
+      port_8093_pid: 7256
+      port_8768_pid: 12816
+      port_8094_pid: 13748
+      port_8770_pid: 3732
+    limitation: single-run-duration-can-exceed-two-minutes-and-downstream-heat-summary-remains-five-minutes
+    documentation:
+      - docs/handoffs/2026-08-09-imes-realtime-1min.md
+  - id: REQ-HEAT-QUALITY-REPAIR-CLOSED-LOOP-20260807
+    name: 8093炉次质量时间血缘自动修复
+    scope: 22012-local-imes-mirror-to-heat-performance-summary
+    entrypoint: tools/run_22012_heat_performance_sync.ps1
+    implementation: tools/sync_22012_heat_performance_quality.py
+    source:
+      - bf_imes.raw_rows
+      - bf_assistant.heat_performance_quality_summary
+    target: bf_assistant.heat_performance_quality_summary
+    identity_contract: work_date-plus-formal-meltno
+    schedule:
+      task: '\BlastFurnaceServices\HeatPerformanceQualitySync'
+      interval_minutes: 5
+      principal: SYSTEM
+    protections:
+      - preserve-original-and-repaired-timestamps
+      - do-not-overwrite-ladle-or-sample-details-during-time-repair
+      - quarantine-meltno-workdate-conflict
+      - hide-future-pending-by-default
+    production:
+      deployed_at: '2026-08-09T19:06:53+08:00'
+      state: Ready
+      last_task_result: 0
+      heat_089: '2026-08-06 22:50--23:33 time_anomaly_repaired'
+      heat_090: '2026-08-06 23:33--2026-08-07 00:30 time_anomaly_repaired'
+      port_8093_pid: 7920
+      port_8768_pid: 12816
+      port_8094_pid: 13748
+      port_8770_pid: 3732
+    documentation:
+      - docs/handoffs/2026-08-07-heat-quality-repair-closed-loop.md
+      - docs/handoffs/2026-08-09-heat-quality-closed-loop-production.md
+  - id: REQ-FOREMAN-PRESSURE-BASELINE-P25-P75-20260808
+    name: 冷风压力30天四分位基线维护
+    scope: 22012-P_blast_cold-and-P_blast-real-baseline-maintenance
+    entrypoint: tools/run_v4_daily_baseline.ps1
+    source: bf_sensor.one_minute_values
+    target: bf_sensor.daily_baselines
+    parameters:
+      baseline_days: 30
+      quartiles: [p25, p75]
+      control_variable: P_blast_cold
+      hard_min_kpa: 400
+    production:
+      task: '\BlastFurnaceServices\BlastFurnace8093DailyBaseline20d'
+      state: Ready
+      last_task_result: 0
+      switched_at: '2026-08-08T09:38:53+08:00'
+      repair_rows: 276
+      latest_pressure_baseline_day: '2026-08-08'
+      latest_pressure_p25: 449.392364
+      latest_pressure_p75: 458.506927
+    documentation:
+      - docs/handoffs/2026-08-08-pressure-baseline-repair.md
+  - id: REQ-8093-DIAGNOSIS-AI-EVIDENCE-GUIDANCE-20260805
+    name: 8093炉况分数变量证据与智能指导
+    scope: 22012-8093-readonly-evidence-and-derived-analysis
+    entrypoint: 高炉前端数据/智能助手/backend/diag_ai_evidence.py
+    reads:
+      - bf_sensor.diagnosis_snapshots.feature_snapshot
+      - bf_sensor.one_minute_values
+      - bf_sensor.daily_baselines
+      - recommendation-engine-1-v5-three-rules-two-systems
+      - bf_assistant-rag-keyword-search
+    sink: bf_assistant.diagnosis_ai_analysis_snapshots-jsonb-v2
+    contracts:
+      prompt_version: diagnosis-eight-condition-five-minute.v2
+      schema_version: diagnosis_ai_analysis.v2
+      unknown_evidence_id_policy: reject-batch
+      production_control: readonly
+    deployment: tools/remote_guarded_deploy_8093_diagnosis_review.ps1
+    protections:
+      - only-restart-BFV4PreviewProxy8093
+      - preserve-BFV4PreviewWs8768
+      - no-read-write-check-restart-or-dependency-on-8094
+      - do-not-overwrite-rule-scores-or-human-ratings
+    tests:
+      command: python -m pytest -q -p no:cacheprovider tests/test_diagnosis_ai_analysis.py tests/test_diagnosis_review_api.py tests/test_diagnosis_review_contract.py tests/test_multi_condition_recommendation_and_model_review.py
+      last_local_result: 40 passed
+      chromium_result: 9 required viewports and in-app click smoke passed
+      firefox_webkit_result: v2 blocked by unavailable browser runtime download
+    production:
+      state: pending-guarded-deployment
+    documentation:
+      - docs/8093_每5分钟八炉况智能分析_20260805.md
+      - docs/api_reference.md
+      - docs/data_schema_reference.md
+      - docs/test_reference.md
+  - id: REQ-8093-DIAGNOSIS-AI-FIVE-MINUTE-ANALYSIS-20260805
+    name: 8093每5分钟八炉况智能分析
+    scope: 22012-8093-read-diagnosis-write-derived-analysis
+    entrypoint: 高炉前端数据/智能助手/backend/ollama_proxy_server.py
+    schedule:
+      diagnosis_bucket_minutes: 5
+      poll_seconds: 30
+      retry_seconds: 120
+      model_calls_per_new_bucket: 1
+      conditions_per_call: 8
+    source: bf_sensor.diagnosis_snapshots
+    sink: bf_assistant.diagnosis_ai_analysis_snapshots
+    api:
+      - GET /api/diagnosis-ai-analysis?label=<key>
+      - POST /api/diagnosis-ai-analysis/retry
+    deployment: tools/remote_guarded_deploy_8093_diagnosis_review.ps1
+    protections:
+      - only-restart-BFV4PreviewProxy8093
+      - preserve-BFV4PreviewWs8768
+      - no-read-write-restart-or-dependency-on-8094
+      - server-owned-diagnosis-context
+      - shared-ollama-single-model
+    tests:
+      command: python -m pytest -q -p no:cacheprovider tests/test_diagnosis_ai_analysis.py tests/test_diagnosis_review_api.py tests/test_diagnosis_review_contract.py tests/test_multi_condition_recommendation_and_model_review.py
+      last_local_result: 37 passed
+      cross_engine_result: Chromium 9 viewports; Firefox/WebKit 8/8 representative viewports
+    production:
+      deployed_at: '2026-08-05T21:24:03+08:00'
+      backup: logs/deploy_backups/diagnosis_ai_analysis_20260805_212403
+      guard_restored: true
+      rollback_applied: false
+      api_state: completed
+    documentation:
+      - docs/8093_每5分钟八炉况智能分析_20260805.md
+      - docs/api_reference.md
+      - docs/config_reference.md
+      - docs/data_schema_reference.md
+      - docs/test_reference.md
+  - id: OPS-8093-ASSISTANT-AUTO-RECOVERY-20260805
+    name: 8093智能助手自动诊断修复验收
+    scope: local-orchestrator-and-22012-read-mostly
+    entrypoint: tools/assistant_8093_auto_recovery.py
+    commands:
+      prestage: python tools\\assistant_8093_auto_recovery.py prestage --allow-agents-password
+      diagnose: python tools\\assistant_8093_auto_recovery.py diagnose --allow-agents-password --no-auto-prestage
+      recover: python tools\\assistant_8093_auto_recovery.py recover --allow-agents-password --no-auto-prestage
+      docs: python tools\\assistant_8093_auto_recovery.py docs --report <recover.json>
+    connectivity_gate:
+      required:
+        - '10.30.220.12:22'
+        - '10.30.220.12:5432'
+        - '10.30.220.12:8093'
+        - '10.30.220.12:11434'
+      vpn_auxiliary_probe: '27.188.68.221:4430'
+      vpn_recovery_executable: 'C:\Program Files (x86)\Sangfor\aTrust\aTrustTray\aTrustTray.exe'
+      deployment_timer_starts_after_gate: true
+    remote_package:
+      root: 'C:\ProgramData\BFV4\assistant-auto-recovery\packages'
+      current_package_id: 20260805_v2_72eff4ce55d3
+      manifest_sha256: 6459A6DCEC292E27C2F3B85E30046251F35050A44241BB0F1F469A920155467E
+      powershell_encoding: utf-8-bom
+      execution_contract: short-powershell-file-only
+    repair_policy:
+      automatic_known_repairs:
+        - guard_contract
+        - keyword_mode
+        - pg_pool_reuse
+        - service_recover
+        - frontend_fetch_resilience
+      unknown_hash: refuse
+      knowledge_mode: keyword
+      embedding_on_shared_11434: false
+      max_loaded_models: 1
+      approved_model: chiqiong-blast-furnace:latest
+      sse_requests_per_recover: 1
+      automatic_sse_retry: false
+      deployment_mutex: 'Global\BFV4PreviewProxy8093Deployment'
+      read_only_get_retry_delays_seconds: [1.5, 3]
+    reports:
+      local_directory: logs/assistant_8093_auto_recovery
+      latest_recover: logs/assistant_8093_auto_recovery/20260806_105139_recover.json
+      remote_acceptance: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\acceptance\8093_keyword_knowledge_20260805_20260806_104611\assistant_keyword_knowledge_sse_once.json'
+    tests:
+      command: python -m pytest tests/test_8093_assistant_fetch_resilience.py tests/test_8093_assistant_auto_recovery.py tests/test_8093_assistant_pg_pool_reuse.py tests/test_8093_assistant_health_contract.py tests/test_8093_assistant_repair_doc_contract.py -q
+      last_result: 41 passed
+      powershell_51_json_simulation: true
+    documentation:
+      - AGENTS.md
+      - docs/8093智能助手自动诊断修复验收工具_20260805.md
+      - docs/cli_usage.md
+      - docs/8093智能助手不可用原因与正式修复手册_20260804.docx
+  - id: OPS-8093-ASSISTANT-HEALTH-GUARD-FIX-20260804
+    name: 8093智能助手健康守卫
+    remote_task: '\BlastFurnaceServices\BFV4PreviewProxy8093HealthCheck'
+    state_file: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\proxy_8093.health.state.json'
+    parameters:
+      failure_threshold: 3
+      service_not_running_failure_threshold: 1
+      pre_restart_backoff_seconds: 15
+      restart_cooldown_seconds: 600
+    managed_by: OPS-8093-ASSISTANT-AUTO-RECOVERY-20260805
+  - id: OPS-BODY-TEMP-INFRARED-REPLAY-8892-20260808
+    name: 炉体温度红外时空回放独立服务
+    scope: 22012-read-only-frontend
+    remote_task: '\BlastFurnaceServices\SoftZoneTemperatureReplay8892'
+    remote_root: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW'
+    entrypoint: tools/soft_zone_replay_server.py
+    url: 'http://10.30.220.12:8892/'
+    database:
+      tables:
+        - bf_sensor.sensor_registry
+        - bf_sensor.one_minute_values
+      access: read-only
+    limits:
+      max_hours: 72
+      max_frames: 720
+    log: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\soft_zone_replay_8892.log'
+    deployment: tools/remote_deploy_22012_soft_zone_replay_8892.ps1
+    tests:
+      contract: 6 passed
+      local_cross_engine: 17 passed
+      production_smoke: 4 passed
+    deployed_at: '2026-08-08T12:40:37+08:00'
+  - id: OPS-PSPACE-BOUNDED-STATE-MINUTES-20260810
+    name: pSpace稀疏状态点逐分钟有限保持
+    scope: 22012-realtime-sync
+    status: production_running_post_hotfix
+    remote_wrapper: 'F:\高炉炼铁项目-real-sensor-v2_V3\数据库同步和存取\run_realtime_sync_pg_bg.ps1'
+    entrypoints:
+      sync: 数据库同步和存取/src/sync_from_243_pg.py
+      materializer: 数据库同步和存取/src/raw_minute_pipeline.py
+      store: 数据库同步和存取/src/pg_store.py
+    config: 数据库同步和存取/config/sync_config.json
+    semantics:
+      aggregate: PS_STATE_HOLD
+      semantic_version: bounded_state_hold_v1
+      raw_sample_impersonation: false
+    maximum_hold_minutes:
+      body_temperature: 20
+      cooling: 10
+      expansion_tank: 70
+      burden_line_probe: 10
+      top_temperature_pressure: 10
+      circumferential_static_pressure: 10
+    latest_verified_cycle:
+      tags_ok: 151
+      tags_error: 0
+      minute_rows_written: 1475
+      raw_rows_written: 3532
+      held_rows: 462
+    deployment: tools/remote_deploy_realtime_state_materialization.ps1
+    documentation: docs/handoffs/2026-08-10-abc33-realtime-factors-and-south-line.md
+  - id: REQ-ABC33-SCORE-PREVIEW-20260810
+    name: ABC33双端试运行分数与零分语义
+    scope: 22012-8768-8093-8094
+    status: production_score_preview_alerts_off
+    config_version: 20260810.2-score-preview-alerts-off
+    release_control:
+      scores_visible: true
+      alerts_enabled: false
+      zero_score_is_valid: true
+      nonzero_score_gate: false
+    latest_audit:
+      batch_id: 662
+      evaluation_ts: '2026-08-10T05:25:00+08:00'
+      rule_count: 33
+      needs_data: 0
+      missing_formula_terms: 0
+      confidence_100_percent: 33
+      formula_recalculation_errors: 0
+      threshold_contract_errors: 0
+      provenance_contract_errors: 0
+      direct_sensor_database_matches: '135/135'
+      baseline_database_matches: '137/137'
+      valid_zero_rule_scores: 7
+    protected_formula_audit:
+      entrypoint: 自动诊断服务/abc_factor_audit.py
+      public_api_redacted: true
+      anonymous_admin_api_status: 403
+      production_admin_login_configured: false
+    deployment:
+      backend: tools/remote_deploy_abc33_common_factors_8768.ps1
+      frontend: tools/remote_guarded_deploy_abc33_score_preview_ui.ps1
+    documentation:
+      - docs/handoffs/2026-08-10-abc33-realtime-factors-and-south-line.md
+      - docs/handoffs/2026-08-10-abc33-production-acceptance.md
+  - id: REQ-OPS-POWERSHELL7-UTF8-20260810
+    name: 本机PowerShell7与UTF-8运行时门禁
+    scope: local-project-runtime
+    status: implemented_local
+    runtime:
+      executable: 'C:\Program Files\PowerShell\7\pwsh.exe'
+      version: 7.6.4
+      edition: Core
+      utf8_no_bom: true
+      windows_powershell_fallback: prohibited
+    entrypoints:
+      verifier: tools/verify_pwsh7_utf8.ps1
+      startup: start_v3_full.ps1
+      hidden_runner: tools/run_hidden_ps1.vbs
+      terminal_default_migrator: tools/set_windows_terminal_pwsh7_default.ps1
+    tests:
+      static_contract: tests/test_pwsh7_runtime_contract.py
+      static_contract_result: 4_passed
+      runtime_command: 'pwsh.exe -NoLogo -NoProfile -File .\tools\verify_pwsh7_utf8.ps1'
+    boundaries:
+      remove_windows_component: false
+      remote_22012_migration_requires_separate_install: true
+      non_project_tasks_untouched: true
+    documentation: docs/PowerShell7_UTF8运行规范.md
+  - id: OPS-22012-POWERSHELL7-UTF8-20260810
+    name: 220.12 PowerShell7 UTF-8远端运行时
+    scope: 22012-remote-operations
+    status: installed_and_remote_exec_default
+    operating_system: Windows Server 2016 Standard
+    runtime:
+      executable: 'C:\Program Files\PowerShell\7\pwsh.exe'
+      version: 7.6.4
+      edition: Core
+      winget_available_on_server: false
+      reboot_required: false
+    installer:
+      sha256: D11942DF52FD12470169797ABFA4781D9480EFDC81000BA4FA55A5B921ED8DD0
+      microsoft_signature_valid: true
+      exit_code: 0
+      remote_temp_cleaned: true
+    entrypoints:
+      remote_exec: tools/remote_22012_exec.py
+      probe: tools/remote_probe_22012_pwsh7.ps1
+      install: tools/remote_install_22012_pwsh7.ps1
+      verify: tools/remote_verify_22012_pwsh7.ps1
+      smoke: tools/remote_smoke_22012_pwsh7.ps1
+      cleanup: tools/remote_cleanup_22012_pwsh7_installer.ps1
+    protected_listener_pids:
+      8093: 4044
+      8094: 4156
+      8768: 8524
+      8770: 3732
+      5432: 12372
+    scheduled_task_actions_migrated:
+      IMESRealtime: pwsh_7_6_4
+      HeatPerformanceQualitySync: pwsh_7_6_4
+      SiV20StrictHourlyPrediction: pwsh_7_6_4
+      SiV20ScheduledShadowPrediction: pwsh_7_6_4
+    tests:
+      local_contract: 7_passed
+      remote_utf8_smoke: passed
+    documentation: docs/handoffs/2026-08-10-22012-powershell7-utf8.md
+  - id: OPS-SI-V20-NEW-HEAT-HOURLY-ACCEPTANCE-20260810
+    name: V20新炉次每小时持续验收
+    scope: 22012-si-v20-acceptance
+    status: active_continuous_healthy_after_repair
+    cadence: hourly
+    automation:
+      kind: heartbeat
+      id: 220-12-v20
+      name: 220.12 V20每小时持续验收与修复
+    baseline:
+      file: reports/acceptance/SI_V20_NEW_HEAT_20260810/baseline.json
+      meltno: '2#20260810-130'
+      si_avg: 0.47
+    entrypoints:
+      local_probe: tools/audit_si_v20_new_heat_acceptance.cjs
+      remote_probe: tools/remote_probe_si_v20_acceptance.ps1
+      database_probe: tools/verify_si_v20_strict_hourly_production.py
+      hourly_table_api: /api/si-v20/hourly-table
+    artifacts:
+      report_markdown: reports/acceptance/SI_V20_NEW_HEAT_20260810/acceptance_report.md
+      report_html: reports/acceptance/SI_V20_NEW_HEAT_20260810/acceptance_report.html
+      screenshots: reports/acceptance/SI_V20_NEW_HEAT_20260810/evidence/screenshots
+      api_snapshots: reports/acceptance/SI_V20_NEW_HEAT_20260810/evidence/api
+      exports: reports/acceptance/SI_V20_NEW_HEAT_20260810/exports
+    initial_finding:
+      checked_at: '2026-08-10 03:08:01+08:00'
+      strict_slot: '2026-08-10 03:00:00'
+      strict_slot_status: failed_retryable
+      strict_slot_error: "can't subtract offset-naive and offset-aware datetimes"
+      page_api_ports_healthy: true
+    latest_check:
+      checked_at: '2026-08-10 08:52:51+08:00'
+      latest_actual_meltno: '2#20260810-133'
+      latest_actual_si_avg: 0.4
+      new_actual_heat_detected: true
+      strict_slot: '2026-08-10 08:00:00'
+      strict_slot_status: success
+      strict_slots_total: 8
+      strict_slots_succeeded: 8
+      strict_slots_retryable: 0
+      duplicate_slots: 0
+      cutoff_contract_violations: 0
+      missing_si_availability: 0
+      hourly_table_rows: 10
+      hourly_table_evaluated: 8
+      hourly_table_hit_rate_abs_le_005: 0.375
+      strict_evaluated: 6
+      strict_hit_rate_abs_le_005: 0.5
+      task_actions_pwsh7: true
+      page_api_ports_healthy: true
+      acceptance_state: accepted_new_heat_closed_loop
+    safety:
+      read_only_production_by_default: true
+      authorized_v20_acceptance_repairs: true
+      restart_services: false
+      mutate_schedules: only_backed_up_task_action_migration
+      trigger_predictions: false

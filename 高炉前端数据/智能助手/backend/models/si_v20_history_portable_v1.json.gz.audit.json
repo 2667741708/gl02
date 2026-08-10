@@ -1,0 +1,11 @@
+{
+  "schema": "bf.si.v20.portable_export_audit.v1",
+  "artifact": "D:\\文件\\冀南钢铁运行中第二版本\\高炉前端数据\\智能助手\\backend\\models\\si_v20_history_portable_v1.json.gz",
+  "sha256": "FD31DB24EF9B4E9C81BAAE81A46693E5B9F2E539DBEC9C2B75AE95946055FC8C",
+  "compressed_bytes": 7198961,
+  "tree_count": 420,
+  "feature_count": 14,
+  "verification_rows": 256,
+  "max_abs_prediction_delta": 2.7755575615628914e-16,
+  "status": "verified_equivalent"
+}

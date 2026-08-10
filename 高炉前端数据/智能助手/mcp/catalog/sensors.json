@@ -12,6 +12,7 @@
         "query_gl02_history",
         "query_gl02_statistics",
         "query_gl02_sensors",
+        "query_body_temperature",
         "plot_gl02_trends",
         "plot_gl02_analysis"
       ]

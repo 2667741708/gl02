@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>2号高炉炉体温度红外回放</title>
+  <link rel="stylesheet" href="soft-zone-replay.css">
+</head>
+<body>
+  <main class="app-shell" data-app-state="preparing">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">冀南钢铁 · 2号高炉 · 数据库历史回放</p>
+        <h1>炉体温度红外时空回放</h1>
+      </div>
+      <div class="top-status" aria-live="polite">
+        <span id="sourceBadge" class="status-badge waiting">正在连接</span>
+        <span id="latestText">最新数据：--</span>
+      </div>
+    </header>
+
+    <section class="control-panel" aria-label="回放条件">
+      <label>
+        <span>开始时间</span>
+        <input id="startInput" type="datetime-local" step="60">
+      </label>
+      <label>
+        <span>结束时间</span>
+        <input id="endInput" type="datetime-local" step="60">
+      </label>
+      <label>
+        <span>取帧步长</span>
+        <select id="stepSelect">
+          <option value="1">1分钟</option>
+          <option value="2">2分钟</option>
+          <option value="5" selected>5分钟</option>
+          <option value="10">10分钟</option>
+          <option value="15">15分钟</option>
+          <option value="30">30分钟</option>
+        </select>
+      </label>
+      <label>
+        <span>播放帧率</span>
+        <select id="fpsSelect">
+          <option value="1">1帧/秒</option>
+          <option value="2">2帧/秒</option>
+          <option value="4" selected>4帧/秒</option>
+          <option value="8">8帧/秒</option>
+          <option value="12">12帧/秒</option>
+          <option value="20">20帧/秒</option>
+        </select>
+      </label>
+      <label>
+        <span>查看区域</span>
+        <select id="regionSelect">
+          <option value="all">全炉</option>
+          <option value="belly">炉腹</option>
+          <option value="waist">炉腰</option>
+          <option value="stack_lower">炉身下部</option>
+          <option value="stack_middle">炉身中部</option>
+          <option value="stack_upper">炉身上部</option>
+        </select>
+      </label>
+      <label class="check-control">
+        <input id="cohesiveToggle" type="checkbox">
+        <span>叠加根部代理（较慢）</span>
+      </label>
+      <button id="loadButton" class="primary" type="button">加载历史</button>
+    </section>
+
+    <section class="workspace">
+      <article class="thermal-card">
+        <div class="card-heading">
+          <div>
+            <h2>周向展开炉体红外图</h2>
+            <p>横向为A～H方位，纵向为L7～L16；颜色由数据库离散测温点插值。</p>
+          </div>
+          <div class="frame-clock">
+            <strong id="frameTime">--</strong>
+            <span id="frameCounter">0 / 0</span>
+          </div>
+        </div>
+
+        <div id="canvasStage" class="canvas-stage">
+          <canvas id="thermalCanvas" aria-label="炉体温度红外回放画布"></canvas>
+          <div id="loadingState" class="state-layer">
+            <div class="spinner" aria-hidden="true"></div>
+            <strong>正在读取数据库历史温度</strong>
+            <span>时间窗越长、步长越小，加载时间越长。</span>
+          </div>
+          <div id="errorState" class="state-layer hidden" role="alert">
+            <strong>历史数据加载失败</strong>
+            <span id="errorMessage">请检查时间范围或数据库连接。</span>
+            <button id="retryButton" type="button">重试</button>
+          </div>
+          <div id="emptyState" class="state-layer hidden">
+            <strong>所选时间段没有可回放数据</strong>
+            <span>请调整开始、结束时间或增大取帧步长。</span>
+          </div>
+        </div>
+
+        <div class="legend-row">
+          <span id="legendLow">低 --</span>
+          <div class="infrared-legend" aria-label="红外温度色标"></div>
+          <span id="legendHigh">高 --</span>
+          <span class="legend-note">固定为本次时间窗P05～P95</span>
+        </div>
+
+        <div class="player-controls">
+          <button id="previousButton" type="button" aria-label="上一帧">上一帧</button>
+          <button id="playButton" class="primary" type="button">播放</button>
+          <button id="nextButton" type="button" aria-label="下一帧">下一帧</button>
+          <label class="timeline-control">
+            <span class="sr-only">回放时间轴</span>
+            <input id="timelineInput" type="range" min="0" max="0" value="0" step="1">
+          </label>
+          <label class="check-control compact">
+            <input id="loopToggle" type="checkbox" checked>
+            <span>循环</span>
+          </label>
+          <button id="recordButton" type="button">导出WebM视频</button>
+        </div>
+        <p id="recordStatus" class="record-status" aria-live="polite"></p>
+      </article>
+
+      <aside class="analysis-column">
+        <section class="summary-card">
+          <h2>当前帧概况</h2>
+          <dl class="metric-grid">
+            <div><dt>最高温度</dt><dd id="maxTemp">--</dd></div>
+            <div><dt>最低温度</dt><dd id="minTemp">--</dd></div>
+            <div><dt>平均温度</dt><dd id="avgTemp">--</dd></div>
+            <div><dt>有效覆盖</dt><dd id="coverageText">--</dd></div>
+            <div><dt>最热位置</dt><dd id="hotspotText">--</dd></div>
+            <div><dt>最大变化</dt><dd id="deltaText">--</dd></div>
+          </dl>
+        </section>
+
+        <section class="summary-card">
+          <div class="section-title-row">
+            <h2>分层温度</h2>
+            <span>当前帧A～H均值</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>层位</th><th>标高</th><th>均温</th><th>较前帧</th></tr></thead>
+              <tbody id="layerTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="summary-card estimate-card">
+          <div class="section-title-row">
+            <h2>根部趋势代理</h2>
+            <span class="estimated-label">未标定估计</span>
+          </div>
+          <div id="estimateEmpty" class="inline-empty">未启用；勾选后重新加载。</div>
+          <dl id="estimateMetrics" class="metric-list hidden">
+            <div><dt>代理标高</dt><dd id="estimateHeight">--</dd></div>
+            <div><dt>移动方向</dt><dd id="estimateDirection">--</dd></div>
+            <div><dt>变化速度</dt><dd id="estimateVelocity">--</dd></div>
+            <div><dt>置信度</dt><dd id="estimateConfidence">--</dd></div>
+          </dl>
+        </section>
+
+        <section class="notice-card">
+          <strong>解释边界</strong>
+          <p>本页是数据库炉体测温点的历史红外色带回放，不是红外相机成像。点间颜色为插值；软熔带线仅为炉墙热活动根部代理，禁止用于自动控制。</p>
+        </section>
+      </aside>
+    </section>
+
+    <section class="trend-section" aria-label="炉体传感器历史曲线">
+      <div class="trend-section-heading">
+        <div>
+          <h2>炉体传感器历史曲线</h2>
+          <p>曲线与上方回放共用同一数据库时间窗；竖向游标跟随当前回放帧。</p>
+        </div>
+        <span class="measured-label">数据库实测</span>
+      </div>
+
+      <div class="trend-grid">
+        <article class="trend-card">
+          <div class="trend-card-heading">
+            <div>
+              <h3>炉体温度 A～H 曲线</h3>
+              <p>选择层位后，同时比较该层8个周向测温点。</p>
+            </div>
+            <label>
+              <span>温度层位</span>
+              <select id="temperatureLayerSelect">
+                <option value="7">L7 · 16.860m</option>
+                <option value="8">L8 · 18.335m</option>
+                <option value="9">L9 · 20.125m</option>
+                <option value="10">L10 · 21.860m</option>
+                <option value="11" selected>L11 · 23.711m</option>
+                <option value="12">L12 · 25.441m</option>
+                <option value="13">L13 · 27.171m</option>
+                <option value="14">L14 · 28.901m</option>
+                <option value="15">L15 · 30.631m</option>
+                <option value="16">L16 · 32.361m</option>
+              </select>
+            </label>
+          </div>
+          <div class="trend-canvas-wrap">
+            <canvas id="temperatureTrendCanvas" aria-label="所选层位A到H炉体温度历史曲线"></canvas>
+          </div>
+          <div id="temperatureTrendLegend" class="series-legend" aria-label="炉体温度曲线图例"></div>
+        </article>
+
+        <article class="trend-card">
+          <div class="trend-card-heading">
+            <div>
+              <h3>炉体静压力 A～F 曲线</h3>
+              <p>静压力仅显示数据库已有的三个物理标高，不做上下外推。</p>
+            </div>
+            <label>
+              <span>压力标高</span>
+              <select id="pressureBandSelect">
+                <option value="lower">20.350m · 下层</option>
+                <option value="middle" selected>23.488m · 中层</option>
+                <option value="upper">28.976m · 上层</option>
+              </select>
+            </label>
+          </div>
+          <div class="trend-canvas-wrap">
+            <canvas id="pressureTrendCanvas" aria-label="所选标高A到F炉体静压力历史曲线"></canvas>
+          </div>
+          <div id="pressureTrendLegend" class="series-legend" aria-label="静压力曲线图例"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script src="soft-zone-replay.js"></script>
+</body>
+</html>

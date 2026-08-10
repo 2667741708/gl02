@@ -1,9 +1,62 @@
 # 程序索引
 
+## 8093/8094 诊断功能 reliable_ssh 一键部署
+
+- `tools/deploy_diag_rules.py`：用户统一入口；直接运行是本地测试和dry-run，`--apply`才允许生产部署。
+- `tools/deploy_diag_rules_rssh.py`：生成单个压缩包和清单，调用本机可靠SSH传输，不使用Paramiko或旧的 `remote_22012_exec.py`。
+- `tools/reliable_ssh_22012_cli.mjs`：复用本机 `reliable-ssh-mcp` 的固定目标、主机指纹、密码文件、身份门禁、超时和审计实现；同一进程只做一次身份握手。
+- `tools/build_diag_proxy_payload.py`、`tools/build_8093_diag_single_payload.py`：在远端当前 `ollama_proxy_server.py` 上只合并诊断块和资产版本，不把本机其它未发布代理改动带入生产。
+- `tools/remote_deploy_diag_rules.ps1`：校验白名单与SHA-256，备份并原子安装，受控重启8093/8094，保护8768/8770/11434，失败回滚。
+- `tests/test_diag_rules_deployer.py`、`tests/test_diag_rules_reliable_deployer.py`：覆盖文件边界、固定服务范围、单包传输、远端当前代理合并和dry-run默认值。
+- 追踪：`OPS-DIAG-RULES-ONE-CLICK-DEPLOY-20260806`。
+- 2026-08-06正式发布：`diag_rules_20260806-2300-4b75678a08` 已更新8093/8094的评分、弹窗、单炉况证据分析和后端接口；远端HTTP/API/资源验收通过，8768/8770/11434受保护PID未变化。详见[部署交接](handoffs/2026-08-06-8093-8094-diagnosis-assets-repair.md)。
+
+## 8093/8094 单炉况智能分析与免登录评分
+
+- `高炉前端数据/智能助手/backend/diagnosis_model_review.py`：`v3`单炉况Prompt、严格JSON与可信引用ID校验；一次模型调用只处理当前所选炉况。
+- `高炉前端数据/智能助手/backend/diag_ai_evidence.py`：读取公式驱动变量、近5分钟变化、60分钟统计、30天基线、调剂引擎1和知识库，生成服务端可信解释上下文。
+- `高炉前端数据/智能助手/backend/diagnosis_ai_analysis_api.py`：按 `label` 查询/排队/重试当前5分钟桶；浏览器不能上传系统分和证据。
+- `高炉前端数据/智能助手/backend/diagnosis_review.py`：保存分析派生状态以及复核/手动评分追加事件，系统分与人工分并列保留。
+- `高炉前端数据/assets/bf-diagnosis-review-local.js`、`bf-diagnosis-manual-score-local.js`：异常自动弹窗、手动八卡入口、可选评分/建议和关闭不提交。
+- `tools/remote_guarded_enable_8094_diagnosis_ai.ps1`：在当前共享代理架构上幂等启用8094，精确重启8094并保护8093/8768/8770/11434；拒绝恢复过时8769/隔离代理方案。
+- 追踪：`REQ-8093-8094-DIAGNOSIS-REVIEW-AI-20260806`。
+
+## 8093 每5分钟智能分析（历史v1/v2入口）
+
+- `高炉前端数据/智能助手/backend/diag_ai_evidence.py`：把规则特征、分钟实测、30天基线、规则阈值/权重、调剂引擎1和知识库证据规范化为可信只读上下文；为模型分配可验证引用ID。
+- `高炉前端数据/智能助手/backend/diagnosis_model_review.py`：现已升级为v3单炉况Prompt；旧的单次八类说明仅用于理解历史v1/v2数据。
+- `高炉前端数据/智能助手/backend/diagnosis_ai_analysis_api.py`：免登录读取所选炉况分析和受冷却限制的失败重试；不接受浏览器上传诊断分数。
+- `高炉前端数据/智能助手/backend/ollama_proxy_server.py`：读取生产诊断、30秒轮询新桶、模型调用去重、启动后台线程和API路由。
+- `高炉前端数据/智能助手/backend/diagnosis_review.py`：维护 `diagnosis_ai_analysis_snapshots` 派生表及开始/完成/失败状态。
+- `高炉前端数据/assets/bf-diagnosis-manual-score-local.js/css`：诊断卡点击后显示“智能分析与人工评分”同一窗口。
+- `tools/verify_diagnosis_ai_analysis_viewports.cjs`：Chromium九个规定视口和Firefox/WebKit代表视口验证；`tests/test_diagnosis_ai_analysis.py`覆盖批量合同、证据来源、未知ID拒绝、调剂引擎复用与前后端标记。
+- `tools/remote_guarded_deploy_8093_diagnosis_review.ps1`：守卫闭环部署并等待真实5分钟分析完成，只保护8768，不访问或依赖8094。
+- 需求与运行说明：[REQ-8093-DIAGNOSIS-AI-FIVE-MINUTE-ANALYSIS-20260805](requirements_traceability.md#req-8093-diagnosis-ai-five-minute-analysis-20260805)、[专项文档](8093_每5分钟八炉况智能分析_20260805.md)。
+
+## 8093 异常炉况评分免登录生产部署
+
+- `高炉前端数据/智能助手/backend/diagnosis_review.py`：`BF_DIAG_REVIEW_REQUIRE_LOGIN=0`时使用服务端固定现场身份；`BF_DIAG_REVIEW_PGPASSWORD_ENV`只引用机器环境中的密码，不输出或复制密码。
+- `高炉前端数据/智能助手/backend/ollama_proxy_server.py`：评分POST使用服务端身份，历史GET继续登录保护；上下文返回 `login_required/can_submit/identity_mode`。
+- `高炉前端数据/assets/bf-diagnosis-review-local.js`、`bf-diagnosis-manual-score-local.js`：按 `can_submit`显示表单，免登录模式隐藏登录与退出按钮。
+- `tools/remote_guarded_deploy_8093_diagnosis_review.ps1`：仅停启 `BFV4PreviewProxy8093`，备份并原子部署六个功能文件和8093服务配置，保护8768/8094并在失败时自动回滚。
+- `tools/remote_probe_8093_diagnosis_review.ps1`：只读核对服务、端口、配置变量名、文件哈希和HTTP状态，敏感配置只输出存在性和长度。
+- `tools/remote_probe_8093_review_pg.ps1`、`remote_probe_8093_review_pg.py`：使用220.12机器环境执行只读PostgreSQL身份、权限、表存在性和行数检查，不输出密码。
+- 需求与运行说明：[REQ-8093-DIAGNOSIS-REVIEW-NO-LOGIN-PRODUCTION-20260804](requirements_traceability.md#req-8093-diagnosis-review-no-login-production-20260804)、[部署记录](8093_异常炉况评分免登录部署_20260804.md)。
+
+## 220.12 PostgreSQL账号只读探针
+
+- `tools/remote_probe_22012_pg_accounts.ps1`：从220.12机器/用户环境读取PostgreSQL连接元数据，只输出密码是否存在、长度和SHA-256指纹，不输出密码正文；分别用`gl02_sync`、`gl02_reader`和`postgres`执行只读身份/权限验证。
+- `tools/remote_22012_exec.py`：通过受控SSH通道把探针脚本放到220.12临时位置执行，不修改数据库或远端配置。
+- 配置落点：用户明确授权后，三类账号的完整值只记录在 `docs/数据库账号配置说明.md`，其他索引、日志和脚本不得复制。
+
 ## 本机异常炉况诊断复核原型
 
-- `高炉前端数据/智能助手/backend/diagnosis_review.py`：回环库配置边界、签名会话、异常段、服务端快照校验、追加事件存储。
-- `高炉前端数据/assets/bf-diagnosis-review-local.js/.css`：按开关注入的居中异常弹窗、七类候选分数和三态复核。
+- `高炉前端数据/智能助手/backend/diagnosis_review.py`：回环库配置边界、签名会话、异常段、准确八类炉况键、服务端快照校验、异常复核与手动评分追加事件存储。
+- `高炉前端数据/assets/bf-diagnosis-review-local.js/.css`：按开关注入的居中异常弹窗、七类候选分数、三态复核、可选人工分与建议。
+- `高炉前端数据/assets/bf-diagnosis-manual-score-local.js/.css`：把诊断页八张炉况卡改造成可访问的手动评分入口；人工分或建议至少一项，关闭不写入。
+- `高炉前端数据/智能助手/backend/ollama_proxy_server.py`：签名登录与 `/api/diagnosis-review-context`、`/api/diagnosis-reviews`、`/api/diagnosis-manual-scores`；所有系统分均由服务端重新读取。
+- `db_dashboard/server.py`、`db_dashboard/index.html`：只读“高炉长评分”查询，真实诊断/本机测试分源展示，JSON/CSV/XLSX导出；未评分保留系统分并显示“未打分”。
+- `高炉前端数据/智能助手/backend/schema/postgresql_diagnosis_review.sql`：`diagnosis_review_events` 增量字段及 `diagnosis_manual_score_events` 追加事件表。
 - `高炉前端数据/diagnosis_review_local_test.html`：仅回环可用的五类测试场景。
 - `tools/start_diagnosis_review_preview.py`：8096/8769本机启动器；不操作220.12服务。
 - `tools/verify_diagnosis_review_local.py`：五页面、三浏览器引擎、规定视口矩阵。
@@ -20,6 +73,19 @@
 
 - 职责：备份并原子写入 8093 页面和专用 CSS，幂等维护 link，验证 CSS 合同，同时保护 8094 页面、共享 adapter 与 8094 相机哈希。
 - 运行：由 [remote_guarded_deploy_8093_furnace_summary_readability.ps1](../tools/remote_guarded_deploy_8093_furnace_summary_readability.ps1)在 8093 守卫停—改—启窗口内调用。
+
+## tools/patch_8094_cad_bottom_band.py
+
+- 需求：`BUG-BF3D-CAD-BOTTOM-BAND-20260804` / `BUG-BF3D-CAD-PANEL-BODY-GAP-20260804-R2`。
+- 职责：对 8093/8094 页面幂等维护最终 R2 样式，同时清除 viewer bottom inset 和炉况总览直属 panel-body 的底部 padding；能自动升级旧的 stage-only 补丁，拒绝不含既定 CAD 基线标记的页面。
+- 入口：`python tools/patch_8094_cad_bottom_band.py --path <html> --scope 8093|8094`。
+- 测试：[test_8094_cad_bottom_band_fix.py](../tests/test_8094_cad_bottom_band_fix.py)、[test_8093_cad_bottom_band_fix.py](../tests/test_8093_cad_bottom_band_fix.py)。
+
+## tools/remote_guarded_deploy_8093_cad_bottom_band.ps1
+
+- 职责：只停止/恢复 `BFV4PreviewProxy8093`，在守卫窗口内应用 R2 页面补丁，并验证 8093 HTTP/R2 标记；全过程保护 8094/8768/8770 PID 和 8094 页面、共享 adapter、8094 相机哈希。
+- 失败诊断：输出逐项失败键、前后 PID 与哈希；`finally` 中仍必须恢复 8093 服务。
+- 只读复核：[remote_probe_8093_8094_cad_panel_body_gap.ps1](../tools/remote_probe_8093_8094_cad_panel_body_gap.ps1)。
 
 ## 高炉前端数据/assets/bf3d-tooltip-stable-hover-8093.js（Billboard 醒目度）
 
@@ -88,3 +154,484 @@
 ### 文件职责
 
 并行读取 8093 HTTP 页面、5 个运行时资产和 GLB，分别与本机源码、Web 同名 alias 和资产库受控 master 做 SHA-256 对账，避免把整页注入差异或历史同名模型误判为守卫覆盖。
+
+## tools/convert_docx_to_markdown_verified.py
+
+### 文件职责
+
+按 DOCX 正文 XML 顺序把段落和真实表格单元格转换为 Markdown，并生成字符数、
+有序文本片段 SHA-256 和逐项相等结果。对应
+`REQ-THREE-RULES-RECOMMENDATION-ALIGNMENT-20260804`。
+
+### 相关文件
+
+- [完整三规二制 Markdown](冀钢炼铁三规二制.md)
+- [转换验证测试](../tests/test_convert_docx_to_markdown_verified.py)
+- [四类调剂升级分析](三规二制四类炉况调剂与建议引擎完全一致升级分析_20260804.md)
+
+## docs/三规二制四类炉况调剂与建议引擎完全一致升级分析_20260804.md
+
+### 文件职责
+
+把高炉工长 `5.1.8` 与 `5.3` 原文逐条映射到当前建议引擎，记录现状冲突、
+四类调剂规则 ID、输入与缺失数据、动作顺序、门禁、输出合同、代码改造位置
+和验收场景。2026-08-04 已完成本地 v5 核心实施；远端部署、完整详情前端与现场
+工艺验收仍未执行。
+
+## 调控结论生成引擎/policy/three_rules_two_systems.yaml
+
+### 文件职责
+
+三规二制四类调剂的版本化策略目录，保存动作 ID、原文章节、幅度、所需输入、
+观察窗口和审批角色。由 `policy_evaluator.py` 加载，`sequence_planner.py` 排序，
+`conflict_resolver.py` 处理相反方向冲突，`formatter.py` 输出完整动作和旧数组。
+
+### 相关测试
+
+- [v5四态/顺序/冲突合同](../tests/test_three_rules_recommendation_engine.py)
+- [引擎与8767综合合同](../tools/verify_8093_recommendation_engine_contract.py)
+
+## tools/probe_8093_assistant_health.ps1
+
+8093 智能助手第一层只读健康快照。汇总 8093/11434/8768 服务状态、8093 模型状态、11434 驻留模型、关键启动配置和当前日志文件新鲜度；不发送问答、不写数据库、不启停服务。详细进程环境继续使用 `audit_22012_proxy_model_env.ps1`。
+
+## tools/probe_8093_assistant_log_tail.ps1
+
+第二层只读日志探针。仅取 8093 当前 stdout/stderr 的有限尾部，筛选 `/api/qa/chat`、超时/断连、RAG/数据库异常，并返回 runner 与健康检查的最近记录；避免全文件扫描拖慢远端检查。
+
+## tools/probe_8093_8094_prompt_rag_runtime.ps1
+
+8093/8094 公共 Prompt、知识库和 MCP 当前运行态只读探针。核对两个监听进程是否使用共享 `ollama_proxy_server.py`，读取非敏感开关并计算默认生效值，验证固定规则早于动态上下文、PostgreSQL RAG 的 keyword/vector 能力，并对两个端口执行强制 `mode=keyword` 的只读知识检索；不发送问答、不启停服务、不写数据库、不触发 embedding。专项说明见 [8093/8094 Prompt 固定 KV 前缀与知识库回答链路](8093_8094_Prompt固定KV前缀与知识库回答链路_20260805.md)。
+
+## tests/test_8093_8094_prompt_rag_contract.py
+
+覆盖固定 Prompt 顺序、知识/MCP 默认开关、PostgreSQL RAG 双模式、8093/8094 显式 keyword 现行口径、探针只读边界和专项文档关键结论。
+
+## tools/remote_patch_8093_assistant_name.ps1
+
+把 8093 正式页导航名称精确、幂等地从“智能问答/知识助手”改为“智能助手”；写入前时间戳备份，使用同目录原子替换，HTTP cache-bust 复核，并验证 8094 预览页面 SHA-256 未变化。
+
+## tests/test_8093_assistant_health_contract.py
+
+校验页面名称、`AGENTS.md` 分层流程、只读探针无服务/文件修改命令，以及远端名称补丁器的精确计数、幂等和 8094 隔离合同。
+
+## tools/check_managed_nssm_service_health.ps1
+
+托管 NSSM 服务的共享健康检查入口。兼容旧配置的单次失败默认行为；配置新字段时维护跨运行状态、连续失败阈值、重启前退避复查和重启冷却。8093 状态写入 `logs/proxy_8093.health.state.json`，成功检查清零计数。
+
+## tools/patch_8093_health_guard_config.py
+
+只允许处理 `BFV4PreviewProxy8093` 配置，幂等设置 `3/1/15/600` 健康合同并使用同目录原子替换；服务名或 8093 TCP 检查不匹配时拒绝写入。
+
+## tools/probe_8093_health_guard_runtime.ps1
+
+只读返回 8093 健康任务动作、分钟触发器、共享脚本哈希、配置健康段、服务配置清单、状态计数、服务状态和健康日志尾部，用于部署前后确认真实运行合同。
+
+## tools/remote_guarded_deploy_8093_health_guard.ps1
+
+正式部署 8093 健康守卫修复。校验旧脚本/配置基线哈希，暂停并恢复 8093 健康任务，备份、原子替换、运行一次健康任务，并验证 8093/8768/8094/8770/11434 PID及页面/配置隔离；失败自动回滚。
+
+## tools/verify_8093_assistant_sse_once.py
+
+只提交一次无生产控制含义的智能助手短问，要求 `start(preparing/prepared) -> delta -> final -> done`、非空回答和会话 ID；请求前后验证 8093 状态与 11434 仅驻留批准的 27.8B。
+
+## tools/remote_verify_8093_assistant_sse_once.ps1
+
+在 220.12 包装单次 SSE 验收，保存报告，并核对验收期间无守卫重启、健康状态计数为 0、任务启用及 8093/8768/8094/8770/11434 PID不变。
+
+## tools/patch_8093_keyword_knowledge_mode.py
+
+只允许修改 `BFV4PreviewProxy8093` 服务配置，验证 8093 端口与 `3/1/15/600` 守卫合同后，幂等设置 `BF_QA_KNOWLEDGE_SEARCH_MODE=keyword` 并原子替换。空值/`hybrid` 可迁移，错误服务、端口、守卫漂移或 `vector` 配置会拒绝写入。
+
+## tools/remote_guarded_deploy_8093_keyword_knowledge_mode.ps1
+
+220.12 上的 8093 关键词知识模式正式部署器。校验已知配置与守卫/后端/RAG 哈希，暂停健康任务，只停止/启动 8093，验证实际监听进程环境和默认知识搜索均为 keyword，并保护 8768/8094/8770/11434、页面、共享代码和单 27B 驻留；任何失败自动回滚。
+
+## tools/remote_verify_8093_keyword_knowledge_sse_once.ps1
+
+只包装一次真实知识问答 POST。请求前后核对默认搜索模式、实际进程环境、守卫日志/状态、受保护 PID/哈希和模型驻留；要求准备态知识检索启用且未跳过、存在知识意图、MCP 工具调用关闭，并保存 SSE JSON 报告。
+
+## tests/test_8093_keyword_knowledge_mode.py
+
+覆盖关键词配置补丁器的精确性、幂等性与漂移拒绝，受控部署器的隔离/回滚/默认搜索合同，以及 SSE 验收器只提交一次、必须证明知识链路参与和禁止 MCP 工具调用的合同。
+
+## tools/generate_8093_assistant_repair_docx.py
+
+使用项目捆绑的 `python-docx` 生成 [8093 智能助手不可用原因与正式修复手册](8093智能助手不可用原因与正式修复手册_20260804.docx)。手册固定历史失败证据、`3/1/15/600` 守卫合同、keyword 知识检索、复发分类流程、单次 SSE 验收、隔离/回滚标准和已知边界；不写入密码、Token 或数据库口令。
+
+## tests/test_8093_assistant_repair_doc_contract.py
+
+不依赖 Word 的 DOCX/AGENTS 合同测试。直接读取 DOCX OpenXML，验证正式标题、历史失败时间、现行参数、修复可行性、复发处理、单次 SSE 结果和敏感信息禁写约束，并验证 `AGENTS.md` 存在长期固定入口。
+
+## tests/test_8093_health_guard_recovery.py
+
+覆盖配置补丁器精确性/幂等/服务隔离、共享守卫关键合同、部署隔离、SSE 单请求约束；Windows 行为测试证明前两次失败延后且成功后计数清零，不触发真实服务重启。
+
+## 高炉前端数据/assets/bf-core-metrics-pspace-live-8093.js
+
+8093 专用核心指标实时运行时。浏览器只连接服务端 8770，维护 28 个点的值、源时间、传输年龄、质量和连接状态；传输超过 12 秒时向页面发布可降级状态，不接管任何分钟历史。
+
+## tools/patch_8093_core_metrics_pspace_live.py
+
+幂等修改 8093 页面：为核心指标当前值接入实时状态，增加数据时间/年龄/质量与分钟镜像提示，把顶栏“时间”绑定到每秒更新的终端系统时钟并把 8768 时间独立标为“分钟数据”，同时把 8768/trend 历史合并改为按时间戳、8768 主数组优先且拒绝不完整序列。
+
+## tools/remote_guarded_deploy_8093_core_metrics_pspace_live.ps1
+
+只暂停并恢复 `BFV4PreviewProxy8093` 的远端原子部署入口；同时验证实时标记、系统时钟标记和 `systemTime` 合同，保护 8768、8770、8094、共享 Billboard adapter 和 8094 相机资源，失败时恢复 8093 页面/资源并在 `finally` 中恢复守卫。
+
+## tools/remote_audit_8093_core_metrics_pspace_live.ps1
+
+只读输出 8093/8094/8768/8770 服务、监听、HTTP、页面标记、schema、SHA-256 和最新备份。
+
+## tools/verify_8093_core_metrics_pspace_live.cjs
+
+生产浏览器验收器。逐个检查两页共 28 个指标的数据源、时间戳、源年龄、传输年龄、质量、值、降级横幅、顶栏系统时钟秒差、独立分钟数据时间、横向溢出和页面/控制台错误；支持显式视口、有限导航重试以及 Chrome/Edge、Firefox、WebKit 和实时/分钟镜像两种路径。
+
+## tests/test_8093_core_metrics_pspace_live.py
+
+覆盖 28 点/8770 合同、当前值与分钟历史边界、真实系统时钟与分钟时间分离、时间戳历史合并、不完整数组拒绝、补丁幂等、守卫隔离和浏览器验收合同。
+
+## 高炉前端数据/智能助手/backend/mcp_host/
+
+8093 问答 Host 的多 MCP 编排模块：`server_registry.py` 校验服务、领域、脚本、环境默认值和生产排除工具；`domain_router.py` 以低延迟规则选择 GL02、IMES 或二者；`client_manager.py` 管理所选 stdio Client，将 `imes__` 暴露名路由到实际服务会话和原生工具名。目录名不能改成 `backend/mcp`，否则会遮蔽官方 Python SDK。
+
+## tools/test_mcp_multi_server_discovery.py
+
+不调用数据库、不调用 27B 的真实 MCP SDK 服务发现工具。输入一条口语问题，输出所选服务、领域、Host 可见工具及服务错误，用于验证按需挂载、命名空间和生产排除工具合同。
+
+## 高炉前端数据/智能助手/tests/test_mcp_multi_server_host.py
+
+覆盖两服务注册表、单源/跨源领域选择、IMES 命名空间、暴露名到原生工具路由、MES 问答进入工具循环、复合计划和事实格式器。
+
+## 高炉前端数据/智能助手/tests/test_imes_heat_summary_tools.py
+
+覆盖 MES 正式 `meltno`、上一炉所有有效 Si 试样的聚合、缺失不当作 0，以及非法炉号参数拒绝；数据库调用使用测试替身，不写生产数据。
+
+## tools/assistant_8093_auto_recovery.py
+
+8093 智能助手统一编排入口，提供 `prestage`、`diagnose`、`recover`、`docs` 四个子命令。先检查 VPN/私网、SSH、PostgreSQL、8093、11434，再复用经过 manifest/SHA-256 校验的远端不可变包。分类器只自动处理已知守卫合同和 keyword 漂移，未知哈希拒绝；完整 recover 最多一个 SSE POST，服务阶段和文档阶段分离。
+
+## tools/remote_8093_assistant_diagnose.ps1
+
+远端一次性只读采集器。输出服务、PostgreSQL 服务、5432/8093/8094/8768/8770/11434 监听 PID、8093/11434 实际环境、守卫配置/任务/状态、状态接口、Ollama 驻留、默认知识搜索和近期问答/异常/runner 日志。`SimulationInputPath` 用于 PowerShell 5.1 数字键 JSON 回归，不接触生产服务。
+
+## tools/remote_guarded_deploy_8093_keyword_knowledge_mode.ps1
+
+除既有隔离部署外，现支持从受控 package 内显式解析补丁器路径，并提供无远端依赖的 JSON 模拟分支。只允许在已知哈希范围内把 8093 恢复到 keyword；失败回滚且保护 8768/8094/8770/11434。
+
+## tools/remote_guarded_deploy_8093_health_guard.ps1
+
+除既有守卫受控部署外，现支持 package 内守卫源/配置补丁器，接受已记录的旧与现行基线哈希。未知哈希仍拒绝，不能把哈希扩展当作绕过审计。
+
+## tests/test_8093_assistant_auto_recovery.py
+
+覆盖远端包稳定 ID、PowerShell BOM、健康/keyword/守卫/未知哈希分类、阶段顺序、短 `-File` 远端命令、唯一 SSE 和 CLI 退出码。Windows 上直接运行 PowerShell 5.1 两个模拟场景，验证数字字符串端口键不会触发序列化回归。
+
+## 自动诊断服务/recommendation_adapter.py
+
+建议引擎与 8767 实时诊断之间的适配器。`generate_recommendation_bundle()` 一次返回当前主/次炉况的唯一有效 `active_plan` 和八类炉况的独立只读条件预案，schema 为 `multi_condition_recommendation.v1`。不得把 `hypothetical` 预案合并进当前动作队列。
+
+## 高炉前端数据/智能助手/backend/diagnosis_model_review.py
+
+高炉大模型诊断分数复核的白名单、Prompt、JSON 校验和 TTL 缓存模块。输入只保留八类分数、证据、基线、覆盖率、最近 12 条诊断和动作状态摘要；输出只解释支持/矛盾/缺失数据和观察重点，不具备动作改写权。
+
+## 高炉前端数据/智能助手/backend/ollama_proxy_server.py
+
+新增 `POST /api/diagnosis/model-review`。复用现有 Ollama 模型调用，只接受结构化复核合同；关闭开关、非法输入和模型错误分别返回明确 HTTP 状态，不回显内部模型标识、Prompt 或敏感配置。
+
+## tests/test_multi_condition_recommendation_and_model_review.py
+
+覆盖八炉况 bundle、当前/条件预案隔离、模型上下文白名单、对象形态基线/覆盖率、严格 JSON、Prompt 禁止改写、缓存隔离和前后端静态契约标记。
+
+## tools/check_frontend_babel_syntax.cjs
+
+使用项目本地 Babel standalone 编译 V3 页面内全部 `text/babel` 脚本，发现 JSX/语法错误时非零退出，不启动前端服务。
+
+## tools/serve_multi_condition_browser_fixture.py
+
+只用于本机浏览器验收的隔离 HTTP 服务。在内存响应中注入 `tests/fixtures/multi_condition_browser_fixture.js`，模拟 8767 WebSocket 和只读模型复核，不连接数据库或生产服务。
+
+## 高炉前端数据/foreman_trend_preview.html
+
+独立的现场“工长趋势1”布局预览页。保留旧式工业 HMI 的 7×7 指标矩阵、两段全宽曲线、灰色工具栏和底部导航；`fixture=1` 是明确标记的非生产布局夹具，去掉后连接现有 8767 WebSocket。该页不替换 `frontend_dashboard_v3.server.html#trend`。
+
+## 高炉前端数据/assets/foreman-trend-preview.js 与 foreman-trend-preview.css
+
+预览页的 vanilla JS 数据适配、ECharts 曲线、工具栏动作、实时/夹具边界和工业 HMI 视觉样式；使用本地 ECharts 资源，不依赖 React 或新增服务。
+
+## tools/verify_foreman_trend_preview.cjs 与 tools/verify_foreman_trend_viewports.cjs
+
+前者验证 49 个矩阵值、12+5 条曲线、缩放/图例、真实导航与 `1280×1024` 截图；后者覆盖 Edge/Chromium 的 9 个固定视口以及 Firefox/WebKit 的 4 个代表视口，并验证窄屏固定画布的可滚动只读访问。
+
+## tests/test_foreman_trend_preview.py
+
+独立预览页静态合同测试：检查 7×7 数据契约、两段图表和可操作工具栏、本地资源/实时边界，以及原正式趋势页仍保留。
+
+## tools/verify_foreman_trend_live_22012.cjs 与 tools/verify_foreman_trend_remote_8093.cjs
+
+前者只读验收已经按 db-profile 22012 启动的本机 8092/8767，确认页面实际连上 8767、数据时间存在、49 项变量的真实覆盖率、两段曲线有数据且浏览器无错误。后者对 `10.30.220.12:8093` 和既有 8768 执行相同的只读生产冒烟，额外检查无横向溢出；二者均不写数据库、不启停远端服务。
+
+## tools/remote_deploy_8093_foreman_trend_preview.ps1
+
+该受控部署器仅原子替换独立页的 HTML、CSS 和 JS：部署前要求 8093/8768 均服务正常且监听，写入前备份三个目标，写入后复核 HTTP/需求标记与服务状态，并在 manifest 记录两端 PID。它不替换正式 `#trend` 页面，也不停止 8093、8768、8094、8770 或数据库。
+
+## tools/verify_foreman_trend_remote_viewports_8093.cjs
+
+覆盖 220.12:8093 实际页面的 Edge/Chromium 9 个固定视口以及 Firefox/WebKit 各 4 个代表视口，验证 8768 实时连接、真实曲线数据、桌面无溢出和窄屏固定画布可滚动。
+## 220.12 VPN 直达数据源转发（2026-08-05）
+
+| 程序 | 职责 | 需求 |
+| --- | --- | --- |
+| [tools/patch_22012_nginx_imes_web.py](../tools/patch_22012_nginx_imes_web.py) | 幂等修改现有 18080 Nginx，仅增加 IMES 路径和根跳转，保留 g13 页面 | `OPS-22012-DIRECT-SOURCE-RELAYS-20260805` |
+| [tools/remote_deploy_22012_direct_source_relays.ps1](../tools/remote_deploy_22012_direct_source_relays.ps1) | 备份、Nginx校验/重载、portproxy、防火墙、PID保护与失败回滚 | 同上 |
+| [tools/remote_probe_22012_direct_relays.ps1](../tools/remote_probe_22012_direct_relays.ps1) | 只读检查目标连通、监听、进程、portproxy、HTTP与受保护服务 | 同上 |
+| [tests/test_patch_22012_nginx_imes_web.py](../tests/test_patch_22012_nginx_imes_web.py) | 验证补丁内容、旧页面保留、幂等与歧义拒绝 | 同上 |
+
+## 220.12 8093 MES/IMES MCP 生产同步（2026-08-05）
+
+| 程序 | 职责 | 需求 |
+| --- | --- | --- |
+| [tools/service_configs/22012_mcp_server_registry.json](../tools/service_configs/22012_mcp_server_registry.json) | 生产四服务 MCP 注册表及 220.12 直连端点 | `REQ-22012-IMES-MCP-SYNC-20260805` |
+| [tools/patch_22012_8093_mcp_service_config.py](../tools/patch_22012_8093_mcp_service_config.py) | 幂等补充非秘密环境配置及 Machine 凭据变量名 | 同上 |
+| [tools/remote_guarded_deploy_8093_imes_mcp_sync.ps1](../tools/remote_guarded_deploy_8093_imes_mcp_sync.ps1) | 哈希预检、备份、暂停/恢复守卫、只重启 8093、失败回滚与受保护 PID 验证 | 同上 |
+| [tools/remote_probe_8093_imes_mcp_sync_result.ps1](../tools/remote_probe_8093_imes_mcp_sync_result.ps1) | 只读输出部署结果、四端口 PID、注册服务、非秘密配置和文件哈希 | 同上 |
+| [tools/verify_8093_mcp_mes_sse_once.py](../tools/verify_8093_mcp_mes_sse_once.py) | 单次真实 MES SSE 与工具轨迹验收 | 同上 |
+| [tools/verify_8093_assistant_sse_once.py](../tools/verify_8093_assistant_sse_once.py) | 支持强制 MCP 或生产自动路由模式的单次 SSE 验收 | 同上 |
+
+## 8093 跨数据库 MCP 口语审计（2026-08-05）
+
+| 程序 | 职责 | 追踪编号 |
+| --- | --- | --- |
+| [tools/audit_8093_cross_database_mcp.py](../tools/audit_8093_cross_database_mcp.py) | 用自动路由模式执行单个复杂口语，输出实际服务、工具、路由、来源、耗时与回答，不修改生产状态 | `AUDIT-8093-CROSS-DATABASE-MCP-20260805` |
+| [tests/test_8093_cross_database_mcp_audit.py](../tests/test_8093_cross_database_mcp_audit.py) | 验证审计器状态URL与跨服务工具证据摘要合同 | 同上 |
+
+## 8093 跨源 MCP Host 与守护探针（2026-08-06）
+
+| 程序 | 职责 | 追踪编号 |
+| --- | --- | --- |
+| [backend/mcp_host/cross_source_plan.py](../高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py) | FactRequest/CrossSourcePlan 及按能力编译的 MES + GL02 DAG | `REQ-8093-CROSS-SOURCE-MCP-20260805` |
+| [backend/mcp_host/cross_source_executor.py](../高炉前端数据/智能助手/backend/mcp_host/cross_source_executor.py) | 实时 Schema 校验、跨服务并发/同服务串行、缓存、部分事实合同和依赖绑定 | 同上 |
+| [backend/ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 确定性跨源路由、统一事实/SSE、`/api/qa/mcp/health` 只读探针 | 同上 |
+| [backend/mcp_host/domain_router.py](../高炉前端数据/智能助手/backend/mcp_host/domain_router.py) | MES、GL02、炉身温度和炉次口语域选择 | 同上 |
+| [mcp/catalog/](../高炉前端数据/智能助手/mcp/catalog/) | 传感器、炉次化验、图表和计算能力统一目录 | 同上 |
+| [tools/remote_guarded_deploy_8093_multi_mcp.ps1](../tools/remote_guarded_deploy_8093_multi_mcp.ps1) | 备份、暂停/恢复8093健康任务、原子部署、只重启8093、保护8768/8094/8770 | `OPS-8093-MULTI-MCP-HOST-20260805` |
+
+## pSpace分钟平均统一（2026-08-05）
+
+| 程序 | 职责 | 需求 |
+|---|---|---|
+| `数据库同步和存取/src/raw_minute_pipeline.py` | 一次raw读取生成5秒明细、Good样本分钟平均与审计量 | `REQ-PSPACE-MINUTE-CANONICAL-AVERAGE-20260805` |
+| `数据库同步和存取/src/sync_from_243_pg.py` | 重试、分区、raw与分钟同事务写入、30天raw保留 | 同上 |
+| `数据库同步和存取/src/pg_store.py` | 含审计字段的幂等分钟upsert | 同上 |
+| [tools/remote_deploy_pspace_minute_average.ps1](../tools/remote_deploy_pspace_minute_average.ps1) | 双目录备份、定向停止重复写入者、DDL、部署、任务恢复、PID保护和失败回滚 | 同上 |
+| [tools/verify_22012_pspace_minute_average.py](../tools/verify_22012_pspace_minute_average.py) | 只读比较分钟值与raw重算平均、延迟、列结构和同步运行 | 同上 |
+| [tools/remote_verify_8093_pspace_contract.ps1](../tools/remote_verify_8093_pspace_contract.ps1) | 验证8093服务、HTTP资源、8770连接和历史合并标记 | 同上 |
+| [tests/test_pspace_minute_average_semantics.py](../tests/test_pspace_minute_average_semantics.py) | 质量过滤、闭窗水位、配置、DDL和共享单实例锁合同 | 同上 |
+# 8093/8094 建议引擎同步工具（2026-08-06）
+
+- `tools/build_8093_8094_recommendation_sync.py`：生成带 SHA-256 清单的同步包。
+- `tools/remote_deploy_8093_8094_recommendation_sync.ps1`：远端备份、原子部署、仅重启 8768 并验收。
+- `tools/remote_probe_8093_8094_recommendation_sync.ps1`：只读核对端口、服务、页面标记和哈希。
+- `tools/verify_remote_recommendation_pages.cjs`：8093/8094 跨浏览器、跨视口建议页验收。
+# 建议页布局只读探针（2026-08-06）
+
+- `tools/probe_remote_recommendation_layout.cjs`：使用 Chromium 读取建议页关键容器的边界、滚动高度和 overflow，用于定位多炉况矩阵引入后的图表裁切与重叠，不修改页面或生产数据。
+
+## 参数优化建议可视工作台（2026-08-06）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [frontend_dashboard_v3.server.html:L10530](../高炉前端数据/frontend_dashboard_v3.server.html#L10530) | 恢复驾驶舱可视区、8炉况切换、4项主证据曲线、19项证据中心、动作/模型抽屉 | `REQ-OPT-VISUAL-COCKPIT-RESTORE-20260806` |
+| [patch_8094_multi_condition_review.py](../tools/patch_8094_multi_condition_review.py) | 从8093最新源码抽取R2可移植功能块并幂等更新8094，补齐8094独立当前值适配器与4项主证据曲线，保持共享8768 | 同上 |
+| [build_8093_8094_recommendation_visual_frontend.py:L30](../tools/build_8093_8094_recommendation_visual_frontend.py#L30) | 生成只含页面源码和8094补丁器的SHA-256前端包 | 同上 |
+| [remote_deploy_8093_8094_recommendation_visual_frontend.ps1:L109](../tools/remote_deploy_8093_8094_recommendation_visual_frontend.ps1#L109) | 先8094后8093原子热更新、失败回滚并证明8093/8094/8768/8770/11434 PID不变 | 同上 |
+| [verify_remote_recommendation_pages.cjs](../tools/verify_remote_recommendation_pages.cjs) | Chromium/Firefox/WebKit固定视口交互与几何验收 | 同上 |
+| [serve_multi_condition_browser_fixture.py](../tools/serve_multi_condition_browser_fixture.py) | 用固定诊断流启动隔离页面；`--page-source`可原样加载远端下载页或8094候选页，同时复用本地静态资源 | 同上 |
+| [remote_probe_recommendation_visual_frontend.ps1](../tools/remote_probe_recommendation_visual_frontend.ps1) | 从服务器本机只读核对五个监听、两项守卫、双HTTP、页面哈希与版本标记 | 同上 |
+| [remote_probe_ws8768_service.ps1](../tools/remote_probe_ws8768_service.ps1) | 仅在8768外部探测冲突时读取守卫进程和服务器本机监听PID，不修改服务 | `ERR-OPT-8094-CORE-EVIDENCE-RUNTIME-20260806` |
+
+## 任意炉次化验与模型受控自主调用（2026-08-06）
+
+| 程序 | 职责 | 追踪编号 |
+| --- | --- | --- |
+| [mcp/imes_relay_mcp_server.py](../高炉前端数据/智能助手/mcp/imes_relay_mcp_server.py) | 暴露 `query_heat_chemistry`，按任意正式/口语炉次查询所选成分、试样和汇总 | `REQ-8093-AUTONOMOUS-HEAT-CHEMISTRY-MCP-20260806` |
+
+## 8093 炉次生产实绩与铁水质量（2026-08-06）
+
+| 程序 | 责任 | 追踪编号 |
+|---|---|---|
+| [heat_performance_quality.py](../高炉前端数据/智能助手/backend/heat_performance_quality.py) | 一炉一行表合同、多试样统计、修复状态优先 upsert、未来待核验默认隔离、镜像/汇总缺口审计 | `REQ-HEAT-QUALITY-REPAIR-CLOSED-LOOP-20260807` |
+| [sync_22012_heat_performance_quality.py](../tools/sync_22012_heat_performance_quality.py) | IMES 全量/增量同步、`workdate+meltno` 双锚点回看、分页异常扫描、结构化原因和精确计数 | 同上 |
+| [migrate_heat_quality_time_repair_columns_22012.py](../tools/migrate_heat_quality_time_repair_columns_22012.py) | 幂等增加原始/修复时间、异常原因、核验时刻和未来隔离字段；仅在批准的生产迁移时执行 | 同上 |
+| [run_22012_heat_performance_sync.ps1](../tools/run_22012_heat_performance_sync.ps1) | 220.12 每5分钟同步任务入口，凭据只从机器环境和ACL受限文件注入 | 同上 |
+| [bf-heat-performance-quality-8093.js](../高炉前端数据/assets/bf-heat-performance-quality-8093.js) | 8093“炉次实绩”入口、最近炉次表格、加载/空/错误/重试及原始试样展开 | 同上 |
+| [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 暴露只读 `GET /api/heat-performance-quality` | 同上 |
+| [test_heat_performance_quality.py](../tests/test_heat_performance_quality.py) / [test_heat_performance_quality_repair_loop.py](../tests/test_heat_performance_quality_repair_loop.py) | 聚合、修复谱系保护、未来隔离、真实缺口审计、跨午夜和分页合同测试 | 同上 |
+| [backend/ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 混合路由、实时Schema能力裁剪、模型工具调用事件和事实确定性格式化 | 同上 |
+| [mcp/catalog/heat_analysis.json](../高炉前端数据/智能助手/mcp/catalog/heat_analysis.json) | 声明短炉号、成分选择、多试样和聚合能力 | 同上 |
+| [tools/probe_model_mcp_tool_selection.py](../tools/probe_model_mcp_tool_selection.py) | 只向模型提供注册Schema并打印其结构化工具调用，不执行数据库工具、不输出隐藏推理 | 同上 |
+
+## 8093 Failed to fetch 诊断、互斥恢复与页面容错（2026-08-06）
+
+| 程序 | 职责 | 追踪编号 |
+| --- | --- | --- |
+| [assistant_8093_auto_recovery.py](../tools/assistant_8093_auto_recovery.py) | 连通性门禁、不可变包、只读分类、已知最小修复、唯一 SSE 与报告/DOCX 分离 | `REQ-8093-ASSISTANT-FETCH-RESILIENCE-20260806` |
+| [remote_8093_assistant_diagnose.ps1](../tools/remote_8093_assistant_diagnose.ps1) | 一次监听快照汇总服务、端口、运行环境、守卫、SCM、知识、模型与异常 | 同上 |
+| [remote_guarded_recover_8093_service.ps1](../tools/remote_guarded_recover_8093_service.ps1) | 全局互斥、已知哈希、守卫 finally、15 秒退避、最多两次受控启动和 PID 保护 | 同上 |
+| [patch_8093_assistant_fetch_resilience.py](../tools/patch_8093_assistant_fetch_resilience.py) | 幂等加入中文网络提示、GET 有界重试、POST/SSE 禁止自动重发 | 同上 |
+| [remote_hot_deploy_8093_fetch_resilience.ps1](../tools/remote_hot_deploy_8093_fetch_resilience.ps1) | 全局互斥、备份、页面原子热更新、失败回滚和无重启验证 | 同上 |
+| [remote_verify_8093_keyword_knowledge_sse_once.ps1](../tools/remote_verify_8093_keyword_knowledge_sse_once.ps1) | 唯一一次知识问答，验证事件、RAG、模型、守卫、PID 与哈希 | 同上 |
+
+## 炉况评分弹窗19项核心证据与趋势（2026-08-06）
+
+| 程序 | 职责 | 追踪编号 |
+| --- | --- | --- |
+| [diag_ai_evidence.py](../高炉前端数据/智能助手/backend/diag_ai_evidence.py) | 固定19项变量、规则主证据、5分钟变化、30天基线和60分钟序列 | `REQ-8093-8094-DIAGNOSIS-CORE-19-TRENDS-20260806` |
+| [diagnosis_ai_analysis_api.py](../高炉前端数据/智能助手/backend/diagnosis_ai_analysis_api.py) | 安装智能分析与独立核心证据HTTP处理器 | 同上 |
+| [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 提供不依赖模型完成的 `/api/diagnosis-core-evidence` 只读接口 | 同上 |
+| [bf-diagnosis-manual-score-local.js](../高炉前端数据/assets/bf-diagnosis-manual-score-local.js) | 主证据优先、19项展开、变量详情与SVG趋势图 | 同上 |
+| [verify_diagnosis_core19_remote.py](../tools/verify_diagnosis_core19_remote.py) | 验证精确ID、数量、曲线及轻量接口只读合同 | 同上 |
+| [verify_diagnosis_ai_analysis_viewports.cjs](../tools/verify_diagnosis_ai_analysis_viewports.cjs) | Chromium/Firefox/WebKit交互、溢出、弹窗滚动和曲线验收 | 同上 |
+
+## IMES 料速/燃料比审计与数据库模块同步（2026-08-06）
+
+| 程序 | 职责 | 追踪编号 |
+| --- | --- | --- |
+| [audit_imes_material_fuel_metrics.py](../tools/audit_imes_material_fuel_metrics.py) | 白名单 Vastbase 对象的只读列/注释/样本审计，不执行任意 SQL | `REQ-IMES-MATERIAL-FUEL-AUDIT-AND-DB-MODULE-SYNC-20260806` |
+| [run_imes_material_fuel_audit.ps1](../tools/run_imes_material_fuel_audit.ps1) | 从受控本机 IMES/Vastbase 加载器注入凭据并在 finally 清理进程环境 | 同上 |
+| [remote_audit_imes_metric_fields.ps1](../tools/remote_audit_imes_metric_fields.ps1) | 只读核对 220.12 IMES 镜像新鲜度、字段名和批次投料结构样本 | 同上 |
+| [sync_v4_db_module_to_current.ps1](../tools/sync_v4_db_module_to_current.ps1) | 白名单同步 V4 数据库模块，排除秘密/数据/日志并逐文件校验 SHA-256 | 同上 |
+| [verify_foreman_coal_hourly_db.py](../tools/verify_foreman_coal_hourly_db.py) | 只读验证新增15物理点、派生点注册和本小时喷煤视图 | 同上 |
+| [数据库同步和存取](../数据库同步和存取/README.md) | 当前项目的完整同步模块：IMES、pSpace、PostgreSQL、分钟/5秒存储与守卫 | 同上 |
+
+
+
+## 当前炉次阶段性 Si 与时间段反查（2026-08-07）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [mcp/imes_relay_mcp_server.py](../高炉前端数据/智能助手/mcp/imes_relay_mcp_server.py) | `query_current_heat_chemistry` 汇总当前已发布试样；`query_heat_chemistry_by_time_range` 解析口语时间并匹配正式炉次；精确关联铁罐号 | `REQ-MCP-IMES-HEAT-SI-SAMPLES-20260807` |
+| [backend/ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 当前炉次 Si、时间段 Si 的零规划轮路由及确定性事实格式化 | 同上 |
+| [backend/mcp_host/domain_router.py](../高炉前端数据/智能助手/backend/mcp_host/domain_router.py) | 将“鸬鹚”语音误识别归入 IMES 领域 | 同上 |
+| [mcp/catalog/heat_analysis.json](../高炉前端数据/智能助手/mcp/catalog/heat_analysis.json) | 声明当前阶段性化验、时间段反查、逐罐/逐样本能力 | 同上 |
+
+| 5分钟智能分析知识来源 | 高炉前端数据/智能助手/backend/ollama_proxy_server.py、diag_ai_evidence.py、diagnosis_model_review.py、assets/bf-diagnosis-manual-score-local.js | 固定只读检索 bf_foreman_ops_v1；知识详情 /api/qa/knowledge/chunk |
+## front2趋势页19变量工长式同平面（2026-08-07）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [frontend_dashboard_front2.server.html](../高炉前端数据/front2/frontend_dashboard_front2.server.html) | 单面板19变量稳健趋势带、原始值提示、历史/预测衔接、完整Chronos目标请求和返回映射 | `REQ-TREND-19-LANE-MERGE-20260807` |
+| [patch_front2_trend_19_lane.py](../tools/patch_front2_trend_19_lane.py) | 幂等安装页面覆盖、完整目标请求和结果映射 | 同上 |
+| [test_front2_trend_19_lane_merge.py](../tests/test_front2_trend_19_lane_merge.py) | 变量集合、单面板、稳健缩放、缺失语义、预测样式和请求合同 | 同上 |
+| [verify_front2_trend_19_lane.py](../tools/verify_front2_trend_19_lane.py) | 模拟真实WebSocket历史/预测，执行Chromium/Firefox/WebKit视口验收 | 同上 |
+
+## 炉体温度红外时空回放（2026-08-08）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [soft_zone_replay_server.py](../tools/soft_zone_replay_server.py) | 只读查询80个炉体温度点和18个静压力点，限幅时间窗/帧数并提供静态页面 | `REQ-BODY-TEMP-INFRARED-REPLAY-20260808` |
+| [soft_zone_replay](../高炉前端数据/soft_zone_replay/index.html) | 历史时间选择、红外插值画布、播放/拖动、温度8线与静压力6线联动、区域筛选、分层统计和WebM导出 | 同上 |
+| [remote_deploy_22012_soft_zone_replay_8892.ps1](../tools/remote_deploy_22012_soft_zone_replay_8892.ps1) | 备份、原子部署、注册8892任务、防火墙、真实数据及受保护服务验收 | 同上 |
+| [verify_soft_zone_replay_ui.cjs](../tools/verify_soft_zone_replay_ui.cjs) | 本地17项矩阵和220.12真实数据生产冒烟 | 同上 |
+
+## A9/B13/C11炉况规则（2026-08-07）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [abc_rule_catalog.py](../自动诊断服务/abc_rule_catalog.py) | 33项规则身份、传感器复核与手册处置目录 | `REQ-ABC33-FURNACE-RULES-20260807` |
+| [abc_feature_builder.py](../自动诊断服务/abc_feature_builder.py) | 当前值、窗口趋势、基线和质量门禁特征 | 同上 |
+| [abc_rule_engine.py](../自动诊断服务/abc_rule_engine.py) | 受控评分、置信度、四态和生产/后台序列化 | 同上 |
+| [abc_rule_config_store.py](../自动诊断服务/abc_rule_config_store.py) | 草稿校验、fsync原子发布和配置哈希 | 同上 |
+| [abc_rule_schema.sql](../自动诊断服务/abc_rule_schema.sql) / [store.py](../自动诊断服务/store.py) | ABC计算批次、明细、配置和告警审计表 | 同上 |
+| [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 生产详情、趋势与管理员内部详情接口 | 同上 |
+| [abc-furnace-rules-production.js](../高炉前端数据/assets/abc-furnace-rules-production.js) | 生产页A/B/C页签和B/C分级提示 | 同上 |
+
+## 8093 智能分析数据限制误报修复（2026-08-08）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [diag_ai_evidence.py](../高炉前端数据/智能助手/backend/diag_ai_evidence.py) | 按真实有效当前值/趋势判定数据限制，忽略可用稀疏序列的采样密度 | `BUG-8093-DIAGNOSIS-AI-FALSE-DATA-LIMITS-20260808` |
+| [diagnosis_model_review.py](../高炉前端数据/智能助手/backend/diagnosis_model_review.py) | 五分钟单炉况提示词 v6、服务端事实覆盖模型输出的 data_limits | 同上 |
+| [bf_knowledge_rag.py](../高炉前端数据/智能助手/backend/bf_knowledge_rag.py) | 64主题知识库来源过滤与检索适配 | 同上 |
+| [remote_guarded_deploy_8093_ai_data_limit_fix.ps1](../tools/remote_guarded_deploy_8093_ai_data_limit_fix.ps1) | 仅对 8093 执行停—替换—启—验收闭环 | 同上 |
+
+## V20 平均 Si 独立预测工作台（2026-08-08）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [si_v20_shadow.py](../高炉前端数据/智能助手/backend/si_v20_shadow.py) | 候选炉次、历史实际/预测并集、数据就绪度和预测详情 | `REQ-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808` |
+| [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | V20 status/history/readiness/detail 路由及预测审计 | 同上 |
+| [si_v20_workbench.html](../高炉前端数据/si_v20_workbench.html) / [bf-si-v20-workbench.js](../高炉前端数据/assets/bf-si-v20-workbench.js) | 独立全屏工作台、候选、曲线、筛选和逐炉审计 | 同上 |
+| [deploy_si_v20_workbench_8093.ps1](../tools/deploy_si_v20_workbench_8093.ps1) | 8093 分段上传、守卫停启、原子替换和 API 验收 | 同上 |
+## tools/set_22012_imes_realtime_1min.ps1
+
+- 追踪编号：`OPS-IMES-REALTIME-1MIN-20260809`。
+- 用途：将220.12计划任务`\GL02SensorSync\IMESRealtime`受控调整为一分钟周期，固定`IgnoreNew`防重入；同时完成原XML备份、失败回滚、镜像新鲜度和8093/8768/8094/8770 PID保护校验。
+- 部署与验收：[2026-08-09 IMES实时一分钟部署记录](handoffs/2026-08-09-imes-realtime-1min.md)。
+## V20 Si预测节拍审计（2026-08-09）
+
+- [remote_audit_si_v20_hourly_tasks.ps1](../tools/remote_audit_si_v20_hourly_tasks.ps1)：在220.12只读枚举任务名称及动作，定位 V20/Si/hourly 服务器计划任务；不修改任务。
+- [audit_si_v20_prediction_cadence.ps1](../tools/audit_si_v20_prediction_cadence.ps1)：读取8093 history/status API，按请求模式计数，核算小时预测相对真实开口时间、实际Si误差，并对开口前60分钟回放按炉次去重评估。
+- 关联问题：`Q-SI-V20-STRICT-HOURLY-ACCURACY-20260809`；当前结论为没有严格服务器整点自动化。
+
+## V20 双预测时序与服务器整点任务（本机实现，2026-08-09）
+
+- [si_v20_shadow.py](../高炉前端数据/智能助手/backend/si_v20_shadow.py)：拆分历史 `open_ts-60min` 和生产整点口径；实现整点幂等、候选下一炉推断及“预测发起后第一条真实开口”动态匹配。
+- [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)：新增 `GET /api/si-v20/hourly-history`。
+- [run_si_v20_hourly_prediction.py](../tools/run_si_v20_hourly_prediction.py)：整点预测 HTTP 原子入口，支持严格整点参数和 dry-run。
+- [run_22012_si_v20_hourly_prediction.ps1](../tools/run_22012_si_v20_hourly_prediction.ps1)：220.12 本机8093调用与日志包装。
+- [register_22012_si_v20_hourly_task.ps1](../tools/register_22012_si_v20_hourly_task.ps1)：注册 `\BlastFurnaceServices\SiV20HourlyShadowPrediction`，每小时 `HH:00:05`、SYSTEM、IgnoreNew。
+- [set_22012_heat_quality_sync_1min.ps1](../tools/set_22012_heat_quality_sync_1min.ps1)：在保留Action/Principal、备份与失败回滚的前提下，将炉次质量汇总任务调整为一分钟尝试调度。
+- [si_v20_workbench.html](../高炉前端数据/si_v20_workbench.html)、[bf-si-v20-workbench.js](../高炉前端数据/assets/bf-si-v20-workbench.js)：删除依赖页面常开的小时定时器，增加生产整点预测汇总与候选/实际炉次并列展示。
+- 当前状态：`local_implementation_ready_not_deployed`。
+
+## V20可配置分钟级预测（220.12已部署，2026-08-09）
+
+- [si_v20_shadow.py](../高炉前端数据/智能助手/backend/si_v20_shadow.py)：配置/批次DDL、周期对齐、到期分发、历史时间槽预测、下一真实炉次匹配与曲线指标。
+- [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)：调度配置、分发、批量回放和定时历史API。
+- [run_si_v20_schedule_dispatcher.py](../tools/run_si_v20_schedule_dispatcher.py)：调用本机8093分钟分发API。
+- [run_22012_si_v20_schedule_dispatcher.ps1](../tools/run_22012_si_v20_schedule_dispatcher.ps1)：220.12运行包装和日志。
+- [register_22012_si_v20_schedule_task.ps1](../tools/register_22012_si_v20_schedule_task.ps1)：固定一分钟、SYSTEM、IgnoreNew后台任务注册器。
+- [si_v20_workbench.html](../高炉前端数据/si_v20_workbench.html)、[bf-si-v20-workbench.js](../高炉前端数据/assets/bf-si-v20-workbench.js)：周期配置、批量/指定时刻预测、定时时间槽曲线、日期/炉次范围筛选及预测/实际曲线CSV下载。
+- [test_si_v20_configurable_schedule.py](../tests/test_si_v20_configurable_schedule.py)：周期白名单、槽对齐、配置保存、到期分发、批次和UI/API/任务合同。
+- [verify_si_v20_schedule_production.py](../tools/verify_si_v20_schedule_production.py)：只读核对生产三表、默认配置和已写入的定时时间槽。
+- [remote_restart_8094_detached_worker.ps1](../tools/remote_restart_8094_detached_worker.ps1)：SSH通道不稳定时，在远端工作目录内调用既有受控8094重启器并保存结果；不替代其进程归属和受保护端口检查。
+
+## V20严格整点预测闭环（2026-08-10）
+
+- [si_v20_strict_context.py](../高炉前端数据/智能助手/backend/si_v20_strict_context.py)：读取冻结LightGBM树，按整点构造历史Si、PCI和133点多窗口严格上下文，并输出数据水位。
+- [export_si_v20_strict_context_model.py](../tools/export_si_v20_strict_context_model.py)：把V21 process133模型导出为无需LightGBM运行库的gzip JSON。
+- [si_v20_shadow.py](../高炉前端数据/智能助手/backend/si_v20_shadow.py)：整点槽账本、失败重试、唯一预测、完成后固定炉次匹配和结果补齐。
+- [run_si_v20_strict_hourly_dispatcher.py](../tools/run_si_v20_strict_hourly_dispatcher.py)、[run_22012_si_v20_strict_hourly.ps1](../tools/run_22012_si_v20_strict_hourly.ps1)：一分钟调用原子程序及220.12包装。
+- [register_22012_si_v20_strict_hourly_task.ps1](../tools/register_22012_si_v20_strict_hourly_task.ps1)：注册永久启用的`SiV20StrictHourlyPrediction`，SYSTEM、每分钟、IgnoreNew。
+- [test_si_v20_strict_hourly.py](../tests/test_si_v20_strict_hourly.py)：边界、防迟到泄漏、槽重试、24小时连续性及UI/API合同。
+- [verify_si_v20_strict_hourly_production.py](../tools/verify_si_v20_strict_hourly_production.py)：只读核对生产表、槽唯一性、整点截止和Si首次可用时间。
+- [verify_si_v20_strict_hourly_production_ui.cjs](../tools/verify_si_v20_strict_hourly_production_ui.cjs)：对8093/8094执行规定的跨引擎与视口矩阵。
+- [deploy_si_v20_strict_hourly_22012.ps1](../tools/deploy_si_v20_strict_hourly_22012.ps1)、[remote_guarded_deploy_si_v20_strict_hourly.ps1](../tools/remote_guarded_deploy_si_v20_strict_hourly.ps1)：分段上传、8093守卫闭环、8094受控重启、API/任务/受保护端口验收。
+
+## 本机 PowerShell 7 UTF-8 运行时（2026-08-10）
+
+- [verify_pwsh7_utf8.ps1](../tools/verify_pwsh7_utf8.ps1)：验证当前进程为PowerShell 7 Core、统一UTF-8编码、中文项目路径可读及中文临时文件回环一致。
+- [start_v3_full.ps1](../start_v3_full.ps1)：本机旧兼容启动入口增加PowerShell 7硬门，子PowerShell改用`pwsh.exe`。
+- [run_hidden_ps1.vbs](../tools/run_hidden_ps1.vbs)：本机隐藏计划任务固定调用`C:\Program Files\PowerShell\7\pwsh.exe`，缺失时退出3，不回退Windows PowerShell 5.1。
+- [set_windows_terminal_pwsh7_default.ps1](../tools/set_windows_terminal_pwsh7_default.ps1)：备份并原子切换Windows Terminal默认配置到PowerShell 7，同时隐藏5.1配置但不删除系统组件。
+- [PowerShell7_UTF8运行规范.md](./PowerShell7_UTF8运行规范.md)：记录命令、编码模板、升级方式、远端迁移边界和验收口径。
+
+## 220.12 PowerShell 7远端运行时（2026-08-10）
+
+- [remote_22012_exec.py](../tools/remote_22012_exec.py)：远端默认运行时改为PowerShell 7；SFTP暂存UTF-8 wrapper/payload，以短`-File`命令执行并自动清理，显式保留旧5.1引导选项。
+- [remote_probe_22012_pwsh7.ps1](../tools/remote_probe_22012_pwsh7.ps1)：只读采集系统、PowerShell、WinGet、计划任务Action和受保护端口现状。
+- [remote_install_22012_pwsh7.ps1](../tools/remote_install_22012_pwsh7.ps1)：校验官方MSI哈希/签名、静默安装、调用7验证并保护端口PID。
+- [remote_verify_22012_pwsh7.ps1](../tools/remote_verify_22012_pwsh7.ps1)：验证Core版本、UTF-8中文回环及关键生产脚本语法。
+- [remote_smoke_22012_pwsh7.ps1](../tools/remote_smoke_22012_pwsh7.ps1)：验证带参数块payload、中文输出、中文工作目录和五个监听端口。
+- [remote_cleanup_22012_pwsh7_installer.ps1](../tools/remote_cleanup_22012_pwsh7_installer.ps1)：仅删除已核准远端Temp目录中的MSI/验证payload，保留已安装运行时。
+
+## V20新炉次每小时持续验收（2026-08-10）
+
+- [audit_si_v20_new_heat_acceptance.cjs](../tools/audit_si_v20_new_heat_acceptance.cjs)：冻结最新实际炉次基线，采集8093 API、页面状态和截图，实际执行页面的预测/实际CSV下载，同时导出history、strict-hourly和scheduled-interval明细，更新Markdown/HTML报告。
+- [remote_probe_si_v20_acceptance.ps1](../tools/remote_probe_si_v20_acceptance.ps1)：通过PowerShell 7只读检查8093/8094/8768/8770/5432、四项同步/预测任务Action，以及8093/8094的status/history/strict-hourly/hourly-table API；V20相关任务仍调用`powershell.exe`时判失败。
+- [verify_si_v20_strict_hourly_production.py](../tools/verify_si_v20_strict_hourly_production.py)：只读核验严格槽连续性、失败/运行/陈旧/逾期、重复、截止违规及缺失Si可用时间，并列出具体异常炉次。
+- [remote_repair_heat_si_availability_20260810.ps1](../tools/remote_repair_heat_si_availability_20260810.ps1)：备份并更新独立炉次质量同步副本，迁移任务到PowerShell 7，执行一次同步后保护端口/API。
+- [remote_migrate_v20_data_tasks_pwsh7_20260810.ps1](../tools/remote_migrate_v20_data_tasks_pwsh7_20260810.ps1)：逐任务备份XML，把IMES实时和可调V20分发任务迁移到PowerShell 7并验证运行。
+- [SI_V20_NEW_HEAT_20260810](../reports/acceptance/SI_V20_NEW_HEAT_20260810/)：冻结基线、逐小时JSONL、时间戳截图、API快照、CSV导出和最终报告目录。
+- Codex心跳自动化ID为`220-12-v20`，每小时持续运行；完整闭环通过后也不暂停，继续监督新炉次、严格整点和每小时汇总表。

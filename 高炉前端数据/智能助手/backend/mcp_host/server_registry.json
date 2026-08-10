@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "servers": [
+    {
+      "server_id": "gl02-data",
+      "display_name": "GL02传感器与图表只读服务",
+      "domains": ["sensor", "chart", "report", "qa_history", "catalog"],
+      "script": "../../mcp/bf_data_mcp_server.py",
+      "namespace": "",
+      "enabled": true,
+      "default": true
+    },
+    {
+      "server_id": "gl02-extended",
+      "display_name": "GL02历史炉况与炉身温度只读服务",
+      "domains": ["diagnosis", "body_temperature"],
+      "script": "../../mcp/bf_data_extended_mcp_server.py",
+      "namespace": "gl02ext",
+      "enabled": true,
+      "default": false
+    },
+    {
+      "server_id": "imes-readonly",
+      "display_name": "MES/IMES业务数据只读服务",
+      "domains": ["heat", "hot_metal", "slag", "feed", "imes"],
+      "script": "../../mcp/imes_relay_mcp_server.py",
+      "namespace": "imes",
+      "enabled": true,
+      "default": false,
+      "excluded_tools": ["query_imes_readonly_sql"],
+      "env_defaults": {
+        "IMES_MCP_CONNECTION_MODE": "relay",
+        "IMES_RELAY_DB_HOST": "127.0.0.1",
+        "IMES_RELAY_DB_PORT": "15433"
+      }
+    },
+    {
+      "server_id": "imes-web-readonly",
+      "display_name": "IMES Web只读接口服务",
+      "domains": ["imes_web"],
+      "script": "../../mcp/imes_web_mcp_server.py",
+      "namespace": "imesweb",
+      "enabled": true,
+      "default": false,
+      "env_defaults": {
+        "IMES_WEB_URL": "http://127.0.0.1:18080/imes.web/"
+      }
+    }
+  ]
+}

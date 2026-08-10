@@ -241,3 +241,25 @@ GET /api/admin/mcp/health
 - [四个关键口语验收](../logs/8093_phase3_four_priority_prompts_20260726.json)
 - [无Prompt直连验收](../logs/mcp_direct_no_prompt_20260726.json)
 - [部署后服务与哈希诊断](../logs/22012_8093_phase3_postdeploy_diagnostic_20260726.json)
+
+## 阶段4多服务 P0 实施结果（2026-08-05）
+
+阶段4从单 MCP Session 升级为按领域选择的多 Client Host：
+
+- `gl02-data`：传感器、图表、报表、历史问答和统一目录；
+- `imes-readonly`：正式炉次、铁水/炉渣化验和进料成分；
+- 单源问题只启动一个服务，跨源问题同时启动两个；
+- GL02 保持旧工具名，IMES 使用 `imes__` 命名空间；
+- 生产 Host 排除 `query_imes_readonly_sql`；
+- “当前炉次 + 上一炉 Si 平均值”使用一次复合工具，输出正式 `meltno`、全部有效试样、样本数、均值、范围、时间、来源和缺失状态。
+
+本地相关回归 `38 passed`；真实 MCP SDK 发现验证 IMES 14、GL02 18、跨源 32 个 Host 可见工具。2026-08-05 已完成 220.12 受控部署和真实 MES 单次 SSE，上一炉有效 Si 试样数为 0 时正确返回 `NO_SI_SAMPLES`。显式跨服务 DAG、连接 TTL、Schema 缓存和完整证据审计仍分别属于阶段4后续、阶段6/7工作，不得标成全部完成。
+
+## 2026-08-06：8093 跨源 MCP 稳定调用与守护进程上线
+
+- 已将 `CrossSourcePlan`、`FactRequest`、按能力路由、DAG 执行器、统一目录和事实提取逻辑同步到 220.12 的 8093 服务。
+- MES 与 pSpace/GL02 请求现在可并行执行；炉身温度使用 `gl02-extended` 能力，`P_top` 只进入传感器能力，不再误路由到历史炉况工具。
+- 正式 `meltno`、口语炉次解析、样本时间、单位、来源、缺失原因和 `analysis_allowed` 门控已纳入统一结果合同。
+- 8093 新增 `/api/qa/mcp/health` 只读探针，守护进程只检查并恢复 `BFV4PreviewProxy8093`，不操作 8768、8094、8770 或数据库服务。
+- 本地专项测试 `51 passed`，跨源及相关回归 `108 passed`，专项测试占位项 `0`；生产已完成 6 类真实口语验收。
+- 2026-08-06 受控部署仅更换 8093 进程，8093 新 PID 为 `12368`；8768、8094、8770 PID 保持不变。部署备份和回滚证据见 `docs/handoffs/2026-08-06-8093-cross-source-mcp-deployment.md`。

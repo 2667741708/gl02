@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import statistics
 import sys
 import re
 from datetime import date, datetime, timedelta
@@ -41,6 +42,20 @@ MAX_DAYS = min(max(int(os.getenv("IMES_RELAY_MCP_MAX_DAYS", "93")), 1), 366)
 ALLOWED_CATEGORIES = {"生产实绩", "批次投料", "炉次化验", "炉渣检验", "原料投入", "配料方案", "料仓", "生产计划"}
 CONNECTION_MODE = os.getenv("IMES_MCP_CONNECTION_MODE", "relay").strip().lower()
 DIRECT_22012_TARGET = ("10.10.181.195", 5432)
+CHEMISTRY_ACCOUNT_PROFILE = os.getenv(
+    "IMES_CHEMISTRY_ACCOUNT_PROFILE", "operations"
+).strip().lower()
+if CHEMISTRY_ACCOUNT_PROFILE not in {"operations", "laboratory"}:
+    raise RuntimeError(
+        "IMES_CHEMISTRY_ACCOUNT_PROFILE must be operations or laboratory"
+    )
+ACTIVE_HEAT_MAX_AGE_HOURS = max(
+    1.0, float(os.getenv("IMES_ACTIVE_HEAT_MAX_AGE_HOURS", "72"))
+)
+HEAT_TIME_RANGE_MAX_HOURS = min(
+    max(float(os.getenv("IMES_HEAT_TIME_RANGE_MAX_HOURS", "168")), 1.0),
+    168.0,
+)
 LOCAL_IMES_ENV = ROOT / "PT" / "imes_vastbase.local.env"
 FULL_VARIABLE_CATALOG_PATH = Path(__file__).with_name(
     "imes_full_variable_catalog.json"
@@ -276,15 +291,25 @@ def database_profiles() -> dict[str, dict[str, Any]]:
     common_host = RELAY_HOST
     common_port = RELAY_PORT
     common_database = os.getenv("IMES_RELAY_DB_NAME", "vastbase")
+    # The current authorized Vastbase account is lg_fq and is stored in the
+    # protected local env file.  Keep the historical credential only as a
+    # compatibility fallback for an older remote deployment that explicitly
+    # has no IMES_DB_* settings; never prefer it on the workstation.
+    common_user = os.getenv("IMES_DB_USER", local_values.get("IMES_DB_USER", ""))
+    common_password = os.getenv(
+        "IMES_DB_PASSWORD", local_values.get("IMES_DB_PASSWORD", "")
+    )
     return {
         "operations": {
             "purpose": "炉次作业、生产实绩、批次投料、铁水旧化验和炉渣旧检验",
             "host": os.getenv("IMES_OPS_DB_HOST", common_host),
             "port": int(os.getenv("IMES_OPS_DB_PORT", str(common_port))),
             "dbname": os.getenv("IMES_OPS_DB_NAME", common_database),
-            "user": os.getenv("IMES_OPS_DB_USER", vastbase.HISTORICAL_DB_USER),
+            "user": os.getenv(
+                "IMES_OPS_DB_USER", common_user or vastbase.HISTORICAL_DB_USER
+            ),
             "password": os.getenv(
-                "IMES_OPS_DB_PASSWORD", vastbase.HISTORICAL_DB_PASSWORD
+                "IMES_OPS_DB_PASSWORD", common_password or vastbase.HISTORICAL_DB_PASSWORD
             ),
         },
         "laboratory": {
@@ -296,10 +321,10 @@ def database_profiles() -> dict[str, dict[str, Any]]:
                 local_values.get("IMES_DB_NAME", common_database),
             ),
             "user": os.getenv(
-                "IMES_LAB_DB_USER", local_values.get("IMES_DB_USER", "")
+                "IMES_LAB_DB_USER", common_user
             ),
             "password": os.getenv(
-                "IMES_LAB_DB_PASSWORD", local_values.get("IMES_DB_PASSWORD", "")
+                "IMES_LAB_DB_PASSWORD", common_password
             ),
         },
     }
@@ -452,7 +477,7 @@ def resolve_semantic_intent(question: str) -> dict[str, Any]:
     elif any(term in text for term in ("进料成分", "进料化学成分", "来料成分", "来料化学成分", "原料成分", "烧结矿成分", "入炉料成分")):
         specialized_tool = "query_sinter_feed_chemistry"
     elif any(term in text for term in ("铁水", "炉次成分", "硅含量", "锰含量", "碳硅锰", "硅和锰", "硅、锰", "si", "mn")):
-        specialized_tool = "query_hot_metal_chemistry_by_heat"
+        specialized_tool = "query_heat_chemistry"
     else:
         specialized_tool = "query_imes_variables"
     next_arguments: dict[str, Any] = {}
@@ -901,7 +926,11 @@ def query_hot_metal_silicon(
     if limit > 0:
         query += " LIMIT %s"
         params.append(limit)
-    with connection("operations") as conn:
+    # The verified 2026-08-05 production path reads the current Web-visible
+    # chemistry rows through the operations profile. The profile remains
+    # configurable for deployments that explicitly provision a laboratory
+    # account; the model never chooses an arbitrary account.
+    with connection(CHEMISTRY_ACCOUNT_PROFILE) as conn:
         with conn.cursor() as cur:
             cur.execute(query, params)
             columns = [description[0] for description in cur.description]
@@ -913,6 +942,7 @@ def query_hot_metal_silicon(
         "end_date": end_date,
         "limit": limit,
         "si_field": "si",
+        "account_profile": CHEMISTRY_ACCOUNT_PROFILE,
         "rows": rows,
         "truncated": limit > 0 and len(rows) >= limit,
     }
@@ -927,11 +957,67 @@ def _required_text(value: str, name: str, max_length: int = 80) -> str:
     return normalized
 
 
-@mcp.tool()
-def query_hot_metal_chemistry_by_heat(heat_no: str) -> dict[str, Any]:
-    """Query one blast-furnace heat's published hot-metal chemistry by exact heat number."""
+def _normalize_furnace_id(value: str) -> str:
+    """Normalize a furnace identifier without allowing it to become SQL syntax."""
 
-    heat_no = _required_text(heat_no, "heat_no")
+    normalized = str(value or "2#").strip().upper().replace("号", "#")
+    if normalized.isdigit():
+        normalized += "#"
+    if not re.fullmatch(r"\d{1,3}#", normalized):
+        raise ValueError("furnace_id must look like '2#' or '2'")
+    return normalized
+
+
+def _normalize_as_of_time(value: str | None) -> datetime:
+    """Return a database-friendly local timestamp used as the heat ordering anchor."""
+
+    if value is None or not str(value).strip():
+        return datetime.now().astimezone().replace(tzinfo=None, microsecond=0)
+    text = str(value).strip().replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError as exc:
+        raise ValueError("as_of_time must be an ISO-8601 date-time") from exc
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone().replace(tzinfo=None)
+    return parsed.replace(microsecond=0)
+
+
+def _plain_datetime(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone().replace(tzinfo=None)
+    return parsed
+
+
+def _query_recent_heat_context_rows(
+    as_of_time: datetime,
+    furnace_id: str,
+    limit: int = 2,
+) -> list[dict[str, Any]]:
+    query = """
+        SELECT meltno, workdate, opentime, closetime, tappingtime,
+               tappingtemp, ironquan, theoryquan, slagrate
+          FROM public.t_ipes_cond
+         WHERE meltno LIKE %s
+            AND COALESCE(opentime, workdate) <= %s
+          ORDER BY COALESCE(opentime, workdate) DESC NULLS LAST,
+                   meltno DESC
+         LIMIT %s
+    """
+    with connection("operations") as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (f"{furnace_id}%", as_of_time, limit))
+            columns = [item[0] for item in cur.description]
+            return [dict(zip(columns, map(plain, row))) for row in cur.fetchall()]
+
+
+def _query_hot_metal_chemistry_rows(heat_no: str) -> list[dict[str, Any]]:
     query = """
         SELECT b.heatno, b.batchno, b.judgetime, e.publishtime, e.takesampletime,
                e.prodcentercode, e.value_01 AS c, e.value_02 AS si,
@@ -943,20 +1029,1054 @@ def query_hot_metal_chemistry_by_heat(heat_no: str) -> dict[str, Any]:
          WHERE b.heatno = %s
          ORDER BY b.judgetime DESC NULLS LAST, b.batchno DESC
     """
-    with connection("operations") as conn:
+    # Use the verified chemistry profile for the exact official heat join;
+    # production context is resolved separately from operations data.
+    with connection(CHEMISTRY_ACCOUNT_PROFILE) as conn:
         with conn.cursor() as cur:
             cur.execute(query, (heat_no,))
             columns = [item[0] for item in cur.description]
             rows = [dict(zip(columns, map(plain, row))) for row in cur.fetchall()]
+    tank_numbers = _query_tank_numbers_by_batchnos(
+        [str(row.get("batchno") or "") for row in rows]
+    )
+    for row in rows:
+        row["tank_no"] = tank_numbers.get(str(row.get("batchno") or ""))
+    return rows
+
+
+def _query_tank_numbers_by_batchnos(batchnos: list[str]) -> dict[str, Any]:
+    """Return exact batch-to-tank mappings without failing chemistry queries.
+
+    The verified label contract permits only ``batchno -> thankno`` exact
+    joins. Missing permissions or missing mappings are represented by an
+    empty mapping; a sample number is never relabelled as a tank number.
+
+    Requirement: REQ-MCP-IMES-HEAT-SI-SAMPLES-20260807.
+    """
+
+    values = list(dict.fromkeys(value for value in batchnos if value))
+    if not values:
+        return {}
+    placeholders = ", ".join(["%s"] * len(values))
+    query = f"""
+        SELECT DISTINCT ON (batchno) batchno, thankno
+          FROM public.v_qpes_mat_final
+         WHERE batchno IN ({placeholders})
+         ORDER BY batchno, publishtime DESC NULLS LAST
+    """
+    try:
+        with connection(CHEMISTRY_ACCOUNT_PROFILE) as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, values)
+                tank_rows = cur.fetchall()
+    except Exception:
+        return {}
+    return {
+        str(batchno): plain(tank_no)
+        for batchno, tank_no in tank_rows
+        if batchno is not None and tank_no not in (None, "")
+    }
+
+
+@mcp.tool()
+def get_current_heat_context(
+    as_of_time: str | None = None,
+    furnace_id: str = "2#",
+) -> dict[str, Any]:
+    """Return the current/latest-known and previous official MES heat numbers."""
+
+    furnace_id = _normalize_furnace_id(furnace_id)
+    anchor = _normalize_as_of_time(as_of_time)
+    rows = _query_recent_heat_context_rows(anchor, furnace_id, limit=2)
+    current = rows[0] if rows else None
+    previous = rows[1] if len(rows) > 1 else None
+    open_time = _plain_datetime(current.get("opentime")) if current else None
+    close_time = _plain_datetime(current.get("closetime")) if current else None
+    age_hours = (
+        (anchor - open_time).total_seconds() / 3600.0
+        if open_time is not None and open_time <= anchor
+        else None
+    )
+    active = bool(
+        current
+        and open_time
+        and open_time <= anchor
+        and (close_time is None or close_time > anchor)
+        and (age_hours is None or age_hours <= ACTIVE_HEAT_MAX_AGE_HOURS)
+    )
+    # Build heat_time_window for cross-source DAG argument_bindings
+    current_heat_time_window = None
+    if current:
+        c_open = _plain_datetime(current.get("opentime")) or _plain_datetime(current.get("workdate"))
+        c_close = _plain_datetime(current.get("closetime"))
+        if c_open:
+            current_heat_time_window = {
+                "start": c_open.isoformat(),
+                "end": c_close.isoformat() if c_close else None,
+            }
+
     return {
         "ok": True,
         "read_policy": "readonly",
-        "heat_no": heat_no,
+        "furnace_id": furnace_id,
+        "as_of_time": anchor.isoformat(timespec="seconds"),
+        "status": "active" if active else "latest_known",
+        "current_heat_no": current.get("meltno") if current else None,
+        "previous_heat_no": previous.get("meltno") if previous else None,
+        "current_heat": current,
+        "previous_heat": previous,
+        "heat_time_window": current_heat_time_window,
+        "missing": not rows,
+        "source_object": "public.t_ipes_cond",
+        "quality": {
+            "official_meltno": True,
+            "ordering_field": "COALESCE(opentime, workdate) DESC, meltno DESC",
+            "selection_policy": "latest_official_meltno_before_anchor",
+            "active_max_age_hours": ACTIVE_HEAT_MAX_AGE_HOURS,
+            "previous_available": previous is not None,
+        },
+    }
+
+
+@mcp.tool()
+def get_current_previous_heat_si_summary(
+    as_of_time: str | None = None,
+    furnace_id: str = "2#",
+) -> dict[str, Any]:
+    """Resolve the current heat and summarize all valid Si samples of its previous heat."""
+
+    furnace_id = _normalize_furnace_id(furnace_id)
+    anchor = _normalize_as_of_time(as_of_time)
+    heat_rows = _query_recent_heat_context_rows(anchor, furnace_id, limit=2)
+    current = heat_rows[0] if heat_rows else None
+    previous = heat_rows[1] if len(heat_rows) > 1 else None
+    if previous is None:
+        return {
+            "ok": False,
+            "error": "PREVIOUS_HEAT_NOT_FOUND",
+            "message": "MES炉次作业条件中未找到当前时点之前的两个正式炉次。",
+            "furnace_id": furnace_id,
+            "as_of_time": anchor.isoformat(timespec="seconds"),
+            "current_heat_no": current.get("meltno") if current else None,
+            "source_object": "public.t_ipes_cond",
+        }
+    previous_heat_no = str(previous.get("meltno") or "")
+    chemistry_rows = _query_hot_metal_chemistry_rows(previous_heat_no)
+    valid_samples: list[dict[str, Any]] = []
+    for row in chemistry_rows:
+        try:
+            si_value = float(row.get("si"))
+        except (TypeError, ValueError):
+            continue
+        valid_samples.append(
+            {
+                "batchno": row.get("batchno"),
+                "si": si_value,
+                "takesampletime": row.get("takesampletime"),
+                "publishtime": row.get("publishtime"),
+                "judgetime": row.get("judgetime"),
+            }
+        )
+    si_values = [sample["si"] for sample in valid_samples]
+    # Build heat_time_window for cross-source DAG argument_bindings
+    prev_heat_time_window = None
+    if previous:
+        p_open = _plain_datetime(previous.get("opentime")) or _plain_datetime(previous.get("workdate"))
+        p_close = _plain_datetime(previous.get("closetime"))
+        if p_open:
+            prev_heat_time_window = {
+                "start": p_open.isoformat(),
+                "end": p_close.isoformat() if p_close else None,
+            }
+
+    return {
+        "ok": True,
+        "read_policy": "readonly",
+        "furnace_id": furnace_id,
+        "as_of_time": anchor.isoformat(timespec="seconds"),
+        "current_heat_no": current.get("meltno") if current else None,
+        "previous_heat_no": previous_heat_no,
+        "heat_time_window": prev_heat_time_window,
+        "sample_count": len(valid_samples),
+        "si_values": si_values,
+        "si_avg": statistics.fmean(si_values) if si_values else None,
+        "si_min": min(si_values) if si_values else None,
+        "si_max": max(si_values) if si_values else None,
+        "samples": valid_samples,
+        "sample_times": [
+            sample.get("takesampletime") or sample.get("publishtime") or sample.get("judgetime")
+            for sample in valid_samples
+        ],
+        "missing": not valid_samples,
+        "error_code": "NO_SI_SAMPLES" if not valid_samples else None,
+        "unit": "%",
+        "source_objects": ["public.t_ipes_cond", "public.t_qpes_inner_batch", "public.inner_batch_insp_bb"],
+        "account_profiles": {
+            "heat_context": "operations",
+            "chemistry": CHEMISTRY_ACCOUNT_PROFILE,
+        },
+        "quality": {
+            "official_meltno": True,
+            "aggregation": "arithmetic_mean_of_non_null_numeric_si_samples",
+            "sample_time_preference": ["takesampletime", "publishtime", "judgetime"],
+        },
+    }
+
+
+def _resolve_spoken_heat_reference_core(
+    heat_reference: str,
+    furnace_id: str = "2#",
+) -> dict[str, Any]:
+    """Pure resolution logic shared by MCP tool and internal callers.
+
+    Returns a standardised heat-reference dict.  This function is NOT an
+    MCP tool — it is called by resolve_spoken_heat_reference (the tool)
+    and can also be imported by the proxy plan builder for regex-only
+    fast-path resolution.
+    """
+    import re as _re
+
+    ref = str(heat_reference or "").strip()
+    if not ref:
+        return {
+            "requested_heat_reference": ref,
+            "resolved_heat_no": None,
+            "resolution_policy": "invalid",
+            "error_code": "HEAT_REFERENCE_EMPTY",
+            "heat_context_missing": True,
+            "heat_time_window": None,
+        }
+
+    furnace_id = _normalize_furnace_id(furnace_id)
+
+    # Rule 1: full formal format  "2#20260805-072"
+    full_match = _re.fullmatch(r"(\d{1,3}#)(\d{8}-\d{3,4})", ref)
+    if full_match:
+        resolved = ref
+        return {
+            "requested_heat_reference": ref,
+            "resolved_heat_no": resolved,
+            "resolution_policy": "exact",
+            "error_code": None,
+            "heat_context_missing": False,
+            "heat_time_window": None,
+        }
+
+    # Rule 2: date-prefix without furnace  "20260805-072"
+    date_match = _re.fullmatch(r"(\d{8}-\d{3,4})", ref)
+    if date_match:
+        resolved = f"{furnace_id}{ref}"
+        return {
+            "requested_heat_reference": ref,
+            "resolved_heat_no": resolved,
+            "resolution_policy": "exact_with_prefix",
+            "error_code": None,
+            "heat_context_missing": False,
+            "heat_time_window": None,
+        }
+
+    # Rule 3: spoken short form  "072" — requires database lookup
+    short_match = _re.fullmatch(r"(\d{2,4})", ref)
+    if short_match:
+        suffix = short_match.group(1)
+        # Query recent heats matching this suffix within 72 hours
+        cutoff = datetime.now().astimezone().replace(tzinfo=None) - timedelta(hours=72)
+        query = """
+            SELECT meltno, opentime, closetime, workdate
+              FROM public.t_ipes_cond
+             WHERE meltno LIKE %s
+               AND COALESCE(opentime, workdate) >= %s
+             ORDER BY COALESCE(opentime, workdate) DESC, meltno DESC
+        """
+        try:
+            with connection("operations") as conn:
+                with conn.cursor() as cur:
+                    cur.execute(query, (f"%{suffix}", cutoff))
+                    rows = cur.fetchall()
+        except Exception as exc:
+            return {
+                "requested_heat_reference": ref,
+                "resolved_heat_no": None,
+                "resolution_policy": "spoken_72h_lookup",
+                "error_code": "HEAT_REFERENCE_LOOKUP_ERROR",
+                "heat_context_missing": True,
+                "heat_time_window": None,
+                "lookup_error": str(exc),
+            }
+
+        if not rows:
+            return {
+                "requested_heat_reference": ref,
+                "resolved_heat_no": None,
+                "resolution_policy": "spoken_72h_lookup",
+                "error_code": "HEAT_REFERENCE_NOT_FOUND",
+                "heat_context_missing": True,
+                "heat_time_window": None,
+                "candidates_found": 0,
+            }
+
+        if len(rows) > 1:
+            return {
+                "requested_heat_reference": ref,
+                "resolved_heat_no": None,
+                "resolution_policy": "spoken_72h_lookup",
+                "error_code": "HEAT_REFERENCE_AMBIGUOUS",
+                "heat_context_missing": True,
+                "heat_time_window": None,
+                "candidates_found": len(rows),
+                "candidates": [row[0] for row in rows[:10]],
+            }
+
+        # Unique match
+        resolved = rows[0][0]
+        open_time = _plain_datetime(rows[0][1]) if rows[0][1] else _plain_datetime(rows[0][3])
+        close_time = _plain_datetime(rows[0][2]) if len(rows[0]) > 2 and rows[0][2] else None
+
+        return {
+            "requested_heat_reference": ref,
+            "resolved_heat_no": resolved,
+            "resolution_policy": "spoken_72h_unique_match",
+            "error_code": None,
+            "heat_context_missing": False,
+            "heat_time_window": {
+                "start": open_time.isoformat() if open_time else None,
+                "end": close_time.isoformat() if close_time else None,
+            },
+            "candidates_found": 1,
+        }
+
+    # Unrecognised format
+    return {
+        "requested_heat_reference": ref,
+        "resolved_heat_no": None,
+        "resolution_policy": "unrecognised",
+        "error_code": "HEAT_REFERENCE_FORMAT_UNRECOGNISED",
+        "heat_context_missing": True,
+        "heat_time_window": None,
+    }
+
+
+@mcp.tool()
+def resolve_spoken_heat_reference(
+    heat_reference: str,
+    furnace_id: str = "2#",
+) -> dict[str, Any]:
+    """Resolve a spoken or short-form heat reference to an official meltno.
+
+    Rules (in order):
+    1. ``2#20260805-072`` — exact formal format, used as-is.
+    2. ``20260805-072`` — auto-prefixed with furnace_id.
+    3. ``072`` — 72-hour lookup on COALESCE(opentime, workdate); unique
+       match only.  Zero matches → HEAT_REFERENCE_NOT_FOUND; multiple →
+       HEAT_REFERENCE_AMBIGUOUS.
+    4. Anything else → HEAT_REFERENCE_FORMAT_UNRECOGNISED.
+
+    This tool is called deterministically by the proxy plan builder; the
+    model does NOT need to discover it.
+    """
+    return _resolve_spoken_heat_reference_core(heat_reference, furnace_id)
+
+
+def _query_heat_context_for_chemistry(heat_no: str) -> dict[str, Any]:
+    """Fetch opentime/closetime for a resolved heat so the snapshot can
+    populate heat_time_window even when the caller used an exact heat_no."""
+    query = """
+        SELECT opentime, closetime, workdate
+          FROM public.t_ipes_cond
+         WHERE meltno = %s
+         LIMIT 1
+    """
+    try:
+        with connection("operations") as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (heat_no,))
+                row = cur.fetchone()
+    except Exception:
+        return {"heat_context_missing": True, "heat_time_window": None}
+
+    if not row:
+        return {"heat_context_missing": True, "heat_time_window": None}
+
+    open_time = _plain_datetime(row[0]) if row[0] else _plain_datetime(row[2])
+    close_time = _plain_datetime(row[1]) if row[1] else None
+    return {
+        "heat_context_missing": False,
+        "heat_time_window": {
+            "start": open_time.isoformat() if open_time else None,
+            "end": close_time.isoformat() if close_time else None,
+        },
+    }
+
+
+@mcp.tool()
+def query_hot_metal_chemistry_by_heat(
+    heat_no: str,
+    as_of_time: str | None = None,
+    furnace_id: str = "2#",
+) -> dict[str, Any]:
+    """Query one blast-furnace heat's published hot-metal chemistry.
+
+    Accepts exact formal meltno, date-prefix, or spoken short form.
+    Spoken short forms (e.g. ``072``) are resolved via the same 72-hour
+    lookup used by resolve_spoken_heat_reference.
+    """
+
+    heat_no = _required_text(heat_no, "heat_no")
+
+    # Resolve the heat reference
+    resolution = _resolve_spoken_heat_reference_core(heat_no, furnace_id)
+    resolved = resolution.get("resolved_heat_no")
+    error_code = resolution.get("error_code")
+
+    if error_code and error_code != "HEAT_REFERENCE_EMPTY":
+        # Unresolvable — return the resolution metadata without chemistry rows
+        return {
+            "ok": False,
+            "read_policy": "readonly",
+            "requested_heat_no": heat_no,
+            "resolved_heat_no": None,
+            "resolution_policy": resolution["resolution_policy"],
+            "error_code": error_code,
+            "heat_context_missing": True,
+            "heat_time_window": None,
+            "account_profile": CHEMISTRY_ACCOUNT_PROFILE,
+            "unit": "% (subject to laboratory dictionary)",
+            "rows": [],
+            "missing": True,
+        }
+
+    rows = _query_hot_metal_chemistry_rows(resolved)
+    ctx = _query_heat_context_for_chemistry(resolved)
+
+    return {
+        "ok": True,
+        "read_policy": "readonly",
+        "requested_heat_no": heat_no,
+        "resolved_heat_no": resolved,
+        "resolution_policy": resolution["resolution_policy"],
+        "heat_context_missing": ctx["heat_context_missing"],
+        "heat_time_window": ctx["heat_time_window"],
+        "account_profile": CHEMISTRY_ACCOUNT_PROFILE,
         "unit": "% (subject to laboratory dictionary)",
         "rows": rows,
         "missing": not rows,
-        "note": "No direct hot-metal Fe percentage is exposed. '铁量/出了多少铁' must use the production-output tool, not this chemistry result.",
+        "note": (
+            "No direct hot-metal Fe percentage is exposed. "
+            "'铁量/出了多少铁' must use the production-output tool, not this chemistry result."
+        ),
     }
+
+
+CHEMISTRY_COMPONENT_FIELDS: dict[str, str] = {
+    "c": "c",
+    "si": "si",
+    "mn": "mn",
+    "p": "p",
+    "s": "s",
+    "ti": "ti",
+    "v": "v",
+    "cr": "cr",
+    "cu": "cu",
+    "ni": "ni",
+    "as": "arsenic",
+}
+
+CHEMISTRY_COMPONENT_ALIASES: dict[str, str] = {
+    "c": "c", "碳": "c", "碳含量": "c",
+    "si": "si", "硅": "si", "硅含量": "si",
+    "mn": "mn", "锰": "mn", "锰含量": "mn",
+    "p": "p", "磷": "p", "磷含量": "p",
+    "s": "s", "硫": "s", "硫含量": "s",
+    "ti": "ti", "钛": "ti", "钛含量": "ti",
+    "v": "v", "钒": "v", "钒含量": "v",
+    "cr": "cr", "铬": "cr", "铬含量": "cr",
+    "cu": "cu", "铜": "cu", "铜含量": "cu",
+    "ni": "ni", "镍": "ni", "镍含量": "ni",
+    "as": "as", "arsenic": "as", "砷": "as", "砷含量": "as",
+}
+
+
+def _normalize_chemistry_components(components: list[str] | None) -> list[str]:
+    """Normalize a model/user component list to the fixed laboratory fields."""
+
+    if components is None:
+        return list(CHEMISTRY_COMPONENT_FIELDS)
+    if not isinstance(components, list) or not components:
+        raise ValueError("components must be a non-empty array when provided")
+    if len(components) > len(CHEMISTRY_COMPONENT_FIELDS):
+        raise ValueError("components contains too many entries")
+    normalized: list[str] = []
+    for raw in components:
+        key = re.sub(r"\s+", "", str(raw or "")).lower()
+        component = CHEMISTRY_COMPONENT_ALIASES.get(key)
+        if component is None:
+            allowed = ", ".join(CHEMISTRY_COMPONENT_FIELDS)
+            raise ValueError(f"unsupported chemistry component {raw!r}; allowed: {allowed}")
+        if component not in normalized:
+            normalized.append(component)
+    return normalized
+
+
+def _chemistry_number(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _chemistry_summary(
+    rows: list[dict[str, Any]], components: list[str]
+) -> dict[str, dict[str, Any]]:
+    """Build stable per-component facts without treating missing values as zero."""
+
+    summary: dict[str, dict[str, Any]] = {}
+    for component in components:
+        field = CHEMISTRY_COMPONENT_FIELDS[component]
+        values = [
+            value
+            for row in rows
+            if (value := _chemistry_number(row.get(field))) is not None
+        ]
+        summary[component] = {
+            "count": len(values),
+            "avg": round(statistics.fmean(values), 6) if values else None,
+            "min": min(values) if values else None,
+            "max": max(values) if values else None,
+            "latest": values[0] if values else None,
+            "unit": "%",
+            "missing": not values,
+        }
+    return summary
+
+
+@mcp.tool()
+def query_heat_chemistry(
+    heat_reference: str,
+    components: list[str] | None = None,
+    include_samples: bool = True,
+    furnace_id: str = "2#",
+) -> dict[str, Any]:
+    """Query selected hot-metal components for any one official heat.
+
+    This is the preferred model-facing tool for questions such as
+    ``065炉的硅锰是多少`` or ``2#20260805-065的C/Si/Mn/P/S``.  It accepts
+    a formal meltno, a date-prefixed heat number, or a 2-4 digit spoken heat
+    suffix.  The tool resolves the heat reference itself, so callers must not
+    call the resolver first.  ``components`` accepts C, Si, Mn, P, S, Ti, V,
+    Cr, Cu, Ni and As (English symbols or Chinese names).
+    """
+
+    requested_components = _normalize_chemistry_components(components)
+    base = query_hot_metal_chemistry_by_heat(
+        heat_no=heat_reference,
+        furnace_id=furnace_id,
+    )
+    if not base.get("ok"):
+        return {
+            **base,
+            "tool_contract": "heat_chemistry.v1",
+            "source_service": "imes-readonly",
+            "requested_heat_reference": heat_reference,
+            "components": requested_components,
+            "samples": [],
+            "summary": {},
+            "data_time": None,
+        }
+
+    rows = list(base.get("rows") or [])
+    samples: list[dict[str, Any]] = []
+    data_times: list[str] = []
+    for row in rows:
+        sample_time = (
+            row.get("takesampletime")
+            or row.get("judgetime")
+            or row.get("publishtime")
+        )
+        sample_time_type = (
+            "take_sample_time" if row.get("takesampletime")
+            else "judge_time" if row.get("judgetime")
+            else "publish_time" if row.get("publishtime")
+            else "missing"
+        )
+        sample = {
+            "heat_no": row.get("heatno"),
+            "sample_no": row.get("batchno"),
+            "tank_no": row.get("tank_no"),
+            "take_sample_time": row.get("takesampletime"),
+            "publish_time": row.get("publishtime"),
+            "judge_time": row.get("judgetime"),
+            "sample_time": sample_time,
+            "sample_time_type": sample_time_type,
+            "sample_time_is_actual": sample_time_type == "take_sample_time",
+            "components": {
+                component: _chemistry_number(
+                    row.get(CHEMISTRY_COMPONENT_FIELDS[component])
+                )
+                for component in requested_components
+            },
+        }
+        samples.append(sample)
+        for key in ("take_sample_time", "publish_time", "judge_time"):
+            if sample.get(key):
+                data_times.append(str(sample[key]))
+
+    component_summary = _chemistry_summary(rows, requested_components)
+    missing_components = [
+        component
+        for component, item in component_summary.items()
+        if item["missing"]
+    ]
+    return {
+        "ok": True,
+        "read_policy": "readonly",
+        "tool_contract": "heat_chemistry.v1",
+        "source_service": "imes-readonly",
+        "requested_heat_reference": heat_reference,
+        "resolved_heat_no": base.get("resolved_heat_no"),
+        "resolution_policy": base.get("resolution_policy"),
+        "heat_time_window": base.get("heat_time_window"),
+        "components": requested_components,
+        "unit": "%",
+        "sample_count": len(rows),
+        "samples": samples if include_samples else [],
+        "summary": component_summary,
+        "data_time": max(data_times) if data_times else None,
+        "missing_components": missing_components,
+        "missing": not rows,
+        "error_code": "NO_CHEMISTRY_SAMPLES" if not rows else None,
+    }
+
+
+@mcp.tool()
+def query_current_heat_chemistry(
+    as_of_time: str | None = None,
+    components: list[str] | None = None,
+    include_samples: bool = True,
+    furnace_id: str = "2#",
+) -> dict[str, Any]:
+    """Return all chemistry samples published so far for the current heat.
+
+    An active heat is explicitly marked provisional. Its average is calculated
+    only from non-null numeric samples available at the query time.
+
+    Requirement: REQ-MCP-IMES-HEAT-SI-SAMPLES-20260807.
+    """
+
+    context = get_current_heat_context(as_of_time=as_of_time, furnace_id=furnace_id)
+    heat_no = context.get("current_heat_no")
+    if not heat_no:
+        return {
+            "ok": False,
+            "read_policy": "readonly",
+            "tool_contract": "current_heat_chemistry.v1",
+            "source_service": "imes-readonly",
+            "error_code": "CURRENT_HEAT_NOT_FOUND",
+            "message": "MES炉次作业条件中未找到当前或最近炉次。",
+            "missing": True,
+        }
+    chemistry = query_heat_chemistry(
+        heat_reference=str(heat_no),
+        components=components,
+        include_samples=include_samples,
+        furnace_id=furnace_id,
+    )
+    active = context.get("status") == "active"
+    current_heat = context.get("current_heat") or {}
+    return {
+        **chemistry,
+        "tool_contract": "current_heat_chemistry.v1",
+        "as_of_time": context.get("as_of_time"),
+        "heat_status": "active" if active else "latest_known",
+        "provisional": active,
+        "partial_heat": active,
+        "open_time": current_heat.get("opentime") or current_heat.get("workdate"),
+        "close_time": current_heat.get("closetime"),
+        "aggregation_scope": (
+            "available_published_samples_as_of_query_time"
+            if active
+            else "all_currently_published_samples"
+        ),
+        "quality": {
+            "official_meltno": True,
+            "missing_values_are_not_zero": True,
+            "sample_time_preference": [
+                "takesampletime",
+                "judgetime",
+                "publishtime",
+            ],
+            "tank_join": "batchno_to_v_qpes_mat_final_thankno_exact",
+        },
+    }
+
+
+def _parse_spoken_heat_time_range(
+    time_reference: str,
+    as_of_time: str | None = None,
+) -> dict[str, Any]:
+    """Parse a bounded Chinese approximate time expression for heat lookup."""
+
+    text = _required_text(time_reference, "time_reference", max_length=300)
+    anchor = _normalize_as_of_time(as_of_time)
+    normalized = (
+        text.replace("：", ":")
+        .replace("号", "日")
+        .replace("～", "到")
+        .replace("~", "到")
+        .replace("—", "到")
+    )
+
+    recent = re.search(r"最近\s*(\d{1,3})\s*(分钟|小时)", normalized)
+    if recent:
+        amount = int(recent.group(1))
+        delta = timedelta(minutes=amount) if recent.group(2) == "分钟" else timedelta(hours=amount)
+        start = anchor - delta
+        end = anchor
+        policy = "relative_recent"
+    else:
+        iso_datetimes = re.findall(
+            r"\d{4}-\d{1,2}-\d{1,2}[ T]\d{1,2}:\d{2}(?::\d{2})?",
+            normalized,
+        )
+        if len(iso_datetimes) >= 2:
+            start = _normalize_as_of_time(iso_datetimes[0])
+            end = _normalize_as_of_time(iso_datetimes[1])
+            policy = "explicit_iso_range"
+        else:
+            full_date = re.search(
+                r"(\d{4})[-年/](\d{1,2})[-月/](\d{1,2})日?",
+                normalized,
+            )
+            month_day = re.search(r"(?<!\d)(\d{1,2})月(\d{1,2})日?", normalized)
+            if full_date:
+                base_date = date(
+                    int(full_date.group(1)),
+                    int(full_date.group(2)),
+                    int(full_date.group(3)),
+                )
+            elif month_day:
+                base_date = date(
+                    anchor.year,
+                    int(month_day.group(1)),
+                    int(month_day.group(2)),
+                )
+            elif any(term in normalized for term in ("前天", "前一日")):
+                base_date = anchor.date() - timedelta(days=2)
+            elif any(term in normalized for term in ("昨天", "昨日")):
+                base_date = anchor.date() - timedelta(days=1)
+            else:
+                base_date = anchor.date()
+
+            time_pattern = re.compile(
+                r"(凌晨|早上|上午|中午|下午|傍晚|晚上|夜里)?\s*"
+                r"(\d{1,2})(?:(?:[:](\d{1,2}))\s*|(?:点|时)\s*(半)?)"
+            )
+            tokens = list(time_pattern.finditer(normalized))
+
+            def token_hour(match: re.Match[str], inherited: str | None = None) -> tuple[int, int]:
+                qualifier = match.group(1) or inherited
+                hour = int(match.group(2))
+                minute = int(match.group(3) or (30 if match.group(4) else 0))
+                if hour > 24 or minute > 59:
+                    raise ValueError("time_reference contains an invalid clock time")
+                if qualifier in {"中午", "下午", "傍晚", "晚上", "夜里"} and hour < 12:
+                    hour += 12
+                if qualifier == "凌晨" and hour == 12:
+                    hour = 0
+                return hour, minute
+
+            if len(tokens) >= 2:
+                inherited = tokens[0].group(1)
+                first_hour, first_minute = token_hour(tokens[0])
+                second_hour, second_minute = token_hour(tokens[1], inherited)
+                start = datetime.combine(base_date, datetime.min.time()) + timedelta(
+                    hours=first_hour, minutes=first_minute
+                )
+                end = datetime.combine(base_date, datetime.min.time()) + timedelta(
+                    hours=second_hour, minutes=second_minute
+                )
+                if end <= start:
+                    end += timedelta(days=1)
+                policy = "spoken_clock_range"
+            elif len(tokens) == 1:
+                hour, minute = token_hour(tokens[0])
+                center = datetime.combine(base_date, datetime.min.time()) + timedelta(
+                    hours=hour, minutes=minute
+                )
+                approximate = any(
+                    term in normalized
+                    for term in ("左右", "大概", "前后", "附近", "那会", "那一阵")
+                )
+                start = center - timedelta(hours=1) if approximate else center
+                end = center + timedelta(hours=1)
+                policy = "spoken_approximate_clock" if approximate else "spoken_one_hour_window"
+            else:
+                periods = (
+                    (("凌晨",), 0, 6),
+                    (("早上", "上午"), 6, 12),
+                    (("中午",), 11, 14),
+                    (("下午",), 12, 18),
+                    (("傍晚",), 17, 20),
+                    (("晚上", "夜里"), 18, 24),
+                )
+                matched = next(
+                    (
+                        (start_hour, end_hour)
+                        for terms, start_hour, end_hour in periods
+                        if any(term in normalized for term in terms)
+                    ),
+                    None,
+                )
+                day_start = datetime.combine(base_date, datetime.min.time())
+                if matched:
+                    start = day_start + timedelta(hours=matched[0])
+                    end = day_start + timedelta(hours=matched[1])
+                    policy = "spoken_day_period"
+                elif (
+                    full_date
+                    or month_day
+                    or any(term in normalized for term in ("今天", "今日", "昨天", "昨日", "前天", "前一日"))
+                ):
+                    start = day_start
+                    end = day_start + timedelta(days=1)
+                    policy = "spoken_whole_day"
+                else:
+                    raise ValueError("无法从 time_reference 识别日期或时间段")
+
+    if end <= start:
+        raise ValueError("time range end must be after start")
+    hours = (end - start).total_seconds() / 3600.0
+    if hours > HEAT_TIME_RANGE_MAX_HOURS:
+        raise ValueError(
+            f"time range exceeds {HEAT_TIME_RANGE_MAX_HOURS:g} hours"
+        )
+    return {
+        "requested": text,
+        "start": start.replace(microsecond=0).isoformat(),
+        "end": end.replace(microsecond=0).isoformat(),
+        "resolution_policy": policy,
+        "duration_hours": round(hours, 3),
+        "anchor": anchor.isoformat(timespec="seconds"),
+    }
+
+
+def _query_heat_context_rows_near_range(
+    start: datetime,
+    end: datetime,
+    furnace_id: str,
+    limit: int = 24,
+) -> list[dict[str, Any]]:
+    """Return nearby official heats for overlap and nearest-window ranking."""
+
+    query = """
+        SELECT meltno, workdate, opentime, closetime, tappingtime,
+               tappingtemp, ironquan, theoryquan, slagrate
+          FROM public.t_ipes_cond
+         WHERE meltno LIKE %s
+           AND (
+                (opentime IS NOT NULL AND opentime >= %s AND opentime < %s)
+                OR (workdate >= %s AND workdate < %s)
+           )
+         ORDER BY workdate, meltno
+         LIMIT %s
+    """
+    search_start = start - timedelta(hours=12)
+    search_end = end + timedelta(hours=12)
+    with connection("operations") as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                query,
+                (
+                    f"{furnace_id}%",
+                    search_start,
+                    search_end,
+                    search_start.date(),
+                    search_end.date() + timedelta(days=1),
+                    limit,
+                ),
+            )
+            columns = [item[0] for item in cur.description]
+            return [dict(zip(columns, map(plain, row))) for row in cur.fetchall()]
+
+
+def _resolve_heat_times_for_range(
+    heat: dict[str, Any],
+) -> tuple[datetime | None, datetime | None, str, list[str]]:
+    """Resolve trusted heat times without treating workdate midnight as opening.
+
+    ``meltno`` and ``workdate`` are identity/date anchors.  A non-null
+    ``opentime`` still supplies the time of day.  When both date anchors agree,
+    the open/close dates are rebuilt from workdate so known MES future-date and
+    cross-midnight defects follow the same contract as the aggregate repair.
+    """
+
+    raw_open = _plain_datetime(heat.get("opentime"))
+    raw_close = _plain_datetime(heat.get("closetime"))
+    if raw_open is None:
+        return None, None, "missing_opentime", ["opentime_missing"]
+
+    work_value = _plain_datetime(heat.get("workdate"))
+    melt_match = re.search(r"#(\d{8})-", str(heat.get("meltno") or ""))
+    melt_date: date | None = None
+    if melt_match:
+        try:
+            melt_date = datetime.strptime(melt_match.group(1), "%Y%m%d").date()
+        except ValueError:
+            melt_date = None
+
+    reasons: list[str] = []
+    if work_value is None or melt_date is None or work_value.date() != melt_date:
+        if work_value is not None and melt_date is not None:
+            reasons.append("workdate_meltno_date_mismatch")
+        return raw_open, raw_close, "raw_time_unrepaired", reasons
+
+    resolved_open = datetime.combine(work_value.date(), raw_open.time())
+    resolved_close = None
+    if raw_close is not None:
+        close_date = work_value.date()
+        if raw_close.time() < raw_open.time():
+            close_date += timedelta(days=1)
+            reasons.append("closetime_rollover_next_day")
+        resolved_close = datetime.combine(close_date, raw_close.time())
+    if raw_open.date() != resolved_open.date():
+        reasons.append("opentime_date_rebased_to_workdate")
+    if raw_close is not None and raw_close.date() != resolved_close.date():
+        reasons.append("closetime_date_rebased_to_workdate")
+    status = "time_anomaly_repaired" if reasons else "exact"
+    return resolved_open, resolved_close, status, sorted(set(reasons))
+
+
+def _rank_heat_for_time_range(
+    heat: dict[str, Any],
+    start: datetime,
+    end: datetime,
+    anchor: datetime,
+) -> dict[str, Any] | None:
+    """Calculate overlap and midpoint distance for one official heat."""
+
+    open_time, close_time, time_status, time_repair_reasons = (
+        _resolve_heat_times_for_range(heat)
+    )
+    if open_time is None:
+        return None
+    effective_close = close_time or (
+        anchor if open_time <= anchor else open_time + timedelta(hours=4)
+    )
+    if effective_close < open_time:
+        effective_close = open_time
+    overlap_start = max(start, open_time)
+    overlap_end = min(end, effective_close)
+    overlap_minutes = max(
+        0.0, (overlap_end - overlap_start).total_seconds() / 60.0
+    )
+    query_mid = start + (end - start) / 2
+    heat_mid = open_time + (effective_close - open_time) / 2
+    distance_minutes = abs((heat_mid - query_mid).total_seconds()) / 60.0
+    return {
+        "heat": heat,
+        "open_time": open_time,
+        "close_time": close_time,
+        "overlap_minutes": round(overlap_minutes, 3),
+        "midpoint_distance_minutes": round(distance_minutes, 3),
+        "match_kind": "overlap" if overlap_minutes > 0 else "nearest",
+        "time_status": time_status,
+        "time_repair_reasons": time_repair_reasons,
+    }
+
+
+@mcp.tool()
+def query_heat_chemistry_by_time_range(
+    time_reference: str,
+    components: list[str] | None = None,
+    include_samples: bool = True,
+    as_of_time: str | None = None,
+    furnace_id: str = "2#",
+    heat_limit: int = 12,
+) -> dict[str, Any]:
+    """Resolve an approximate time range to official heats and chemistry.
+
+    The result contains every overlapping heat within the bounded limit. If
+    no heat overlaps, the nearest official heat is returned and marked
+    nearest, so the user can confirm the inferred heat before relying on it.
+
+    Requirement: REQ-MCP-IMES-HEAT-SI-SAMPLES-20260807.
+    """
+
+    furnace_id = _normalize_furnace_id(furnace_id)
+    requested_components = _normalize_chemistry_components(components)
+    resolved_range = _parse_spoken_heat_time_range(time_reference, as_of_time)
+    start = _normalize_as_of_time(resolved_range["start"])
+    end = _normalize_as_of_time(resolved_range["end"])
+    anchor = _normalize_as_of_time(as_of_time)
+    limit = min(max(int(heat_limit), 1), 24)
+    nearby = _query_heat_context_rows_near_range(
+        start,
+        end,
+        furnace_id,
+        limit=24,
+    )
+    ranked = [
+        item
+        for heat in nearby
+        if (item := _rank_heat_for_time_range(heat, start, end, anchor)) is not None
+    ]
+    ranked.sort(
+        key=lambda item: (
+            0 if item["overlap_minutes"] > 0 else 1,
+            -item["overlap_minutes"],
+            item["midpoint_distance_minutes"],
+        )
+    )
+    overlapping = [item for item in ranked if item["overlap_minutes"] > 0]
+    selected = (overlapping or ranked[:1])[:limit]
+
+    heats: list[dict[str, Any]] = []
+    for item in selected:
+        heat = item["heat"]
+        heat_no = str(heat.get("meltno") or "")
+        chemistry = query_heat_chemistry(
+            heat_reference=heat_no,
+            components=requested_components,
+            include_samples=include_samples,
+            furnace_id=furnace_id,
+        )
+        heats.append(
+            {
+                "heat_no": heat_no,
+                "match_kind": item["match_kind"],
+                "overlap_minutes": item["overlap_minutes"],
+                "midpoint_distance_minutes": item["midpoint_distance_minutes"],
+                "open_time": item["open_time"].isoformat(),
+                "close_time": (
+                    item["close_time"].isoformat()
+                    if item["close_time"] is not None
+                    else None
+                ),
+                "active_or_unclosed": item["close_time"] is None,
+                "time_status": item["time_status"],
+                "time_repair_reasons": item["time_repair_reasons"],
+                "chemistry": chemistry,
+            }
+        )
+
+    return {
+        "ok": True,
+        "read_policy": "readonly",
+        "tool_contract": "heat_chemistry_time_range.v1",
+        "source_service": "imes-readonly",
+        "furnace_id": furnace_id,
+        "time_range": resolved_range,
+        "primary_heat_no": heats[0]["heat_no"] if heats else None,
+        "matched_heat_count": len(heats),
+        "heats": heats,
+        "missing": not heats,
+        "error_code": "HEAT_NOT_FOUND_FOR_TIME_RANGE" if not heats else None,
+        "selection_policy": "all_overlaps_else_nearest_heat_midpoint",
+        "truncated": len(selected) >= limit and len(ranked) > limit,
+    }
+
+
 
 
 @mcp.tool()

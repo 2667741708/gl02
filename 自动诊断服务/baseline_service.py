@@ -26,9 +26,13 @@ def build_baseline_meta(history: pd.DataFrame) -> dict[str, dict[str, float]]:
         series = pd.to_numeric(history[col], errors="coerce").dropna()
         if len(series) < 10:
             continue
+        q1 = float(series.quantile(0.25))
+        q3 = float(series.quantile(0.75))
         result[col] = {
             "median_ref": round(float(series.median()), 6),
-            "iqr_ref": round(max(_iqr(series), 1e-6), 6),
+            "iqr_ref": round(max(q3 - q1, 1e-6), 6),
+            "p25": round(q1, 6),
+            "p75": round(q3, 6),
         }
     return result
 

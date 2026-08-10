@@ -31,6 +31,7 @@ def main() -> int:
     parser.add_argument("--chronos-url", default="http://127.0.0.1:8777")
     parser.add_argument("--targets", default=",".join(CHRONOS_TARGET_IDS))
     parser.add_argument("--context-minutes", type=int, default=480)
+    parser.add_argument("--context-policy", choices=["target", "fixed"], default="target")
     parser.add_argument("--prediction-minutes", type=int, default=120)
     parser.add_argument("--lookback-days", type=float, default=2.0)
     parser.add_argument("--timeout-seconds", type=float, default=1200)
@@ -49,7 +50,14 @@ def main() -> int:
         raise SystemExit("no feature data loaded from PostgreSQL")
     frame.index = pd.to_datetime(frame.index).tz_localize(None)
     cutoff = frame.index.max().floor("min")
-    payload, skipped = build_payload_for_cutoff(frame, targets, cutoff, args.context_minutes, args.prediction_minutes)
+    payload, skipped = build_payload_for_cutoff(
+        frame,
+        targets,
+        cutoff,
+        args.context_minutes,
+        args.prediction_minutes,
+        args.context_policy,
+    )
     print(
         f"REQUEST current_cutoff={cutoff} jobs={len(payload['jobs'])} skipped={len(skipped)} "
         f"chronos={args.chronos_url}",
