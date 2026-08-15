@@ -8296,7 +8296,7 @@ class Handler(BaseHTTPRequestHandler):
 
             messages = diagnosis_model_review.build_review_messages(context)
             answer = call_ollama_chat(messages, temperature=0.05, max_tokens=1200)
-            parsed = diagnosis_model_review.parse_model_payload(answer)
+            parsed = diagnosis_model_review.parse_model_payload(answer, context)
             review = diagnosis_model_review.build_completed_review(
                 context,
                 parsed,

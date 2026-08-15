@@ -53,7 +53,7 @@ def test_review_display_translates_internal_evidence_codes_to_chinese():
     assert 'return fallback||"诊断证据"' in text
     assert 'chineseDisplayName(item.display_label||item.label||LABELS[item.key]||item.key,"其他炉况")' in text
     proxy_text = PROXY.read_text(encoding="utf-8")
-    assert "20260814-evidence-cn-r1" in proxy_text
+    assert "20260814-evidence-cn-r2" in proxy_text
     fixture_text = (ROOT / "高炉前端数据" / "智能助手" / "backend" / "diagnosis_review.py").read_text(encoding="utf-8")
     assert 'str(case_id).startswith("evidence-cn-")' in fixture_text
     assert '"future_unknown_code"' in fixture_text

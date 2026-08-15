@@ -396,6 +396,13 @@ can't subtract offset-naive and offset-aware datetimes
   `16885.6ms`，知识证据 2 条，过程中无守卫重启。
 - 备份：`F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\diagnosis_ai_json_fix_8093_20260811_212736`。
 
+## ERR-8093-DIAGNOSIS-EVIDENCE-CACHE-MARKER-CONTRACT-20260815
+
+- 现象：上传前聚焦测试中，`tests/test_diagnosis_review_contract.py`仍断言诊断证据资源版本为`20260814-evidence-cn-r1`，而同一待推送快照的代理入口已使用`20260814-evidence-cn-r2`，导致合同测试1项失败。
+- 根因：生产回同步已经把中文证据资源缓存版本推进到`r2`，但测试断言仍停留在`r1`；`docs/handoffs/2026-08-14-mcp-gold-live-production.md`已明确记录`r2`为当前版本。
+- 修复：仅把合同测试的资源版本断言同步到`r2`；不修改页面资源、API、服务配置或生产运行状态。
+- 验证：`pytest -q tests/test_diagnosis_ai_analysis.py tests/test_diagnosis_review_contract.py tests/test_8093_handoff_package.py`。
+
 ## ERR-8093-ABC33-EXPLANATION-PERMISSION-20260812
 
 - 现象：参数优化页 33 个炉框仍能计算，但“智能助手解释”显示

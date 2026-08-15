@@ -36,6 +36,7 @@ desktop.ini
 __pycache__/
 *.py[cod]
 .pytest_cache/
+/.pytest_tmp*/
 .ruff_cache/
 .mypy_cache/
 .pytype/
@@ -55,6 +56,7 @@ node_modules/
 patch_probe.txt
 __patch_heat_performance_quality.py
 .codex_runtime/
+.codex/tmp/
 
 # Local services, generated output and operational evidence
 logs/

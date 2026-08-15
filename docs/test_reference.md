@@ -2770,6 +2770,13 @@ pwsh.exe -NoLogo -NoProfile -File `
 - `python -m pytest -q tests/test_abc_production_ui.py tests/test_abc_rule_engine.py tests/test_abc_public_review_labels.py`：39 passed。
 - `node tools/verify_abc33_overview_entry_standard.cjs`：Chromium/Firefox/WebKit共17个视口组合全部通过。
 - `node tools/verify_abc33_overview_entry_production.cjs`：8093生产入口嵌入、点击33张卡、关闭按钮、无横向溢出和无页面错误全部通过。
+## TEST-8093-DIAGNOSIS-EVIDENCE-CACHE-MARKER-20260815
+
+- 对应错误：`ERR-8093-DIAGNOSIS-EVIDENCE-CACHE-MARKER-CONTRACT-20260815`。
+- 覆盖：诊断中文证据前端合同、代理注入的`20260814-evidence-cn-r2`缓存版本、诊断模型解析上下文及8093交接包忽略规则。
+- 命令：`pytest -q tests/test_diagnosis_ai_analysis.py tests/test_diagnosis_review_contract.py tests/test_8093_handoff_package.py`。
+- 成功信号：27项全部通过；不连接或修改220.12。
+
 ## ABC33 pSpace探尺料速
 
 - 命令：`pwsh.exe -NoLogo -NoProfile -File .\tools\verify_abc33_probe_burden_rate.ps1`。
