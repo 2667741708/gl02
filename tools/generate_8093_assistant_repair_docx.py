@@ -134,7 +134,7 @@ def add_title_page(document: Document) -> None:
 
     subtitle = document.add_paragraph(style="Subtitle")
     subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    subtitle.add_run("10.30.220.12 · 8093 生产预览服务 · 版本 1.3")
+    subtitle.add_run("10.30.220.12 · 8093 生产预览服务 · 版本 1.4")
 
     document.add_paragraph()
     summary = document.add_table(rows=5, cols=2)
@@ -143,9 +143,9 @@ def add_title_page(document: Document) -> None:
     rows = (
         ("追踪编号", f"{REQUIREMENT_ID}；{SECONDARY_REQUIREMENT_ID}；{TERTIARY_REQUIREMENT_ID}；{INCIDENT_REQUIREMENT_ID}"),
         ("结论状态", "已确认根因、已正式修复、已完成一次真实 SSE 问答验收"),
-        ("正式修复时间", "守卫：2026-08-04；keyword/连接池：2026-08-05；部署互斥与页面容错：2026-08-06"),
-        ("真实问答验收", "2026-08-06 唯一一次 SSE 33.9933 秒；keyword 证据 2 条；全部保护检查通过"),
-        ("适用范围", "8093 智能助手无回复、中途断流、状态全绿但当次问答失败"),
+        ("正式修复时间", "守卫：2026-08-04；keyword/连接池：2026-08-05；部署互斥与页面容错：2026-08-06；诊断JSONB：2026-08-11"),
+        ("真实问答验收", "2026-08-11 唯一一次 SSE 16.8856 秒；keyword 证据 2 条；全部保护检查通过"),
+        ("适用范围", "8093 智能助手无回复、中途断流、炉况智能分析长期preparing、状态全绿但当次失败"),
     )
     for row, values in zip(summary.rows, rows):
         for index, value in enumerate(values):
@@ -309,6 +309,18 @@ def build_document() -> Document:
         ],
     )
 
+    add_heading(document, "3.3 2026-08-11 诊断智能分析 JSONB 修复", level=2)
+    add_bullets(
+        document,
+        [
+            "故障指纹是 /api/diagnosis-ai-analysis 长期 preparing、attempt_count=0，日志重复 TypeError。这表示失败发生在进入模型之前，不是 Ollama 或 keyword 知识检索不可用。",
+            "ABC33 B4 接入后，PostgreSQL/Python 原生 datetime、date、Decimal 等值进入 Jsonb(canonical_context)，在 INSERT 前序列化失败，因此尝试计数始终为 0。",
+            "diagnosis_review.py 新增 json_safe_value()，所有诊断 JSONB 写入边界统一归一化时间、Decimal、嵌套容器和 NaN/Inf；ABC33 evaluation_ts 同时显式转 ISO-8601。",
+            "修复只替换 diagnosis_review.py，不改模型、Prompt、RAG、连接池或数据库 schema。首次单字段修复在生产完整上下文中仍失败后已自动回滚，正式边界修复再受控上线。",
+            "生产验收：分析 completed、attempt_count=1、摘要40字；8093首次成功更新PID 19076→436，后续验收性回滚恢复后最终PID 9152；8094/8768/8770/5432/11434 PID不变。",
+        ],
+    )
+
     add_heading(document, "4. 为什么当前方案可行可用")
     add_table(
         document,
@@ -323,6 +335,7 @@ def build_document() -> Document:
             ("keyword 词法检索", "避免 embedding 与单 27B 争用唯一模型槽", "实际进程与默认搜索均为 keyword；知识问答准备态命中 2 条证据，23.8856 秒完成"),
             ("部署全局互斥", "避免诊断、恢复和部署同时停启 8093", "新恢复器与页面热部署器共享 Global\\BFV4PreviewProxy8093Deployment"),
             ("前端失败容错", "短暂端口窗口不再只显示英文网络错误", "GET 有界退避；POST/SSE 不自动重发；页面热更新未改变服务 PID"),
+            ("JSONB 安全边界", "防止新证据原生类型让诊断分析假卡 preparing", "红测精确复现 datetime TypeError；整体上下文回归通过；生产 attempt_count=1/completed"),
         ],
         (4.2, 5.0, 7.0),
     )
@@ -336,6 +349,7 @@ def build_document() -> Document:
             "验证前后 /api/ps 只驻留批准的 27.8B，未通过扩大 OLLAMA_MAX_LOADED_MODELS 规避问题。",
             "2026-08-06 10:41 页面容错以热更新方式上线，8093/8094/8768/8770/11434 PID 均未变化；备份为 logs/deploy_backups/8093_fetch_resilience_20260806_104046。",
             "2026-08-06 10:51 唯一一次知识 SSE 验收通过：preparing → prepared → delta → final → done，首 delta 12272.7 ms，总计 33993.3 ms，keyword 证据 2 条，问答前后全部受保护 PID、配置和守卫哈希不变。",
+            "2026-08-11 21:28 诊断分析恢复 completed/attempt_count=1；21:30 唯一一次 keyword SSE 验收通过，首 delta 5027.5 ms、总计16885.6 ms，证据2条，守卫失败计数清零且无重启。",
         ],
     )
 
@@ -352,6 +366,7 @@ def build_document() -> Document:
             "运行进程环境探针，核对实际 BF_LLM_MODEL、OLLAMA_BASE_URL、BF_ALLOWED_LOADED_MODELS、BF_QA_KNOWLEDGE_SEARCH_MODE、OLLAMA_MAX_LOADED_MODELS 与当前驻留模型。",
             "若出现单次探测失败后立即重启，核对守卫脚本哈希、8093 配置 3/1/15/600 和状态文件；确认回退或漂移后使用受控部署器恢复，禁止手工覆盖或反复重启。",
             "若没有重启证据，才转查模型/RAG/MCP/数据库：重点检查 Timeout、embedding/nomic、psycopg、Traceback、/api/ps 驻留变化。实际进程或默认知识搜索若重新显示空值/hybrid，应判定为配置漂移并用 keyword 受控部署器恢复。",
+            "若诊断分析是 preparing + attempt_count=0 + TypeError，直接转查 canonical_context JSONB 序列化和 json_safe_value()；不要先重启Ollama、改Prompt或扩连接池。",
             "修复后只做一次受控真实 SSE 问答，必须完整收到 start(preparing/prepared) → delta → final → done，并证明验收期间无守卫重启。",
             "把新根因、配置差异、命令、报告目录和回滚位置回写 AGENTS.md、error_traceability.md、automation_traceability.md 与本手册。",
         ],

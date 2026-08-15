@@ -159,7 +159,7 @@ class QaLatencyOptimizationTests(unittest.TestCase):
             ),
             "把A、B、C、D四个上升管煤气压力最近八小时画成箱线图比较离群点。": (
                 "plot_gl02_analysis",
-                ["P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"],
+                ["P_top_A", "P_top_B", "P_top_C", "P_top_D"],
                 "boxplot",
             ),
         }
@@ -285,7 +285,7 @@ class QaLatencyOptimizationTests(unittest.TestCase):
         cases = {
             "南探尺和北探尺现在分别是多少？": ["L_south", "L_north"],
             "A、B、C、D四个上升管煤气压力现在分别是多少？": [
-                "P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"
+                "P_top_A", "P_top_B", "P_top_C", "P_top_D"
             ],
             "富氧流量和富氧率现在分别是多少？": ["Q_O2", "O2_rate"],
             "喷煤设定值和实际喷煤量现在分别是多少？": ["PCI_set", "PCI_rate"],
@@ -296,6 +296,23 @@ class QaLatencyOptimizationTests(unittest.TestCase):
         }
         for question, expected in cases.items():
             self.assertEqual(proxy.qa_mcp_variables(question), expected, msg=question)
+
+    def test_top_temperature_pressure_abcd_use_canonical_names(self):
+        self.assertEqual(
+            proxy.qa_mcp_variables("查询顶温A、B、C、D和顶压A、B、C、D共8个点位的最新值"),
+            [
+                "T_top_A", "T_top_B", "T_top_C", "T_top_D",
+                "P_top_A", "P_top_B", "P_top_C", "P_top_D",
+            ],
+        )
+        self.assertEqual(proxy.qa_mcp_variables("A点顶压现在多少"), ["P_top_A"])
+        self.assertEqual(
+            proxy.qa_mcp_variables("查一下A、B、C、D四个上升管煤气温度和压力"),
+            [
+                "T_top_A", "T_top_B", "T_top_C", "T_top_D",
+                "P_top_A", "P_top_B", "P_top_C", "P_top_D",
+            ],
+        )
 
     def test_static_pressure_af_spoken_groups(self):
         self.assertEqual(
@@ -323,7 +340,8 @@ class QaLatencyOptimizationTests(unittest.TestCase):
 
     def test_exact_specific_variable_is_not_captured_by_short_parent(self):
         self.assertEqual(proxy.qa_mcp_variables("查询 P_blast_cold 当前值"), ["P_blast_cold"])
-        self.assertEqual(proxy.qa_mcp_variables("查询 P_top_gas_A 当前值"), ["P_top_gas_A"])
+        self.assertEqual(proxy.qa_mcp_variables("查询 P_top_A 当前值"), ["P_top_A"])
+        self.assertEqual(proxy.qa_mcp_variables("查询 P_top_gas_A 当前值"), ["P_top_A"])
         self.assertEqual(proxy.qa_mcp_variables("查询 T_top_A 当前值"), ["T_top_A"])
 
     def test_recent_specific_chart_keeps_tool_round(self):

@@ -8,8 +8,9 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="assets/foreman-trend-preview.css">
   <script src="libs/echarts.min.js"></script>
+  <script src="assets/curve-inspector.js?v=20260814-two-decimal-percent-r1"></script>
   <script defer src="assets/foreman-coal-math.js?v=20260806-coal-hour-r1"></script>
-  <script defer src="assets/foreman-trend-preview.js?v=20260806-pspace-extra-r3"></script>
+  <script defer src="assets/foreman-trend-preview.js?v=20260814-two-decimal-percent-r1"></script>
 </head>
 
 <body>
@@ -43,12 +44,19 @@
       <span class="toolbar-separator" aria-hidden="true"></span>
       <label class="window-select">显示窗口
         <select id="window-minutes" aria-label="趋势显示窗口">
-          <option value="60">60分钟</option>
-          <option value="90" selected>90分钟</option>
-          <option value="120">120分钟</option>
-          <option value="240">240分钟</option>
+          <option value="60">1小时</option>
+          <option value="120" selected>2小时</option>
+          <option value="240">4小时</option>
+          <option value="480">8小时</option>
+          <option value="720">12小时</option>
+          <option value="1440">24小时</option>
         </select>
       </label>
+      <label class="range-input">开始 <input id="trend-range-start" type="datetime-local" step="3600" aria-label="趋势开始时间"></label>
+      <label class="range-input">结束 <input id="trend-range-end" type="datetime-local" step="3600" aria-label="趋势结束时间"></label>
+      <button type="button" data-action="range-prev" title="时间范围向前一小时">−1h</button>
+      <button type="button" data-action="range-next" title="时间范围向后一小时">+1h</button>
+      <button type="button" data-action="range-apply" title="应用手动时间范围">应用范围</button>
       <span id="ratio-formula" class="formula-note" title="按当前实时的下部压差和全炉压差计算">下部压差占比 = 下部压差 ÷ 全炉压差 × 100%</span>
       <span id="main-toolbar-status" class="toolbar-status">等待趋势数据</span>
     </div>

@@ -13,7 +13,7 @@ import websockets
 ALLOWED = {"P_blast_cold", "PCI_set"}
 
 
-async def verify(uri: str, timeout_seconds: float) -> dict[str, object]:
+async def verify(uri: str, timeout_seconds: float, frame_type: str = "init") -> dict[str, object]:
     async with websockets.connect(uri, open_timeout=timeout_seconds, max_size=32 * 1024 * 1024) as socket:
         deadline = asyncio.get_running_loop().time() + timeout_seconds
         payload = None
@@ -21,13 +21,13 @@ async def verify(uri: str, timeout_seconds: float) -> dict[str, object]:
             remaining = max(0.1, deadline - asyncio.get_running_loop().time())
             raw = await asyncio.wait_for(socket.recv(), timeout=remaining)
             candidate = json.loads(raw)
-            if candidate.get("type") == "init":
+            if candidate.get("type") == frame_type:
                 payload = candidate
                 break
         if payload is None:
-            raise RuntimeError("8768 did not deliver an init frame before timeout")
-    if payload.get("type") != "init":
-        raise RuntimeError(f"first WebSocket frame is {payload.get('type')!r}, expected 'init'")
+            raise RuntimeError(f"8768 did not deliver a {frame_type} frame before timeout")
+    if payload.get("type") != frame_type:
+        raise RuntimeError(f"received {payload.get('type')!r}, expected {frame_type!r}")
     diagnosis = payload.get("diagnosis") or {}
     bundle = diagnosis.get("recommendation_bundle") or {}
     conditions = bundle.get("conditions") or []
@@ -82,8 +82,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--uri", default="ws://127.0.0.1:8768")
     parser.add_argument("--timeout", type=float, default=120.0)
+    parser.add_argument("--frame-type", choices=("init", "tick"), default="init")
     args = parser.parse_args()
-    print(json.dumps(asyncio.run(verify(args.uri, args.timeout)), ensure_ascii=False, sort_keys=True))
+    print(json.dumps(asyncio.run(verify(args.uri, args.timeout, args.frame_type)), ensure_ascii=False, sort_keys=True))
 
 
 if __name__ == "__main__":

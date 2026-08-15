@@ -113,6 +113,17 @@ def test_core_fallback_has_top_pressure_and_total_pressure_drop():
     assert mcp_server.resolve_variable("DP_total")["short_name"] == "SIO_GL02_BT_T0132"
 
 
+def test_top_pressure_abcd_uses_canonical_names_with_legacy_aliases():
+    for offset, position in enumerate("ABCD", start=67):
+        canonical = mcp_server.resolve_variable(f"P_top_{position}")
+        legacy = mcp_server.resolve_variable(f"P_top_gas_{position}")
+        spoken = mcp_server.resolve_variable(f"{position}点顶压")
+        assert canonical["variable_name"] == f"P_top_{position}"
+        assert canonical["short_name"] == f"SIO_GL02_LD_T{offset:04d}"
+        assert legacy["variable_name"] == f"P_top_{position}"
+        assert spoken["variable_name"] == f"P_top_{position}"
+
+
 def test_unknown_canonical_sensor_id_is_never_fuzzy_mapped():
     try:
         mcp_server.resolve_variable("DP_totl")

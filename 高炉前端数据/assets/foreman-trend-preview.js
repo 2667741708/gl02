@@ -48,7 +48,7 @@
       m('上部压差', 'DP_upper', 1, 'kPa', -0.8),
       m('下部压差', 'DP_lower', 1, 'kPa', 188.1),
       m('下部压差占比', ['DP_lower_ratio'], 1, '%', 100.4, { derive: 'lower-pressure-ratio' }),
-      m('荒煤气压力', 'P_top', 1, 'kPa', 251.9),
+      m('综合顶压', 'P_top', 1, 'kPa', 251.9),
       m('荒煤气温度', 'T_top', 1, '℃', 99.3),
       m('外网煤气压力', ['P_gas_network', 'external_gas_pressure'], 1, 'kPa', 15.6)
     ],
@@ -82,7 +82,7 @@
   ];
 
   const MAIN_SERIES = [
-    { id: 'P_top', name: '荒煤气压力', unit: 'kPa', center: 94 },
+    { id: 'P_top', name: '综合顶压', unit: 'kPa', center: 94 },
     { id: 'DP_total', name: '全炉压差', unit: 'kPa', center: 84 },
     { id: 'P_blast', name: '热风压力', unit: 'kPa', center: 77 },
     { id: 'T_blast', name: '热风温度', unit: '℃', center: 69 },
@@ -130,7 +130,9 @@
   const params = new URLSearchParams(location.search);
   const fixtureMode = params.get('fixture') === '1';
   const displayState = {
-    displayMinutes: Number(params.get('minutes') || 90),
+    displayMinutes: Number(params.get('minutes') || 120),
+    rangeStart: params.get('range_start') || '',
+    rangeEnd: params.get('range_end') || '',
     zoom: { start: 0, end: 100 },
     hiddenSeries: new Set(),
     selectedSeries: new Set(MAIN_SERIES.map(item => item.id)),
@@ -179,6 +181,14 @@
     if (value === null || value === undefined || value === '') return null;
     const number = Number(value);
     return Number.isFinite(number) ? number : null;
+  }
+
+  const DISPLAY_FRACTION_DIGITS = 2;
+
+  function displayValue(id, value) {
+    const numeric = finite(value);
+    if (numeric === null) return null;
+    return id === 'GasUtil' && Math.abs(numeric) <= 1.5 ? numeric * 100 : numeric;
   }
 
   function seriesColor(id) {
@@ -265,10 +275,10 @@
 
   function formatMetric(metric, value) {
     if (value === null) return '--';
-    const normalized = metric.ids.includes('GasUtil') && Math.abs(value) <= 1.5 ? value * 100 : value;
+    const normalized = displayValue(metric.ids.includes('GasUtil') ? 'GasUtil' : metric.ids[0], value);
     return normalized.toLocaleString('zh-CN', {
-      minimumFractionDigits: metric.digits,
-      maximumFractionDigits: metric.digits
+      minimumFractionDigits: DISPLAY_FRACTION_DIGITS,
+      maximumFractionDigits: DISPLAY_FRACTION_DIGITS
     });
   }
 
@@ -356,22 +366,31 @@
       });
     }
     const direct = buffer.series[id];
-    if (Array.isArray(direct)) return direct;
+    if (Array.isArray(direct)) return direct.map(value => displayValue(id, value));
     const metric = FOREMAN_METRIC_COLUMNS.flat().find(item => item.ids.includes(id));
     if (metric) {
       for (const alias of metric.ids) {
-        if (Array.isArray(buffer.series[alias])) return buffer.series[alias];
+        if (Array.isArray(buffer.series[alias])) return buffer.series[alias].map(value => displayValue(id, value));
       }
     }
     return [];
   }
 
   function windowSlice(id) {
-    const end = buffer.timestamps.length;
+    const allTimes = buffer.timestamps;
+    const allValues = seriesValues(id);
+    if (displayState.rangeStart && displayState.rangeEnd) {
+      const startMs = new Date(displayState.rangeStart).getTime();
+      const endMs = new Date(displayState.rangeEnd).getTime();
+      if (Number.isFinite(startMs) && Number.isFinite(endMs) && endMs > startMs) {
+        const indexes = allTimes.map((timestamp, index) => ({ index, time: new Date(timestamp).getTime() }))
+          .filter(item => Number.isFinite(item.time) && item.time >= startMs && item.time <= endMs);
+        return { times: indexes.map(item => allTimes[item.index]), values: indexes.map(item => allValues[item.index]) };
+      }
+    }
+    const end = allTimes.length;
     const start = Math.max(0, end - displayState.displayMinutes);
-    const times = buffer.timestamps.slice(start);
-    const values = seriesValues(id).slice(start, end);
-    return { times, values };
+    return { times: allTimes.slice(start), values: allValues.slice(start, end) };
   }
 
   function laneData(item, center = item.center, amplitude = 3.6) {
@@ -408,8 +427,10 @@
     const content = rows.map(row => {
       const item = curveCatalog.find(series => series.name === row.seriesName);
       const raw = finite(row.value[2]);
-      const digits = Math.abs(raw) >= 1000 ? 0 : Math.abs(raw) >= 100 ? 1 : 2;
-      return `${row.marker}${row.seriesName}：<b>${raw.toLocaleString('zh-CN', { maximumFractionDigits: digits })}</b>${item?.unit ? ` ${item.unit}` : ''}`;
+      return `${row.marker}${row.seriesName}：<b>${raw.toLocaleString('zh-CN', {
+        minimumFractionDigits: DISPLAY_FRACTION_DIGITS,
+        maximumFractionDigits: DISPLAY_FRACTION_DIGITS
+      })}</b>${item?.unit ? ` ${item.unit}` : ''}`;
     });
     return `${time}<br>${content.join('<br>')}`;
   }
@@ -466,7 +487,9 @@
     const selected = curveCatalog.filter(item => displayState.selectedSeries.has(item.id));
     const centers = selected.length > 1 ? selected.map((_, index) => 94 - (index * 88 / (selected.length - 1))) : [50];
     option.series = selected.map((item, index) => ({
+      id: item.id,
       name: item.name,
+      unit: item.unit,
       type: 'line',
       showSymbol: false,
       connectNulls: true,
@@ -485,7 +508,9 @@
     option.yAxis.axisLabel.color = '#62eaff';
     option.xAxis.axisLabel.color = '#62eaff';
     option.series = LOWER_SERIES.map(item => ({
+      id: item.id,
       name: item.name,
+      unit: item.unit,
       type: 'line',
       step: item.step,
       showSymbol: false,
@@ -520,6 +545,7 @@
   function renderAll() {
     renderMetrics();
     const latestTimestamp = buffer.timestamps[buffer.timestamps.length - 1];
+    initializeRangeInputs();
     dataClock.textContent = latestTimestamp ? `数据时间 ${formatClock(latestTimestamp)}` : '数据时间 --';
     updateCharts();
   }
@@ -577,7 +603,6 @@
     pspaceState.status = 'live';
     pspaceState.lastFrame = timestamp || new Date().toISOString();
     pspaceState.lastReceivedAt = Date.now();
-    appendTick({ timestamp: timestamp || new Date().toISOString(), values: Object.fromEntries(Object.entries(pspaceState.values).map(([id, record]) => [id, record.value])) }, 'pspace');
     updateSourceState();
     renderAll();
   }
@@ -776,6 +801,59 @@
       document.querySelectorAll('[data-action="series-picker"]').forEach(item => item.classList.remove('is-active'));
     }
     if (action === 'export') exportChart(chartName === 'main' ? mainChart : lowerChart, chartName === 'main' ? '工长主趋势' : '工艺周期趋势');
+    if (action === 'range-prev' || action === 'range-next') {
+      const shift = action === 'range-prev' ? -1 : 1;
+      const start = new Date(displayState.rangeStart || buffer.timestamps[Math.max(0, buffer.timestamps.length - displayState.displayMinutes)] || Date.now());
+      const end = new Date(displayState.rangeEnd || buffer.timestamps[buffer.timestamps.length - 1] || Date.now());
+      start.setHours(start.getHours() + shift);
+      end.setHours(end.getHours() + shift);
+      displayState.rangeStart = toDateTimeLocal(start);
+      displayState.rangeEnd = toDateTimeLocal(end);
+      syncRangeInputs();
+      updateCharts();
+    }
+    if (action === 'range-apply') applyManualRange();
+  }
+
+  function toDateTimeLocal(value) {
+    const date = value instanceof Date ? value : new Date(value);
+    if (!Number.isFinite(date.getTime())) return '';
+    const pad = item => String(item).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:00`;
+  }
+
+  function syncRangeInputs() {
+    const start = byId('trend-range-start');
+    const end = byId('trend-range-end');
+    if (start) start.value = displayState.rangeStart ? toDateTimeLocal(displayState.rangeStart) : '';
+    if (end) end.value = displayState.rangeEnd ? toDateTimeLocal(displayState.rangeEnd) : '';
+  }
+
+  function initializeRangeInputs() {
+    if (!displayState.rangeStart || !displayState.rangeEnd) {
+      const latest = buffer.timestamps[buffer.timestamps.length - 1];
+      const end = latest ? new Date(latest) : new Date();
+      const start = new Date(end.getTime() - displayState.displayMinutes * 60000);
+      displayState.rangeStart = toDateTimeLocal(start);
+      displayState.rangeEnd = toDateTimeLocal(end);
+    }
+    syncRangeInputs();
+  }
+
+  function applyManualRange() {
+    const start = byId('trend-range-start')?.value || '';
+    const end = byId('trend-range-end')?.value || '';
+    const startMs = new Date(start).getTime();
+    const endMs = new Date(end).getTime();
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return;
+    const hours = Math.max(1, Math.round((endMs - startMs) / 3600000));
+    displayState.displayMinutes = hours * 60;
+    displayState.rangeStart = toDateTimeLocal(new Date(startMs));
+    displayState.rangeEnd = toDateTimeLocal(new Date(endMs));
+    const select = byId('window-minutes');
+    if (select && [...select.options].some(option => option.value === String(displayState.displayMinutes))) select.value = String(displayState.displayMinutes);
+    resetZoom(false);
+    updateCharts();
   }
 
   function bindControls() {
@@ -789,9 +867,17 @@
     byId('window-minutes').value = String(displayState.displayMinutes);
     byId('window-minutes').addEventListener('change', event => {
       displayState.displayMinutes = Number(event.target.value) || 90;
+      const latest = buffer.timestamps[buffer.timestamps.length - 1];
+      if (latest) {
+        const end = new Date(latest);
+        displayState.rangeEnd = toDateTimeLocal(end);
+        displayState.rangeStart = toDateTimeLocal(new Date(end.getTime() - displayState.displayMinutes * 60000));
+        syncRangeInputs();
+      }
       resetZoom(false);
       updateCharts();
     });
+    ['trend-range-start', 'trend-range-end'].forEach(id => byId(id)?.addEventListener('change', applyManualRange));
     MAIN_SERIES.forEach(item => {
       const button = document.createElement('button');
       button.type = 'button';
@@ -812,6 +898,7 @@
     });
     const activeLink = document.querySelector('.legacy-tabs a.active');
     activeLink.href = fixtureMode ? 'foreman_trend_preview.html?fixture=1' : `foreman_trend_preview.html${suffix}`;
+    syncRangeInputs();
   }
 
   function buildSeriesPicker() {
@@ -852,6 +939,8 @@
     mainChart.group = TREND_GROUP;
     lowerChart.group = TREND_GROUP;
     window.echarts.connect(TREND_GROUP);
+    window.BFCurveInspector?.installEcharts(mainChart);
+    window.BFCurveInspector?.installEcharts(lowerChart);
     bindControls();
     const observer = new ResizeObserver(() => {
       mainChart.resize();

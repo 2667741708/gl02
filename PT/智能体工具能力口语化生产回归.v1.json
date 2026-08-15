@@ -1,0 +1,41 @@
+{
+  "schema": "bf.agent-tool-spoken-production-matrix.v1",
+  "requirement_id": "REQ-MCP-SPOKEN-PRODUCTION-REGRESSION-20260814",
+  "target_policy": "read_only_single_request_no_retry",
+  "prompt_policy": "chinese_semantics_only_allow_position_letters_A_to_H",
+  "source_catalog": "数据库同步和存取/config/点位语义目录.json",
+  "source_catalog_sha256": "5264A45D1471D46D90BF1E5697697CB0837C01009A85C8AB209F6CD0C76643E8",
+  "variables": [
+    {"object_id":"P_top","label":"炉顶压力"},
+    {"object_id":"T_top","label":"四个顶温的平均值"},
+    {"object_id":"DP_total","label":"炉内总压差"},
+    {"object_id":"P_blast_cold","label":"冷风管道压力"},
+    {"object_id":"P_blast","label":"热风风压"},
+    {"object_id":"T_blast","label":"风温"},
+    {"object_id":"PI","label":"炉况透气指数"},
+    {"object_id":"L","label":"雷达探尺"},
+    {"object_id":"L_south","label":"南尺"},
+    {"object_id":"L_north","label":"北尺"},
+    {"object_id":"PCI_rate","label":"实际喷煤量"},
+    {"object_id":"PCI_set","label":"喷煤设定值"},
+    {"object_id":"O2_rate","label":"鼓风富氧比例"},
+    {"object_id":"Q_O2","label":"氧气流量"}
+  ],
+  "templates": [
+    {
+      "template_id":"spoken_latest",
+      "query_type":"latest",
+      "prompt":"师傅，帮我看下现在{label}是多少，顺手把单位、数据时间、数据质量和从哪查的说清楚。"
+    },
+    {
+      "template_id":"spoken_statistics_1h",
+      "query_type":"statistics",
+      "prompt":"最近一小时{label}稳不稳？把点数、平均值、波动大小、最高最低、开头结尾、变化量、每分钟变化速度和变动方向都算一下，时间范围和出处也带上。"
+    },
+    {
+      "template_id":"spoken_trend_2h",
+      "query_type":"statistics",
+      "prompt":"帮我瞅瞅最近两小时{label}是往上走还是往下走，用开始值、结束值、差了多少和每分钟变化多少来说明，别忘了单位、时间范围和数据出处。"
+    }
+  ]
+}

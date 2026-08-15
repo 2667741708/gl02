@@ -4,7 +4,7 @@
 > 矩阵版本：v1.0  
 > 审计快照：2026-07-19  
 > 审计范围：Blender P40/P50、P60 隔离预检、R2Q V3、R2R 渲染器数值门、正式 GLB、Three.js 页面、数据合同和现有自动验收  
-> 目标规范：[工业级高炉数字孪生视觉规范（Visual Bible）](../工业级高炉数字孪生视觉规范（Visual Bible）.md)  
+> 目标规范：[工业级高炉数字孪生视觉规范（Visual Bible）](<../工业级高炉数字孪生视觉规范（Visual Bible）.md>)
 > 机器可读镜像：[visual_bible_conformance_v1.json](visual_bible_conformance_v1.json)
 
 ## 1. 结论

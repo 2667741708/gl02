@@ -9,6 +9,7 @@ ASSETS = [
     ("foreman_trend_preview.html", ROOT / "高炉前端数据" / "foreman_trend_preview.html"),
     (r"assets\foreman-trend-preview.css", ROOT / "高炉前端数据" / "assets" / "foreman-trend-preview.css"),
     (r"assets\foreman-trend-preview.js", ROOT / "高炉前端数据" / "assets" / "foreman-trend-preview.js"),
+    (r"assets\curve-inspector.js", ROOT / "高炉前端数据" / "assets" / "curve-inspector.js"),
 ]
 
 lines = ['# Foreman trend asset writer - generated', '$dstRoot = $args[0]',

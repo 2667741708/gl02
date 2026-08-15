@@ -1,7 +1,17 @@
+[CmdletBinding()]
+param(
+    [switch]$ValidateOnly
+)
+
 $ErrorActionPreference = "Continue"
-[Console]::InputEncoding = [System.Text.Encoding]::UTF8
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'This automatic diagnosis runner requires PowerShell 7 Core or later.'
+}
+$Utf8NoBom = [Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $Utf8NoBom
+[Console]::OutputEncoding = $Utf8NoBom
+$OutputEncoding = $Utf8NoBom
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptRoot
@@ -37,6 +47,22 @@ if (-not (Test-Path -LiteralPath $Python)) {
     $Python = "python"
 }
 
+$AutoGuardPath = Join-Path $ScriptRoot "auto_guard_once.py"
+if ($ValidateOnly) {
+    if (-not (Test-Path -LiteralPath $AutoGuardPath -PathType Leaf)) {
+        throw "Automatic diagnosis entry is unavailable: $AutoGuardPath"
+    }
+    [ordered]@{
+        schema = 'ops.auto-diagnosis-runner.validate-only.v1'
+        ok = $true
+        ps_edition = $PSVersionTable.PSEdition
+        ps_version = $PSVersionTable.PSVersion.ToString()
+        python = $Python
+        entry = $AutoGuardPath
+    } | ConvertTo-Json -Depth 4
+    exit 0
+}
+
 $LogPath = Join-Path $LogDir ("auto_guard_once_{0}.log" -f (Get-Date -Format "yyyyMMdd"))
 
 if (-not $env:GL02_PGUSER -or -not $env:GL02_PGPASSWORD) {
@@ -45,7 +71,7 @@ if (-not $env:GL02_PGUSER -or -not $env:GL02_PGPASSWORD) {
     exit 2
 }
 
-& $Python -X utf8 (Join-Path $ScriptRoot "auto_guard_once.py") `
+& $Python -X utf8 $AutoGuardPath `
     --since-hours 24 `
     --max-diagnosis-points 288 `
     --with-llm `

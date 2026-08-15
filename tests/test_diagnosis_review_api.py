@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import json
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -109,6 +111,221 @@ def test_context_has_exactly_seven_other_scores_and_formal_labels():
     assert len(context["candidates"]) == 7
     assert review.display_label("hot") == "热制度上行"
     assert set(review.DIAGNOSIS_KEYS) == {"normal", "lowline", "edge", "center", "channel", "cold", "hot", "column"}
+
+
+def test_abc33_b4_is_the_only_hot_display_score_and_legacy_value_is_archived():
+    diagnosis_ts = datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+    context = review.derive_current_episode([snapshot(10, diagnosis_ts, "cold")])
+    overlaid = review.apply_abc33_display_score(
+        context,
+        {
+            "evaluation_id": 662,
+            "evaluation_ts": diagnosis_ts - timedelta(minutes=5),
+            "catalog_version": "abc33-catalog.v3",
+            "config_version": "20260810.2",
+            "rule": {"rule_id": "B4", "score": 63.5, "score_available": True, "status": "eligible"},
+        },
+        now=diagnosis_ts,
+    )
+    assert overlaid["raw_scores"]["hot"] == 5
+    assert overlaid["display_scores"]["hot"] == 63.5
+    assert next(item for item in overlaid["candidates"] if item["key"] == "hot")["score"] == 63.5
+    assert overlaid["score_sources"]["hot"]["rule_id"] == "B4"
+    assert overlaid["score_sources"]["hot"]["fallback_used"] is False
+    assert overlaid["legacy_score_archive"]["hot"] == {
+        "source": "legacy_diagnosis_raw_scores",
+        "score": 5.0,
+        "archived": True,
+        "used_for_display": False,
+    }
+
+
+def test_abc33_score_source_is_json_serializable_for_ai_snapshot_store():
+    """The PostgreSQL Jsonb adapter must be able to persist the AI context."""
+
+    diagnosis_ts = datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+    context = review.derive_current_episode([snapshot(16, diagnosis_ts, "normal")])
+    overlaid = review.apply_abc33_display_score(
+        context,
+        {
+            "evaluation_id": 702,
+            "evaluation_ts": diagnosis_ts,
+            "catalog_version": "abc33-catalog.v3",
+            "config_version": "20260810.2",
+            "source_snapshot_id": 16,
+            "source_snapshot_match": True,
+            "rule": {
+                "rule_id": "B4",
+                "score": 64.5,
+                "score_available": True,
+                "status": "eligible",
+            },
+        },
+        now=diagnosis_ts,
+    )
+
+    overlaid["variable_stats"] = {
+        "T_top_A": {
+            "sample_ts": diagnosis_ts,
+            "baseline_median": Decimal("128.75"),
+            "recent_values": (Decimal("127.5"), float("nan")),
+        }
+    }
+    persisted = review.json_safe_value(overlaid)
+    encoded = json.dumps(persisted, ensure_ascii=False)
+
+    assert '"evaluation_ts": "2026-08-10T10:00:00+00:00"' in encoded
+    assert persisted["variable_stats"]["T_top_A"]["baseline_median"] == 128.75
+    assert persisted["variable_stats"]["T_top_A"]["recent_values"] == [127.5, None]
+
+
+def test_abc33_b4_missing_or_stale_fails_closed_without_legacy_fallback():
+    diagnosis_ts = datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+    context = review.derive_current_episode([snapshot(11, diagnosis_ts, "hot", 88)])
+    stale = review.apply_abc33_display_score(
+        context,
+        {
+            "evaluation_id": 600,
+            "evaluation_ts": diagnosis_ts - timedelta(minutes=30),
+            "rule": {"rule_id": "B4", "score": 72, "score_available": True, "status": "eligible"},
+        },
+        now=diagnosis_ts,
+    )
+    assert stale["display_scores"]["hot"] is None
+    assert stale["display_main_score"] is None
+    assert stale["score_sources"]["hot"]["state"] == "stale"
+    assert stale["legacy_score_archive"]["hot"]["score"] == 88.0
+
+
+def test_abc33_b4_fails_closed_when_both_sources_stopped_updating():
+    diagnosis_ts = datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+    context = review.derive_current_episode([snapshot(12, diagnosis_ts, "hot", 81)])
+    overlaid = review.apply_abc33_display_score(
+        context,
+        {
+            "evaluation_id": 601,
+            "evaluation_ts": diagnosis_ts,
+            "rule": {"rule_id": "B4", "score": 70, "score_available": True, "status": "eligible"},
+        },
+        now=diagnosis_ts + timedelta(minutes=30),
+    )
+    assert overlaid["display_scores"]["hot"] is None
+    assert overlaid["score_sources"]["hot"]["state"] == "stale"
+    assert overlaid["score_sources"]["hot"]["wall_clock_age_minutes"] == 30.0
+
+
+def test_review_storage_uses_display_score_and_embeds_legacy_archive_evidence():
+    diagnosis_ts = datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+    context = review.derive_current_episode([snapshot(13, diagnosis_ts, "cold")])
+    overlaid = review.apply_abc33_display_score(
+        context,
+        {
+            "evaluation_id": 662,
+            "evaluation_ts": diagnosis_ts,
+            "catalog_version": "abc33-catalog.v3",
+            "config_version": "20260810.2",
+            "source_snapshot_id": 13,
+            "source_snapshot_match": True,
+            "rule": {"rule_id": "B4", "score": 66, "score_available": True, "status": "eligible"},
+        },
+        now=diagnosis_ts,
+    )
+    stored = review.scores_with_display_archive(overlaid)
+    evidence = review.review_evidence_with_score_archive(overlaid)
+    assert stored["hot"] == 5.0
+    assert stored["_display_contract"]["display_scores"]["hot"] == 66.0
+    assert stored["_display_contract"]["score_sources"]["hot"]["rule_id"] == "B4"
+    assert evidence[-1]["type"] == "score_source_archive"
+    assert evidence[-1]["legacy_score_archive"]["hot"]["score"] == 5.0
+
+
+def test_public_abc_bundle_and_popup_share_the_same_wall_clock_freshness_gate():
+    evaluation_ts = datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+    bundle = {
+        "schema_version": "abc_rule_bundle.v1",
+        "rules": [{"rule_id": "B4", "score": 67, "score_available": True, "status": "eligible"}],
+        "alerts": [{"rule_id": "B4", "score": 67}],
+    }
+    stale = review.abc_public_bundle_for_display(
+        bundle,
+        evaluation_ts,
+        now=evaluation_ts + timedelta(minutes=30),
+    )
+    assert stale["batch_state"] == "stale"
+    assert stale["rules"][0]["score"] is None
+    assert stale["rules"][0]["source_state"] == "stale_batch"
+    assert stale["alerts"] == []
+
+
+def test_public_abc_bundle_with_missing_timestamp_fails_closed_without_exception():
+    bundle = {
+        "rules": [
+            {"rule_id": "B4", "score": 67, "score_available": True, "status": "eligible"}
+        ]
+    }
+    unavailable = review.abc_public_bundle_for_display(bundle, None)
+    assert unavailable["batch_state"] == "stale"
+    assert unavailable["evaluation_age_seconds"] is None
+    assert unavailable["rules"][0]["score"] is None
+
+
+@pytest.mark.parametrize(
+    ("snapshot_patch", "rule_patch"),
+    [
+        ({"catalog_version": None}, {}),
+        ({"config_version": None}, {}),
+        ({}, {"rule_id": "B3"}),
+        ({}, {"score": -1}),
+        ({}, {"score": 101}),
+    ],
+)
+def test_abc33_b4_invalid_identity_range_or_version_fails_closed(
+    snapshot_patch, rule_patch
+):
+    diagnosis_ts = datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+    context = review.derive_current_episode([snapshot(14, diagnosis_ts, "hot", 77)])
+    abc_snapshot = {
+        "evaluation_id": 700,
+        "evaluation_ts": diagnosis_ts,
+        "catalog_version": "abc33-catalog.v3",
+        "config_version": "20260810.2",
+        "rule": {
+            "rule_id": "B4",
+            "score": 0,
+            "score_available": True,
+            "status": "eligible",
+        },
+    }
+    abc_snapshot.update(snapshot_patch)
+    abc_snapshot["rule"].update(rule_patch)
+    overlaid = review.apply_abc33_display_score(
+        context, abc_snapshot, now=diagnosis_ts
+    )
+    assert overlaid["display_scores"]["hot"] is None
+    assert overlaid["score_sources"]["hot"]["state"] == "invalid"
+
+
+def test_abc33_b4_zero_is_a_valid_display_score():
+    diagnosis_ts = datetime(2026, 8, 10, 10, 0, tzinfo=timezone.utc)
+    context = review.derive_current_episode([snapshot(15, diagnosis_ts, "hot", 77)])
+    overlaid = review.apply_abc33_display_score(
+        context,
+        {
+            "evaluation_id": 701,
+            "evaluation_ts": diagnosis_ts,
+            "catalog_version": "abc33-catalog.v3",
+            "config_version": "20260810.2",
+            "rule": {
+                "rule_id": "B4",
+                "score": 0,
+                "score_available": True,
+                "status": "eligible",
+            },
+        },
+        now=diagnosis_ts,
+    )
+    assert overlaid["display_scores"]["hot"] == 0.0
+    assert overlaid["display_main_score"] == 0.0
 
 
 @pytest.mark.parametrize("verdict", ["correct", "uncertain"])

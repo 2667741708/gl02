@@ -52,6 +52,7 @@ async def collect_page_rows(page) -> list[dict]:
           const rect = row.getBoundingClientRect();
           const meta = row.querySelector('.core-live-meta');
           const value = row.querySelector('.core-live-number');
+          const numberOrNull = raw => raw === '' || raw === null || raw === undefined || !Number.isFinite(Number(raw)) ? null : Number(raw);
           return {
             id: row.dataset.coreMetricId || '',
             source: row.dataset.valueSource || '',
@@ -60,6 +61,14 @@ async def collect_page_rows(page) -> list[dict]:
             transportAgeSeconds: Number(row.dataset.transportAgeSeconds),
             quality: row.dataset.valueQuality || '',
             value: value?.textContent?.trim() || '',
+            status: row.querySelector('.metric-status')?.textContent?.trim() || '',
+            baseline: window.__BF_CORE_BASELINE_30D__?.[row.dataset.coreMetricId || ''] || null,
+            rawValue: numberOrNull(row.dataset.valueRaw),
+            baselineMedian: numberOrNull(row.dataset.baselineMedian),
+            baselineIqr: numberOrNull(row.dataset.baselineIqr),
+            baselineDeviation: numberOrNull(row.dataset.baselineDeviation),
+            baselineStatus: row.dataset.baselineStatus || '',
+            baselineEvidence: (() => { try { return JSON.parse(row.dataset.baselineEvidence || '[]'); } catch { return []; } })(),
             meta: meta?.textContent?.trim() || '',
             title: row.querySelector('.core-live-value')?.getAttribute('title') || '',
             width: Number(rect.width.toFixed(2)),
@@ -106,6 +115,15 @@ async def inspect_viewport(page, url: str, expected_source: str, screenshot: Pat
                 return Boolean(row.dataset.valueTimestamp) && Boolean(value) && value !== '--';
               });
             }
+            """,
+            timeout=30_000,
+        )
+    else:
+        await page.wait_for_function(
+            """
+            () => Object.keys(window.__BF_CORE_BASELINE_30D__ || {}).length > 0
+              && [...document.querySelectorAll('.core-live-number')]
+                .some((node) => !['', '--'].includes(node.textContent?.trim() || ''))
             """,
             timeout=30_000,
         )
@@ -192,6 +210,57 @@ async def inspect_viewport(page, url: str, expected_source: str, screenshot: Pat
                 failures.append(f"{sensor_id}:fallback_timestamp_missing")
             if row["value"] in {"", "--"}:
                 failures.append(f"{sensor_id}:fallback_value_missing")
+        baseline_numbers = (
+            row.get("rawValue"),
+            row.get("baselineMedian"),
+            row.get("baselineIqr"),
+            row.get("baselineDeviation"),
+        )
+        if any(value is None for value in baseline_numbers):
+            failures.append(f"{sensor_id}:independent_baseline_contract_missing")
+        elif abs(row["baselineIqr"]) <= 1e-9:
+            failures.append(f"{sensor_id}:baseline_iqr_zero")
+        else:
+            expected_deviation = (
+                row["rawValue"] - row["baselineMedian"]
+            ) / row["baselineIqr"]
+            if abs(expected_deviation - row["baselineDeviation"]) > 1e-7:
+                failures.append(f"{sensor_id}:baseline_deviation_mismatch")
+            expected_status = (
+                "extreme-high" if expected_deviation > 1.5 else
+                "high" if expected_deviation > 1 else
+                "extreme-low" if expected_deviation < -1.5 else
+                "low" if expected_deviation < -1 else
+                "normal"
+            )
+            if row["baselineStatus"] != expected_status:
+                failures.append(f"{sensor_id}:baseline_status_mismatch")
+        evidence_rows = row.get("baselineEvidence") or []
+        if not evidence_rows:
+            failures.append(f"{sensor_id}:per_variable_baseline_evidence_missing")
+        for evidence in evidence_rows:
+            evidence_id = evidence.get("id") or sensor_id
+            evidence_numbers = (
+                evidence.get("raw"),
+                evidence.get("median"),
+                evidence.get("iqr"),
+                evidence.get("deviation"),
+            )
+            if any(value is None for value in evidence_numbers):
+                failures.append(f"{evidence_id}:per_variable_baseline_numbers_missing")
+                continue
+            expected = (float(evidence["raw"]) - float(evidence["median"])) / float(evidence["iqr"])
+            if abs(expected - float(evidence["deviation"])) > 1e-7:
+                failures.append(f"{evidence_id}:per_variable_deviation_mismatch")
+            expected_level = (
+                "extreme-high" if expected > 1.5 else
+                "high" if expected > 1 else
+                "extreme-low" if expected < -1.5 else
+                "low" if expected < -1 else
+                "normal"
+            )
+            if evidence.get("status") != expected_level:
+                failures.append(f"{evidence_id}:per_variable_status_mismatch")
 
     if expected_source == "pspace_realtime" and "pSpace秒级实时" not in shell["banner"]:
         failures.append("live_banner_contract")
@@ -222,7 +291,13 @@ async def inspect_viewport(page, url: str, expected_source: str, screenshot: Pat
 
 
 async def verify(args: argparse.Namespace) -> dict:
-    viewports = ALL_VIEWPORTS if args.matrix == "all" else REPRESENTATIVE_VIEWPORTS
+    viewports = (
+        ALL_VIEWPORTS
+        if args.matrix == "all"
+        else ((args.width, args.height),)
+        if args.matrix == "single"
+        else REPRESENTATIVE_VIEWPORTS
+    )
     output = Path(args.out_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     results: list[dict] = []
@@ -282,7 +357,13 @@ def main() -> int:
         choices=("chromium", "firefox", "webkit", "msedge"),
         default="chromium",
     )
-    parser.add_argument("--matrix", choices=("all", "representative"), default="all")
+    parser.add_argument(
+        "--matrix",
+        choices=("all", "representative", "single"),
+        default="all",
+    )
+    parser.add_argument("--width", type=int, default=1366)
+    parser.add_argument("--height", type=int, default=768)
     parser.add_argument(
         "--expected-source",
         choices=("pspace_realtime", "postgres_minute", "auto"),

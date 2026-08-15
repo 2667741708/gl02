@@ -29,10 +29,17 @@ CREATE TABLE IF NOT EXISTS bf_assistant.qa_conversations (
     status text NOT NULL DEFAULT 'active',
     is_pinned integer NOT NULL DEFAULT 0,
     is_unread integer NOT NULL DEFAULT 0,
-    archived_at text
+    archived_at text,
+    owner_subject text,
+    owner_role text
 );
 CREATE INDEX IF NOT EXISTS idx_qa_conversations_updated
     ON bf_assistant.qa_conversations(updated_at DESC);
+ALTER TABLE bf_assistant.qa_conversations ADD COLUMN IF NOT EXISTS owner_subject text;
+ALTER TABLE bf_assistant.qa_conversations ADD COLUMN IF NOT EXISTS owner_role text;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_qa_shared_guest_room
+    ON bf_assistant.qa_conversations(owner_subject)
+    WHERE owner_role = 'anonymous_guest';
 
 CREATE TABLE IF NOT EXISTS bf_assistant.qa_messages (
     id bigserial PRIMARY KEY,
@@ -154,6 +161,92 @@ CREATE TABLE IF NOT EXISTS bf_assistant.qa_message_context_refs (
 );
 CREATE INDEX IF NOT EXISTS idx_qa_message_context_refs_message
     ON bf_assistant.qa_message_context_refs(conversation_id, message_id, ref_type);
+
+CREATE TABLE IF NOT EXISTS bf_assistant.qa_context_snapshots (
+    id bigserial PRIMARY KEY,
+    context_hash text NOT NULL UNIQUE,
+    source_type text NOT NULL,
+    source_id text NOT NULL,
+    source_version text,
+    context_json text NOT NULL,
+    context_summary_json text NOT NULL,
+    context_type text NOT NULL DEFAULT 'abc_rule_explanation',
+    context_key text NOT NULL,
+    schema_version text NOT NULL,
+    furnace_id text NOT NULL DEFAULT 'GL02',
+    source_ref_id text NOT NULL,
+    evaluation_id bigint,
+    source_ts text,
+    payload_json text NOT NULL,
+    payload_size_bytes bigint NOT NULL,
+    created_at text NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_qa_context_snapshots_source
+    ON bf_assistant.qa_context_snapshots(source_type, source_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS bf_assistant.qa_conversation_origins (
+    conversation_id text PRIMARY KEY REFERENCES bf_assistant.qa_conversations(id) ON DELETE CASCADE,
+    source_type text NOT NULL,
+    source_id text NOT NULL,
+    evaluation_id bigint,
+    context_snapshot_id bigint NOT NULL REFERENCES bf_assistant.qa_context_snapshots(id),
+    reuse_policy text NOT NULL DEFAULT 'same_rule_active',
+    source_page text,
+    source_ref_id text NOT NULL,
+    source_title text,
+    initial_evaluation_id bigint,
+    initial_context_snapshot_id bigint REFERENCES bf_assistant.qa_context_snapshots(id),
+    return_route text,
+    operator_id text,
+    shift_key text,
+    created_at text NOT NULL,
+    updated_at text NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_qa_conversation_origins_lookup
+    ON bf_assistant.qa_conversation_origins(source_type, source_id, evaluation_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_qa_conversation_origins_reuse
+    ON bf_assistant.qa_conversation_origins(source_type, source_id, operator_id, shift_key, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS bf_assistant.qa_message_context_snapshots (
+    id bigserial PRIMARY KEY,
+    conversation_id text NOT NULL REFERENCES bf_assistant.qa_conversations(id) ON DELETE CASCADE,
+    message_id bigint REFERENCES bf_assistant.qa_messages(id) ON DELETE CASCADE,
+    context_snapshot_id bigint NOT NULL REFERENCES bf_assistant.qa_context_snapshots(id),
+    usage_kind text NOT NULL DEFAULT 'assistant_prompt',
+    created_at text NOT NULL,
+    UNIQUE(message_id, context_snapshot_id, usage_kind)
+);
+CREATE INDEX IF NOT EXISTS idx_qa_message_context_snapshots_conversation
+    ON bf_assistant.qa_message_context_snapshots(conversation_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS bf_assistant.abc_rule_ai_explanations (
+    id bigserial PRIMARY KEY,
+    context_snapshot_id bigint NOT NULL REFERENCES bf_assistant.qa_context_snapshots(id),
+    rule_id text NOT NULL,
+    evaluation_id bigint NOT NULL,
+    context_hash text NOT NULL,
+    operator_explanation_json text NOT NULL,
+    assistant_context_json text NOT NULL,
+    analysis_text text,
+    analysis_json text,
+    prompt_version text NOT NULL DEFAULT 'abc_rule_explanation.v1',
+    model_name text NOT NULL DEFAULT '',
+    state text NOT NULL DEFAULT 'context_ready',
+    generation_state text NOT NULL DEFAULT 'context_ready',
+    attempt_count bigint NOT NULL DEFAULT 0,
+    last_error_code text,
+    generation_started_at text,
+    generation_completed_at text,
+    claim_token text,
+    lease_expires_at text,
+    created_at text NOT NULL,
+    updated_at text NOT NULL,
+    UNIQUE(context_snapshot_id, prompt_version, model_name)
+);
+CREATE INDEX IF NOT EXISTS idx_abc_rule_ai_explanations_lookup
+    ON bf_assistant.abc_rule_ai_explanations(rule_id, evaluation_id, updated_at DESC);
+ALTER TABLE bf_assistant.abc_rule_ai_explanations ADD COLUMN IF NOT EXISTS claim_token text;
+ALTER TABLE bf_assistant.abc_rule_ai_explanations ADD COLUMN IF NOT EXISTS lease_expires_at text;
 
 CREATE TABLE IF NOT EXISTS bf_assistant.rag_document (
     doc_id text PRIMARY KEY,

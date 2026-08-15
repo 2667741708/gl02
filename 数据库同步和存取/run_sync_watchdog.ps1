@@ -1,7 +1,17 @@
+[CmdletBinding()]
+param(
+    [switch]$ValidateOnly
+)
+
 $ErrorActionPreference = "Continue"
-[Console]::InputEncoding = [System.Text.Encoding]::UTF8
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'This synchronization watchdog runner requires PowerShell 7 Core or later.'
+}
+$Utf8NoBom = [Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $Utf8NoBom
+[Console]::OutputEncoding = $Utf8NoBom
+$OutputEncoding = $Utf8NoBom
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptRoot
@@ -37,9 +47,25 @@ if (-not (Test-Path -LiteralPath $Python)) {
     $Python = "python"
 }
 
+$WatchdogPath = Join-Path $ScriptRoot "src\sync_watchdog.py"
+if ($ValidateOnly) {
+    if (-not (Test-Path -LiteralPath $WatchdogPath -PathType Leaf)) {
+        throw "Synchronization watchdog entry is unavailable: $WatchdogPath"
+    }
+    [ordered]@{
+        schema = 'ops.sync-watchdog-runner.validate-only.v1'
+        ok = $true
+        ps_edition = $PSVersionTable.PSEdition
+        ps_version = $PSVersionTable.PSVersion.ToString()
+        python = $Python
+        entry = $WatchdogPath
+    } | ConvertTo-Json -Depth 4
+    exit 0
+}
+
 $LogPath = Join-Path $LogDir ("sync_watchdog_runner_{0}.log" -f (Get-Date -Format "yyyyMMdd"))
 
-& $Python -X utf8 (Join-Path $ScriptRoot "src\sync_watchdog.py") `
+& $Python -X utf8 $WatchdogPath `
     --stale-minutes 6 `
     --recent-hours 12 `
     --history-days 90 `

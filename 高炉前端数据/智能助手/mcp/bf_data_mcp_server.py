@@ -34,6 +34,7 @@ PROJECT_ROOT = FRONTEND_DIR.parent
 
 DEFAULT_MAPPING_PATH = PROJECT_ROOT / "趋势分析" / "trend_backend" / "config" / "gl02_sio_mapping.json"
 DEFAULT_STATIC_PRESSURE_EXTENSION_PATH = MCP_DIR / "gl02_static_pressure_points.json"
+DEFAULT_SEMANTIC_POINT_CATALOG_PATH = PROJECT_ROOT / "数据库同步和存取" / "config" / "点位语义目录.json"
 DEFAULT_STORAGE_CONFIG = PROJECT_ROOT / "趋势分析" / "trend_backend" / "config" / "gl02_1min_storage.json"
 DEFAULT_REPORTS_DIR = FRONTEND_DIR / "data" / "reports"
 DEFAULT_CHARTS_DIR = FRONTEND_DIR / "data" / "mcp_charts"
@@ -132,6 +133,29 @@ CORE_FALLBACK_VARIABLES = [
         "description": "2号炉本体_全炉压差",
         "unit": "kPa",
     },
+    *[
+        {
+            "variable_name": f"P_top_{position}",
+            "aliases": [
+                f"顶压{position}",
+                f"{position}点顶压",
+                f"顶压{position}点",
+                f"{position}上升管煤气压力",
+                f"上升管煤气压力{position}",
+                f"P_top_gas_{position}",
+            ],
+            "legacy_variable_names": [f"P_top_gas_{position}"],
+            "status": "physical",
+            "confidence": "high",
+            "source_branch": "LD",
+            "short_name": f"SIO_GL02_LD_T{66 + offset:04d}",
+            "point_id": rf"\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T{66 + offset:04d}",
+            "tag_long_name": rf"\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T{66 + offset:04d}",
+            "description": f"2号炉炉顶_上升管煤气压力{position}",
+            "unit": "kPa",
+        }
+        for offset, position in enumerate("ABCD", start=1)
+    ],
 ]
 
 
@@ -153,6 +177,55 @@ STORAGE_CONFIG = load_optional_json(GL02_STORAGE_CONFIG, {"profiles": {}}, "GL02
 STATIC_PRESSURE_EXTENSION_PATH = Path(
     os.getenv("BF_STATIC_PRESSURE_EXTENSION_PATH", str(DEFAULT_STATIC_PRESSURE_EXTENSION_PATH))
 )
+SEMANTIC_POINT_CATALOG_PATH = Path(
+    os.getenv("BF_SEMANTIC_POINT_CATALOG_PATH", str(DEFAULT_SEMANTIC_POINT_CATALOG_PATH))
+)
+
+
+def load_semantic_point_aliases(path: Path) -> dict[str, list[str]]:
+    """Load generated spoken aliases without changing physical point authority."""
+    if not path.exists():
+        return {}
+    payload = load_json(path)
+    if payload.get("schema_version") != "semantic_point_catalog.v1":
+        raise ValueError(f"unsupported semantic point catalog: {path}")
+    return {
+        str(item.get("object_id") or ""): list(item.get("semantic_aliases") or [])
+        for item in payload.get("objects") or []
+        if item.get("object_id")
+    }
+
+
+SEMANTIC_POINT_ALIASES = load_semantic_point_aliases(SEMANTIC_POINT_CATALOG_PATH)
+
+
+def semantic_point_variables(path: Path) -> list[dict[str, Any]]:
+    """Build a complete read-only runtime fallback from the authoritative TSV projection."""
+    if not path.exists():
+        return []
+    payload = load_json(path)
+    variables: list[dict[str, Any]] = []
+    for item in payload.get("objects") or []:
+        source = item.get("source") or {}
+        object_id = str(item.get("object_id") or "").strip()
+        point_id = str(source.get("point_id") or "").strip()
+        if not object_id or not point_id:
+            continue
+        status_usage = str(source.get("status_usage") or "")
+        unit_match = re.search(r"单位\s*([^；，,\s]+)", status_usage)
+        variables.append({
+            "variable_name": object_id,
+            "aliases": list(item.get("semantic_aliases") or []),
+            "status": "derived" if item.get("object_kind") == "derived_metric" else "physical",
+            "confidence": "high" if "明确可用" in status_usage or "实测确认" in status_usage else "medium",
+            "source_branch": str(source.get("branch") or ""),
+            "short_name": str(source.get("short_name") or ""),
+            "point_id": point_id,
+            "tag_long_name": point_id,
+            "description": str(source.get("description") or item.get("display_name") or object_id),
+            "unit": unit_match.group(1) if unit_match else None,
+        })
+    return variables
 
 
 def merge_variable_catalog(*catalogs: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -170,6 +243,47 @@ def merge_variable_catalog(*catalogs: list[dict[str, Any]]) -> list[dict[str, An
                 positions[variable_name] = len(merged)
                 merged.append(item)
     return merged
+
+
+TOP_PRESSURE_LEGACY_TO_CANONICAL = {
+    f"P_top_gas_{position}": f"P_top_{position}" for position in "ABCD"
+}
+
+
+def canonicalize_variable_catalog(catalog: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Expose stable top-pressure IDs while accepting the historical application aliases."""
+    normalized: list[dict[str, Any]] = []
+    for source in catalog:
+        item = dict(source)
+        legacy_name = str(item.get("variable_name") or "").strip()
+        canonical_name = TOP_PRESSURE_LEGACY_TO_CANONICAL.get(legacy_name)
+        if not canonical_name and re.fullmatch(r"P_top_[A-D]", legacy_name):
+            canonical_name = legacy_name
+        if canonical_name:
+            position = canonical_name.rsplit("_", 1)[-1]
+            compatibility_name = f"P_top_gas_{position}"
+            item["variable_name"] = canonical_name
+            item["legacy_variable_names"] = list(dict.fromkeys([
+                *list(item.get("legacy_variable_names") or []),
+                compatibility_name,
+            ]))
+            item["aliases"] = list(dict.fromkeys([
+                *list(item.get("aliases") or []),
+                compatibility_name,
+                f"顶压{position}",
+                f"{position}点顶压",
+                f"顶压{position}点",
+                f"{position}上升管煤气压力",
+                f"上升管煤气压力{position}",
+            ]))
+        object_id = str(item.get("variable_name") or "").strip()
+        if object_id in SEMANTIC_POINT_ALIASES:
+            item["aliases"] = list(dict.fromkeys([
+                *list(item.get("aliases") or []),
+                *SEMANTIC_POINT_ALIASES[object_id],
+            ]))
+        normalized.append(item)
+    return normalized
 
 
 STATIC_PRESSURE_EXTENSION = (
@@ -196,10 +310,11 @@ def build_body_temperature_variables() -> list[dict[str, Any]]:
 
 
 VARIABLES = merge_variable_catalog(
-    CORE_FALLBACK_VARIABLES,
-    MAPPING_CONFIG.get("variables", []),
-    STATIC_PRESSURE_EXTENSION,
-    build_body_temperature_variables(),
+    canonicalize_variable_catalog(CORE_FALLBACK_VARIABLES),
+    canonicalize_variable_catalog(semantic_point_variables(SEMANTIC_POINT_CATALOG_PATH)),
+    canonicalize_variable_catalog(MAPPING_CONFIG.get("variables", [])),
+    canonicalize_variable_catalog(STATIC_PRESSURE_EXTENSION),
+    canonicalize_variable_catalog(build_body_temperature_variables()),
 )
 BUSINESS_OBJECT_CATALOG = load_business_object_catalog(VARIABLES)
 STATIC_PRESSURE_EXTENSION_VARIABLES = {
@@ -266,6 +381,7 @@ def public_variable(v: dict[str, Any]) -> dict[str, Any]:
     tag = v.get("tag_long_name") or ""
     return {
         "variable_name": v.get("variable_name", ""),
+        "legacy_variable_names": v.get("legacy_variable_names", []),
         "aliases": v.get("aliases", []),
         "status": v.get("status", ""),
         "confidence": v.get("confidence", ""),
@@ -374,6 +490,7 @@ def variable_fields(v: dict[str, Any]) -> list[str]:
         v.get("description", ""),
         v.get("usage", ""),
         v.get("source_branch", ""),
+        *list(v.get("legacy_variable_names") or []),
         *list(v.get("aliases") or []),
     ]
 
@@ -449,12 +566,13 @@ def resolve_variable(variable: str) -> dict[str, Any]:
     body_point = body_temperature_variable_from_text(str(variable or ""))
     if body_point:
         return body_point
-    if "炉体温度" in q or "炉身温度" in q:
-        raise ValueError("炉体温度是 7-16 层 A-H 的变量族，请指定具体层号和方位，例如 7层A 炉体温度。")
 
     for v in VARIABLES:
         if any(q == normalize_text(field) for field in variable_fields(v)):
             return v
+
+    if "炉体温度" in q or "炉身温度" in q:
+        raise ValueError("炉体温度是 7-16 层 A-H 的变量族，请指定具体层号和方位，例如 7层A 炉体温度。")
 
     # Canonical identifiers are machine contracts. Never fuzzy-map an unknown
     # identifier (for example DP_totl) to another valid point such as P_top.
@@ -2287,7 +2405,8 @@ def get_latest_gl02_value(variable: str, source_preference: str = "auto") -> dic
     """
     查询某个 GL02 变量的最新 1 分钟均值。
     用户问“告诉我一下某指标”“现在某指标多少”“给我说一下炉顶的温度/压力”时适用。
-    分点查询应传精确标准变量，例如 L_south、L_north、P_top_gas_A-D、T_top_A-D、T_taphole_1/2，不得退化成总量变量。
+    分点查询应传精确标准变量，例如 L_south、L_north、P_top_A-D、T_top_A-D、T_taphole_1/2，不得退化成总量变量。
+    历史名称 P_top_gas_A-D 仅作为兼容别名接受，不再作为目录对外标准名。
     source_preference 可为 auto/database/pspace；auto 会先查 PostgreSQL，本地库无数据时再查 pSpace。
     """
     v = resolve_variable(variable)

@@ -19,6 +19,10 @@ ASSISTANT_REQUIRED_TABLES = (
     "qa_projects",
     "project_assets",
     "qa_message_context_refs",
+    "qa_context_snapshots",
+    "qa_conversation_origins",
+    "qa_message_context_snapshots",
+    "abc_rule_ai_explanations",
     "rag_document",
     "rag_chunk",
     "rag_query_log",
@@ -33,6 +37,9 @@ _SERIAL_ID_TABLES = {
     "qa_projects",
     "project_assets",
     "qa_message_context_refs",
+    "qa_context_snapshots",
+    "qa_message_context_snapshots",
+    "abc_rule_ai_explanations",
 }
 
 _POOL_LOCK = threading.Lock()
@@ -433,7 +440,9 @@ def ensure_assistant_schema(conn: Any) -> None:
             status text NOT NULL DEFAULT 'active',
             is_pinned integer NOT NULL DEFAULT 0,
             is_unread integer NOT NULL DEFAULT 0,
-            archived_at text
+            archived_at text,
+            owner_subject text,
+            owner_role text
         );
         CREATE INDEX IF NOT EXISTS idx_qa_conversations_updated
             ON {schema}.qa_conversations(updated_at DESC);
@@ -558,8 +567,96 @@ def ensure_assistant_schema(conn: Any) -> None:
         );
         CREATE INDEX IF NOT EXISTS idx_qa_message_context_refs_message
             ON {schema}.qa_message_context_refs(conversation_id, message_id, ref_type);
+
+        CREATE TABLE IF NOT EXISTS {schema}.qa_context_snapshots (
+            id bigserial PRIMARY KEY,
+            context_hash text NOT NULL UNIQUE,
+            source_type text NOT NULL,
+            source_id text NOT NULL,
+            source_version text,
+            context_json text NOT NULL,
+            context_summary_json text NOT NULL,
+            context_type text NOT NULL DEFAULT 'abc_rule_explanation',
+            context_key text NOT NULL,
+            schema_version text NOT NULL,
+            furnace_id text NOT NULL DEFAULT 'GL02',
+            source_ref_id text NOT NULL,
+            evaluation_id bigint,
+            source_ts text,
+            payload_json text NOT NULL,
+            payload_size_bytes bigint NOT NULL,
+            created_at text NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_qa_context_snapshots_source
+            ON {schema}.qa_context_snapshots(source_type, source_id, created_at DESC);
+
+        CREATE TABLE IF NOT EXISTS {schema}.qa_conversation_origins (
+            conversation_id text PRIMARY KEY REFERENCES {schema}.qa_conversations(id) ON DELETE CASCADE,
+            source_type text NOT NULL,
+            source_id text NOT NULL,
+            evaluation_id bigint,
+            context_snapshot_id bigint NOT NULL REFERENCES {schema}.qa_context_snapshots(id),
+            reuse_policy text NOT NULL DEFAULT 'same_rule_active',
+            source_page text,
+            source_ref_id text NOT NULL,
+            source_title text,
+            initial_evaluation_id bigint,
+            initial_context_snapshot_id bigint REFERENCES {schema}.qa_context_snapshots(id),
+            return_route text,
+            operator_id text,
+            shift_key text,
+            created_at text NOT NULL,
+            updated_at text NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_qa_conversation_origins_lookup
+            ON {schema}.qa_conversation_origins(source_type, source_id, evaluation_id, updated_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_qa_conversation_origins_reuse
+            ON {schema}.qa_conversation_origins(source_type, source_id, operator_id, shift_key, updated_at DESC);
+
+        CREATE TABLE IF NOT EXISTS {schema}.qa_message_context_snapshots (
+            id bigserial PRIMARY KEY,
+            conversation_id text NOT NULL REFERENCES {schema}.qa_conversations(id) ON DELETE CASCADE,
+            message_id bigint REFERENCES {schema}.qa_messages(id) ON DELETE CASCADE,
+            context_snapshot_id bigint NOT NULL REFERENCES {schema}.qa_context_snapshots(id),
+            usage_kind text NOT NULL DEFAULT 'assistant_prompt',
+            created_at text NOT NULL,
+            UNIQUE(message_id, context_snapshot_id, usage_kind)
+        );
+        CREATE INDEX IF NOT EXISTS idx_qa_message_context_snapshots_conversation
+            ON {schema}.qa_message_context_snapshots(conversation_id, created_at DESC);
+
+        CREATE TABLE IF NOT EXISTS {schema}.abc_rule_ai_explanations (
+            id bigserial PRIMARY KEY,
+            context_snapshot_id bigint NOT NULL REFERENCES {schema}.qa_context_snapshots(id),
+            rule_id text NOT NULL,
+            evaluation_id bigint NOT NULL,
+            context_hash text NOT NULL,
+            operator_explanation_json text NOT NULL,
+            assistant_context_json text NOT NULL,
+            analysis_text text,
+            analysis_json text,
+            prompt_version text NOT NULL DEFAULT 'abc_rule_explanation.v1',
+            model_name text NOT NULL DEFAULT '',
+            state text NOT NULL DEFAULT 'context_ready',
+            generation_state text NOT NULL DEFAULT 'context_ready',
+            attempt_count bigint NOT NULL DEFAULT 0,
+            last_error_code text,
+            generation_started_at text,
+            generation_completed_at text,
+            claim_token text,
+            lease_expires_at text,
+            created_at text NOT NULL,
+            updated_at text NOT NULL,
+            UNIQUE(context_snapshot_id, prompt_version, model_name)
+        );
+        CREATE INDEX IF NOT EXISTS idx_abc_rule_ai_explanations_lookup
+            ON {schema}.abc_rule_ai_explanations(rule_id, evaluation_id, updated_at DESC);
         """
         )
+        ensure_column(conn, "qa_conversations", "owner_subject", "text")
+        ensure_column(conn, "qa_conversations", "owner_role", "text")
+        ensure_column(conn, "abc_rule_ai_explanations", "claim_token", "text")
+        ensure_column(conn, "abc_rule_ai_explanations", "lease_expires_at", "text")
         ensure_rag_schema(conn)
         conn.commit()
     except Exception as exc:  # noqa: BLE001

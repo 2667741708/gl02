@@ -49,7 +49,13 @@ $parsedScripts = @(
     (Join-Path $projectRoot 'tools\remote_guarded_deploy_si_v20_strict_hourly.ps1'),
     (Join-Path $projectRoot 'tools\register_22012_si_v20_strict_hourly_task.ps1'),
     (Join-Path $projectRoot 'tools\run_22012_si_v20_strict_hourly.ps1'),
-    (Join-Path $projectRoot 'tools\restart_22012_8094_preview.ps1')
+    (Join-Path $projectRoot 'tools\restart_22012_8094_preview.ps1'),
+    (Join-Path $projectRoot 'tools\run_managed_nssm_process.ps1'),
+    (Join-Path $projectRoot 'tools\check_managed_nssm_service_health.ps1'),
+    (Join-Path $projectRoot 'tools\run_v4_daily_baseline.ps1'),
+    (Join-Path $projectRoot 'tools\remote_probe_8093_pwsh7_runtime_migration.ps1'),
+    (Join-Path $projectRoot 'tools\remote_migrate_8093_runtime_to_pwsh7.ps1'),
+    (Join-Path $projectRoot 'tools\verify_8093_pwsh7_runtime_migration.ps1')
 )
 foreach ($scriptPath in $parsedScripts) {
     $tokens = $null

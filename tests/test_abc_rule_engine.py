@@ -9,7 +9,8 @@ SERVICE = Path(__file__).resolve().parents[1] / "自动诊断服务"
 import sys
 sys.path.insert(0, str(SERVICE))
 
-from abc_rule_catalog import RULES
+from abc_rule_catalog import CATALOG_VERSION, RULES
+from abc_rule_guidance import GUIDANCE_VERSION, RULE_GUIDANCE
 from abc_rule_engine import evaluate, load_config, public_bundle, validate_config
 from abc_rule_config_store import publish_atomic
 from abc_public_review import variables_for_rule
@@ -55,6 +56,30 @@ def test_catalog_has_a9_b13_c11_and_json_is_valid():
     config = load_config()
     validate_config(config)
     assert set(config["rules"]) == {rule.rule_id for rule in RULES}
+
+
+def test_every_rule_exposes_specific_handbook_formation_principle_and_five_steps():
+    assert CATALOG_VERSION == "abc33-catalog.v4.burden-rate-online"
+    assert GUIDANCE_VERSION == "abc33-handbook64-guidance.v1.20260810"
+    assert set(RULE_GUIDANCE) == {rule.rule_id for rule in RULES}
+    assert len({rule.principle for rule in RULES}) == 33
+    for rule in RULES:
+        assert len(rule.intervention_order) == 5
+        assert rule.principle == RULE_GUIDANCE[rule.rule_id]["formation_principle"]
+        assert rule.intervention_order == RULE_GUIDANCE[rule.rule_id]["intervention_steps"]
+        assert rule.source_refs == RULE_GUIDANCE[rule.rule_id]["source_refs"]
+        assert all("见习高炉长手册·第" in ref for ref in rule.source_refs)
+
+
+def test_public_contract_returns_guidance_without_internal_formula_details():
+    result = evaluate(_features(), quality=_quality(_features()), config=_published_config())
+    for item in result["public"]["rules"]:
+        assert item["principle"] == RULE_GUIDANCE[item["rule_id"]]["formation_principle"]
+        assert len(item["intervention_order"]) == 5
+        assert item["source_refs"]
+    encoded = json.dumps(result["public"], ensure_ascii=False)
+    for secret in ("formula_terms", "weights", "thresholds", "normalized_value", "contribution"):
+        assert secret not in encoded
 
 
 def test_all_rules_are_evaluated_and_public_contract_redacts_internal_fields():
@@ -246,9 +271,10 @@ def test_config_publish_requires_reason_and_writes_hash_atomically():
             publish_atomic(config, target, reason="", actor="unit-test")
 
 
-def test_proxy_has_public_allowlist_and_admin_guard():
+def test_proxy_serves_admin_login_shell_but_keeps_admin_api_guard():
     proxy = (SERVICE.parent / "高炉前端数据" / "智能助手" / "backend" / "ollama_proxy_server.py").read_text(encoding="utf-8")
-    assert 'if rel == "furnace-rule-admin.html" and not self._abc_admin_required()' in proxy
+    assert 'if rel == "furnace-rule-admin.html" and not self._abc_admin_required()' not in proxy
+    assert 'def _abc_admin_required(self)' in proxy
     assert 'status=403' in proxy
     assert '/api/admin/furnace-rules/evaluations/' in proxy
     assert '/api/admin/furnace-rules/config/publish' in proxy

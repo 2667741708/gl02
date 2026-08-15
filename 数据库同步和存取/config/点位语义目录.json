@@ -1,0 +1,4332 @@
+{
+  "schema_version": "semantic_point_catalog.v1",
+  "catalog_version": "2026-08-13.1",
+  "source_path": "数据库同步和存取/config/点位清单.tsv",
+  "source_sha256": "5264A45D1471D46D90BF1E5697697CB0837C01009A85C8AB209F6CD0C76643E8",
+  "object_count": 153,
+  "physical_sensor_count": 151,
+  "derived_metric_count": 2,
+  "alias_collision_policy": "remove_ambiguous_aliases_and_require_disambiguation",
+  "removed_alias_collisions": [
+    {
+      "normalized_alias": "16.860m",
+      "object_ids": [
+        "T_body_L7_A",
+        "T_body_L7_B",
+        "T_body_L7_C",
+        "T_body_L7_D",
+        "T_body_L7_E",
+        "T_body_L7_F",
+        "T_body_L7_G",
+        "T_body_L7_H"
+      ]
+    },
+    {
+      "normalized_alias": "18.335m",
+      "object_ids": [
+        "T_body_L8_A",
+        "T_body_L8_B",
+        "T_body_L8_C",
+        "T_body_L8_D",
+        "T_body_L8_E",
+        "T_body_L8_F",
+        "T_body_L8_G",
+        "T_body_L8_H"
+      ]
+    },
+    {
+      "normalized_alias": "20.125m",
+      "object_ids": [
+        "T_body_L9_A",
+        "T_body_L9_B",
+        "T_body_L9_C",
+        "T_body_L9_D",
+        "T_body_L9_E",
+        "T_body_L9_F",
+        "T_body_L9_G",
+        "T_body_L9_H"
+      ]
+    },
+    {
+      "normalized_alias": "21.860m",
+      "object_ids": [
+        "T_body_L10_A",
+        "T_body_L10_B",
+        "T_body_L10_C",
+        "T_body_L10_D",
+        "T_body_L10_E",
+        "T_body_L10_F",
+        "T_body_L10_G",
+        "T_body_L10_H"
+      ]
+    },
+    {
+      "normalized_alias": "23.711m",
+      "object_ids": [
+        "T_body_L11_A",
+        "T_body_L11_B",
+        "T_body_L11_C",
+        "T_body_L11_D",
+        "T_body_L11_E",
+        "T_body_L11_F",
+        "T_body_L11_G",
+        "T_body_L11_H"
+      ]
+    },
+    {
+      "normalized_alias": "25.441m",
+      "object_ids": [
+        "T_body_L12_A",
+        "T_body_L12_B",
+        "T_body_L12_C",
+        "T_body_L12_D",
+        "T_body_L12_E",
+        "T_body_L12_F",
+        "T_body_L12_G",
+        "T_body_L12_H"
+      ]
+    },
+    {
+      "normalized_alias": "27.171m",
+      "object_ids": [
+        "T_body_L13_A",
+        "T_body_L13_B",
+        "T_body_L13_C",
+        "T_body_L13_D",
+        "T_body_L13_E",
+        "T_body_L13_F",
+        "T_body_L13_G",
+        "T_body_L13_H"
+      ]
+    },
+    {
+      "normalized_alias": "28.901m",
+      "object_ids": [
+        "T_body_L14_A",
+        "T_body_L14_B",
+        "T_body_L14_C",
+        "T_body_L14_D",
+        "T_body_L14_E",
+        "T_body_L14_F",
+        "T_body_L14_G",
+        "T_body_L14_H"
+      ]
+    },
+    {
+      "normalized_alias": "30.631m",
+      "object_ids": [
+        "T_body_L15_A",
+        "T_body_L15_B",
+        "T_body_L15_C",
+        "T_body_L15_D",
+        "T_body_L15_E",
+        "T_body_L15_F",
+        "T_body_L15_G",
+        "T_body_L15_H"
+      ]
+    },
+    {
+      "normalized_alias": "32.361m",
+      "object_ids": [
+        "T_body_L16_A",
+        "T_body_L16_B",
+        "T_body_L16_C",
+        "T_body_L16_D",
+        "T_body_L16_E",
+        "T_body_L16_F",
+        "T_body_L16_G",
+        "T_body_L16_H"
+      ]
+    },
+    {
+      "normalized_alias": "37.200m",
+      "object_ids": [
+        "T_throat_A",
+        "T_throat_B",
+        "T_throat_C",
+        "T_throat_D"
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "object_id": "O2_rate",
+      "object_kind": "physical_sensor",
+      "display_name": "富氧率",
+      "semantic_aliases": [
+        "富氧率",
+        "氧气富化率",
+        "鼓风富氧比例",
+        "富氧百分比",
+        "2号炉富氧率",
+        "当前富氧率"
+      ],
+      "spoken_expressions": [
+        "现在的富氧率是多少",
+        "帮我查一下富氧率当前值",
+        "看一下富氧率最近一小时怎么变化",
+        "把富氧率和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0115",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0115",
+        "description": "2号炉本体_富氧率",
+        "status_usage": "实时显示；和 Q_O2 富氧流量分开展示"
+      }
+    },
+    {
+      "object_id": "TFT",
+      "object_kind": "physical_sensor",
+      "display_name": "理论燃烧温度",
+      "semantic_aliases": [
+        "理论燃烧温度",
+        "理论燃烧温度值",
+        "风口理论燃烧温度",
+        "2号炉理论燃烧温度",
+        "当前理论燃烧温度"
+      ],
+      "spoken_expressions": [
+        "现在的理论燃烧温度是多少",
+        "帮我查一下理论燃烧温度当前值",
+        "看一下理论燃烧温度最近一小时怎么变化",
+        "把理论燃烧温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0104",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0104",
+        "description": "2号炉本体_理论燃烧温度",
+        "status_usage": "可显示、可入库；当前炉况规则未直接使用"
+      }
+    },
+    {
+      "object_id": "GasUtil",
+      "object_kind": "physical_sensor",
+      "display_name": "煤气利用率",
+      "semantic_aliases": [
+        "煤气利用率",
+        "煤气利用",
+        "炉顶煤气利用率",
+        "2号炉煤气利用率",
+        "当前煤气利用率"
+      ],
+      "spoken_expressions": [
+        "现在的煤气利用率是多少",
+        "帮我查一下煤气利用率当前值",
+        "看一下煤气利用率最近一小时怎么变化",
+        "把煤气利用率和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "CC/GF2",
+        "short_name": "SIO_CC_GF2_T0115",
+        "point_id": "\\冀南钢铁\\SIO\\CC\\GF2\\SIO_CC_GF2_T0115",
+        "description": "2号炉干法除尘_煤气利用率",
+        "status_usage": "跨子树明确可用"
+      }
+    },
+    {
+      "object_id": "CO2_top",
+      "object_kind": "physical_sensor",
+      "display_name": "二氧化碳",
+      "semantic_aliases": [
+        "炉顶二氧化碳",
+        "顶煤气二氧化碳",
+        "煤气二氧化碳含量",
+        "二氧化碳",
+        "2号炉炉顶二氧化碳",
+        "当前炉顶二氧化碳"
+      ],
+      "spoken_expressions": [
+        "现在的炉顶二氧化碳是多少",
+        "帮我查一下炉顶二氧化碳当前值",
+        "看一下炉顶二氧化碳最近一小时怎么变化",
+        "把炉顶二氧化碳和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "CC/GF2",
+        "short_name": "SIO_CC_GF2_T0113",
+        "point_id": "\\冀南钢铁\\SIO\\CC\\GF2\\SIO_CC_GF2_T0113",
+        "description": "2号炉干法除尘_二氧化碳",
+        "status_usage": "2号炉pSpace实测确认；跨子树明确可用；单位%"
+      }
+    },
+    {
+      "object_id": "P_top",
+      "object_kind": "physical_sensor",
+      "display_name": "顶压平均",
+      "semantic_aliases": [
+        "顶压",
+        "炉顶压力",
+        "炉顶压",
+        "平均顶压",
+        "综合顶压",
+        "顶压平均",
+        "2号炉顶压",
+        "当前顶压"
+      ],
+      "spoken_expressions": [
+        "现在的顶压是多少",
+        "帮我查一下顶压当前值",
+        "看一下顶压最近一小时怎么变化",
+        "把顶压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0034",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0034",
+        "description": "2号炉炉顶_顶压平均",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "P_top_A",
+      "object_kind": "physical_sensor",
+      "display_name": "顶压A/上升管煤气压力A",
+      "semantic_aliases": [
+        "顶压A",
+        "A点顶压",
+        "顶压A点",
+        "A上升管煤气压力",
+        "上升管煤气压力A",
+        "P_top_gas_A",
+        "2号炉顶压A",
+        "当前顶压A"
+      ],
+      "spoken_expressions": [
+        "现在的顶压A是多少",
+        "帮我查一下顶压A当前值",
+        "看一下顶压A最近一小时怎么变化",
+        "把顶压A和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0067",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0067",
+        "description": "2号炉炉顶_上升管煤气压力A",
+        "status_usage": "pSpace 实测确认；旧应用名 P_top_gas_A 仅作兼容别名"
+      }
+    },
+    {
+      "object_id": "P_top_B",
+      "object_kind": "physical_sensor",
+      "display_name": "顶压B/上升管煤气压力B",
+      "semantic_aliases": [
+        "顶压B",
+        "B点顶压",
+        "顶压B点",
+        "B上升管煤气压力",
+        "上升管煤气压力B",
+        "P_top_gas_B",
+        "2号炉顶压B",
+        "当前顶压B"
+      ],
+      "spoken_expressions": [
+        "现在的顶压B是多少",
+        "帮我查一下顶压B当前值",
+        "看一下顶压B最近一小时怎么变化",
+        "把顶压B和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0068",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0068",
+        "description": "2号炉炉顶_上升管煤气压力B",
+        "status_usage": "pSpace 实测确认；旧应用名 P_top_gas_B 仅作兼容别名"
+      }
+    },
+    {
+      "object_id": "P_top_C",
+      "object_kind": "physical_sensor",
+      "display_name": "顶压C/上升管煤气压力C",
+      "semantic_aliases": [
+        "顶压C",
+        "C点顶压",
+        "顶压C点",
+        "C上升管煤气压力",
+        "上升管煤气压力C",
+        "P_top_gas_C",
+        "2号炉顶压C",
+        "当前顶压C"
+      ],
+      "spoken_expressions": [
+        "现在的顶压C是多少",
+        "帮我查一下顶压C当前值",
+        "看一下顶压C最近一小时怎么变化",
+        "把顶压C和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0069",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0069",
+        "description": "2号炉炉顶_上升管煤气压力C",
+        "status_usage": "pSpace 实测确认；旧应用名 P_top_gas_C 仅作兼容别名"
+      }
+    },
+    {
+      "object_id": "P_top_D",
+      "object_kind": "physical_sensor",
+      "display_name": "顶压D/上升管煤气压力D",
+      "semantic_aliases": [
+        "顶压D",
+        "D点顶压",
+        "顶压D点",
+        "D上升管煤气压力",
+        "上升管煤气压力D",
+        "P_top_gas_D",
+        "2号炉顶压D",
+        "当前顶压D"
+      ],
+      "spoken_expressions": [
+        "现在的顶压D是多少",
+        "帮我查一下顶压D当前值",
+        "看一下顶压D最近一小时怎么变化",
+        "把顶压D和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0070",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0070",
+        "description": "2号炉炉顶_上升管煤气压力D",
+        "status_usage": "pSpace 实测确认；旧应用名 P_top_gas_D 仅作兼容别名"
+      }
+    },
+    {
+      "object_id": "L",
+      "object_kind": "physical_sensor",
+      "display_name": "雷达探尺/主料线",
+      "semantic_aliases": [
+        "主料线",
+        "雷达料线",
+        "雷达探尺",
+        "炉顶料位",
+        "高炉炉体料位雷达探尺",
+        "2号炉主料线",
+        "当前主料线"
+      ],
+      "spoken_expressions": [
+        "现在的主料线是多少",
+        "帮我查一下主料线当前值",
+        "看一下主料线最近一小时怎么变化",
+        "把主料线和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0046",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0046",
+        "description": "2号炉炉顶_高炉炉体料位雷达探尺",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "L_south",
+      "object_kind": "physical_sensor",
+      "display_name": "南探尺/南尺",
+      "semantic_aliases": [
+        "南探尺",
+        "南尺",
+        "南边料线",
+        "南侧探尺",
+        "下限位24米",
+        "2号炉南探尺",
+        "当前南探尺"
+      ],
+      "spoken_expressions": [
+        "现在的南探尺是多少",
+        "帮我查一下南探尺当前值",
+        "看一下南探尺最近一小时怎么变化",
+        "把南探尺和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0075",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0075",
+        "description": "2号炉炉顶_下限位24米",
+        "status_usage": "高置信候选；建议现场对表确认"
+      }
+    },
+    {
+      "object_id": "L_north",
+      "object_kind": "physical_sensor",
+      "display_name": "北探尺/北尺",
+      "semantic_aliases": [
+        "北探尺",
+        "北尺",
+        "北边料线",
+        "北侧探尺",
+        "下极限位6米",
+        "2号炉北探尺",
+        "当前北探尺"
+      ],
+      "spoken_expressions": [
+        "现在的北探尺是多少",
+        "帮我查一下北探尺当前值",
+        "看一下北探尺最近一小时怎么变化",
+        "把北探尺和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0076",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0076",
+        "description": "2号炉炉顶_下极限位6米",
+        "status_usage": "高置信候选；建议现场对表确认"
+      }
+    },
+    {
+      "object_id": "T_top_A",
+      "object_kind": "physical_sensor",
+      "display_name": "顶温A/上升管煤气温度A",
+      "semantic_aliases": [
+        "顶温A",
+        "A点顶温",
+        "顶温A点",
+        "A上升管煤气温度",
+        "上升管煤气温度A",
+        "2号炉顶温A",
+        "当前顶温A"
+      ],
+      "spoken_expressions": [
+        "现在的顶温A是多少",
+        "帮我查一下顶温A当前值",
+        "看一下顶温A最近一小时怎么变化",
+        "把顶温A和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0040",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0040",
+        "description": "2号炉炉顶_上升管煤气温度",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "T_top_B",
+      "object_kind": "physical_sensor",
+      "display_name": "顶温B/上升管煤气温度B",
+      "semantic_aliases": [
+        "顶温B",
+        "B点顶温",
+        "顶温B点",
+        "B上升管煤气温度",
+        "上升管煤气温度B",
+        "2号炉顶温B",
+        "当前顶温B"
+      ],
+      "spoken_expressions": [
+        "现在的顶温B是多少",
+        "帮我查一下顶温B当前值",
+        "看一下顶温B最近一小时怎么变化",
+        "把顶温B和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0064",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0064",
+        "description": "2号炉炉顶_上升管煤气温度",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "T_top_C",
+      "object_kind": "physical_sensor",
+      "display_name": "顶温C/上升管煤气温度C",
+      "semantic_aliases": [
+        "顶温C",
+        "C点顶温",
+        "顶温C点",
+        "C上升管煤气温度",
+        "上升管煤气温度C",
+        "2号炉顶温C",
+        "当前顶温C"
+      ],
+      "spoken_expressions": [
+        "现在的顶温C是多少",
+        "帮我查一下顶温C当前值",
+        "看一下顶温C最近一小时怎么变化",
+        "把顶温C和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0072",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0072",
+        "description": "2号炉炉顶_上升管煤气温度",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "T_top_D",
+      "object_kind": "physical_sensor",
+      "display_name": "顶温D/上升管煤气温度D",
+      "semantic_aliases": [
+        "顶温D",
+        "D点顶温",
+        "顶温D点",
+        "D上升管煤气温度",
+        "上升管煤气温度D",
+        "2号炉顶温D",
+        "当前顶温D"
+      ],
+      "spoken_expressions": [
+        "现在的顶温D是多少",
+        "帮我查一下顶温D当前值",
+        "看一下顶温D最近一小时怎么变化",
+        "把顶温D和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0043",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0043",
+        "description": "2号炉炉顶_上升管煤气温度",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "T_top",
+      "object_kind": "derived_metric",
+      "display_name": "综合顶温",
+      "semantic_aliases": [
+        "综合顶温",
+        "平均顶温",
+        "四点平均顶温",
+        "炉顶平均温度",
+        "顶温A-D四点平均",
+        "2号炉综合顶温",
+        "当前综合顶温"
+      ],
+      "spoken_expressions": [
+        "现在的综合顶温是多少",
+        "帮我查一下综合顶温当前值",
+        "看一下综合顶温最近一小时怎么变化",
+        "把综合顶温和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "派生",
+        "point_id": "T_top_A-D avg",
+        "description": "顶温 A-D 四点平均",
+        "status_usage": "派生可用"
+      }
+    },
+    {
+      "object_id": "PI",
+      "object_kind": "physical_sensor",
+      "display_name": "透气性指数",
+      "semantic_aliases": [
+        "透气性指数",
+        "透气指数",
+        "炉况透气性",
+        "2号炉透气性指数",
+        "当前透气性指数"
+      ],
+      "spoken_expressions": [
+        "现在的透气性指数是多少",
+        "帮我查一下透气性指数当前值",
+        "看一下透气性指数最近一小时怎么变化",
+        "把透气性指数和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0101",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0101",
+        "description": "2号炉本体_透气性指数",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "DP_total",
+      "object_kind": "physical_sensor",
+      "display_name": "全炉压差",
+      "semantic_aliases": [
+        "全炉压差",
+        "总压差",
+        "炉内总压差",
+        "总体压差",
+        "2号炉全炉压差",
+        "当前全炉压差"
+      ],
+      "spoken_expressions": [
+        "现在的全炉压差是多少",
+        "帮我查一下全炉压差当前值",
+        "看一下全炉压差最近一小时怎么变化",
+        "把全炉压差和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0132",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0132",
+        "description": "2号炉本体_全炉压差",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "DP_lower",
+      "object_kind": "physical_sensor",
+      "display_name": "下部压差",
+      "semantic_aliases": [
+        "下部压差",
+        "炉下部压差",
+        "下段压差",
+        "2号炉下部压差",
+        "当前下部压差"
+      ],
+      "spoken_expressions": [
+        "现在的下部压差是多少",
+        "帮我查一下下部压差当前值",
+        "看一下下部压差最近一小时怎么变化",
+        "把下部压差和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0102",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0102",
+        "description": "2号炉本体_下部压差",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "DP_upper",
+      "object_kind": "physical_sensor",
+      "display_name": "上部压差",
+      "semantic_aliases": [
+        "上部压差",
+        "炉上部压差",
+        "上段压差",
+        "2号炉上部压差",
+        "当前上部压差"
+      ],
+      "spoken_expressions": [
+        "现在的上部压差是多少",
+        "帮我查一下上部压差当前值",
+        "看一下上部压差最近一小时怎么变化",
+        "把上部压差和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0135",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0135",
+        "description": "2号炉本体_上部压差",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "T_blast",
+      "object_kind": "physical_sensor",
+      "display_name": "热风温度",
+      "semantic_aliases": [
+        "热风温度",
+        "风温",
+        "热风炉风温",
+        "2号炉热风温度",
+        "当前热风温度"
+      ],
+      "spoken_expressions": [
+        "现在的热风温度是多少",
+        "帮我查一下热风温度当前值",
+        "看一下热风温度最近一小时怎么变化",
+        "把热风温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0006",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0006",
+        "description": "2号炉本体_热风温度",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "P_blast",
+      "object_kind": "physical_sensor",
+      "display_name": "热风压力",
+      "semantic_aliases": [
+        "热风压力",
+        "热风压",
+        "热风风压",
+        "高炉本体热风压力",
+        "2号炉热风压力",
+        "当前热风压力"
+      ],
+      "spoken_expressions": [
+        "现在的热风压力是多少",
+        "帮我查一下热风压力当前值",
+        "看一下热风压力最近一小时怎么变化",
+        "把热风压力和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0149",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0149",
+        "description": "2号炉本体_高炉本体热风压力",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "P_blast_cold",
+      "object_kind": "physical_sensor",
+      "display_name": "冷风压力",
+      "semantic_aliases": [
+        "冷风压力",
+        "冷风压",
+        "冷风风压",
+        "冷风管道压力",
+        "2号炉冷风压力",
+        "当前冷风压力"
+      ],
+      "spoken_expressions": [
+        "现在的冷风压力是多少",
+        "帮我查一下冷风压力当前值",
+        "看一下冷风压力最近一小时怎么变化",
+        "把冷风压力和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "RF",
+        "short_name": "SIO_GL02_RF_T0047",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\RF\\SIO_GL02_RF_T0047",
+        "description": "2号炉热风炉_冷风管道压力",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "Q_blast",
+      "object_kind": "physical_sensor",
+      "display_name": "冷风管道流量/风量",
+      "semantic_aliases": [
+        "冷风流量",
+        "冷风管道流量",
+        "风量",
+        "鼓风流量",
+        "2号炉冷风流量",
+        "当前冷风流量"
+      ],
+      "spoken_expressions": [
+        "现在的冷风流量是多少",
+        "帮我查一下冷风流量当前值",
+        "看一下冷风流量最近一小时怎么变化",
+        "把冷风流量和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "RF",
+        "short_name": "SIO_GL02_RF_T0073",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\RF\\SIO_GL02_RF_T0073",
+        "description": "2号炉热风炉_冷风管道流量",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "PCI_rate",
+      "object_kind": "physical_sensor",
+      "display_name": "喷煤量/喷煤强度",
+      "semantic_aliases": [
+        "喷煤量",
+        "喷煤强度",
+        "实时喷煤量",
+        "喷煤速率",
+        "喷煤量累积瞬时值",
+        "2号炉喷煤量",
+        "当前喷煤量"
+      ],
+      "spoken_expressions": [
+        "现在的喷煤量是多少",
+        "帮我查一下喷煤量当前值",
+        "看一下喷煤量最近一小时怎么变化",
+        "把喷煤量和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "PC",
+        "short_name": "SIO_GL02_PC_T0007",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\PC\\SIO_GL02_PC_T0007",
+        "description": "2号炉喷吹_喷煤量累积瞬时值",
+        "status_usage": "可用，需标注口径"
+      }
+    },
+    {
+      "object_id": "PCI_set",
+      "object_kind": "physical_sensor",
+      "display_name": "喷煤设定",
+      "semantic_aliases": [
+        "喷煤设定",
+        "喷煤设定值",
+        "设定喷煤量",
+        "一小时喷煤重量设定执行变量",
+        "2号炉喷煤设定",
+        "当前喷煤设定"
+      ],
+      "spoken_expressions": [
+        "现在的喷煤设定是多少",
+        "帮我查一下喷煤设定当前值",
+        "看一下喷煤设定最近一小时怎么变化",
+        "把喷煤设定和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "PC",
+        "short_name": "SIO_GL02_PC_T0001",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\PC\\SIO_GL02_PC_T0001",
+        "description": "2号炉喷吹_一小时喷煤重量设定执行变量",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "Q_O2",
+      "object_kind": "physical_sensor",
+      "display_name": "富氧流量",
+      "semantic_aliases": [
+        "富氧流量",
+        "氧气流量",
+        "富氧气量",
+        "2号炉富氧流量",
+        "当前富氧流量"
+      ],
+      "spoken_expressions": [
+        "现在的富氧流量是多少",
+        "帮我查一下富氧流量当前值",
+        "看一下富氧流量最近一小时怎么变化",
+        "把富氧流量和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "CX",
+        "short_name": "SIO_GL02_CX_T0288",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\CX\\SIO_GL02_CX_T0288",
+        "description": "2号炉槽下_富氧流量",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "T_taphole_1",
+      "object_kind": "physical_sensor",
+      "display_name": "1#出铁口温度",
+      "semantic_aliases": [
+        "1号出铁口温度",
+        "1号铁口温度",
+        "2号炉1号出铁口温度",
+        "当前1号出铁口温度"
+      ],
+      "spoken_expressions": [
+        "现在的1号出铁口温度是多少",
+        "帮我查一下1号出铁口温度当前值",
+        "看一下1号出铁口温度最近一小时怎么变化",
+        "把1号出铁口温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0001",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0001",
+        "description": "2号炉本体_1号出铁口温度",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "T_taphole_2",
+      "object_kind": "physical_sensor",
+      "display_name": "2#出铁口温度",
+      "semantic_aliases": [
+        "2号出铁口温度",
+        "2号铁口温度",
+        "2号炉2号出铁口温度",
+        "当前2号出铁口温度"
+      ],
+      "spoken_expressions": [
+        "现在的2号出铁口温度是多少",
+        "帮我查一下2号出铁口温度当前值",
+        "看一下2号出铁口温度最近一小时怎么变化",
+        "把2号出铁口温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0002",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0002",
+        "description": "2号炉本体_2号出铁口温度",
+        "status_usage": "明确可用"
+      }
+    },
+    {
+      "object_id": "T_throat_A",
+      "object_kind": "physical_sensor",
+      "display_name": "炉喉温度A，37.200m",
+      "semantic_aliases": [
+        "炉喉温度A",
+        "A点炉喉温度",
+        "炉喉A点温度",
+        "37.2米A点温度",
+        "2号炉炉喉温度A",
+        "当前炉喉温度A"
+      ],
+      "spoken_expressions": [
+        "现在的炉喉温度A是多少",
+        "帮我查一下炉喉温度A当前值",
+        "看一下炉喉温度A最近一小时怎么变化",
+        "把炉喉温度A和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0235",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0235",
+        "description": "2号炉本体_炉喉温度A",
+        "status_usage": "可显示、可入库；不接成顶温A"
+      }
+    },
+    {
+      "object_id": "T_throat_B",
+      "object_kind": "physical_sensor",
+      "display_name": "炉喉温度B，37.200m",
+      "semantic_aliases": [
+        "炉喉温度B",
+        "B点炉喉温度",
+        "炉喉B点温度",
+        "37.2米B点温度",
+        "2号炉炉喉温度B",
+        "当前炉喉温度B"
+      ],
+      "spoken_expressions": [
+        "现在的炉喉温度B是多少",
+        "帮我查一下炉喉温度B当前值",
+        "看一下炉喉温度B最近一小时怎么变化",
+        "把炉喉温度B和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0236",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0236",
+        "description": "2号炉本体_炉喉温度B",
+        "status_usage": "可显示、可入库；不接成顶温B"
+      }
+    },
+    {
+      "object_id": "T_throat_C",
+      "object_kind": "physical_sensor",
+      "display_name": "炉喉温度C，37.200m",
+      "semantic_aliases": [
+        "炉喉温度C",
+        "C点炉喉温度",
+        "炉喉C点温度",
+        "37.2米C点温度",
+        "2号炉炉喉温度C",
+        "当前炉喉温度C"
+      ],
+      "spoken_expressions": [
+        "现在的炉喉温度C是多少",
+        "帮我查一下炉喉温度C当前值",
+        "看一下炉喉温度C最近一小时怎么变化",
+        "把炉喉温度C和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0237",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0237",
+        "description": "2号炉本体_炉喉温度C",
+        "status_usage": "可显示、可入库；不接成顶温C"
+      }
+    },
+    {
+      "object_id": "T_throat_D",
+      "object_kind": "physical_sensor",
+      "display_name": "炉喉温度D，37.200m",
+      "semantic_aliases": [
+        "炉喉温度D",
+        "D点炉喉温度",
+        "炉喉D点温度",
+        "37.2米D点温度",
+        "2号炉炉喉温度D",
+        "当前炉喉温度D"
+      ],
+      "spoken_expressions": [
+        "现在的炉喉温度D是多少",
+        "帮我查一下炉喉温度D当前值",
+        "看一下炉喉温度D最近一小时怎么变化",
+        "把炉喉温度D和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0238",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0238",
+        "description": "2号炉本体_炉喉温度D",
+        "status_usage": "可显示、可入库；不接成顶温D"
+      }
+    },
+    {
+      "object_id": "P_static_20m35",
+      "object_kind": "physical_sensor",
+      "display_name": "静压力20.35米",
+      "semantic_aliases": [
+        "20.35米静压",
+        "20.35米静压力",
+        "20.35米平均静压",
+        "静压力20.35米",
+        "静压力_20.35米压力",
+        "2号炉20.35米静压",
+        "当前20.35米静压"
+      ],
+      "spoken_expressions": [
+        "现在的20.35米静压是多少",
+        "帮我查一下20.35米静压当前值",
+        "看一下20.35米静压最近一小时怎么变化",
+        "把20.35米静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0152",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0152",
+        "description": "2号炉本体_静压力_20.35米压力",
+        "status_usage": "可显示、可入库；不替代A-F圆周压力"
+      }
+    },
+    {
+      "object_id": "P_static_23m49",
+      "object_kind": "physical_sensor",
+      "display_name": "静压力23.49米",
+      "semantic_aliases": [
+        "23.49米静压",
+        "23.49米静压力",
+        "23.49米平均静压",
+        "静压力23.49米",
+        "静压力_23.49米压力",
+        "2号炉23.49米静压",
+        "当前23.49米静压"
+      ],
+      "spoken_expressions": [
+        "现在的23.49米静压是多少",
+        "帮我查一下23.49米静压当前值",
+        "看一下23.49米静压最近一小时怎么变化",
+        "把23.49米静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0153",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0153",
+        "description": "2号炉本体_静压力_23.49米压力",
+        "status_usage": "可显示、可入库；不替代A-F圆周压力"
+      }
+    },
+    {
+      "object_id": "P_static_28m98",
+      "object_kind": "physical_sensor",
+      "display_name": "静压力28.98米",
+      "semantic_aliases": [
+        "28.98米静压",
+        "28.98米静压力",
+        "28.98米平均静压",
+        "静压力28.98米",
+        "静压力_28.98米压力",
+        "2号炉28.98米静压",
+        "当前28.98米静压"
+      ],
+      "spoken_expressions": [
+        "现在的28.98米静压是多少",
+        "帮我查一下28.98米静压当前值",
+        "看一下28.98米静压最近一小时怎么变化",
+        "把28.98米静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0154",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0154",
+        "description": "2号炉本体_静压力_28.98米压力",
+        "status_usage": "可显示、可入库；不替代A-F圆周压力"
+      }
+    },
+    {
+      "object_id": "P_static_lower_A",
+      "object_kind": "physical_sensor",
+      "display_name": "20.35米炉腰静压力A",
+      "semantic_aliases": [
+        "20.35米A点静压",
+        "20.35米A点静压力",
+        "炉腰A点静压",
+        "A点炉腰静压力",
+        "20.35米炉腰静压力A",
+        "20350高炉炉腰部静压力A",
+        "2号炉20.35米A点静压",
+        "当前20.35米A点静压"
+      ],
+      "spoken_expressions": [
+        "现在的20.35米A点静压是多少",
+        "帮我查一下20.35米A点静压当前值",
+        "看一下20.35米A点静压最近一小时怎么变化",
+        "把20.35米A点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0102",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0102",
+        "description": "2#高炉本体-20350 高炉炉腰部静压力A",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_lower_B",
+      "object_kind": "physical_sensor",
+      "display_name": "20.35米炉腰静压力B",
+      "semantic_aliases": [
+        "20.35米B点静压",
+        "20.35米B点静压力",
+        "炉腰B点静压",
+        "B点炉腰静压力",
+        "20.35米炉腰静压力B",
+        "20350高炉炉腰部静压力B",
+        "2号炉20.35米B点静压",
+        "当前20.35米B点静压"
+      ],
+      "spoken_expressions": [
+        "现在的20.35米B点静压是多少",
+        "帮我查一下20.35米B点静压当前值",
+        "看一下20.35米B点静压最近一小时怎么变化",
+        "把20.35米B点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0103",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0103",
+        "description": "2#高炉本体-20350 高炉炉腰部静压力B",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_lower_C",
+      "object_kind": "physical_sensor",
+      "display_name": "20.35米炉腰静压力C",
+      "semantic_aliases": [
+        "20.35米C点静压",
+        "20.35米C点静压力",
+        "炉腰C点静压",
+        "C点炉腰静压力",
+        "20.35米炉腰静压力C",
+        "20350高炉炉腰部静压力C",
+        "2号炉20.35米C点静压",
+        "当前20.35米C点静压"
+      ],
+      "spoken_expressions": [
+        "现在的20.35米C点静压是多少",
+        "帮我查一下20.35米C点静压当前值",
+        "看一下20.35米C点静压最近一小时怎么变化",
+        "把20.35米C点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0104",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0104",
+        "description": "2#高炉本体-20350 高炉炉腰部静压力C",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_lower_D",
+      "object_kind": "physical_sensor",
+      "display_name": "20.35米炉腰静压力D",
+      "semantic_aliases": [
+        "20.35米D点静压",
+        "20.35米D点静压力",
+        "炉腰D点静压",
+        "D点炉腰静压力",
+        "20.35米炉腰静压力D",
+        "20350高炉炉腰部静压力D",
+        "2号炉20.35米D点静压",
+        "当前20.35米D点静压"
+      ],
+      "spoken_expressions": [
+        "现在的20.35米D点静压是多少",
+        "帮我查一下20.35米D点静压当前值",
+        "看一下20.35米D点静压最近一小时怎么变化",
+        "把20.35米D点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0105",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0105",
+        "description": "2#高炉本体-20350 高炉炉腰部静压力D",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_lower_E",
+      "object_kind": "physical_sensor",
+      "display_name": "20.35米炉腰静压力E",
+      "semantic_aliases": [
+        "20.35米E点静压",
+        "20.35米E点静压力",
+        "炉腰E点静压",
+        "E点炉腰静压力",
+        "20.35米炉腰静压力E",
+        "20350高炉炉腰部静压力E",
+        "2号炉20.35米E点静压",
+        "当前20.35米E点静压"
+      ],
+      "spoken_expressions": [
+        "现在的20.35米E点静压是多少",
+        "帮我查一下20.35米E点静压当前值",
+        "看一下20.35米E点静压最近一小时怎么变化",
+        "把20.35米E点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0107",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0107",
+        "description": "2#高炉本体-20350 高炉炉腰部静压力E",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_lower_F",
+      "object_kind": "physical_sensor",
+      "display_name": "20.35米炉腰静压力F",
+      "semantic_aliases": [
+        "20.35米F点静压",
+        "20.35米F点静压力",
+        "炉腰F点静压",
+        "F点炉腰静压力",
+        "20.35米炉腰静压力F",
+        "20350高炉炉腰部静压力F",
+        "2号炉20.35米F点静压",
+        "当前20.35米F点静压"
+      ],
+      "spoken_expressions": [
+        "现在的20.35米F点静压是多少",
+        "帮我查一下20.35米F点静压当前值",
+        "看一下20.35米F点静压最近一小时怎么变化",
+        "把20.35米F点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0108",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0108",
+        "description": "2#高炉本体-20350 高炉炉腰部静压力F",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_middle_A",
+      "object_kind": "physical_sensor",
+      "display_name": "23.49米炉身下部静压力A",
+      "semantic_aliases": [
+        "23.49米A点静压",
+        "23.49米A点静压力",
+        "炉身下部A点静压",
+        "A点炉身下部静压力",
+        "23.49米炉身下部静压力A",
+        "23488高炉炉身下部静压力A",
+        "2号炉23.49米A点静压",
+        "当前23.49米A点静压"
+      ],
+      "spoken_expressions": [
+        "现在的23.49米A点静压是多少",
+        "帮我查一下23.49米A点静压当前值",
+        "看一下23.49米A点静压最近一小时怎么变化",
+        "把23.49米A点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0068",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0068",
+        "description": "2#高炉本体-23488 高炉炉身下部静压力A",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_middle_B",
+      "object_kind": "physical_sensor",
+      "display_name": "23.49米炉身下部静压力B",
+      "semantic_aliases": [
+        "23.49米B点静压",
+        "23.49米B点静压力",
+        "炉身下部B点静压",
+        "B点炉身下部静压力",
+        "23.49米炉身下部静压力B",
+        "23488高炉炉身下部静压力B",
+        "2号炉23.49米B点静压",
+        "当前23.49米B点静压"
+      ],
+      "spoken_expressions": [
+        "现在的23.49米B点静压是多少",
+        "帮我查一下23.49米B点静压当前值",
+        "看一下23.49米B点静压最近一小时怎么变化",
+        "把23.49米B点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0069",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0069",
+        "description": "2#高炉本体-23488 高炉炉身下部静压力B",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_middle_C",
+      "object_kind": "physical_sensor",
+      "display_name": "23.49米炉身下部静压力C",
+      "semantic_aliases": [
+        "23.49米C点静压",
+        "23.49米C点静压力",
+        "炉身下部C点静压",
+        "C点炉身下部静压力",
+        "23.49米炉身下部静压力C",
+        "23488高炉炉身下部静压力C",
+        "2号炉23.49米C点静压",
+        "当前23.49米C点静压"
+      ],
+      "spoken_expressions": [
+        "现在的23.49米C点静压是多少",
+        "帮我查一下23.49米C点静压当前值",
+        "看一下23.49米C点静压最近一小时怎么变化",
+        "把23.49米C点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0070",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0070",
+        "description": "2#高炉本体-23488 高炉炉身下部静压力C",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_middle_D",
+      "object_kind": "physical_sensor",
+      "display_name": "23.49米炉身下部静压力D",
+      "semantic_aliases": [
+        "23.49米D点静压",
+        "23.49米D点静压力",
+        "炉身下部D点静压",
+        "D点炉身下部静压力",
+        "23.49米炉身下部静压力D",
+        "23488高炉炉身下部静压力D",
+        "2号炉23.49米D点静压",
+        "当前23.49米D点静压"
+      ],
+      "spoken_expressions": [
+        "现在的23.49米D点静压是多少",
+        "帮我查一下23.49米D点静压当前值",
+        "看一下23.49米D点静压最近一小时怎么变化",
+        "把23.49米D点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0071",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0071",
+        "description": "2#高炉本体-23488 高炉炉身下部静压力D",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_middle_E",
+      "object_kind": "physical_sensor",
+      "display_name": "23.49米炉身下部静压力E",
+      "semantic_aliases": [
+        "23.49米E点静压",
+        "23.49米E点静压力",
+        "炉身下部E点静压",
+        "E点炉身下部静压力",
+        "23.49米炉身下部静压力E",
+        "23488高炉炉身下部静压力E",
+        "2号炉23.49米E点静压",
+        "当前23.49米E点静压"
+      ],
+      "spoken_expressions": [
+        "现在的23.49米E点静压是多少",
+        "帮我查一下23.49米E点静压当前值",
+        "看一下23.49米E点静压最近一小时怎么变化",
+        "把23.49米E点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0072",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0072",
+        "description": "2#高炉本体-23488 高炉炉身下部静压力E",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_middle_F",
+      "object_kind": "physical_sensor",
+      "display_name": "23.49米炉身下部静压力F",
+      "semantic_aliases": [
+        "23.49米F点静压",
+        "23.49米F点静压力",
+        "炉身下部F点静压",
+        "F点炉身下部静压力",
+        "23.49米炉身下部静压力F",
+        "23488高炉炉身下部静压力F",
+        "2号炉23.49米F点静压",
+        "当前23.49米F点静压"
+      ],
+      "spoken_expressions": [
+        "现在的23.49米F点静压是多少",
+        "帮我查一下23.49米F点静压当前值",
+        "看一下23.49米F点静压最近一小时怎么变化",
+        "把23.49米F点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0110",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0110",
+        "description": "2#高炉本体-23488 高炉炉身下部静压力F",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_upper_A",
+      "object_kind": "physical_sensor",
+      "display_name": "28.98米炉身中部静压力A",
+      "semantic_aliases": [
+        "28.98米A点静压",
+        "28.98米A点静压力",
+        "炉身中部A点静压",
+        "A点炉身中部静压力",
+        "28.98米炉身中部静压力A",
+        "28976高炉炉身中部静压力A",
+        "2号炉28.98米A点静压",
+        "当前28.98米A点静压"
+      ],
+      "spoken_expressions": [
+        "现在的28.98米A点静压是多少",
+        "帮我查一下28.98米A点静压当前值",
+        "看一下28.98米A点静压最近一小时怎么变化",
+        "把28.98米A点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0075",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0075",
+        "description": "2#高炉本体-28976 高炉炉身中部静压力A",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_upper_B",
+      "object_kind": "physical_sensor",
+      "display_name": "28.98米炉身中部静压力B",
+      "semantic_aliases": [
+        "28.98米B点静压",
+        "28.98米B点静压力",
+        "炉身中部B点静压",
+        "B点炉身中部静压力",
+        "28.98米炉身中部静压力B",
+        "28976高炉炉身中部静压力B",
+        "2号炉28.98米B点静压",
+        "当前28.98米B点静压"
+      ],
+      "spoken_expressions": [
+        "现在的28.98米B点静压是多少",
+        "帮我查一下28.98米B点静压当前值",
+        "看一下28.98米B点静压最近一小时怎么变化",
+        "把28.98米B点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0076",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0076",
+        "description": "2#高炉本体-28976 高炉炉身中部静压力B",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_upper_C",
+      "object_kind": "physical_sensor",
+      "display_name": "28.98米炉身中部静压力C",
+      "semantic_aliases": [
+        "28.98米C点静压",
+        "28.98米C点静压力",
+        "炉身中部C点静压",
+        "C点炉身中部静压力",
+        "28.98米炉身中部静压力C",
+        "28976高炉炉身中部静压力C",
+        "2号炉28.98米C点静压",
+        "当前28.98米C点静压"
+      ],
+      "spoken_expressions": [
+        "现在的28.98米C点静压是多少",
+        "帮我查一下28.98米C点静压当前值",
+        "看一下28.98米C点静压最近一小时怎么变化",
+        "把28.98米C点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0077",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0077",
+        "description": "2#高炉本体-28976 高炉炉身中部静压力C",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_upper_D",
+      "object_kind": "physical_sensor",
+      "display_name": "28.98米炉身中部静压力D",
+      "semantic_aliases": [
+        "28.98米D点静压",
+        "28.98米D点静压力",
+        "炉身中部D点静压",
+        "D点炉身中部静压力",
+        "28.98米炉身中部静压力D",
+        "28976高炉炉身中部静压力D",
+        "2号炉28.98米D点静压",
+        "当前28.98米D点静压"
+      ],
+      "spoken_expressions": [
+        "现在的28.98米D点静压是多少",
+        "帮我查一下28.98米D点静压当前值",
+        "看一下28.98米D点静压最近一小时怎么变化",
+        "把28.98米D点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0078",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0078",
+        "description": "2#高炉本体-28976 高炉炉身中部静压力D",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_upper_E",
+      "object_kind": "physical_sensor",
+      "display_name": "28.98米炉身中部静压力E",
+      "semantic_aliases": [
+        "28.98米E点静压",
+        "28.98米E点静压力",
+        "炉身中部E点静压",
+        "E点炉身中部静压力",
+        "28.98米炉身中部静压力E",
+        "28976高炉炉身中部静压力E",
+        "2号炉28.98米E点静压",
+        "当前28.98米E点静压"
+      ],
+      "spoken_expressions": [
+        "现在的28.98米E点静压是多少",
+        "帮我查一下28.98米E点静压当前值",
+        "看一下28.98米E点静压最近一小时怎么变化",
+        "把28.98米E点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0079",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0079",
+        "description": "2#高炉本体-28976 高炉炉身中部静压力E",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "P_static_upper_F",
+      "object_kind": "physical_sensor",
+      "display_name": "28.98米炉身中部静压力F",
+      "semantic_aliases": [
+        "28.98米F点静压",
+        "28.98米F点静压力",
+        "炉身中部F点静压",
+        "F点炉身中部静压力",
+        "28.98米炉身中部静压力F",
+        "28976高炉炉身中部静压力F",
+        "2号炉28.98米F点静压",
+        "当前28.98米F点静压"
+      ],
+      "spoken_expressions": [
+        "现在的28.98米F点静压是多少",
+        "帮我查一下28.98米F点静压当前值",
+        "看一下28.98米F点静压最近一小时怎么变化",
+        "把28.98米F点静压和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "EQ/SI0/GL02/BT",
+        "short_name": "EQ_SIO_GL02_BT_T0080",
+        "point_id": "\\冀南二期\\EQ\\SI0\\GL02\\BT\\EQ_SIO_GL02_BT_T0080",
+        "description": "2#高炉本体-28976 高炉炉身中部静压力F",
+        "status_usage": "物理点；按既有raw 5秒读取、1分钟聚合、幂等入库"
+      }
+    },
+    {
+      "object_id": "T_body_L7_A",
+      "object_kind": "physical_sensor",
+      "display_name": "7层炉腹下温度A，16.860m",
+      "semantic_aliases": [
+        "7层A点炉体温度",
+        "7层A点温度",
+        "炉身7层A点温度",
+        "7层A方位温度",
+        "A点7层炉身温度",
+        "7层炉腹下温度A",
+        "2号炉7层A点炉体温度",
+        "当前7层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的7层A点炉体温度是多少",
+        "帮我查一下7层A点炉体温度当前值",
+        "看一下7层A点炉体温度最近一小时怎么变化",
+        "把7层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0155",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0155",
+        "description": "2号炉本体_7层炉腹下温度A",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L7_B",
+      "object_kind": "physical_sensor",
+      "display_name": "7层炉腹下温度B，16.860m",
+      "semantic_aliases": [
+        "7层B点炉体温度",
+        "7层B点温度",
+        "炉身7层B点温度",
+        "7层B方位温度",
+        "B点7层炉身温度",
+        "7层炉腹下温度B",
+        "2号炉7层B点炉体温度",
+        "当前7层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的7层B点炉体温度是多少",
+        "帮我查一下7层B点炉体温度当前值",
+        "看一下7层B点炉体温度最近一小时怎么变化",
+        "把7层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0156",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0156",
+        "description": "2号炉本体_7层炉腹下温度B",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L7_C",
+      "object_kind": "physical_sensor",
+      "display_name": "7层炉腹下温度C，16.860m",
+      "semantic_aliases": [
+        "7层C点炉体温度",
+        "7层C点温度",
+        "炉身7层C点温度",
+        "7层C方位温度",
+        "C点7层炉身温度",
+        "7层炉腹下温度C",
+        "2号炉7层C点炉体温度",
+        "当前7层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的7层C点炉体温度是多少",
+        "帮我查一下7层C点炉体温度当前值",
+        "看一下7层C点炉体温度最近一小时怎么变化",
+        "把7层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0157",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0157",
+        "description": "2号炉本体_7层炉腹下温度C",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L7_D",
+      "object_kind": "physical_sensor",
+      "display_name": "7层炉腹下温度D，16.860m",
+      "semantic_aliases": [
+        "7层D点炉体温度",
+        "7层D点温度",
+        "炉身7层D点温度",
+        "7层D方位温度",
+        "D点7层炉身温度",
+        "7层炉腹下温度D",
+        "2号炉7层D点炉体温度",
+        "当前7层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的7层D点炉体温度是多少",
+        "帮我查一下7层D点炉体温度当前值",
+        "看一下7层D点炉体温度最近一小时怎么变化",
+        "把7层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0158",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0158",
+        "description": "2号炉本体_7层炉腹下温度D",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L7_E",
+      "object_kind": "physical_sensor",
+      "display_name": "7层炉腹下温度E，16.860m",
+      "semantic_aliases": [
+        "7层E点炉体温度",
+        "7层E点温度",
+        "炉身7层E点温度",
+        "7层E方位温度",
+        "E点7层炉身温度",
+        "7层炉腹下温度E",
+        "2号炉7层E点炉体温度",
+        "当前7层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的7层E点炉体温度是多少",
+        "帮我查一下7层E点炉体温度当前值",
+        "看一下7层E点炉体温度最近一小时怎么变化",
+        "把7层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0159",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0159",
+        "description": "2号炉本体_7层炉腹下温度E",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L7_F",
+      "object_kind": "physical_sensor",
+      "display_name": "7层炉腹下温度F，16.860m",
+      "semantic_aliases": [
+        "7层F点炉体温度",
+        "7层F点温度",
+        "炉身7层F点温度",
+        "7层F方位温度",
+        "F点7层炉身温度",
+        "7层炉腹下温度F",
+        "2号炉7层F点炉体温度",
+        "当前7层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的7层F点炉体温度是多少",
+        "帮我查一下7层F点炉体温度当前值",
+        "看一下7层F点炉体温度最近一小时怎么变化",
+        "把7层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0160",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0160",
+        "description": "2号炉本体_7层炉腹下温度F",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L7_G",
+      "object_kind": "physical_sensor",
+      "display_name": "7层炉腹下温度G，16.860m",
+      "semantic_aliases": [
+        "7层G点炉体温度",
+        "7层G点温度",
+        "炉身7层G点温度",
+        "7层G方位温度",
+        "G点7层炉身温度",
+        "7层炉腹下温度G",
+        "2号炉7层G点炉体温度",
+        "当前7层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的7层G点炉体温度是多少",
+        "帮我查一下7层G点炉体温度当前值",
+        "看一下7层G点炉体温度最近一小时怎么变化",
+        "把7层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0161",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0161",
+        "description": "2号炉本体_7层炉腹下温度G",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L7_H",
+      "object_kind": "physical_sensor",
+      "display_name": "7层炉腹下温度H，16.860m",
+      "semantic_aliases": [
+        "7层H点炉体温度",
+        "7层H点温度",
+        "炉身7层H点温度",
+        "7层H方位温度",
+        "H点7层炉身温度",
+        "7层炉腹下温度H",
+        "2号炉7层H点炉体温度",
+        "当前7层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的7层H点炉体温度是多少",
+        "帮我查一下7层H点炉体温度当前值",
+        "看一下7层H点炉体温度最近一小时怎么变化",
+        "把7层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0162",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0162",
+        "description": "2号炉本体_7层炉腹下温度H",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L8_A",
+      "object_kind": "physical_sensor",
+      "display_name": "8层炉腹上温度A，18.335m",
+      "semantic_aliases": [
+        "8层A点炉体温度",
+        "8层A点温度",
+        "炉身8层A点温度",
+        "8层A方位温度",
+        "A点8层炉身温度",
+        "8层炉腹上温度A",
+        "2号炉8层A点炉体温度",
+        "当前8层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的8层A点炉体温度是多少",
+        "帮我查一下8层A点炉体温度当前值",
+        "看一下8层A点炉体温度最近一小时怎么变化",
+        "把8层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0163",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0163",
+        "description": "2号炉本体_8层炉腹上温度A",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L8_B",
+      "object_kind": "physical_sensor",
+      "display_name": "8层炉腹上温度B，18.335m",
+      "semantic_aliases": [
+        "8层B点炉体温度",
+        "8层B点温度",
+        "炉身8层B点温度",
+        "8层B方位温度",
+        "B点8层炉身温度",
+        "8层炉腹上温度B",
+        "2号炉8层B点炉体温度",
+        "当前8层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的8层B点炉体温度是多少",
+        "帮我查一下8层B点炉体温度当前值",
+        "看一下8层B点炉体温度最近一小时怎么变化",
+        "把8层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0164",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0164",
+        "description": "2号炉本体_8层炉腹上温度B",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L8_C",
+      "object_kind": "physical_sensor",
+      "display_name": "8层炉腹上温度C，18.335m",
+      "semantic_aliases": [
+        "8层C点炉体温度",
+        "8层C点温度",
+        "炉身8层C点温度",
+        "8层C方位温度",
+        "C点8层炉身温度",
+        "8层炉腹上温度C",
+        "2号炉8层C点炉体温度",
+        "当前8层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的8层C点炉体温度是多少",
+        "帮我查一下8层C点炉体温度当前值",
+        "看一下8层C点炉体温度最近一小时怎么变化",
+        "把8层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0165",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0165",
+        "description": "2号炉本体_8层炉腹上温度C",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L8_D",
+      "object_kind": "physical_sensor",
+      "display_name": "8层炉腹上温度D，18.335m",
+      "semantic_aliases": [
+        "8层D点炉体温度",
+        "8层D点温度",
+        "炉身8层D点温度",
+        "8层D方位温度",
+        "D点8层炉身温度",
+        "8层炉腹上温度D",
+        "2号炉8层D点炉体温度",
+        "当前8层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的8层D点炉体温度是多少",
+        "帮我查一下8层D点炉体温度当前值",
+        "看一下8层D点炉体温度最近一小时怎么变化",
+        "把8层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0166",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0166",
+        "description": "2号炉本体_8层炉腹上温度D",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L8_E",
+      "object_kind": "physical_sensor",
+      "display_name": "8层炉腹上温度E，18.335m",
+      "semantic_aliases": [
+        "8层E点炉体温度",
+        "8层E点温度",
+        "炉身8层E点温度",
+        "8层E方位温度",
+        "E点8层炉身温度",
+        "8层炉腹上温度E",
+        "2号炉8层E点炉体温度",
+        "当前8层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的8层E点炉体温度是多少",
+        "帮我查一下8层E点炉体温度当前值",
+        "看一下8层E点炉体温度最近一小时怎么变化",
+        "把8层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0167",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0167",
+        "description": "2号炉本体_8层炉腹上温度E",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L8_F",
+      "object_kind": "physical_sensor",
+      "display_name": "8层炉腹上温度F，18.335m",
+      "semantic_aliases": [
+        "8层F点炉体温度",
+        "8层F点温度",
+        "炉身8层F点温度",
+        "8层F方位温度",
+        "F点8层炉身温度",
+        "8层炉腹上温度F",
+        "2号炉8层F点炉体温度",
+        "当前8层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的8层F点炉体温度是多少",
+        "帮我查一下8层F点炉体温度当前值",
+        "看一下8层F点炉体温度最近一小时怎么变化",
+        "把8层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0168",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0168",
+        "description": "2号炉本体_8层炉腹上温度F",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L8_G",
+      "object_kind": "physical_sensor",
+      "display_name": "8层炉腹上温度G，18.335m",
+      "semantic_aliases": [
+        "8层G点炉体温度",
+        "8层G点温度",
+        "炉身8层G点温度",
+        "8层G方位温度",
+        "G点8层炉身温度",
+        "8层炉腹上温度G",
+        "2号炉8层G点炉体温度",
+        "当前8层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的8层G点炉体温度是多少",
+        "帮我查一下8层G点炉体温度当前值",
+        "看一下8层G点炉体温度最近一小时怎么变化",
+        "把8层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0169",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0169",
+        "description": "2号炉本体_8层炉腹上温度G",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L8_H",
+      "object_kind": "physical_sensor",
+      "display_name": "8层炉腹上温度H，18.335m",
+      "semantic_aliases": [
+        "8层H点炉体温度",
+        "8层H点温度",
+        "炉身8层H点温度",
+        "8层H方位温度",
+        "H点8层炉身温度",
+        "8层炉腹上温度H",
+        "2号炉8层H点炉体温度",
+        "当前8层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的8层H点炉体温度是多少",
+        "帮我查一下8层H点炉体温度当前值",
+        "看一下8层H点炉体温度最近一小时怎么变化",
+        "把8层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0170",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0170",
+        "description": "2号炉本体_8层炉腹上温度H",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L9_A",
+      "object_kind": "physical_sensor",
+      "display_name": "9层炉腰温度A，20.125m",
+      "semantic_aliases": [
+        "9层A点炉体温度",
+        "9层A点温度",
+        "炉身9层A点温度",
+        "9层A方位温度",
+        "A点9层炉身温度",
+        "9层炉腰温度A",
+        "2号炉9层A点炉体温度",
+        "当前9层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的9层A点炉体温度是多少",
+        "帮我查一下9层A点炉体温度当前值",
+        "看一下9层A点炉体温度最近一小时怎么变化",
+        "把9层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0171",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0171",
+        "description": "2号炉本体_9层炉腰温度A",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L9_B",
+      "object_kind": "physical_sensor",
+      "display_name": "9层炉腰温度B，20.125m",
+      "semantic_aliases": [
+        "9层B点炉体温度",
+        "9层B点温度",
+        "炉身9层B点温度",
+        "9层B方位温度",
+        "B点9层炉身温度",
+        "9层炉腰温度B",
+        "2号炉9层B点炉体温度",
+        "当前9层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的9层B点炉体温度是多少",
+        "帮我查一下9层B点炉体温度当前值",
+        "看一下9层B点炉体温度最近一小时怎么变化",
+        "把9层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0172",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0172",
+        "description": "2号炉本体_9层炉腰温度B",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L9_C",
+      "object_kind": "physical_sensor",
+      "display_name": "9层炉腰温度C，20.125m",
+      "semantic_aliases": [
+        "9层C点炉体温度",
+        "9层C点温度",
+        "炉身9层C点温度",
+        "9层C方位温度",
+        "C点9层炉身温度",
+        "9层炉腰温度C",
+        "2号炉9层C点炉体温度",
+        "当前9层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的9层C点炉体温度是多少",
+        "帮我查一下9层C点炉体温度当前值",
+        "看一下9层C点炉体温度最近一小时怎么变化",
+        "把9层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0173",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0173",
+        "description": "2号炉本体_9层炉腰温度C",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L9_D",
+      "object_kind": "physical_sensor",
+      "display_name": "9层炉腰温度D，20.125m",
+      "semantic_aliases": [
+        "9层D点炉体温度",
+        "9层D点温度",
+        "炉身9层D点温度",
+        "9层D方位温度",
+        "D点9层炉身温度",
+        "9层炉腰温度D",
+        "2号炉9层D点炉体温度",
+        "当前9层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的9层D点炉体温度是多少",
+        "帮我查一下9层D点炉体温度当前值",
+        "看一下9层D点炉体温度最近一小时怎么变化",
+        "把9层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0174",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0174",
+        "description": "2号炉本体_9层炉腰温度D",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L9_E",
+      "object_kind": "physical_sensor",
+      "display_name": "9层炉腰温度E，20.125m",
+      "semantic_aliases": [
+        "9层E点炉体温度",
+        "9层E点温度",
+        "炉身9层E点温度",
+        "9层E方位温度",
+        "E点9层炉身温度",
+        "9层炉腰温度E",
+        "2号炉9层E点炉体温度",
+        "当前9层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的9层E点炉体温度是多少",
+        "帮我查一下9层E点炉体温度当前值",
+        "看一下9层E点炉体温度最近一小时怎么变化",
+        "把9层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0175",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0175",
+        "description": "2号炉本体_9层炉腰温度E",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L9_F",
+      "object_kind": "physical_sensor",
+      "display_name": "9层炉腰温度F，20.125m",
+      "semantic_aliases": [
+        "9层F点炉体温度",
+        "9层F点温度",
+        "炉身9层F点温度",
+        "9层F方位温度",
+        "F点9层炉身温度",
+        "9层炉腰温度F",
+        "2号炉9层F点炉体温度",
+        "当前9层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的9层F点炉体温度是多少",
+        "帮我查一下9层F点炉体温度当前值",
+        "看一下9层F点炉体温度最近一小时怎么变化",
+        "把9层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0176",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0176",
+        "description": "2号炉本体_9层炉腰温度F",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L9_G",
+      "object_kind": "physical_sensor",
+      "display_name": "9层炉腰温度G，20.125m",
+      "semantic_aliases": [
+        "9层G点炉体温度",
+        "9层G点温度",
+        "炉身9层G点温度",
+        "9层G方位温度",
+        "G点9层炉身温度",
+        "9层炉腰温度G",
+        "2号炉9层G点炉体温度",
+        "当前9层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的9层G点炉体温度是多少",
+        "帮我查一下9层G点炉体温度当前值",
+        "看一下9层G点炉体温度最近一小时怎么变化",
+        "把9层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0177",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0177",
+        "description": "2号炉本体_9层炉腰温度G",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L9_H",
+      "object_kind": "physical_sensor",
+      "display_name": "9层炉腰温度H，20.125m",
+      "semantic_aliases": [
+        "9层H点炉体温度",
+        "9层H点温度",
+        "炉身9层H点温度",
+        "9层H方位温度",
+        "H点9层炉身温度",
+        "9层炉腰温度H",
+        "2号炉9层H点炉体温度",
+        "当前9层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的9层H点炉体温度是多少",
+        "帮我查一下9层H点炉体温度当前值",
+        "看一下9层H点炉体温度最近一小时怎么变化",
+        "把9层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0178",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0178",
+        "description": "2号炉本体_9层炉腰温度H",
+        "status_usage": "明确可用；参与T_body_lower聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L10_A",
+      "object_kind": "physical_sensor",
+      "display_name": "10层炉身下温度A，21.860m",
+      "semantic_aliases": [
+        "10层A点炉体温度",
+        "10层A点温度",
+        "炉身10层A点温度",
+        "10层A方位温度",
+        "A点10层炉身温度",
+        "10层炉身下温度A",
+        "2号炉10层A点炉体温度",
+        "当前10层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的10层A点炉体温度是多少",
+        "帮我查一下10层A点炉体温度当前值",
+        "看一下10层A点炉体温度最近一小时怎么变化",
+        "把10层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0179",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0179",
+        "description": "2号炉本体_10层炉身下温度A",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L10_B",
+      "object_kind": "physical_sensor",
+      "display_name": "10层炉身下温度B，21.860m",
+      "semantic_aliases": [
+        "10层B点炉体温度",
+        "10层B点温度",
+        "炉身10层B点温度",
+        "10层B方位温度",
+        "B点10层炉身温度",
+        "10层炉身下温度B",
+        "2号炉10层B点炉体温度",
+        "当前10层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的10层B点炉体温度是多少",
+        "帮我查一下10层B点炉体温度当前值",
+        "看一下10层B点炉体温度最近一小时怎么变化",
+        "把10层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0180",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0180",
+        "description": "2号炉本体_10层炉身下温度B",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L10_C",
+      "object_kind": "physical_sensor",
+      "display_name": "10层炉身下温度C，21.860m",
+      "semantic_aliases": [
+        "10层C点炉体温度",
+        "10层C点温度",
+        "炉身10层C点温度",
+        "10层C方位温度",
+        "C点10层炉身温度",
+        "10层炉身下温度C",
+        "2号炉10层C点炉体温度",
+        "当前10层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的10层C点炉体温度是多少",
+        "帮我查一下10层C点炉体温度当前值",
+        "看一下10层C点炉体温度最近一小时怎么变化",
+        "把10层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0181",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0181",
+        "description": "2号炉本体_10层炉身下温度C",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L10_D",
+      "object_kind": "physical_sensor",
+      "display_name": "10层炉身下温度D，21.860m",
+      "semantic_aliases": [
+        "10层D点炉体温度",
+        "10层D点温度",
+        "炉身10层D点温度",
+        "10层D方位温度",
+        "D点10层炉身温度",
+        "10层炉身下温度D",
+        "2号炉10层D点炉体温度",
+        "当前10层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的10层D点炉体温度是多少",
+        "帮我查一下10层D点炉体温度当前值",
+        "看一下10层D点炉体温度最近一小时怎么变化",
+        "把10层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0182",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0182",
+        "description": "2号炉本体_10层炉身下温度D",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L10_E",
+      "object_kind": "physical_sensor",
+      "display_name": "10层炉身下温度E，21.860m",
+      "semantic_aliases": [
+        "10层E点炉体温度",
+        "10层E点温度",
+        "炉身10层E点温度",
+        "10层E方位温度",
+        "E点10层炉身温度",
+        "10层炉身下温度E",
+        "2号炉10层E点炉体温度",
+        "当前10层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的10层E点炉体温度是多少",
+        "帮我查一下10层E点炉体温度当前值",
+        "看一下10层E点炉体温度最近一小时怎么变化",
+        "把10层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0183",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0183",
+        "description": "2号炉本体_10层炉身下温度E",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L10_F",
+      "object_kind": "physical_sensor",
+      "display_name": "10层炉身下温度F，21.860m",
+      "semantic_aliases": [
+        "10层F点炉体温度",
+        "10层F点温度",
+        "炉身10层F点温度",
+        "10层F方位温度",
+        "F点10层炉身温度",
+        "10层炉身下温度F",
+        "2号炉10层F点炉体温度",
+        "当前10层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的10层F点炉体温度是多少",
+        "帮我查一下10层F点炉体温度当前值",
+        "看一下10层F点炉体温度最近一小时怎么变化",
+        "把10层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0184",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0184",
+        "description": "2号炉本体_10层炉身下温度F",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L10_G",
+      "object_kind": "physical_sensor",
+      "display_name": "10层炉身下温度G，21.860m",
+      "semantic_aliases": [
+        "10层G点炉体温度",
+        "10层G点温度",
+        "炉身10层G点温度",
+        "10层G方位温度",
+        "G点10层炉身温度",
+        "10层炉身下温度G",
+        "2号炉10层G点炉体温度",
+        "当前10层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的10层G点炉体温度是多少",
+        "帮我查一下10层G点炉体温度当前值",
+        "看一下10层G点炉体温度最近一小时怎么变化",
+        "把10层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0185",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0185",
+        "description": "2号炉本体_10层炉身下温度G",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L10_H",
+      "object_kind": "physical_sensor",
+      "display_name": "10层炉身下温度H，21.860m",
+      "semantic_aliases": [
+        "10层H点炉体温度",
+        "10层H点温度",
+        "炉身10层H点温度",
+        "10层H方位温度",
+        "H点10层炉身温度",
+        "10层炉身下温度H",
+        "2号炉10层H点炉体温度",
+        "当前10层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的10层H点炉体温度是多少",
+        "帮我查一下10层H点炉体温度当前值",
+        "看一下10层H点炉体温度最近一小时怎么变化",
+        "把10层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0186",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0186",
+        "description": "2号炉本体_10层炉身下温度H",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L11_A",
+      "object_kind": "physical_sensor",
+      "display_name": "11层炉身下温度A，23.711m",
+      "semantic_aliases": [
+        "11层A点炉体温度",
+        "11层A点温度",
+        "炉身11层A点温度",
+        "11层A方位温度",
+        "A点11层炉身温度",
+        "11层炉身下温度A",
+        "2号炉11层A点炉体温度",
+        "当前11层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的11层A点炉体温度是多少",
+        "帮我查一下11层A点炉体温度当前值",
+        "看一下11层A点炉体温度最近一小时怎么变化",
+        "把11层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0187",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0187",
+        "description": "2号炉本体_11层炉身下温度A",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L11_B",
+      "object_kind": "physical_sensor",
+      "display_name": "11层炉身下温度B，23.711m",
+      "semantic_aliases": [
+        "11层B点炉体温度",
+        "11层B点温度",
+        "炉身11层B点温度",
+        "11层B方位温度",
+        "B点11层炉身温度",
+        "11层炉身下温度B",
+        "2号炉11层B点炉体温度",
+        "当前11层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的11层B点炉体温度是多少",
+        "帮我查一下11层B点炉体温度当前值",
+        "看一下11层B点炉体温度最近一小时怎么变化",
+        "把11层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0188",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0188",
+        "description": "2号炉本体_11层炉身下温度B",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L11_C",
+      "object_kind": "physical_sensor",
+      "display_name": "11层炉身下温度C，23.711m",
+      "semantic_aliases": [
+        "11层C点炉体温度",
+        "11层C点温度",
+        "炉身11层C点温度",
+        "11层C方位温度",
+        "C点11层炉身温度",
+        "11层炉身下温度C",
+        "2号炉11层C点炉体温度",
+        "当前11层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的11层C点炉体温度是多少",
+        "帮我查一下11层C点炉体温度当前值",
+        "看一下11层C点炉体温度最近一小时怎么变化",
+        "把11层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0189",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0189",
+        "description": "2号炉本体_11层炉身下温度C",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L11_D",
+      "object_kind": "physical_sensor",
+      "display_name": "11层炉身下温度D，23.711m",
+      "semantic_aliases": [
+        "11层D点炉体温度",
+        "11层D点温度",
+        "炉身11层D点温度",
+        "11层D方位温度",
+        "D点11层炉身温度",
+        "11层炉身下温度D",
+        "2号炉11层D点炉体温度",
+        "当前11层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的11层D点炉体温度是多少",
+        "帮我查一下11层D点炉体温度当前值",
+        "看一下11层D点炉体温度最近一小时怎么变化",
+        "把11层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0190",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0190",
+        "description": "2号炉本体_11层炉身下温度D",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L11_E",
+      "object_kind": "physical_sensor",
+      "display_name": "11层炉身下温度E，23.711m",
+      "semantic_aliases": [
+        "11层E点炉体温度",
+        "11层E点温度",
+        "炉身11层E点温度",
+        "11层E方位温度",
+        "E点11层炉身温度",
+        "11层炉身下温度E",
+        "2号炉11层E点炉体温度",
+        "当前11层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的11层E点炉体温度是多少",
+        "帮我查一下11层E点炉体温度当前值",
+        "看一下11层E点炉体温度最近一小时怎么变化",
+        "把11层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0191",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0191",
+        "description": "2号炉本体_11层炉身下温度E",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L11_F",
+      "object_kind": "physical_sensor",
+      "display_name": "11层炉身下温度F，23.711m",
+      "semantic_aliases": [
+        "11层F点炉体温度",
+        "11层F点温度",
+        "炉身11层F点温度",
+        "11层F方位温度",
+        "F点11层炉身温度",
+        "11层炉身下温度F",
+        "2号炉11层F点炉体温度",
+        "当前11层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的11层F点炉体温度是多少",
+        "帮我查一下11层F点炉体温度当前值",
+        "看一下11层F点炉体温度最近一小时怎么变化",
+        "把11层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0192",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0192",
+        "description": "2号炉本体_11层炉身下温度F",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L11_G",
+      "object_kind": "physical_sensor",
+      "display_name": "11层炉身下温度G，23.711m",
+      "semantic_aliases": [
+        "11层G点炉体温度",
+        "11层G点温度",
+        "炉身11层G点温度",
+        "11层G方位温度",
+        "G点11层炉身温度",
+        "11层炉身下温度G",
+        "2号炉11层G点炉体温度",
+        "当前11层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的11层G点炉体温度是多少",
+        "帮我查一下11层G点炉体温度当前值",
+        "看一下11层G点炉体温度最近一小时怎么变化",
+        "把11层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0193",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0193",
+        "description": "2号炉本体_11层炉身下温度G",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L11_H",
+      "object_kind": "physical_sensor",
+      "display_name": "11层炉身下温度H，23.711m",
+      "semantic_aliases": [
+        "11层H点炉体温度",
+        "11层H点温度",
+        "炉身11层H点温度",
+        "11层H方位温度",
+        "H点11层炉身温度",
+        "11层炉身下温度H",
+        "2号炉11层H点炉体温度",
+        "当前11层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的11层H点炉体温度是多少",
+        "帮我查一下11层H点炉体温度当前值",
+        "看一下11层H点炉体温度最近一小时怎么变化",
+        "把11层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0194",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0194",
+        "description": "2号炉本体_11层炉身下温度H",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L12_A",
+      "object_kind": "physical_sensor",
+      "display_name": "12层炉身下温度A，25.441m",
+      "semantic_aliases": [
+        "12层A点炉体温度",
+        "12层A点温度",
+        "炉身12层A点温度",
+        "12层A方位温度",
+        "A点12层炉身温度",
+        "12层炉身下温度A",
+        "2号炉12层A点炉体温度",
+        "当前12层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的12层A点炉体温度是多少",
+        "帮我查一下12层A点炉体温度当前值",
+        "看一下12层A点炉体温度最近一小时怎么变化",
+        "把12层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0195",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0195",
+        "description": "2号炉本体_12层炉身下温度A",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L12_B",
+      "object_kind": "physical_sensor",
+      "display_name": "12层炉身下温度B，25.441m",
+      "semantic_aliases": [
+        "12层B点炉体温度",
+        "12层B点温度",
+        "炉身12层B点温度",
+        "12层B方位温度",
+        "B点12层炉身温度",
+        "12层炉身下温度B",
+        "2号炉12层B点炉体温度",
+        "当前12层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的12层B点炉体温度是多少",
+        "帮我查一下12层B点炉体温度当前值",
+        "看一下12层B点炉体温度最近一小时怎么变化",
+        "把12层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0196",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0196",
+        "description": "2号炉本体_12层炉身下温度B",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L12_C",
+      "object_kind": "physical_sensor",
+      "display_name": "12层炉身下温度C，25.441m",
+      "semantic_aliases": [
+        "12层C点炉体温度",
+        "12层C点温度",
+        "炉身12层C点温度",
+        "12层C方位温度",
+        "C点12层炉身温度",
+        "12层炉身下温度C",
+        "2号炉12层C点炉体温度",
+        "当前12层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的12层C点炉体温度是多少",
+        "帮我查一下12层C点炉体温度当前值",
+        "看一下12层C点炉体温度最近一小时怎么变化",
+        "把12层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0197",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0197",
+        "description": "2号炉本体_12层炉身下温度C",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L12_D",
+      "object_kind": "physical_sensor",
+      "display_name": "12层炉身下温度D，25.441m",
+      "semantic_aliases": [
+        "12层D点炉体温度",
+        "12层D点温度",
+        "炉身12层D点温度",
+        "12层D方位温度",
+        "D点12层炉身温度",
+        "12层炉身下温度D",
+        "2号炉12层D点炉体温度",
+        "当前12层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的12层D点炉体温度是多少",
+        "帮我查一下12层D点炉体温度当前值",
+        "看一下12层D点炉体温度最近一小时怎么变化",
+        "把12层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0198",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0198",
+        "description": "2号炉本体_12层炉身下温度D",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L12_E",
+      "object_kind": "physical_sensor",
+      "display_name": "12层炉身下温度E，25.441m",
+      "semantic_aliases": [
+        "12层E点炉体温度",
+        "12层E点温度",
+        "炉身12层E点温度",
+        "12层E方位温度",
+        "E点12层炉身温度",
+        "12层炉身下温度E",
+        "2号炉12层E点炉体温度",
+        "当前12层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的12层E点炉体温度是多少",
+        "帮我查一下12层E点炉体温度当前值",
+        "看一下12层E点炉体温度最近一小时怎么变化",
+        "把12层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0199",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0199",
+        "description": "2号炉本体_12层炉身下温度E",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L12_F",
+      "object_kind": "physical_sensor",
+      "display_name": "12层炉身下温度F，25.441m",
+      "semantic_aliases": [
+        "12层F点炉体温度",
+        "12层F点温度",
+        "炉身12层F点温度",
+        "12层F方位温度",
+        "F点12层炉身温度",
+        "12层炉身下温度F",
+        "2号炉12层F点炉体温度",
+        "当前12层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的12层F点炉体温度是多少",
+        "帮我查一下12层F点炉体温度当前值",
+        "看一下12层F点炉体温度最近一小时怎么变化",
+        "把12层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0200",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0200",
+        "description": "2号炉本体_12层炉身下温度F",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L12_G",
+      "object_kind": "physical_sensor",
+      "display_name": "12层炉身下温度G，25.441m",
+      "semantic_aliases": [
+        "12层G点炉体温度",
+        "12层G点温度",
+        "炉身12层G点温度",
+        "12层G方位温度",
+        "G点12层炉身温度",
+        "12层炉身下温度G",
+        "2号炉12层G点炉体温度",
+        "当前12层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的12层G点炉体温度是多少",
+        "帮我查一下12层G点炉体温度当前值",
+        "看一下12层G点炉体温度最近一小时怎么变化",
+        "把12层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0201",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0201",
+        "description": "2号炉本体_12层炉身下温度G",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L12_H",
+      "object_kind": "physical_sensor",
+      "display_name": "12层炉身下温度H，25.441m",
+      "semantic_aliases": [
+        "12层H点炉体温度",
+        "12层H点温度",
+        "炉身12层H点温度",
+        "12层H方位温度",
+        "H点12层炉身温度",
+        "12层炉身下温度H",
+        "2号炉12层H点炉体温度",
+        "当前12层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的12层H点炉体温度是多少",
+        "帮我查一下12层H点炉体温度当前值",
+        "看一下12层H点炉体温度最近一小时怎么变化",
+        "把12层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0202",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0202",
+        "description": "2号炉本体_12层炉身下温度H",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L13_A",
+      "object_kind": "physical_sensor",
+      "display_name": "13层炉身下温度A，27.171m",
+      "semantic_aliases": [
+        "13层A点炉体温度",
+        "13层A点温度",
+        "炉身13层A点温度",
+        "13层A方位温度",
+        "A点13层炉身温度",
+        "13层炉身下温度A",
+        "2号炉13层A点炉体温度",
+        "当前13层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的13层A点炉体温度是多少",
+        "帮我查一下13层A点炉体温度当前值",
+        "看一下13层A点炉体温度最近一小时怎么变化",
+        "把13层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0203",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0203",
+        "description": "2号炉本体_13层炉身下温度A",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L13_B",
+      "object_kind": "physical_sensor",
+      "display_name": "13层炉身下温度B，27.171m",
+      "semantic_aliases": [
+        "13层B点炉体温度",
+        "13层B点温度",
+        "炉身13层B点温度",
+        "13层B方位温度",
+        "B点13层炉身温度",
+        "13层炉身下温度B",
+        "2号炉13层B点炉体温度",
+        "当前13层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的13层B点炉体温度是多少",
+        "帮我查一下13层B点炉体温度当前值",
+        "看一下13层B点炉体温度最近一小时怎么变化",
+        "把13层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0204",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0204",
+        "description": "2号炉本体_13层炉身下温度B",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L13_C",
+      "object_kind": "physical_sensor",
+      "display_name": "13层炉身下温度C，27.171m",
+      "semantic_aliases": [
+        "13层C点炉体温度",
+        "13层C点温度",
+        "炉身13层C点温度",
+        "13层C方位温度",
+        "C点13层炉身温度",
+        "13层炉身下温度C",
+        "2号炉13层C点炉体温度",
+        "当前13层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的13层C点炉体温度是多少",
+        "帮我查一下13层C点炉体温度当前值",
+        "看一下13层C点炉体温度最近一小时怎么变化",
+        "把13层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0205",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0205",
+        "description": "2号炉本体_13层炉身下温度C",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L13_D",
+      "object_kind": "physical_sensor",
+      "display_name": "13层炉身下温度D，27.171m",
+      "semantic_aliases": [
+        "13层D点炉体温度",
+        "13层D点温度",
+        "炉身13层D点温度",
+        "13层D方位温度",
+        "D点13层炉身温度",
+        "13层炉身下温度D",
+        "2号炉13层D点炉体温度",
+        "当前13层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的13层D点炉体温度是多少",
+        "帮我查一下13层D点炉体温度当前值",
+        "看一下13层D点炉体温度最近一小时怎么变化",
+        "把13层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0206",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0206",
+        "description": "2号炉本体_13层炉身下温度D",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L13_E",
+      "object_kind": "physical_sensor",
+      "display_name": "13层炉身下温度E，27.171m",
+      "semantic_aliases": [
+        "13层E点炉体温度",
+        "13层E点温度",
+        "炉身13层E点温度",
+        "13层E方位温度",
+        "E点13层炉身温度",
+        "13层炉身下温度E",
+        "2号炉13层E点炉体温度",
+        "当前13层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的13层E点炉体温度是多少",
+        "帮我查一下13层E点炉体温度当前值",
+        "看一下13层E点炉体温度最近一小时怎么变化",
+        "把13层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0207",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0207",
+        "description": "2号炉本体_13层炉身下温度E",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L13_F",
+      "object_kind": "physical_sensor",
+      "display_name": "13层炉身下温度F，27.171m",
+      "semantic_aliases": [
+        "13层F点炉体温度",
+        "13层F点温度",
+        "炉身13层F点温度",
+        "13层F方位温度",
+        "F点13层炉身温度",
+        "13层炉身下温度F",
+        "2号炉13层F点炉体温度",
+        "当前13层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的13层F点炉体温度是多少",
+        "帮我查一下13层F点炉体温度当前值",
+        "看一下13层F点炉体温度最近一小时怎么变化",
+        "把13层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0208",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0208",
+        "description": "2号炉本体_13层炉身下温度F",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L13_G",
+      "object_kind": "physical_sensor",
+      "display_name": "13层炉身下温度G，27.171m",
+      "semantic_aliases": [
+        "13层G点炉体温度",
+        "13层G点温度",
+        "炉身13层G点温度",
+        "13层G方位温度",
+        "G点13层炉身温度",
+        "13层炉身下温度G",
+        "2号炉13层G点炉体温度",
+        "当前13层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的13层G点炉体温度是多少",
+        "帮我查一下13层G点炉体温度当前值",
+        "看一下13层G点炉体温度最近一小时怎么变化",
+        "把13层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0209",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0209",
+        "description": "2号炉本体_13层炉身下温度G",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L13_H",
+      "object_kind": "physical_sensor",
+      "display_name": "13层炉身下温度H，27.171m",
+      "semantic_aliases": [
+        "13层H点炉体温度",
+        "13层H点温度",
+        "炉身13层H点温度",
+        "13层H方位温度",
+        "H点13层炉身温度",
+        "13层炉身下温度H",
+        "2号炉13层H点炉体温度",
+        "当前13层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的13层H点炉体温度是多少",
+        "帮我查一下13层H点炉体温度当前值",
+        "看一下13层H点炉体温度最近一小时怎么变化",
+        "把13层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0210",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0210",
+        "description": "2号炉本体_13层炉身下温度H",
+        "status_usage": "明确可用；参与T_body_middle聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L14_A",
+      "object_kind": "physical_sensor",
+      "display_name": "14层炉身中温度A，28.901m",
+      "semantic_aliases": [
+        "14层A点炉体温度",
+        "14层A点温度",
+        "炉身14层A点温度",
+        "14层A方位温度",
+        "A点14层炉身温度",
+        "14层炉身中温度A",
+        "2号炉14层A点炉体温度",
+        "当前14层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的14层A点炉体温度是多少",
+        "帮我查一下14层A点炉体温度当前值",
+        "看一下14层A点炉体温度最近一小时怎么变化",
+        "把14层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0211",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0211",
+        "description": "2号炉本体_14层炉身中温度A",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L14_B",
+      "object_kind": "physical_sensor",
+      "display_name": "14层炉身中温度B，28.901m",
+      "semantic_aliases": [
+        "14层B点炉体温度",
+        "14层B点温度",
+        "炉身14层B点温度",
+        "14层B方位温度",
+        "B点14层炉身温度",
+        "14层炉身中温度B",
+        "2号炉14层B点炉体温度",
+        "当前14层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的14层B点炉体温度是多少",
+        "帮我查一下14层B点炉体温度当前值",
+        "看一下14层B点炉体温度最近一小时怎么变化",
+        "把14层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0212",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0212",
+        "description": "2号炉本体_14层炉身中温度B",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L14_C",
+      "object_kind": "physical_sensor",
+      "display_name": "14层炉身中温度C，28.901m",
+      "semantic_aliases": [
+        "14层C点炉体温度",
+        "14层C点温度",
+        "炉身14层C点温度",
+        "14层C方位温度",
+        "C点14层炉身温度",
+        "14层炉身中温度C",
+        "2号炉14层C点炉体温度",
+        "当前14层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的14层C点炉体温度是多少",
+        "帮我查一下14层C点炉体温度当前值",
+        "看一下14层C点炉体温度最近一小时怎么变化",
+        "把14层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0213",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0213",
+        "description": "2号炉本体_14层炉身中温度C",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L14_D",
+      "object_kind": "physical_sensor",
+      "display_name": "14层炉身中温度D，28.901m",
+      "semantic_aliases": [
+        "14层D点炉体温度",
+        "14层D点温度",
+        "炉身14层D点温度",
+        "14层D方位温度",
+        "D点14层炉身温度",
+        "14层炉身中温度D",
+        "2号炉14层D点炉体温度",
+        "当前14层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的14层D点炉体温度是多少",
+        "帮我查一下14层D点炉体温度当前值",
+        "看一下14层D点炉体温度最近一小时怎么变化",
+        "把14层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0214",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0214",
+        "description": "2号炉本体_14层炉身中温度D",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L14_E",
+      "object_kind": "physical_sensor",
+      "display_name": "14层炉身中温度E，28.901m",
+      "semantic_aliases": [
+        "14层E点炉体温度",
+        "14层E点温度",
+        "炉身14层E点温度",
+        "14层E方位温度",
+        "E点14层炉身温度",
+        "14层炉身中温度E",
+        "2号炉14层E点炉体温度",
+        "当前14层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的14层E点炉体温度是多少",
+        "帮我查一下14层E点炉体温度当前值",
+        "看一下14层E点炉体温度最近一小时怎么变化",
+        "把14层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0215",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0215",
+        "description": "2号炉本体_14层炉身中温度E",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L14_F",
+      "object_kind": "physical_sensor",
+      "display_name": "14层炉身中温度F，28.901m",
+      "semantic_aliases": [
+        "14层F点炉体温度",
+        "14层F点温度",
+        "炉身14层F点温度",
+        "14层F方位温度",
+        "F点14层炉身温度",
+        "14层炉身中温度F",
+        "2号炉14层F点炉体温度",
+        "当前14层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的14层F点炉体温度是多少",
+        "帮我查一下14层F点炉体温度当前值",
+        "看一下14层F点炉体温度最近一小时怎么变化",
+        "把14层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0216",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0216",
+        "description": "2号炉本体_14层炉身中温度F",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L14_G",
+      "object_kind": "physical_sensor",
+      "display_name": "14层炉身中温度G，28.901m",
+      "semantic_aliases": [
+        "14层G点炉体温度",
+        "14层G点温度",
+        "炉身14层G点温度",
+        "14层G方位温度",
+        "G点14层炉身温度",
+        "14层炉身中温度G",
+        "2号炉14层G点炉体温度",
+        "当前14层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的14层G点炉体温度是多少",
+        "帮我查一下14层G点炉体温度当前值",
+        "看一下14层G点炉体温度最近一小时怎么变化",
+        "把14层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0217",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0217",
+        "description": "2号炉本体_14层炉身中温度G",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L14_H",
+      "object_kind": "physical_sensor",
+      "display_name": "14层炉身中温度H，28.901m",
+      "semantic_aliases": [
+        "14层H点炉体温度",
+        "14层H点温度",
+        "炉身14层H点温度",
+        "14层H方位温度",
+        "H点14层炉身温度",
+        "14层炉身中温度H",
+        "2号炉14层H点炉体温度",
+        "当前14层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的14层H点炉体温度是多少",
+        "帮我查一下14层H点炉体温度当前值",
+        "看一下14层H点炉体温度最近一小时怎么变化",
+        "把14层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0218",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0218",
+        "description": "2号炉本体_14层炉身中温度H",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L15_A",
+      "object_kind": "physical_sensor",
+      "display_name": "15层炉身上温度A，30.631m",
+      "semantic_aliases": [
+        "15层A点炉体温度",
+        "15层A点温度",
+        "炉身15层A点温度",
+        "15层A方位温度",
+        "A点15层炉身温度",
+        "15层炉身上温度A",
+        "2号炉15层A点炉体温度",
+        "当前15层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的15层A点炉体温度是多少",
+        "帮我查一下15层A点炉体温度当前值",
+        "看一下15层A点炉体温度最近一小时怎么变化",
+        "把15层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0219",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0219",
+        "description": "2号炉本体_15层炉身上温度A",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L15_B",
+      "object_kind": "physical_sensor",
+      "display_name": "15层炉身上温度B，30.631m",
+      "semantic_aliases": [
+        "15层B点炉体温度",
+        "15层B点温度",
+        "炉身15层B点温度",
+        "15层B方位温度",
+        "B点15层炉身温度",
+        "15层炉身上温度B",
+        "2号炉15层B点炉体温度",
+        "当前15层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的15层B点炉体温度是多少",
+        "帮我查一下15层B点炉体温度当前值",
+        "看一下15层B点炉体温度最近一小时怎么变化",
+        "把15层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0220",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0220",
+        "description": "2号炉本体_15层炉身上温度B",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L15_C",
+      "object_kind": "physical_sensor",
+      "display_name": "15层炉身上温度C，30.631m",
+      "semantic_aliases": [
+        "15层C点炉体温度",
+        "15层C点温度",
+        "炉身15层C点温度",
+        "15层C方位温度",
+        "C点15层炉身温度",
+        "15层炉身上温度C",
+        "2号炉15层C点炉体温度",
+        "当前15层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的15层C点炉体温度是多少",
+        "帮我查一下15层C点炉体温度当前值",
+        "看一下15层C点炉体温度最近一小时怎么变化",
+        "把15层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0221",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0221",
+        "description": "2号炉本体_15层炉身上温度C",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L15_D",
+      "object_kind": "physical_sensor",
+      "display_name": "15层炉身上温度D，30.631m",
+      "semantic_aliases": [
+        "15层D点炉体温度",
+        "15层D点温度",
+        "炉身15层D点温度",
+        "15层D方位温度",
+        "D点15层炉身温度",
+        "15层炉身上温度D",
+        "2号炉15层D点炉体温度",
+        "当前15层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的15层D点炉体温度是多少",
+        "帮我查一下15层D点炉体温度当前值",
+        "看一下15层D点炉体温度最近一小时怎么变化",
+        "把15层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0222",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0222",
+        "description": "2号炉本体_15层炉身上温度D",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L15_E",
+      "object_kind": "physical_sensor",
+      "display_name": "15层炉身上温度E，30.631m",
+      "semantic_aliases": [
+        "15层E点炉体温度",
+        "15层E点温度",
+        "炉身15层E点温度",
+        "15层E方位温度",
+        "E点15层炉身温度",
+        "15层炉身上温度E",
+        "2号炉15层E点炉体温度",
+        "当前15层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的15层E点炉体温度是多少",
+        "帮我查一下15层E点炉体温度当前值",
+        "看一下15层E点炉体温度最近一小时怎么变化",
+        "把15层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0223",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0223",
+        "description": "2号炉本体_15层炉身上温度E",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L15_F",
+      "object_kind": "physical_sensor",
+      "display_name": "15层炉身上温度F，30.631m",
+      "semantic_aliases": [
+        "15层F点炉体温度",
+        "15层F点温度",
+        "炉身15层F点温度",
+        "15层F方位温度",
+        "F点15层炉身温度",
+        "15层炉身上温度F",
+        "2号炉15层F点炉体温度",
+        "当前15层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的15层F点炉体温度是多少",
+        "帮我查一下15层F点炉体温度当前值",
+        "看一下15层F点炉体温度最近一小时怎么变化",
+        "把15层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0224",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0224",
+        "description": "2号炉本体_15层炉身上温度F",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L15_G",
+      "object_kind": "physical_sensor",
+      "display_name": "15层炉身上温度G，30.631m",
+      "semantic_aliases": [
+        "15层G点炉体温度",
+        "15层G点温度",
+        "炉身15层G点温度",
+        "15层G方位温度",
+        "G点15层炉身温度",
+        "15层炉身上温度G",
+        "2号炉15层G点炉体温度",
+        "当前15层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的15层G点炉体温度是多少",
+        "帮我查一下15层G点炉体温度当前值",
+        "看一下15层G点炉体温度最近一小时怎么变化",
+        "把15层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0225",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0225",
+        "description": "2号炉本体_15层炉身上温度G",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L15_H",
+      "object_kind": "physical_sensor",
+      "display_name": "15层炉身上温度H，30.631m",
+      "semantic_aliases": [
+        "15层H点炉体温度",
+        "15层H点温度",
+        "炉身15层H点温度",
+        "15层H方位温度",
+        "H点15层炉身温度",
+        "15层炉身上温度H",
+        "2号炉15层H点炉体温度",
+        "当前15层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的15层H点炉体温度是多少",
+        "帮我查一下15层H点炉体温度当前值",
+        "看一下15层H点炉体温度最近一小时怎么变化",
+        "把15层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0226",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0226",
+        "description": "2号炉本体_15层炉身上温度H",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L16_A",
+      "object_kind": "physical_sensor",
+      "display_name": "16层炉身上温度A，32.361m",
+      "semantic_aliases": [
+        "16层A点炉体温度",
+        "16层A点温度",
+        "炉身16层A点温度",
+        "16层A方位温度",
+        "A点16层炉身温度",
+        "16层炉身上温度A",
+        "2号炉16层A点炉体温度",
+        "当前16层A点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的16层A点炉体温度是多少",
+        "帮我查一下16层A点炉体温度当前值",
+        "看一下16层A点炉体温度最近一小时怎么变化",
+        "把16层A点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0227",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0227",
+        "description": "2号炉本体_16层炉身上温度A",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L16_B",
+      "object_kind": "physical_sensor",
+      "display_name": "16层炉身上温度B，32.361m",
+      "semantic_aliases": [
+        "16层B点炉体温度",
+        "16层B点温度",
+        "炉身16层B点温度",
+        "16层B方位温度",
+        "B点16层炉身温度",
+        "16层炉身上温度B",
+        "2号炉16层B点炉体温度",
+        "当前16层B点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的16层B点炉体温度是多少",
+        "帮我查一下16层B点炉体温度当前值",
+        "看一下16层B点炉体温度最近一小时怎么变化",
+        "把16层B点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0228",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0228",
+        "description": "2号炉本体_16层炉身上温度B",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L16_C",
+      "object_kind": "physical_sensor",
+      "display_name": "16层炉身上温度C，32.361m",
+      "semantic_aliases": [
+        "16层C点炉体温度",
+        "16层C点温度",
+        "炉身16层C点温度",
+        "16层C方位温度",
+        "C点16层炉身温度",
+        "16层炉身上温度C",
+        "2号炉16层C点炉体温度",
+        "当前16层C点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的16层C点炉体温度是多少",
+        "帮我查一下16层C点炉体温度当前值",
+        "看一下16层C点炉体温度最近一小时怎么变化",
+        "把16层C点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0229",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0229",
+        "description": "2号炉本体_16层炉身上温度C",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L16_D",
+      "object_kind": "physical_sensor",
+      "display_name": "16层炉身上温度D，32.361m",
+      "semantic_aliases": [
+        "16层D点炉体温度",
+        "16层D点温度",
+        "炉身16层D点温度",
+        "16层D方位温度",
+        "D点16层炉身温度",
+        "16层炉身上温度D",
+        "2号炉16层D点炉体温度",
+        "当前16层D点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的16层D点炉体温度是多少",
+        "帮我查一下16层D点炉体温度当前值",
+        "看一下16层D点炉体温度最近一小时怎么变化",
+        "把16层D点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0230",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0230",
+        "description": "2号炉本体_16层炉身上温度D",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L16_E",
+      "object_kind": "physical_sensor",
+      "display_name": "16层炉身上温度E，32.361m",
+      "semantic_aliases": [
+        "16层E点炉体温度",
+        "16层E点温度",
+        "炉身16层E点温度",
+        "16层E方位温度",
+        "E点16层炉身温度",
+        "16层炉身上温度E",
+        "2号炉16层E点炉体温度",
+        "当前16层E点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的16层E点炉体温度是多少",
+        "帮我查一下16层E点炉体温度当前值",
+        "看一下16层E点炉体温度最近一小时怎么变化",
+        "把16层E点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0231",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0231",
+        "description": "2号炉本体_16层炉身上温度E",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L16_F",
+      "object_kind": "physical_sensor",
+      "display_name": "16层炉身上温度F，32.361m",
+      "semantic_aliases": [
+        "16层F点炉体温度",
+        "16层F点温度",
+        "炉身16层F点温度",
+        "16层F方位温度",
+        "F点16层炉身温度",
+        "16层炉身上温度F",
+        "2号炉16层F点炉体温度",
+        "当前16层F点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的16层F点炉体温度是多少",
+        "帮我查一下16层F点炉体温度当前值",
+        "看一下16层F点炉体温度最近一小时怎么变化",
+        "把16层F点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0232",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0232",
+        "description": "2号炉本体_16层炉身上温度F",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L16_G",
+      "object_kind": "physical_sensor",
+      "display_name": "16层炉身上温度G，32.361m",
+      "semantic_aliases": [
+        "16层G点炉体温度",
+        "16层G点温度",
+        "炉身16层G点温度",
+        "16层G方位温度",
+        "G点16层炉身温度",
+        "16层炉身上温度G",
+        "2号炉16层G点炉体温度",
+        "当前16层G点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的16层G点炉体温度是多少",
+        "帮我查一下16层G点炉体温度当前值",
+        "看一下16层G点炉体温度最近一小时怎么变化",
+        "把16层G点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0233",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0233",
+        "description": "2号炉本体_16层炉身上温度G",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "T_body_L16_H",
+      "object_kind": "physical_sensor",
+      "display_name": "16层炉身上温度H，32.361m",
+      "semantic_aliases": [
+        "16层H点炉体温度",
+        "16层H点温度",
+        "炉身16层H点温度",
+        "16层H方位温度",
+        "H点16层炉身温度",
+        "16层炉身上温度H",
+        "2号炉16层H点炉体温度",
+        "当前16层H点炉体温度"
+      ],
+      "spoken_expressions": [
+        "现在的16层H点炉体温度是多少",
+        "帮我查一下16层H点炉体温度当前值",
+        "看一下16层H点炉体温度最近一小时怎么变化",
+        "把16层H点炉体温度和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0234",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0234",
+        "description": "2号炉本体_16层炉身上温度H",
+        "status_usage": "明确可用；参与T_body_upper聚合"
+      }
+    },
+    {
+      "object_id": "PCI_previous_hour",
+      "object_kind": "physical_sensor",
+      "display_name": "上小时喷煤量",
+      "semantic_aliases": [
+        "上小时喷煤量",
+        "上一小时喷煤量",
+        "前一小时喷煤量",
+        "上小时喷煤量累计",
+        "2号炉上小时喷煤量",
+        "当前上小时喷煤量"
+      ],
+      "spoken_expressions": [
+        "现在的上小时喷煤量是多少",
+        "帮我查一下上小时喷煤量当前值",
+        "看一下上小时喷煤量最近一小时怎么变化",
+        "把上小时喷煤量和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "PC",
+        "short_name": "SIO_GL02_PC_T0004",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\PC\\SIO_GL02_PC_T0004",
+        "description": "2号炉喷吹_上小时喷煤量累计",
+        "status_usage": "2号炉SIO实测确认；单位t；按整点归属上一完整小时"
+      }
+    },
+    {
+      "object_id": "BlastEnergy",
+      "object_kind": "physical_sensor",
+      "display_name": "鼓风动能",
+      "semantic_aliases": [
+        "鼓风动能",
+        "风能",
+        "鼓风能量",
+        "2号炉鼓风动能",
+        "当前鼓风动能"
+      ],
+      "spoken_expressions": [
+        "现在的鼓风动能是多少",
+        "帮我查一下鼓风动能当前值",
+        "看一下鼓风动能最近一小时怎么变化",
+        "把鼓风动能和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0136",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0136",
+        "description": "2号炉本体_鼓风动能",
+        "status_usage": "2号炉SIO实测确认；工长趋势显示"
+      }
+    },
+    {
+      "object_id": "BlastSpeedStd",
+      "object_kind": "physical_sensor",
+      "display_name": "标准风速",
+      "semantic_aliases": [
+        "标准风速",
+        "标况风速",
+        "标准状态风速",
+        "2号炉标准风速",
+        "当前标准风速"
+      ],
+      "spoken_expressions": [
+        "现在的标准风速是多少",
+        "帮我查一下标准风速当前值",
+        "看一下标准风速最近一小时怎么变化",
+        "把标准风速和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0133",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0133",
+        "description": "2号炉本体_标准风速",
+        "status_usage": "2号炉SIO实测确认；单位m/s"
+      }
+    },
+    {
+      "object_id": "BlastSpeedActual",
+      "object_kind": "physical_sensor",
+      "display_name": "实际风速",
+      "semantic_aliases": [
+        "实际风速",
+        "实况风速",
+        "当前风速",
+        "2号炉实际风速",
+        "当前实际风速"
+      ],
+      "spoken_expressions": [
+        "现在的实际风速是多少",
+        "帮我查一下实际风速当前值",
+        "看一下实际风速最近一小时怎么变化",
+        "把实际风速和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0134",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0134",
+        "description": "2号炉本体_实际风速",
+        "status_usage": "2号炉SIO实测确认；单位m/s"
+      }
+    },
+    {
+      "object_id": "Q_soft_water",
+      "object_kind": "physical_sensor",
+      "display_name": "软水流量",
+      "semantic_aliases": [
+        "软水流量",
+        "软水回水流量",
+        "软化水流量",
+        "软水回水主管流量",
+        "2号炉软水流量",
+        "当前软水流量"
+      ],
+      "spoken_expressions": [
+        "现在的软水流量是多少",
+        "帮我查一下软水流量当前值",
+        "看一下软水流量最近一小时怎么变化",
+        "把软水流量和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0056",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0056",
+        "description": "2号炉本体_软水回水主管流量",
+        "status_usage": "2号炉SIO实测确认；单位m3/h"
+      }
+    },
+    {
+      "object_id": "P_soft_water",
+      "object_kind": "physical_sensor",
+      "display_name": "软水压力",
+      "semantic_aliases": [
+        "软水压力",
+        "软水给水压力",
+        "软化水压力",
+        "软水给水总管压力",
+        "2号炉软水压力",
+        "当前软水压力"
+      ],
+      "spoken_expressions": [
+        "现在的软水压力是多少",
+        "帮我查一下软水压力当前值",
+        "看一下软水压力最近一小时怎么变化",
+        "把软水压力和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0137",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0137",
+        "description": "2号炉本体_软水给水总管压力",
+        "status_usage": "2号炉SIO实测确认；单位MPa"
+      }
+    },
+    {
+      "object_id": "Q_high_pressure_water",
+      "object_kind": "physical_sensor",
+      "display_name": "高压水流量",
+      "semantic_aliases": [
+        "高压水流量",
+        "高压供水流量",
+        "高压水量",
+        "2号炉高压水流量",
+        "当前高压水流量"
+      ],
+      "spoken_expressions": [
+        "现在的高压水流量是多少",
+        "帮我查一下高压水流量当前值",
+        "看一下高压水流量最近一小时怎么变化",
+        "把高压水流量和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0021",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0021",
+        "description": "2号炉本体_高压水流量",
+        "status_usage": "2号炉SIO实测确认；单位m3/h"
+      }
+    },
+    {
+      "object_id": "P_high_pressure_water",
+      "object_kind": "physical_sensor",
+      "display_name": "高压水压力",
+      "semantic_aliases": [
+        "高压水压力",
+        "高压供水压力",
+        "高压水压",
+        "2号炉高压水压力",
+        "当前高压水压力"
+      ],
+      "spoken_expressions": [
+        "现在的高压水压力是多少",
+        "帮我查一下高压水压力当前值",
+        "看一下高压水压力最近一小时怎么变化",
+        "把高压水压力和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0148",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0148",
+        "description": "2号炉本体_高压供水压力",
+        "status_usage": "2号炉SIO实测确认；单位MPa"
+      }
+    },
+    {
+      "object_id": "P_medium_pressure_water",
+      "object_kind": "physical_sensor",
+      "display_name": "中压水压力",
+      "semantic_aliases": [
+        "中压水压力",
+        "中压供水压力",
+        "中压水压",
+        "2号炉中压水压力",
+        "当前中压水压力"
+      ],
+      "spoken_expressions": [
+        "现在的中压水压力是多少",
+        "帮我查一下中压水压力当前值",
+        "看一下中压水压力最近一小时怎么变化",
+        "把中压水压力和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0147",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0147",
+        "description": "2号炉本体_中压供水压力",
+        "status_usage": "2号炉SIO实测确认；单位MPa"
+      }
+    },
+    {
+      "object_id": "ExpansionTankLevel",
+      "object_kind": "physical_sensor",
+      "display_name": "膨胀罐液位",
+      "semantic_aliases": [
+        "膨胀罐液位",
+        "膨胀罐水位",
+        "膨胀罐料位",
+        "2号炉膨胀罐液位",
+        "当前膨胀罐液位"
+      ],
+      "spoken_expressions": [
+        "现在的膨胀罐液位是多少",
+        "帮我查一下膨胀罐液位当前值",
+        "看一下膨胀罐液位最近一小时怎么变化",
+        "把膨胀罐液位和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "BT",
+        "short_name": "SIO_GL02_BT_T0097",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\BT\\SIO_GL02_BT_T0097",
+        "description": "2号炉本体_膨胀罐液位",
+        "status_usage": "2号炉SIO实测确认；单位m"
+      }
+    },
+    {
+      "object_id": "Hopper_weight",
+      "object_kind": "physical_sensor",
+      "display_name": "罐重",
+      "semantic_aliases": [
+        "罐重",
+        "称量罐重量",
+        "炉顶称量罐重量",
+        "称量罐实际重量称重",
+        "2号炉罐重",
+        "当前罐重"
+      ],
+      "spoken_expressions": [
+        "现在的罐重是多少",
+        "帮我查一下罐重当前值",
+        "看一下罐重最近一小时怎么变化",
+        "把罐重和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0059",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0059",
+        "description": "2号炉炉顶_称量罐实际重量称重",
+        "status_usage": "2号炉SIO实测确认；单位t"
+      }
+    },
+    {
+      "object_id": "Q_N2",
+      "object_kind": "physical_sensor",
+      "display_name": "氮气流量",
+      "semantic_aliases": [
+        "氮气流量",
+        "氮气量",
+        "炉顶氮气流量",
+        "进下阀箱和进气密箱氮气流量",
+        "2号炉氮气流量",
+        "当前氮气流量"
+      ],
+      "spoken_expressions": [
+        "现在的氮气流量是多少",
+        "帮我查一下氮气流量当前值",
+        "看一下氮气流量最近一小时怎么变化",
+        "把氮气流量和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0045",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0045",
+        "description": "2号炉炉顶_进下阀箱和进气密箱氮气流量",
+        "status_usage": "2号炉SIO实测确认；单位Nm3/h"
+      }
+    },
+    {
+      "object_id": "P_N2",
+      "object_kind": "physical_sensor",
+      "display_name": "氮气压力",
+      "semantic_aliases": [
+        "氮气压力",
+        "氮气总管压力",
+        "炉顶氮气压力",
+        "氮气总管调压阀后压力",
+        "2号炉氮气压力",
+        "当前氮气压力"
+      ],
+      "spoken_expressions": [
+        "现在的氮气压力是多少",
+        "帮我查一下氮气压力当前值",
+        "看一下氮气压力最近一小时怎么变化",
+        "把氮气压力和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "LD",
+        "short_name": "SIO_GL02_LD_T0073",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\LD\\SIO_GL02_LD_T0073",
+        "description": "2号炉炉顶_氮气总管调压阀后压力",
+        "status_usage": "2号炉SIO实测确认；单位kPa"
+      }
+    },
+    {
+      "object_id": "P_O2_valve_in",
+      "object_kind": "physical_sensor",
+      "display_name": "阀前富氧压力",
+      "semantic_aliases": [
+        "阀前富氧压力",
+        "富氧阀前压力",
+        "氧气阀前压力",
+        "富氧压力",
+        "2号炉阀前富氧压力",
+        "当前阀前富氧压力"
+      ],
+      "spoken_expressions": [
+        "现在的阀前富氧压力是多少",
+        "帮我查一下阀前富氧压力当前值",
+        "看一下阀前富氧压力最近一小时怎么变化",
+        "把阀前富氧压力和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "CX",
+        "short_name": "SIO_GL02_CX_T0289",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\CX\\SIO_GL02_CX_T0289",
+        "description": "2号炉槽下_富氧压力",
+        "status_usage": "2号炉SIO实测确认；单位MPa"
+      }
+    },
+    {
+      "object_id": "P_O2_valve_out",
+      "object_kind": "physical_sensor",
+      "display_name": "阀后富氧压力",
+      "semantic_aliases": [
+        "阀后富氧压力",
+        "富氧阀后压力",
+        "氧气阀后压力",
+        "阀后富氧",
+        "2号炉阀后富氧压力",
+        "当前阀后富氧压力"
+      ],
+      "spoken_expressions": [
+        "现在的阀后富氧压力是多少",
+        "帮我查一下阀后富氧压力当前值",
+        "看一下阀后富氧压力最近一小时怎么变化",
+        "把阀后富氧压力和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "CX",
+        "short_name": "SIO_GL02_CX_T0291",
+        "point_id": "\\冀南钢铁\\SIO\\GL02\\CX\\SIO_GL02_CX_T0291",
+        "description": "2号炉槽下_阀后富氧",
+        "status_usage": "2号炉SIO实测确认；单位MPa"
+      }
+    },
+    {
+      "object_id": "PCI_current_hour",
+      "object_kind": "derived_metric",
+      "display_name": "本小时喷煤量",
+      "semantic_aliases": [
+        "本小时喷煤量",
+        "当前小时喷煤量",
+        "这小时喷煤量",
+        "喷煤实际速率从本小时整点按真实时间间隔积分",
+        "2号炉本小时喷煤量",
+        "当前本小时喷煤量"
+      ],
+      "spoken_expressions": [
+        "现在的本小时喷煤量是多少",
+        "帮我查一下本小时喷煤量当前值",
+        "看一下本小时喷煤量最近一小时怎么变化",
+        "把本小时喷煤量和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "PC",
+        "short_name": "派生",
+        "point_id": "PCI_rate integral from hour start",
+        "description": "喷煤实际速率从本小时整点按真实时间间隔积分",
+        "status_usage": "派生实时计算；单位t；无直接pSpace点位时使用"
+      }
+    },
+    {
+      "object_id": "CO_top",
+      "object_kind": "physical_sensor",
+      "display_name": "一氧化碳",
+      "semantic_aliases": [
+        "炉顶一氧化碳",
+        "顶煤气一氧化碳",
+        "煤气一氧化碳含量",
+        "一氧化碳",
+        "2号炉炉顶一氧化碳",
+        "当前炉顶一氧化碳"
+      ],
+      "spoken_expressions": [
+        "现在的炉顶一氧化碳是多少",
+        "帮我查一下炉顶一氧化碳当前值",
+        "看一下炉顶一氧化碳最近一小时怎么变化",
+        "把炉顶一氧化碳和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "CC/GF2",
+        "short_name": "SIO_CC_GF2_T0112",
+        "point_id": "\\冀南钢铁\\SIO\\CC\\GF2\\SIO_CC_GF2_T0112",
+        "description": "2号炉干法除尘_一氧化碳",
+        "status_usage": "2号炉pSpace实测确认；跨子树明确可用；现场画面口径单位%"
+      }
+    },
+    {
+      "object_id": "H2_top",
+      "object_kind": "physical_sensor",
+      "display_name": "氢气",
+      "semantic_aliases": [
+        "炉顶氢气",
+        "顶煤气氢气",
+        "煤气氢气含量",
+        "氢气",
+        "2号炉炉顶氢气",
+        "当前炉顶氢气"
+      ],
+      "spoken_expressions": [
+        "现在的炉顶氢气是多少",
+        "帮我查一下炉顶氢气当前值",
+        "看一下炉顶氢气最近一小时怎么变化",
+        "把炉顶氢气和上一小时比较一下"
+      ],
+      "source": {
+        "branch": "CC/GF2",
+        "short_name": "SIO_CC_GF2_T0111",
+        "point_id": "\\冀南钢铁\\SIO\\CC\\GF2\\SIO_CC_GF2_T0111",
+        "description": "2号炉干法除尘_氢气",
+        "status_usage": "2号炉pSpace实测确认；跨子树明确可用；现场画面口径单位%"
+      }
+    }
+  ],
+  "catalog_hash": "D4D38A9D7D399C86B03100BA3E0B8BEB09DBB3565034B4A5269BD39DB0D32804"
+}

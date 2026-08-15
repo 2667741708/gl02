@@ -22,6 +22,7 @@ STATE_PATH = LOG_DIR / "sync_watchdog_state.json"
 REALTIME_RUNNER = ROOT_DIR / "run_realtime_sync_pg_bg.ps1"
 HIDDEN_LAUNCHER = PROJECT_ROOT / "tools" / "run_hidden_ps1.vbs"
 SYNC_SCRIPT = ROOT_DIR / "src" / "sync_from_243_pg.py"
+PWSH_EXE = Path(r"C:\Program Files\PowerShell\7\pwsh.exe")
 
 
 def parse_args() -> argparse.Namespace:
@@ -53,9 +54,11 @@ def text_time(value: datetime) -> str:
 
 
 def run_powershell(script: str, timeout: int = 60) -> str:
+    if not PWSH_EXE.is_file():
+        raise RuntimeError(f"PowerShell 7 is unavailable: {PWSH_EXE}")
     creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     completed = subprocess.run(
-        ["powershell.exe", "-WindowStyle", "Hidden", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script],
+        [str(PWSH_EXE), "-WindowStyle", "Hidden", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script],
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -85,7 +88,7 @@ $selfPid = $PID
 $p = Get-CimInstance Win32_Process |
   Where-Object {
     $_.ProcessId -ne $selfPid -and $_.CommandLine -and (
-      ($_.Name -match 'powershell' -and $_.CommandLine -match '-File\s+.*run_realtime_sync_pg_bg\.ps1') -or
+      ($_.Name -match '^(powershell|pwsh)\.exe$' -and $_.CommandLine -match '-File\s+.*run_realtime_sync_pg_bg\.ps1') -or
       ($_.Name -match '^python' -and $_.CommandLine -match 'sync_from_243_pg.py' -and $_.CommandLine -match '--continuous')
     )
   } |
@@ -106,7 +109,7 @@ Get-CimInstance Win32_Process |
   Where-Object {
     $_.ProcessId -ne $selfPid -and $_.CommandLine -and (
       ($_.Name -match '^python' -and $_.CommandLine -match 'sync_from_243_pg.py' -and $_.CommandLine -match '--continuous') -or
-      ($_.Name -match 'powershell' -and $_.CommandLine -match '-File\s+.*run_realtime_sync_pg_bg\.ps1')
+      ($_.Name -match '^(powershell|pwsh)\.exe$' -and $_.CommandLine -match '-File\s+.*run_realtime_sync_pg_bg\.ps1')
     )
   } |
   ForEach-Object {
@@ -136,8 +139,8 @@ Start-Process -FilePath 'wscript.exe' `
 """
         return run_powershell(script)
     script = rf"""
-Start-Process -FilePath 'powershell.exe' `
-  -ArgumentList @('-WindowStyle','Hidden','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File','{REALTIME_RUNNER}') `
+Start-Process -FilePath '{PWSH_EXE}' `
+  -ArgumentList @('-WindowStyle','Hidden','-NoLogo','-NoProfile','-NonInteractive','-File','{REALTIME_RUNNER}') `
   -WindowStyle Hidden
 'started'
 """

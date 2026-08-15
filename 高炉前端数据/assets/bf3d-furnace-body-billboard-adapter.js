@@ -29,6 +29,7 @@ let mountingViewer = null;
 let liveTimer = 0;
 let liveSocket = null;
 let reconnectTimer = 0;
+let sharedTransportAttached = false;
 let nextMountAttemptAt = 0;
 let mountRetryDelayMs = 1000;
 const liveState = {
@@ -573,7 +574,29 @@ function applyLivePayload(payload) {
   setLiveStatus("connected");
 }
 
+function attachSharedTransport() {
+  const shared = window.__BF_CORE_PSPACE_LIVE__;
+  if (sharedTransportAttached || !shared) return sharedTransportAttached;
+  const applySharedFrame = (event) => applyLivePayload(event.detail);
+  const applySharedStatus = (event) => {
+    const detail = event.detail || {};
+    liveState.url = detail.url || liveState.url;
+    liveState.connectedAt = detail.connectedAt || liveState.connectedAt;
+    liveState.lastFrameAt = detail.lastFrameAt || liveState.lastFrameAt;
+    setLiveStatus(detail.status || "shared");
+  };
+  window.addEventListener("bf:pspace-frame", applySharedFrame);
+  window.addEventListener("bf:core-pspace-live", applySharedStatus);
+  sharedTransportAttached = true;
+  liveState.url = shared.url || websocketUrl();
+  liveState.connectedAt = shared.connectedAt || "";
+  liveState.lastFrameAt = shared.lastFrameAt || "";
+  setLiveStatus(shared.status || "shared");
+  return true;
+}
+
 function connectBillboardRealtime() {
+  if (attachSharedTransport()) return;
   if (
     liveSocket &&
     (liveSocket.readyState === WebSocket.OPEN ||
@@ -765,7 +788,14 @@ async function mount(viewer) {
     },
     manifest,
   };
-  if (!liveTimer) liveTimer = window.setInterval(updateLiveLabels, 1000);
+  if (!liveTimer) {
+    const scheduler = window.__BF_SHARED_SCHEDULER__;
+    liveTimer = scheduler?.subscribe
+      ? scheduler.subscribe("bf3d-billboard-labels", 1000, updateLiveLabels)
+      : window.setInterval(() => {
+          if (!document.hidden) updateLiveLabels();
+        }, 1000);
+  }
   connectBillboardRealtime();
   nextMountAttemptAt = 0;
   mountRetryDelayMs = 1000;
@@ -798,5 +828,9 @@ function tryMount() {
     });
 }
 
-window.setInterval(tryMount, 250);
+const scheduler = window.__BF_SHARED_SCHEDULER__;
+if (scheduler?.subscribe) scheduler.subscribe("bf3d-billboard-mount", 250, tryMount);
+else window.setInterval(() => {
+  if (!document.hidden) tryMount();
+}, 250);
 tryMount();

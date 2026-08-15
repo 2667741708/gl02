@@ -149,7 +149,13 @@ class DiagnosisStore:
                      source_snapshot_id, coverage_ratio, data_age_seconds, public_bundle)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
                 ON CONFLICT (furnace_id, evaluation_ts, config_hash)
-                DO UPDATE SET public_bundle=excluded.public_bundle
+                DO UPDATE SET
+                    catalog_version=excluded.catalog_version,
+                    config_version=excluded.config_version,
+                    source_snapshot_id=COALESCE(excluded.source_snapshot_id, bf_sensor.abc_rule_evaluation_batches.source_snapshot_id),
+                    coverage_ratio=excluded.coverage_ratio,
+                    data_age_seconds=excluded.data_age_seconds,
+                    public_bundle=excluded.public_bundle
                 RETURNING id
                 """,
                 (furnace_id, timestamp, evaluation.get("catalog_version"), evaluation.get("config_version"), config_hash,

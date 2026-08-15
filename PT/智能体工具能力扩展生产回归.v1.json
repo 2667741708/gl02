@@ -1,0 +1,28 @@
+{
+  "schema": "bf.agent-tool-extended-production-matrix.v1",
+  "requirement_id": "REQ-MCP-EXTENDED-PRODUCTION-REGRESSION-20260814",
+  "target_policy": "read_only_single_request_no_retry",
+  "source_catalog": "数据库同步和存取/config/点位语义目录.json",
+  "source_catalog_sha256": "5264A45D1471D46D90BF1E5697697CB0837C01009A85C8AB209F6CD0C76643E8",
+  "variables": [
+    {"object_id":"P_top","label":"顶压"},
+    {"object_id":"T_top","label":"顶温"},
+    {"object_id":"DP_total","label":"全炉压差"},
+    {"object_id":"P_blast_cold","label":"冷风压力"},
+    {"object_id":"P_blast","label":"热风压力"},
+    {"object_id":"T_blast","label":"热风温度"},
+    {"object_id":"PI","label":"透气性指数"},
+    {"object_id":"L","label":"料线"},
+    {"object_id":"L_south","label":"南探尺料线"},
+    {"object_id":"L_north","label":"北探尺料线"},
+    {"object_id":"PCI_rate","label":"实际喷煤速率"},
+    {"object_id":"PCI_set","label":"喷煤设定"},
+    {"object_id":"O2_rate","label":"富氧率"},
+    {"object_id":"Q_O2","label":"富氧流量"}
+  ],
+  "templates": [
+    {"template_id":"latest","query_type":"latest","prompt":"查询当前 {label}（{object_id}），列出值、单位、数据时间、质量和只读来源。"},
+    {"template_id":"statistics_1h","query_type":"statistics","prompt":"查询最近1小时 {label}（{object_id}）的样本数、均值、总体标准差、极差、首末值、变化量、每分钟斜率、趋势、CV、时间窗和来源。"},
+    {"template_id":"trend_2h","query_type":"statistics","prompt":"检查最近2小时 {label}（{object_id}）是上升还是下降，必须用首末值、变化量和斜率说明，并列出时间窗、单位和来源。"}
+  ]
+}

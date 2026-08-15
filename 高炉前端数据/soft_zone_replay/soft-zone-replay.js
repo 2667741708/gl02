@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  const BLIND_LABEL_MODE = new URLSearchParams(window.location.search).get("labeling_blind") === "1";
+
   const LAYERS = [
     { layer: 7, height: 16.860, region: "belly" },
     { layer: 8, height: 18.335, region: "belly" },
@@ -33,6 +35,7 @@
 
   const ids = [
     "sourceBadge", "latestText", "startInput", "endInput", "stepSelect",
+    "rangePrevButton", "rangeNextButton",
     "fpsSelect", "regionSelect", "cohesiveToggle", "loadButton", "thermalCanvas",
     "canvasStage", "loadingState", "errorState", "errorMessage", "retryButton",
     "emptyState", "legendLow", "legendHigh", "frameTime", "frameCounter",
@@ -418,6 +421,7 @@
     const plotHeight = Math.max(120, height - top - bottom);
     const xFor = (index) => left + (timeline.length <= 1 ? 0 : index / (timeline.length - 1) * plotWidth);
     const yFor = (value) => top + (high - value) / (high - low) * plotHeight;
+    canvas.__trendHit = { timeline, series, xFor, yFor, left, right, top, plotWidth, plotHeight, width, height, unit };
 
     chart.lineWidth = 1;
     chart.font = "12px SimSun, serif";
@@ -488,6 +492,45 @@
     }).join("");
   }
 
+  function showCanvasInspector(event, canvas) {
+    const hit = canvas.__trendHit;
+    if (!hit || !hit.timeline.length) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    let best = null;
+    hit.series.forEach((item) => item.values.forEach((value, index) => {
+      if (value === null) return;
+      const dx = hit.xFor(index) - x;
+      const dy = hit.yFor(value) - y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (!best || distance < best.distance) best = { distance, item, value, index };
+    }));
+    if (!best || best.distance > 52) return;
+    document.querySelectorAll('.bf-canvas-inspector').forEach((node) => node.remove());
+    const popup = document.createElement('div');
+    popup.className = 'bf-canvas-inspector';
+    popup.innerHTML = `<div><span>点位ID</span><b>${String(best.item.point.id || '--')}</b></div><div><span>曲线</span>${String(best.item.point.azimuth || best.item.point.id || '--')}</div><div><span>数据</span><b>${best.value.toFixed(hit.unit === '℃' ? 1 : 3)}${hit.unit}</b></div><div><span>时间戳</span>${formatDateTime(hit.timeline[best.index])}</div>`;
+    document.body.appendChild(popup);
+    const popupRect = popup.getBoundingClientRect();
+    popup.style.left = `${Math.min(Math.max(8, event.clientX + 12), window.innerWidth - popupRect.width - 8)}px`;
+    popup.style.top = `${Math.min(Math.max(8, event.clientY + 12), window.innerHeight - popupRect.height - 8)}px`;
+  }
+
+  function bindTrendContextMenu(canvas) {
+    if (!canvas || canvas.dataset.contextInspectorBound === '1') return;
+    canvas.dataset.contextInspectorBound = '1';
+    canvas.addEventListener('contextmenu', (event) => { event.preventDefault(); showCanvasInspector(event, canvas); });
+    canvas.addEventListener('mouseleave', () => document.querySelectorAll('.bf-canvas-inspector').forEach((node) => node.remove()));
+  }
+
+  function shiftReplayRange(hours) {
+    const start = new Date(el.startInput.value); const end = new Date(el.endInput.value);
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return;
+    start.setHours(start.getHours() + hours); end.setHours(end.getHours() + hours);
+    el.startInput.value = toInputValue(start); el.endInput.value = toInputValue(end);
+  }
+
   function renderTrendCharts() {
     const selectedLayer = Number(el.temperatureLayerSelect.value);
     const selectedBand = el.pressureBandSelect.value;
@@ -499,6 +542,8 @@
       .sort((left, right) => String(left.azimuth).localeCompare(String(right.azimuth)));
     drawTrendChart(el.temperatureTrendCanvas, el.temperatureTrendLegend, temperatureSeries, "℃");
     drawTrendChart(el.pressureTrendCanvas, el.pressureTrendLegend, pressureSeries, "kPa");
+    bindTrendContextMenu(el.temperatureTrendCanvas);
+    bindTrendContextMenu(el.pressureTrendCanvas);
   }
 
   function currentVisibleValues(frameIndex) {
@@ -593,6 +638,18 @@
     el.timelineInput.value = String(state.index);
     updateSummary(state.index);
     renderTrendCharts();
+    if (BLIND_LABEL_MODE && window.parent !== window) {
+      window.parent.postMessage({
+        type: "hcz-replay-frame",
+        schema: "gl02.hcz-label-frame.v1",
+        observed_at: state.payload.timeline[state.index],
+        source_window_start: state.payload.start_time,
+        source_window_end: state.payload.end_time,
+        blind_to_model: true,
+        model_outputs_included: false,
+        coverage: state.payload.coverage || null,
+      }, window.location.origin);
+    }
   }
 
   function setPlayback(playing) {
@@ -664,7 +721,7 @@
       start: toQueryValue(start),
       end: toQueryValue(end),
       step_minutes: el.stepSelect.value,
-      include_cohesive: el.cohesiveToggle.checked ? "1" : "0",
+      include_cohesive: BLIND_LABEL_MODE ? "0" : (el.cohesiveToggle.checked ? "1" : "0"),
     });
     try {
       const payload = await fetchJson(`/api/replay?${query.toString()}`, 90000);
@@ -773,7 +830,16 @@
     try {
       const health = await fetchJson("/api/health", 20000);
       if (!health?.ok || !health.latest_sample_time) throw new Error("数据库暂时没有可用炉体温度。 ");
-      if (health.cohesive_available === false) {
+      if (BLIND_LABEL_MODE) {
+        document.body.dataset.hczLabelBlind = "true";
+        el.cohesiveToggle.checked = false;
+        el.cohesiveToggle.disabled = true;
+        const label = el.cohesiveToggle.closest("label");
+        if (label) { label.hidden = true; label.style.display = "none"; }
+        const estimateCard = document.querySelector(".estimate-card");
+        if (estimateCard) { estimateCard.hidden = true; estimateCard.style.display = "none"; }
+        document.title = "GL02 HCZ盲标注实测回放";
+      } else if (health.cohesive_available === false) {
         state.cohesiveAvailable = false;
         el.cohesiveToggle.checked = false;
         el.cohesiveToggle.disabled = true;
@@ -808,6 +874,9 @@
   el.regionSelect.addEventListener("change", renderFrame);
   el.temperatureLayerSelect.addEventListener("change", renderTrendCharts);
   el.pressureBandSelect.addEventListener("change", renderTrendCharts);
+  el.rangePrevButton.addEventListener("click", () => shiftReplayRange(-1));
+  el.rangeNextButton.addEventListener("click", () => shiftReplayRange(1));
+  document.addEventListener("click", (event) => { if (!event.target.closest(".bf-canvas-inspector")) document.querySelectorAll(".bf-canvas-inspector").forEach((node) => node.remove()); });
   el.recordButton.addEventListener("click", startRecording);
   window.addEventListener("resize", resizeCanvas, { passive: true });
   document.addEventListener("visibilitychange", () => { if (document.hidden && !state.recording) setPlayback(false); });

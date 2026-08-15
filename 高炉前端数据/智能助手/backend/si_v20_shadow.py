@@ -2718,6 +2718,7 @@ class SiV20ShadowService:
         meltno: str | None,
         limit: int,
         latest_per_heat: bool,
+        compact: bool = False,
     ) -> dict[str, Any]:
         items = self.store.list_history(
             date_from=date_from,
@@ -2747,12 +2748,21 @@ class SiV20ShadowService:
             if evaluated
             else None
         )
+        response_items = (
+            [
+                {key: value for key, value in item.items() if key != "feature_snapshot"}
+                for item in items
+            ]
+            if compact
+            else items
+        )
         return {
             "ok": True,
             "schema": SCHEMA_VERSION,
             "status": "experimental_shadow",
-            "items": items,
+            "items": response_items,
             "count": len(items),
+            "compact": compact,
             "metrics": {
                 "actual_count": sum(bool(item.get("actual_ready")) for item in items),
                 "prediction_count": sum(bool(item.get("has_prediction")) for item in items),

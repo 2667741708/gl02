@@ -13,11 +13,13 @@ import hashlib
 import hmac
 import ipaddress
 import json
+import math
 import os
 import re
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from http.cookies import SimpleCookie
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
@@ -299,6 +301,26 @@ def iso_timestamp(value: Any) -> str:
     return normalize_timestamp(value).isoformat()
 
 
+def json_safe_value(value: Any) -> Any:
+    """Normalize runtime database values before writing PostgreSQL JSONB."""
+
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, Mapping):
+        return {str(key): json_safe_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [json_safe_value(item) for item in value]
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    return str(value)
+
+
 def normalize_scores(raw_scores: Any) -> dict[str, float]:
     if isinstance(raw_scores, str):
         try:
@@ -313,6 +335,74 @@ def normalize_scores(raw_scores: Any) -> dict[str, float]:
         except (TypeError, ValueError):
             normalized[key] = 0.0
     return normalized
+
+
+def scores_with_display_archive(canonical_context: Mapping[str, Any]) -> dict[str, Any]:
+    """Keep legacy score keys and add a nested, backward-compatible display archive."""
+
+    output: dict[str, Any] = normalize_scores(canonical_context.get("raw_scores"))
+    if canonical_context.get("score_contract_version"):
+        output["_display_contract"] = {
+            "score_contract_version": canonical_context.get("score_contract_version"),
+            "display_scores": canonical_context.get("display_scores") or {},
+            "display_main_score": canonical_context.get("display_main_score"),
+            "score_sources": canonical_context.get("score_sources") or {},
+            "legacy_score_archive": canonical_context.get("legacy_score_archive") or {},
+        }
+    return output
+
+
+def review_evidence_with_score_archive(canonical_context: Mapping[str, Any]) -> list[Any]:
+    """Append score-source metadata without changing the review-event table schema."""
+
+    evidence = list(canonical_context.get("evidence") or [])
+    if canonical_context.get("score_sources") or canonical_context.get("legacy_score_archive"):
+        evidence.append(
+            {
+                "type": "score_source_archive",
+                "score_contract_version": canonical_context.get("score_contract_version"),
+                "score_sources": canonical_context.get("score_sources") or {},
+                "legacy_score_archive": canonical_context.get("legacy_score_archive") or {},
+            }
+        )
+    return evidence
+
+
+def abc_public_bundle_for_display(
+    bundle: Mapping[str, Any],
+    evaluation_ts: Any,
+    *,
+    now: datetime | None = None,
+    max_wall_clock_age_minutes: int = 20,
+) -> dict[str, Any]:
+    """Fail a public ABC33 bundle closed when its latest batch is stale."""
+
+    result = dict(bundle)
+    try:
+        evaluated = normalize_timestamp(evaluation_ts)
+        wall_clock = normalize_timestamp(now or datetime.now(timezone.utc))
+        age_seconds: float | None = (wall_clock - evaluated).total_seconds()
+    except (TypeError, ValueError):
+        age_seconds = None
+    current = (
+        age_seconds is not None
+        and -60.0 <= age_seconds <= float(max_wall_clock_age_minutes * 60)
+    )
+    result["evaluation_age_seconds"] = (
+        round(age_seconds, 3) if age_seconds is not None else None
+    )
+    result["batch_state"] = "current" if current else "stale"
+    if current:
+        return result
+    stale_rules = []
+    for item in result.get("rules") or []:
+        rule = dict(item)
+        rule.update({"score": None, "score_available": False, "status": "needs_data", "source_state": "stale_batch"})
+        stale_rules.append(rule)
+    result["rules"] = stale_rules
+    result["alerts"] = []
+    result["state"] = "needs_data"
+    return result
 
 
 def normalize_sequence(value: Any) -> list[Any]:
@@ -406,6 +496,123 @@ def derive_current_episode(
     }
 
 
+def apply_abc33_display_score(
+    context: Mapping[str, Any],
+    abc_snapshot: Mapping[str, Any] | None,
+    *,
+    diagnosis_key: str = "hot",
+    rule_id: str = "B4",
+    max_age_minutes: int = 15,
+    max_wall_clock_age_minutes: int = 20,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Use one ABC33 rule as the production display score for a legacy diagnosis key.
+
+    The legacy eight-class score remains available in ``raw_scores`` for
+    historical review and existing analysis contracts.  ``display_scores`` and
+    the matching candidate/main display score fail closed when the ABC33 rule
+    is unavailable, invalid, or outside the allowed timestamp window.
+    """
+
+    result = dict(context)
+    raw_scores = dict(context.get("raw_scores") or {})
+    display_scores: dict[str, float | None] = {
+        key: raw_scores.get(key) for key in DIAGNOSIS_KEYS
+    }
+    legacy_score = raw_scores.get(diagnosis_key)
+    source: dict[str, Any] = {
+        "source": "abc33",
+        "rule_id": rule_id,
+        "available": False,
+        "used_for_display": False,
+        "fallback_used": False,
+        "state": "needs_data",
+    }
+    canonical_score: float | None = None
+
+    snapshot = dict(abc_snapshot or {})
+    rule = snapshot.get("rule") if isinstance(snapshot.get("rule"), Mapping) else None
+    if rule is not None:
+        source.update({
+            "evaluation_id": snapshot.get("evaluation_id"),
+            "catalog_version": snapshot.get("catalog_version"),
+            "config_version": snapshot.get("config_version"),
+            "source_snapshot_id": snapshot.get("source_snapshot_id"),
+            "source_snapshot_match": bool(snapshot.get("source_snapshot_match")),
+            "status": rule.get("status"),
+        })
+        try:
+            diagnosis_ts = normalize_timestamp(context.get("diagnosis_ts"))
+            evaluation_ts = normalize_timestamp(snapshot.get("evaluation_ts"))
+            source["evaluation_ts"] = evaluation_ts.isoformat()
+            age_minutes = (diagnosis_ts - evaluation_ts).total_seconds() / 60.0
+            source["age_minutes"] = round(age_minutes, 3)
+            score = float(rule.get("score"))
+            rule_identity_valid = str(rule.get("rule_id") or "") == rule_id
+            score_in_range = 0.0 <= score <= 100.0
+            versioned = bool(snapshot.get("catalog_version")) and bool(
+                snapshot.get("config_version")
+            )
+            score_available = rule.get("score_available") is not False
+            status_available = str(rule.get("status") or "") != "needs_data"
+            wall_clock = normalize_timestamp(now or datetime.now(timezone.utc))
+            wall_clock_age_minutes = (wall_clock - evaluation_ts).total_seconds() / 60.0
+            source["wall_clock_age_minutes"] = round(wall_clock_age_minutes, 3)
+            time_aligned = 0.0 <= age_minutes <= float(max_age_minutes)
+            wall_clock_current = -1.0 <= wall_clock_age_minutes <= float(max_wall_clock_age_minutes)
+            if (
+                math.isfinite(score)
+                and score_in_range
+                and rule_identity_valid
+                and versioned
+                and score_available
+                and status_available
+                and time_aligned
+                and wall_clock_current
+            ):
+                canonical_score = round(score, 6)
+                source.update({"available": True, "used_for_display": True, "state": "current"})
+            elif not time_aligned or not wall_clock_current:
+                source["state"] = "stale"
+            else:
+                source["state"] = "invalid" if not (rule_identity_valid and score_in_range and versioned) else "needs_data"
+        except (TypeError, ValueError):
+            source["state"] = "invalid"
+    elif snapshot.get("error_type"):
+        source.update({"state": "unavailable", "error_type": str(snapshot["error_type"])})
+
+    display_scores[diagnosis_key] = canonical_score
+    candidates = []
+    for item in context.get("candidates") or []:
+        candidate = dict(item)
+        if candidate.get("key") == diagnosis_key:
+            candidate["score"] = canonical_score
+            candidate["score_source"] = "abc33"
+            candidate["rule_id"] = rule_id
+        candidates.append(candidate)
+
+    display_main_score: float | None = context.get("main_score")
+    if context.get("main_label") == diagnosis_key:
+        display_main_score = canonical_score
+
+    result.update({
+        "score_contract_version": "diagnosis-review-score-source.v2",
+        "display_scores": display_scores,
+        "display_main_score": display_main_score,
+        "candidates": candidates,
+        "score_sources": {diagnosis_key: source},
+        "legacy_score_archive": {
+            diagnosis_key: {
+                "source": "legacy_diagnosis_raw_scores",
+                "score": legacy_score,
+                "archived": True,
+                "used_for_display": False,
+            }
+        },
+    })
+    return result
+
+
 _FIXTURE_SCORES = {
     "normal": {"normal": 92, "lowline": 8, "edge": 11, "center": 7, "channel": 10, "cold": 18, "hot": 12, "column": 4},
     "cold": {"normal": 34, "lowline": 31, "edge": 29, "center": 17, "channel": 24, "cold": 87, "hot": 8, "column": 18},
@@ -431,10 +638,20 @@ def build_fixture_context(label: str, case_id: str = "default") -> dict[str, Any
         "main_confidence": 0.0,
         "secondary": [],
         "raw_scores": _FIXTURE_SCORES[diagnosis_key],
-        "evidence": [
-            {"title": "本机测试证据", "detail": f"测试场景：{display_label(diagnosis_key)}"},
-            {"title": "边界说明", "detail": "该场景仅用于交互验收，不代表真实生产诊断。"},
-        ],
+        "evidence": (
+            [
+                {"title": "low_body_temperature", "detail": "低于历史基线"},
+                {"variable": "low_blast_pressure", "detail": "低于历史基线"},
+                {"rule": "operation_heat_reduction", "detail": "操作记录已确认"},
+                {"name": "future_unknown_code", "detail": "未知内部码应使用中文兜底"},
+                {"title": "<img src=x onerror=alert(1)>", "detail": "转义检查"},
+            ]
+            if str(case_id).startswith("evidence-cn-")
+            else [
+                {"title": "本机测试证据", "detail": f"测试场景：{display_label(diagnosis_key)}"},
+                {"title": "边界说明", "detail": "该场景仅用于交互验收，不代表真实生产诊断。"},
+            ]
+        ),
         "feature_snapshot": {
             "z30_T_top_slope": -0.62,
             "z60_T_body_lower": -1.08,
@@ -876,8 +1093,8 @@ class DiagnosisReviewStore:
             normalize_timestamp(context["bucket_ts"]),
             int(context.get("bucket_minutes") or 5),
             str(context.get("main_label") or "normal"),
-            Jsonb(normalize_scores(context.get("scores"))),
-            Jsonb(dict(context)),
+            Jsonb(json_safe_value(normalize_scores(context.get("scores")))),
+            Jsonb(json_safe_value(dict(context))),
             prompt_version,
             snapshot_hash,
             model_public_name,
@@ -920,7 +1137,7 @@ class DiagnosisReviewStore:
                 cursor.execute(
                     sql,
                     (
-                        Jsonb([dict(item) for item in analyses]),
+                        Jsonb(json_safe_value([dict(item) for item in analyses])),
                         snapshot_hash,
                         furnace_id,
                         normalize_timestamp(bucket_ts),
@@ -980,10 +1197,10 @@ class DiagnosisReviewStore:
             str(canonical_context["main_label"]),
             float(canonical_context.get("main_score", 0.0)),
             float(canonical_context.get("main_confidence", 0.0)),
-            Jsonb(canonical_context.get("secondary") or []),
-            Jsonb(normalize_scores(canonical_context.get("raw_scores"))),
-            Jsonb(canonical_context.get("evidence") or []),
-            Jsonb(canonical_context.get("data_coverage") or {}),
+            Jsonb(json_safe_value(canonical_context.get("secondary") or [])),
+            Jsonb(json_safe_value(scores_with_display_archive(canonical_context))),
+            Jsonb(json_safe_value(review_evidence_with_score_archive(canonical_context))),
+            Jsonb(json_safe_value(canonical_context.get("data_coverage") or {})),
             review["verdict"],
             review.get("corrected_main_label"),
             review.get("corrected_secondary_label"),
@@ -1098,7 +1315,7 @@ class DiagnosisReviewStore:
             manual_score["target_label"],
             str(canonical_context["main_label"]),
             float(canonical_context.get("main_score", 0.0)),
-            Jsonb(normalize_scores(canonical_context.get("raw_scores"))),
+            Jsonb(json_safe_value(scores_with_display_archive(canonical_context))),
             manual_score.get("human_match_score"),
             manual_score.get("suggestion") or "",
             str(identity.get("sub") or ""),

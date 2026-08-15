@@ -229,7 +229,7 @@ def run_cycle(args: argparse.Namespace) -> dict[str, Any]:
         }
 
         if args.with_llm:
-            report["summary"] = summarize(
+            summary_result = summarize(
                 config_path,
                 queue_id=queue.get("queue_id"),
                 latest=False,
@@ -237,6 +237,15 @@ def run_cycle(args: argparse.Namespace) -> dict[str, Any]:
                 dry_run=args.dry_run,
                 export_word=args.export_docx,
             )
+            report["summary"] = summary_result
+            if summary_result.get("degraded"):
+                report["actions"].append(
+                    {
+                        "action": "llm_summary_fallback",
+                        "status": "degraded",
+                        "reason": summary_result.get("degradation") or {},
+                    }
+                )
 
         if args.doctor:
             report["inspection"] = inspect_pipeline(config_path, since_hours=min(args.since_hours, 24.0))

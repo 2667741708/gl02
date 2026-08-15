@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "高炉前端数据" / "foreman_trend_preview.html"
 STYLE = ROOT / "高炉前端数据" / "assets" / "foreman-trend-preview.css"
 SCRIPT = ROOT / "高炉前端数据" / "assets" / "foreman-trend-preview.js"
+HELPER = ROOT / "高炉前端数据" / "assets" / "curve-inspector.js"
 ORIGINAL_PAGE = ROOT / "高炉前端数据" / "frontend_dashboard_v3.server.html"
 
 
@@ -25,6 +26,7 @@ class ForemanTrendPreviewContract(unittest.TestCase):
         cls.html = PAGE.read_text(encoding="utf-8")
         cls.css = STYLE.read_text(encoding="utf-8")
         cls.js = SCRIPT.read_text(encoding="utf-8")
+        cls.helper = HELPER.read_text(encoding="utf-8")
         cls.original = ORIGINAL_PAGE.read_text(encoding="utf-8")
 
     def test_preview_is_standalone_and_original_trend_remains(self) -> None:
@@ -67,6 +69,24 @@ class ForemanTrendPreviewContract(unittest.TestCase):
             self.assertIn(f'data-action="{action}"', self.html)
         self.assertIn("handleToolbarAction", self.js)
         self.assertIn("exportChart", self.js)
+
+    def test_hour_range_and_point_inspection_contract(self) -> None:
+        self.assertIn('step="3600"', self.html)
+        self.assertIn('id="trend-range-start"', self.html)
+        self.assertIn('id="trend-range-end"', self.html)
+        self.assertIn("applyManualRange", self.js)
+        self.assertIn("window.BFCurveInspector?.installEcharts", self.js)
+        self.assertIn("contextmenu", self.helper)
+        self.assertIn("点位ID", self.helper)
+        self.assertIn("时间戳", self.helper)
+
+    def test_all_values_use_two_decimals_and_gas_util_history_is_percent(self) -> None:
+        self.assertIn("const DISPLAY_FRACTION_DIGITS = 2", self.js)
+        self.assertIn("id === 'GasUtil' && Math.abs(numeric) <= 1.5 ? numeric * 100 : numeric", self.js)
+        self.assertIn("minimumFractionDigits: DISPLAY_FRACTION_DIGITS", self.js)
+        self.assertIn("maximumFractionDigits: DISPLAY_FRACTION_DIGITS", self.js)
+        self.assertIn("id === 'GasUtil' && Math.abs(best.value) <= 1.5 ? best.value * 100 : best.value", self.helper)
+        self.assertIn("minimumFractionDigits: 2, maximumFractionDigits: 2", self.helper)
 
 
 if __name__ == "__main__":

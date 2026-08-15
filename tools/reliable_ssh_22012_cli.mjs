@@ -6,7 +6,7 @@ import path from "node:path";
 
 const LIB_ROOT = "file:///D:/文件/网络登录服务器管理/reliable-ssh-mcp/src";
 const { parseConfig } = await import(`${LIB_ROOT}/config.js`);
-const { ReliableSshClient } = await import(`${LIB_ROOT}/ssh-client.js`);
+const { ConnectionPool } = await import(`${LIB_ROOT}/connection-pool.js`);
 const { verifyIdentity } = await import(`${LIB_ROOT}/identity.js`);
 const { verifyConfiguredRoute } = await import(`${LIB_ROOT}/route-check.js`);
 const { decodeCapturedStream } = await import(`${LIB_ROOT}/remote-runner.js`);
@@ -24,9 +24,12 @@ const config = parseConfig([
   "--command-timeout", "240",
   "--max-output-bytes", "1048576",
   "--transfer-timeout", "30",
+  "--pool-size", "1",
+  "--keepalive-interval", "30",
+  "--heartbeat-interval", "60",
   "--audit-log", "C:/Users/hmw20/.codex/logs/reliable-ssh-10-30-220-12.jsonl",
 ]);
-const client = new ReliableSshClient(config);
+const client = new ConnectionPool(config, config.poolSize);
 const audit = createAuditLogger(config);
 let verifiedIdentity = null;
 let routeVerified = false;
@@ -120,19 +123,34 @@ async function applyPackage(args) {
       atomic: true,
     },
   );
-  const launch = [
-    "$ErrorActionPreference='Stop'",
-    `Expand-Archive -LiteralPath '${remotePackage.replaceAll("'", "''")}' -DestinationPath '${stageRoot.replaceAll("'", "''")}' -Force`,
-    `& powershell.exe -NoProfile -ExecutionPolicy Bypass -File '${stageRoot.replaceAll("'", "''")}\\remote_deploy_diag_rules.ps1' -ManifestPath '${stageRoot.replaceAll("'", "''")}\\manifest.json'`,
-    "exit $LASTEXITCODE",
-  ].join("; ");
+  const extractCall = await verifiedInvoke(
+    "extract_archive",
+    { archive_path: remotePackage, destination_path: stageRoot },
+    {
+      operation: "extract_archive",
+      archive_path: remotePackage,
+      destination_path: stageRoot,
+    },
+  );
+  const deployScript = `${stageRoot}\\remote_deploy_diag_rules.ps1`;
+  const manifestPath = `${stageRoot}\\manifest.json`;
   const execCall = await verifiedInvoke(
     "exec_argv",
-    { program: "powershell.exe", cwd: "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW", timeout_seconds: timeout },
+    { program: "pwsh.exe", cwd: "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW", timeout_seconds: timeout },
     {
       operation: "process",
-      program: "powershell.exe",
-      args: ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", launch],
+      program: "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      args: [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        deployScript,
+        "-ManifestPath",
+        manifestPath,
+      ],
       cwd: "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW",
       env: {},
       stdin_b64: "",
@@ -152,6 +170,7 @@ async function applyPackage(args) {
     command: "apply-package",
     identity: execCall.identity,
     upload: writeCall.result,
+    extraction: extractCall.result,
     execution: {
       exit_code: execCall.result.exit_code,
       timed_out: execCall.result.timed_out,
@@ -174,16 +193,44 @@ async function probe() {
   }
 }
 
+async function poolProbe() {
+  await ensureVerified();
+  const firstStartedAt = Date.now();
+  await client.invoke({ operation: "probe_identity" });
+  const firstDurationMs = Date.now() - firstStartedAt;
+  const firstStatus = client.status();
+  const secondStartedAt = Date.now();
+  await client.invoke({ operation: "probe_identity" });
+  const secondDurationMs = Date.now() - secondStartedAt;
+  const secondStatus = client.status();
+  const firstSession = firstStatus.sessions.find((item) => item.alive);
+  const secondSession = secondStatus.sessions.find((item) => item.alive);
+  if (!firstSession || !secondSession || firstSession.pid !== secondSession.pid) {
+    throw new Error("Reliable SSH pool did not reuse the same local Plink process");
+  }
+  return {
+    ok: true,
+    command: "pool-probe",
+    same_process: true,
+    first_duration_ms: firstDurationMs,
+    second_duration_ms: secondDurationMs,
+    first_requests_completed: firstSession.requests_completed,
+    second_requests_completed: secondSession.requests_completed,
+    pool: secondStatus,
+  };
+}
+
 const args = parseArgs(process.argv.slice(2));
 const command = args._[0] || "help";
 try {
   let result;
   if (command === "probe") result = await probe();
+  else if (command === "pool-probe") result = await poolProbe();
   else if (command === "read") result = await readRemote(args);
   else if (command === "apply-package") result = await applyPackage(args);
   else {
     throw new Error(
-      "Usage: reliable_ssh_22012_cli.mjs probe | read --remote PATH --local PATH | " +
+      "Usage: reliable_ssh_22012_cli.mjs probe | pool-probe | read --remote PATH --local PATH | " +
         "apply-package --package PATH --remote-package PATH --stage-root PATH [--timeout 240]",
     );
   }
@@ -191,4 +238,6 @@ try {
 } catch (error) {
   process.stderr.write(`${error?.stack || error}\n`);
   process.exitCode = 1;
+} finally {
+  client.close();
 }

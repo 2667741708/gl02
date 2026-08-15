@@ -1,5 +1,9 @@
 # IMES Vastbase MCP 指令模板全集
 
+> - 状态：查询模板参考，不是当前连接状态清单
+> - 当前入口：[IMES / Vastbase 交接](imes.md)、[通用 IMES 数据说明](../docs/imes.md)
+> - 适用边界：模板必须受当前只读白名单、账号权限、行数上限和时间范围门禁约束。
+
 适用环境：本机 relay 或 220.12 的 `direct_22012`。2026-07-27
 起 MCP 同时支持 `operations` 与 `laboratory` 两个命名只读账号；
 调用方通过 `account_profile` 选择账号，不传用户名或密码。两个模式均可

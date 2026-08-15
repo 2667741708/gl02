@@ -123,7 +123,7 @@ def test_sse_acceptance_is_single_request_and_requires_complete_event_chain() ->
 @pytest.mark.skipif(sys.platform != "win32", reason="PowerShell service-state contract is Windows-only")
 def test_two_transient_failures_are_deferred_and_success_resets_state(tmp_path: Path) -> None:
     service_check = subprocess.run(
-        ["powershell.exe", "-NoProfile", "-Command", "(Get-Service -Name EventLog).Status.ToString()"],
+        ["pwsh.exe", "-NoLogo", "-NoProfile", "-File", str(ROOT / "tools" / "probe_eventlog_service.ps1")],
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -148,10 +148,9 @@ def test_two_transient_failures_are_deferred_and_success_resets_state(tmp_path: 
     path = tmp_path / "guard.json"
     path.write_text(json.dumps(config), encoding="utf-8")
     command = [
-        "powershell.exe",
+        "pwsh.exe",
+        "-NoLogo",
         "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
         "-File",
         str(GUARD),
         "-ConfigPath",

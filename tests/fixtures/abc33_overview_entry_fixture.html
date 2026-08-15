@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ABC33总览入口验收夹具</title>
+  <style>
+    html,body{margin:0;min-height:100%;background:#020d17;color:#fff;font-family:SimSun,宋体,serif;overflow-x:hidden}
+    .overview-three-column-v12{width:min(1500px,calc(100% - 24px));margin:12px auto;display:grid;grid-template-columns:25% 47% 28%;gap:8px}
+    .panel{min-width:0;height:620px;border:1px solid #285c76;background:#071c2c;overflow:hidden}.panel-head{height:42px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #285c76;box-sizing:border-box}.panel-title{min-width:0;font-weight:700}.panel-body{height:calc(100% - 42px);display:grid;place-items:center;color:#8fb6cc}
+    @media(max-width:900px){.overview-three-column-v12{grid-template-columns:1fr}.panel{height:360px}}
+  </style>
+  <script>
+    const rules=[];
+    for(const [category,count] of [['A',9],['B',13],['C',11]])for(let i=1;i<=count;i++)rules.push({rule_id:category+i,category,display_name:category+'类炉况'+i,score:20+i,status:'eligible',score_available:true,confidence:.88,missing_sensors:[]});
+    const nativeFetch=window.fetch.bind(window);
+    window.fetch=async function(url,options){
+      if(String(url).includes('/api/furnace-rules/latest'))return new Response(JSON.stringify({ok:true,rules}),{status:200,headers:{'Content-Type':'application/json'}});
+      return nativeFetch(url,options);
+    };
+  </script>
+</head>
+<body>
+  <main class="overview-three-column-v12">
+    <section class="panel"><div class="panel-head"><div class="panel-title">核心指标</div></div><div class="panel-body">核心指标内容</div></section>
+    <section class="panel overview-furnace-panel-v12"><div class="panel-head"><div class="panel-title">炉况总览</div></div><div class="panel-body">高炉三维总览内容</div></section>
+    <section class="panel"><div class="panel-head"><div class="panel-title">AI决策中心</div></div><div class="panel-body">决策内容</div></section>
+  </main>
+  <script src="../../高炉前端数据/assets/abc-furnace-rules-production.js"></script>
+</body>
+</html>

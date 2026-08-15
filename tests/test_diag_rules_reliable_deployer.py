@@ -19,11 +19,14 @@ def load_module():
 
 def test_transport_reuses_reliable_ssh_identity_route_and_audit() -> None:
     text = NODE_TRANSPORT.read_text(encoding="utf-8")
-    assert "ReliableSshClient" in text
+    assert "ConnectionPool" in text
     assert "verifyConfiguredRoute(config)" in text
     assert "verifyIdentity" in text
     assert "createAuditLogger" in text
-    assert text.count('client.invoke({ operation: "probe_identity" })') == 1
+    assert text.count('client.invoke({ operation: "probe_identity" })') >= 2
+    assert '"--pool-size", "1"' in text
+    assert '"--keepalive-interval", "30"' in text
+    assert '"--heartbeat-interval", "60"' in text
     assert "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI" in text
     assert "password-file" in text
     assert "JNgt@" not in text
@@ -36,8 +39,10 @@ def test_transport_uploads_one_package_and_executes_exact_argv() -> None:
     assert 'operation: "write_file"' in text
     assert 'atomic: true' in text
     assert 'operation: "process"' in text
-    assert 'program: "powershell.exe"' in text
-    assert 'args: ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", launch]' in text
+    assert 'operation: "extract_archive"' in text
+    assert 'program: "C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe"' in text
+    assert '"-File"' in text
+    assert '"-Command"' not in text
     assert "remote_deploy_diag_rules.ps1" in text
 
 

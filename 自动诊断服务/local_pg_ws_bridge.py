@@ -31,7 +31,9 @@ from recommendation_audit_store import (
     persist_foreman_guidance,
     persist_recommendation_bundle,
 )  # noqa: E402
+from abc_burden_rate import fetch_burden_rate_snapshot  # noqa: E402
 from abc_feature_builder import build_feature_snapshot as build_abc_feature_snapshot  # noqa: E402
+from abc_rule_catalog import CATALOG_VERSION as ABC_CATALOG_VERSION  # noqa: E402
 from abc_rule_engine import evaluate as evaluate_abc, load_config as load_abc_config, public_bundle as abc_public_bundle  # noqa: E402
 from abc_runtime_store import persist_bundle as persist_abc_bundle  # noqa: E402
 
@@ -138,6 +140,10 @@ FRONTEND_VARIABLES = [
     "P_top_gas_B",
     "P_top_gas_C",
     "P_top_gas_D",
+    "P_top_A",
+    "P_top_B",
+    "P_top_C",
+    "P_top_D",
     "P_blast_cold",
     "P_blast",
     "T_blast",
@@ -1769,7 +1775,11 @@ def diagnosis_snapshot_payload(
         }
     )
     try:
-        if isinstance(internal_abc, dict) and internal_abc.get("evaluations"):
+        if (
+            isinstance(internal_abc, dict)
+            and internal_abc.get("evaluations")
+            and internal_abc.get("catalog_version") == ABC_CATALOG_VERSION
+        ):
             abc_internal = internal_abc
         else:
             # The legacy diagnosis snapshot stores derived features in
@@ -1797,6 +1807,8 @@ def diagnosis_snapshot_payload(
                 anchor = datetime.now()
             abc_history: dict[str, Any] = {}
             abc_baseline: dict[str, Any] = {}
+            burden_snapshot: dict[str, Any] = {}
+            abc_config = load_abc_config()
             if audit_conn is not None:
                 # Keep optional ABC tables and feature queries off the live
                 # read transaction.  PostgreSQL marks a transaction aborted
@@ -1804,11 +1816,16 @@ def diagnosis_snapshot_payload(
                 with psycopg.connect(**pg_params(), row_factory=dict_row) as abc_read_conn:
                     abc_history = fetch_abc_history(abc_read_conn, anchor - timedelta(minutes=89), anchor)
                     abc_baseline = fetch_abc_baselines(abc_read_conn, anchor)
+                    burden_snapshot = fetch_burden_rate_snapshot(
+                        abc_read_conn,
+                        anchor,
+                        (abc_config.get("feature_thresholds") or {}).get("burden_rate"),
+                    )
             if abc_history:
                 for variable in ABC_HISTORY_VARIABLES:
                     combined_values.pop(variable, None)
                 combined_values.update(abc_aligned_current(abc_history))
-            abc_config = load_abc_config()
+            combined_values.update(burden_snapshot.get("values") or {})
             abc_features, abc_quality = build_abc_feature_snapshot(
                 combined_values,
                 baseline=abc_baseline,

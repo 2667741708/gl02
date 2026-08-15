@@ -26,7 +26,7 @@ import diag_ai_evidence
 SCHEMA_VERSION = "diagnosis_model_review.v1"
 PROMPT_VERSION = "diagnosis-score-review.v1"
 FIVE_MINUTE_SCHEMA_VERSION = "diagnosis_ai_analysis.v4"
-FIVE_MINUTE_PROMPT_VERSION = "diagnosis-single-condition-five-minute.v6"
+FIVE_MINUTE_PROMPT_VERSION = "diagnosis-single-condition-five-minute.v7-abc33-b4"
 DIAGNOSIS_LABELS = (
     "normal",
     "lowline",
@@ -419,8 +419,16 @@ def normalize_five_minute_context(
     if main_label not in DIAGNOSIS_LABELS:
         raise ModelReviewValidationError("主炉况不在允许的8类炉况中")
     diagnosis_ts = _safe_text(canonical_context.get("diagnosis_ts"), 64)
-    scores = _score_map(canonical_context.get("raw_scores"))
-    main_score = _finite(canonical_context.get("main_score"))
+    scores = _score_map(
+        canonical_context.get("display_scores")
+        if isinstance(canonical_context.get("display_scores"), Mapping)
+        else canonical_context.get("raw_scores")
+    )
+    main_score = _finite(
+        canonical_context.get("display_main_score")
+        if "display_main_score" in canonical_context
+        else canonical_context.get("main_score")
+    )
     if main_score is not None:
         scores[main_label] = main_score
     bucket = five_minute_bucket(diagnosis_ts, bucket_minutes)
@@ -439,6 +447,9 @@ def normalize_five_minute_context(
         "main_display_name": DISPLAY_NAMES[main_label],
         "secondary": secondary_rows[:4],
         "scores": scores,
+        "score_sources": dict(canonical_context.get("score_sources") or {})
+        if isinstance(canonical_context.get("score_sources"), Mapping)
+        else {},
         "evidence": _text_list(canonical_context.get("evidence"), limit=24),
         "data_coverage": canonical_context.get("data_coverage")
         if isinstance(canonical_context.get("data_coverage"), Mapping)
@@ -580,6 +591,7 @@ def _prompt_five_minute_context(context: Mapping[str, Any]) -> dict[str, Any]:
         "main_label": context.get("main_label"),
         "secondary": context.get("secondary"),
         "scores": context.get("scores"),
+        "score_sources": context.get("score_sources"),
         "data_coverage": prompt_coverage,
         "sensor_deviation_summary": {
             "rule_score": sensor_summary.get("rule_score"),
@@ -722,6 +734,9 @@ def build_single_condition_analysis_messages(
         "diagnosis_history": selected_history,
         "target_label": label,
         "target_display_name": DISPLAY_NAMES[label],
+        "target_score_source": dict(
+            (compact.get("score_sources") or {}).get(label) or {}
+        ),
         "condition": selected,
         "knowledge_evidence": compact.get("knowledge_evidence"),
     }

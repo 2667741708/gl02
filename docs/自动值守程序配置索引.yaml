@@ -1,6 +1,33 @@
 schema: ops.automation-index.v1
-updated_at: '2026-08-10T01:45:00+08:00'
+updated_at: '2026-08-11T16:55:00+08:00'
 entries:
+  - id: OPS-8093-PWSH7-RUNTIME-MIGRATION-20260811
+    name: 8093受控运行时与自动诊断摘要保护
+    scope: 22012-8093-runtime
+    status: production_verified
+    service:
+      name: BFV4PreviewProxy8093
+      shell: 'C:\Program Files\PowerShell\7\pwsh.exe'
+      port: 8093
+    tasks:
+      health: '\BlastFurnaceServices\BFV4PreviewProxy8093HealthCheck'
+      daily_baseline: '\BlastFurnace8093DailyBaseline20d'
+      autoguard: '\GL02AutoDiagnosis\RunOnce'
+      disabled_legacy:
+        - '\BlastFurnaceV3Proxy8093'
+        - '\BlastFurnace8093Proxy_NewProject'
+    entrypoints:
+      migrate: tools/remote_migrate_8093_runtime_to_pwsh7.ps1
+      probe: tools/remote_probe_8093_pwsh7_runtime_migration.ps1
+      autoguard_fallback: tools/remote_deploy_22012_autoguard_llm_fallback.ps1
+      cleanup: tools/cleanup_8093_dashboard_build_assets.py
+    acceptance:
+      focused_pytest: 37_passed
+      migration_and_health_pytest: 9_passed
+      diagnosis_browser_standard: 17_of_17
+      production_chromium: passed
+      autoguard_last_result: 0
+    handoff: docs/handoffs/2026-08-11-8093-throat-autoguard-pwsh7.md
   - id: OPS-SI-V20-STRICT-HOURLY-20260810
     name: V20严格自然整点影子预测
     scope: 22012-si-v20-strict-hourly
@@ -512,9 +539,18 @@ entries:
       startup: start_v3_full.ps1
       hidden_runner: tools/run_hidden_ps1.vbs
       terminal_default_migrator: tools/set_windows_terminal_pwsh7_default.ps1
+    local_postgresql:
+      mode: local-native
+      host: 127.0.0.1
+      port: 18000
+      database: bf_trend
+      user_env: GL02_LOCAL_PGUSER
+      password_env: GL02_LOCAL_PGPASSWORD
+      existing_primary_env_opt_in: BF_USE_EXISTING_PG_ENV
+      docker_15432_fallback: false
     tests:
       static_contract: tests/test_pwsh7_runtime_contract.py
-      static_contract_result: 4_passed
+      static_contract_result: 5_passed
       runtime_command: 'pwsh.exe -NoLogo -NoProfile -File .\tools\verify_pwsh7_utf8.ps1'
     boundaries:
       remove_windows_component: false
@@ -616,3 +652,343 @@ entries:
       restart_services: false
       mutate_schedules: only_backed_up_task_action_migration
       trigger_predictions: false
+  - id: REQ-HCZ-EXPERT-WEAK-LABEL-20260810
+    name: GL02 HCZ专家弱标签常开服务
+    scope: 22012-port-8892
+    status: deployed_healthy
+    endpoint: http://10.30.220.12:8892/hcz-labeling.html
+    scheduled_task:
+      path: \BlastFurnaceServices\SoftZoneTemperatureReplay8892
+      account: SYSTEM
+      trigger: AtStartup
+      multiple_instances: IgnoreNew
+      executable: C:\Program Files\PowerShell\7\pwsh.exe
+      entrypoint: tools/run_22012_soft_zone_replay_8892.ps1
+    database:
+      table: bf_assistant.hcz_expert_label_events
+      mode: append_only
+      initial_label_count: 0
+      current_label_count: 1
+      latest_label:
+        id: 1
+        reference_id: HCZ-28cf0aad-63af-4e64-a27d-679ca79dbfdd
+        observed_at: '2026-08-09 22:00:00+08:00'
+        movement_label: up
+        root_level_label: uncertain
+        confidence_grade: 4
+        created_at: '2026-08-11 11:30:33.942447+08:00'
+    contracts:
+      label_version: hcz-expert-weak-label.v1
+      source_version: gl02.hcz-label-source.v1
+      blind_to_model: true
+      model_outputs_included: false
+      direct_truth_claim: prohibited
+      automatic_control: prohibited
+    deploy:
+      local: tools/deploy_hcz_expert_label_22012.ps1
+      remote: tools/remote_guarded_deploy_hcz_expert_label_8892.ps1
+      deployed_at: '2026-08-10 12:48:45+08:00'
+      old_pid: 12440
+      new_pid: 5496
+      backup: F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\hcz_expert_label_8892_20260810_124845
+    protected_listener_pids:
+      8093: 10008
+      8094: 2988
+      8768: 18436
+      8770: 3732
+      5432: 12372
+    tests:
+      pytest: 12_passed
+      cross_engine_viewports: 17_passed
+      production_edge_smoke: passed_read_only
+      invalid_post_status: 400
+    documentation: docs/handoffs/2026-08-10-hcz-expert-weak-label-production.md
+  - id: REQ-HCZ-UPWARD-EXPERT-RULE-20260810
+    name: GL02软熔带上移综合趋势经验规则
+    runtime:
+      host: 10.30.220.12
+      port: 8093
+      service: BFV4PreviewProxy8093
+      executable: C:\Program Files\PowerShell\7\pwsh.exe
+      page: /hcz_upward_rule.html
+      api: /api/hcz-upward-rule
+    source:
+      database: bf_sensor
+      mode: read_only
+      horizon_hours: 144
+      cache_seconds: 120
+    contracts:
+      rule_id: HCZ-UP-FOREMAN-001
+      comparison: current_24h_vs_previous_5d
+      pressure_label: 冷风风压
+      pressure_variable: P_blast_cold
+      pressure_threshold_kpa: 5.0
+      required_consecutive_hours: 12
+      missing_data_policy: indeterminate
+      evidence_type: expert_rule_indication
+      direct_measurement_truth: false
+      calibrated_model: false
+      automatic_control: prohibited
+    deploy:
+      local: tools/deploy_hcz_cold_blast_pressure_22012.ps1
+      remote: tools/remote_guarded_deploy_hcz_cold_blast_pressure_8093.ps1
+      deployed_at: '2026-08-11 11:10:23+08:00'
+      old_pid: 6528
+      new_pid: 3704
+      backup: F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\hcz_cold_blast_pressure_8093_20260811_111023
+    protected_listener_pids:
+      8094: 18628
+      8768: 404
+      8770: 3732
+      5432: 12372
+      8892: 5496
+      11434: 5968
+    latest_result:
+      latest_sample_time: '2026-08-11 11:09:00+08:00'
+      status: not_triggered
+      max_consecutive_hours: 0
+      rising_layers: [11]
+      cold_blast_pressure_delta_kpa: 0.589619
+    tests:
+      pytest: 10_passed
+      cross_engine_viewports: 17_passed
+      production_edge_smoke: passed_read_only
+    documentation: docs/handoffs/2026-08-11-hcz-cold-blast-pressure-8093.md
+  - id: REQ-HCZ-RULE-SENSITIVITY-20260811
+    name: GL02经验阈值只读历史敏感性试算
+    runtime:
+      host: 10.30.220.12
+      port: 8093
+      service: BFV4PreviewProxy8093
+      page: /hcz_upward_rule.html
+      api: /api/hcz-rule-sensitivity
+    source:
+      database: bf_sensor
+      mode: read_only
+      history_days_allowed: [7, 30, 90]
+      history_cache_seconds: 300
+      gas_utilisation_storage_unit: fraction_0_to_1
+      gas_utilisation_rule_unit: percentage_point
+      gas_utilisation_multiplier: 100
+    contracts:
+      production_defaults_persisted: false
+      database_write: false
+      downward_definition: symmetric_mirror_candidate_only
+      automatic_control: prohibited
+      comparison: baseline_defaults_vs_single_request_scenario
+    deploy:
+      local: tools/deploy_hcz_rule_sensitivity_22012.ps1
+      remote: tools/remote_guarded_deploy_hcz_rule_sensitivity_8093.ps1
+      deployed_at: '2026-08-11 17:47:22+08:00'
+      old_pid: 12524
+      new_pid: 5052
+      rollback_applied: false
+      backup: F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\hcz_rule_sensitivity_8093_20260811_174722
+    protected_listener_pids:
+      8094: 17432
+      8768: 5628
+      8770: 3732
+      5432: 12372
+      8892: 5496
+      11434: 16232
+    latest_result:
+      history_days: 90
+      top_temperature_delta_c: '15_to_10'
+      baseline_up_episodes: 0
+      scenario_up_episodes: 0
+      baseline_down_candidate_episodes: 0
+      scenario_down_candidate_episodes: 0
+      gas_utilisation_current_percent: 45.83
+      gas_utilisation_baseline_percent: 46.38
+      gas_utilisation_delta_percentage_point: -0.55
+    tests:
+      pytest: 15_passed
+      cross_engine_viewports: 17_passed
+      production_edge_viewports: [1366x768_passed, 390x844_passed]
+    documentation: docs/handoffs/2026-08-11-hcz-rule-sensitivity-8093.md
+  - id: OPS-8093-GUARDED-UPDATE-SKILL-20260810
+    name: 8093本地修改到生产生效的受控更新Skill
+    scope: local-codex-skill-and-22012-8093-deployment-contract
+    status: skill_created_and_locally_validated
+    skill:
+      name: deploy-8093-guarded-update
+      path: C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\SKILL.md
+      contract: C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\references\project-contract.md
+      implicit_invocation: true
+      trigger_scope: any_22012_8093_update_fix_upload_activate_restart_or_verify
+      performance_learning: C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\references\deployment-performance-and-learning.md
+      reviewed_failure_playbook: C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\references\learned-failure-playbook.json
+    templates:
+      local_wrapper: C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\assets\deploy_8093_guarded_update.ps1.template
+      remote_guarded_payload: C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\assets\remote_guarded_deploy_8093.ps1.template
+    runtime_contract:
+      local_shell: pwsh.exe
+      minimum_major: 7
+      encoding: utf8_no_bom
+      remote_exec: tools/remote_22012_exec.py
+      persistent_session: tools/remote_22012_session.py
+      state_path: '%LOCALAPPDATA%\Codex\ssh-sessions\22012.json'
+      keepalive_seconds: 30
+      monitor_mode: request_boundary
+      leave_running_after_deploy: true
+      automatic_command_replay: false
+      upload_mode: upload_only_before_mutation
+      deployment_mutex: Global\BFV4PreviewProxy8093Deployment
+      service: BFV4PreviewProxy8093
+      rollback_required: true
+      finally_restore_required: true
+      persistent_sftp_reuse: true
+      pwsh_file_reuse_probe: tools/verify_22012_persistent_ssh_reuse.ps1
+      remote_utf8_probe: tools/remote_probe_22012_persistent_session.ps1
+      probe_runs: 2
+      inline_command_probe_allowed: false
+    protected_ports:
+      - 8094
+      - 8768
+      - 8770
+      - 5432
+      - 11434
+    validation:
+      command: pwsh.exe -NoLogo -NoProfile -File C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\scripts\validate_skill.ps1
+      result: passed
+      parsed_templates: 2
+      remote_write_performed: false
+    python_source_protection:
+      reference: C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\references\python-artifact-protection.md
+      pyb_standard_format: false
+      pyc_confidentiality_boundary: false
+      recommended_mode: native_local_build
+      target_abi: python_3_11_windows_x64
+      source_uploaded_in_native_mode: false
+      absolute_reverse_engineering_prevention_claim: prohibited
+    documentation: docs/requirements_traceability.md#ops-8093-guarded-update-skill-20260810
+  - id: OPS-8093-SKILL-REUSE-METRICS-LEARNING-AND-RSSH-MCP-20260810
+    name: 8093部署Skill计时学习与220.12 Reliable SSH MCP保活
+    scope: local-skill-persistent-transport-and-mcp
+    status: implemented_and_readonly_verified
+    persistent_probe:
+      local_entry: tools/verify_22012_persistent_ssh_reuse.ps1
+      remote_payload: tools/remote_probe_22012_persistent_session.ps1
+      execution: independent_utf8_ps1_via_pwsh_file_twice
+      session_reused: true
+      connection_reused: true
+      reconnect_count: 0
+      cold_baseline_ms: 22225
+      warm_first_ms: 16943
+      warm_second_ms: 17010
+      initial_saved_percent: 23.6
+      production_write_performed: false
+      service_restart_performed: false
+    deployment_learning:
+      recorder: C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\scripts\deployment_memory.py
+      local_root: '%LOCALAPPDATA%\Codex\deploy-8093-guarded-update'
+      candidate_threshold: 3
+      successful_remediations_required: 2
+      automatic_skill_rewrite: false
+      automatic_production_mutation: false
+    reliable_ssh_mcp:
+      source_root: D:\文件\网络登录服务器管理\reliable-ssh-mcp
+      config: C:\Users\hmw20\.codex\config.toml
+      target: administrator@10.30.220.12
+      transport: plink_pinned_host_key
+      remote_python: python
+      pool_size: 1
+      keepalive_interval_seconds: 30
+      heartbeat_interval_seconds: 60
+      automatic_replay: false
+      connection_status_tool: true
+      config_reload_required: true
+      live_handshake_ms: 19732
+      live_reused_request_ms:
+        - 299
+        - 323
+    tests:
+      project_pytest: 16_passed
+      reliable_ssh_mcp_node: 30_passed
+      skill_validation: passed
+      pwsh7_utf8: passed
+    documentation: docs/requirements_traceability.md#ops-8093-skill-reuse-metrics-learning-and-rssh-mcp-20260810
+  - id: REQ-8093-ABC33-B4-CANONICAL-SCORE-20260810
+    name: 8093异常弹窗统一ABC33 B4展示分
+    scope: 8093_backend_and_static_assets
+    status: deployed
+    deploy_entry: tools/deploy_abc33_b4_score_source_22012.ps1
+    remote_guarded_payload: tools/remote_guarded_deploy_abc33_b4_score_source_8093.ps1
+    service: BFV4PreviewProxy8093
+    source_rule_id: B4
+    display_contract: diagnosis-review-score-source.v2
+    alignment_minutes: 15
+    wall_clock_freshness_minutes: 20
+    fail_closed_without_legacy_fallback: true
+    legacy_score_archived: true
+    database_ddl_changed: false
+    protected_services_restarted: false
+    production:
+      evaluation_id: 839
+      b4_score: 14.9623
+      legacy_hot_score: 28.12
+      backup: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\abc33_b4_score_source_8093_20260810_195532'
+      guard_restored: true
+      rollback_applied: false
+    documentation: docs/handoffs/2026-08-10-8093-abc33-b4-canonical-score.md
+  - id: OPS-8093-RISK-TIERED-VALIDATION-20260810
+    name: 8093风险分级浏览器验收
+    scope: local_preview_and_production_smoke
+    status: implemented_local
+    default_profile: quick
+    profiles:
+      quick: 4
+      standard: 17
+      full: 85
+    reuse_browser_context_per_engine: true
+    full_matrix_environment: local_or_preview
+    production_validation: affected_route_smoke
+    deployment_safety_gates_reduced: false
+    tests:
+      profile_contract: 3_passed
+      quick_browser_matrix: 4_passed
+      quick_elapsed_seconds: 9.019
+    production_changed: false
+    documentation: docs/handoffs/2026-08-10-8093-risk-tiered-validation.md
+  - id: OPS-CODEX-ECONOMICAL-DELEGATION-20260810
+    name: Codex经济型模型委派
+    scope: local_bounded_codex_cli_tasks
+    status: implemented_local
+    skill: 'C:\Users\hmw20\.codex\skills\codex-economical-delegation\SKILL.md'
+    default_model: gpt-5.6-luna
+    default_reasoning_effort: low
+    default_sandbox: read-only
+    ephemeral: true
+    project_doc_max_bytes: 4096
+    production_mutation_allowed: false
+    model_catalog_probe_required: true
+    tests:
+      skill_validation: passed
+      luna_read_only_result: passed
+      optimized_duration_ms: 29197
+      optimized_input_tokens: 38309
+    documentation: docs/handoffs/2026-08-10-codex-economical-delegation.md
+  - id: REQ-SENSOR-CURVE-INSPECTOR-HOURLY-RANGE-20260811
+    name: 220.12传感器曲线整小时范围与右键点位详情
+    scope: 22012-8093-8094-8095-8096-8892-sensor-curves
+    pages:
+      - 'http://10.30.220.12:8093/foreman_trend_preview.html'
+      - 'http://10.30.220.12:8094/'
+      - 'http://10.30.220.12:8095/'
+      - 'http://10.30.220.12:8096/'
+      - 'http://10.30.220.12:8892/'
+    contract:
+      time_range_step_seconds: 3600
+      right_click_fields: [point_id, value, timestamp]
+      data_mode: read_only
+    shared_asset: '高炉前端数据/assets/curve-inspector.js'
+    production_evidence:
+      verified_at: '2026-08-11'
+      pages_http_200: [8093, 8094, 8095, 8096, 8892]
+      protected_listeners_pid_unchanged: true
+      backups:
+        8093: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\curve_inspector_8093_20260811_180912'
+        8094: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\curve_inspector_8094_20260811_181624'
+        8095: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\curve_inspector_static_8095_20260811_182215'
+        8096: 'F:\炽穹·高炉炼铁大模型V3\backups\curve_inspector_static_8096_20260811_182358'
+    documentation: docs/config_reference.md#传感器曲线统一交互-2026-08-11

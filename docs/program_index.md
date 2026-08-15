@@ -1,5 +1,26 @@
 # 程序索引
 
+## 罐重设定 sensor_registry 登记
+
+- `tools/register_hopper_weight_set_points.py`：从正式 TSV 读取南北探尺、11 个罐重设定物理
+  分量和 1 个派生目录项；默认只审计，`--apply` 才事务 upsert，并在提交后复核映射与历史覆盖。
+- `数据库同步和存取/config/点位清单.tsv`：登记的唯一权威来源；当前 165 行，其中
+  162 个物理点、3 个派生点。
+- `数据库同步和存取/src/sync_from_243_pg.py`：继续承担 11 个物理分量的 raw/分钟同步；
+  本轮没有新增 pSpace 常驻读取器。
+- 追踪：`OPS-SENSOR-REGISTRY-HOPPER-WEIGHT-SET-20260814`；
+  [生产交接](handoffs/2026-08-14-hopper-weight-set-registry-production.md)。
+
+## 工长趋势两位小数与百分数显示
+
+- `高炉前端数据/assets/foreman-trend-preview.js`：统一顶部指标和原生曲线提示为两位小数；
+  `GasUtil` 历史序列先从 `0–1` 比例转换为百分数。
+- `高炉前端数据/assets/curve-inspector.js`：所有共享右键曲线数值固定两位小数，并为
+  `GasUtil` 提供同一百分数口径。
+- `高炉前端数据/foreman_trend_preview.html`：更新两项脚本的缓存版本。
+- `tests/test_foreman_trend_preview.py`：锁定两位小数和先转百分数的静态合同。
+- 追踪：`REQ-FOREMAN-TREND-TWO-DECIMAL-PERCENT-20260814`。
+
 ## 8093/8094 诊断功能 reliable_ssh 一键部署
 
 - `tools/deploy_diag_rules.py`：用户统一入口；直接运行是本地测试和dry-run，`--apply`才允许生产部署。
@@ -538,13 +559,15 @@
 
 | 程序 | 职责 | 追踪编号 |
 |---|---|---|
+| [abc_rule_guidance.py](../自动诊断服务/abc_rule_guidance.py) | 33项逐条炉况形成原理、严格五步干预处置流程和64章手册来源；仅含生产安全工艺说明 | `REQ-ABC33-HANDBOOK64-MECHANISM-INTERVENTION-20260810` |
 | [abc_rule_catalog.py](../自动诊断服务/abc_rule_catalog.py) | 33项规则身份、传感器复核与手册处置目录 | `REQ-ABC33-FURNACE-RULES-20260807` |
 | [abc_feature_builder.py](../自动诊断服务/abc_feature_builder.py) | 当前值、窗口趋势、基线和质量门禁特征 | 同上 |
 | [abc_rule_engine.py](../自动诊断服务/abc_rule_engine.py) | 受控评分、置信度、四态和生产/后台序列化 | 同上 |
 | [abc_rule_config_store.py](../自动诊断服务/abc_rule_config_store.py) | 草稿校验、fsync原子发布和配置哈希 | 同上 |
+| [abc_runtime_store.py](../自动诊断服务/abc_runtime_store.py) | 8768实时批次与33项明细入库；同一分钟同配置冲突时同步刷新目录版本、质量快照和公开详情 | `REQ-ABC33-HANDBOOK64-MECHANISM-INTERVENTION-20260810` |
 | [abc_rule_schema.sql](../自动诊断服务/abc_rule_schema.sql) / [store.py](../自动诊断服务/store.py) | ABC计算批次、明细、配置和告警审计表 | 同上 |
 | [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 生产详情、趋势与管理员内部详情接口 | 同上 |
-| [abc-furnace-rules-production.js](../高炉前端数据/assets/abc-furnace-rules-production.js) | 生产页A/B/C页签和B/C分级提示 | 同上 |
+| [abc-furnace-rules-production.js](../高炉前端数据/assets/abc-furnace-rules-production.js) | 生产页A/B/C页签、逐点复核，以及显眼的炉况形成原理/五步干预处置流程 | `REQ-ABC33-HANDBOOK64-MECHANISM-INTERVENTION-20260810` |
 
 ## 8093 智能分析数据限制误报修复（2026-08-08）
 
@@ -612,7 +635,7 @@
 ## 本机 PowerShell 7 UTF-8 运行时（2026-08-10）
 
 - [verify_pwsh7_utf8.ps1](../tools/verify_pwsh7_utf8.ps1)：验证当前进程为PowerShell 7 Core、统一UTF-8编码、中文项目路径可读及中文临时文件回环一致。
-- [start_v3_full.ps1](../start_v3_full.ps1)：本机旧兼容启动入口增加PowerShell 7硬门，子PowerShell改用`pwsh.exe`。
+- [start_v3_full.ps1](../start_v3_full.ps1)：本机主启动入口；增加PowerShell 7硬门，子PowerShell使用`pwsh.exe`，默认将助手、诊断、实时桥接和同步目标统一到`GL02_LOCAL_PG*=127.0.0.1:18000/bf_trend`，并删除Docker `15432`与脚本内数据库密码回退。只有`BF_USE_EXISTING_PG_ENV=1`才保留既有主连接。
 - [run_hidden_ps1.vbs](../tools/run_hidden_ps1.vbs)：本机隐藏计划任务固定调用`C:\Program Files\PowerShell\7\pwsh.exe`，缺失时退出3，不回退Windows PowerShell 5.1。
 - [set_windows_terminal_pwsh7_default.ps1](../tools/set_windows_terminal_pwsh7_default.ps1)：备份并原子切换Windows Terminal默认配置到PowerShell 7，同时隐藏5.1配置但不删除系统组件。
 - [PowerShell7_UTF8运行规范.md](./PowerShell7_UTF8运行规范.md)：记录命令、编码模板、升级方式、远端迁移边界和验收口径。
@@ -635,3 +658,373 @@
 - [remote_migrate_v20_data_tasks_pwsh7_20260810.ps1](../tools/remote_migrate_v20_data_tasks_pwsh7_20260810.ps1)：逐任务备份XML，把IMES实时和可调V20分发任务迁移到PowerShell 7并验证运行。
 - [SI_V20_NEW_HEAT_20260810](../reports/acceptance/SI_V20_NEW_HEAT_20260810/)：冻结基线、逐小时JSONL、时间戳截图、API快照、CSV导出和最终报告目录。
 - Codex心跳自动化ID为`220-12-v20`，每小时持续运行；完整闭环通过后也不暂停，继续监督新炉次、严格整点和每小时汇总表。
+# tools/build_abc33_handbook64_revision.py
+
+- 职责：以《炉况计算规则补充（6）》为原始DOCX，追加ABC33形成原理、干预处置流程和见习高炉长64章映射；把权重20的料速项插入A2/B4/B5原公式第一位，原有项按0.8比例压缩为合计80；并在补充章节中作为A2首要维护项、B4/B5首要风险项，全部加粗。判据使用昨日平均和MES 24小时平均双基准，区分正常范围、硬上限和连续2小时强制提炉温条件；不覆盖来源文件。
+- 对应需求：[REQ-ABC33-HANDBOOK64-MECHANISM-INTERVENTION-20260810](./requirements_traceability.md#req-abc33-handbook64-mechanism-intervention-20260810)、[REQ-ABC33-HEAT-BATCH-RATE-CRITERION-20260810](./requirements_traceability.md#req-abc33-heat-batch-rate-criterion-20260810)。
+- 输入：规则补充DOCX、见习高炉长DOCX；输出：完整修订DOCX、64章映射JSON、构建审计JSON和Markdown审计。
+- 核心校验：A1—A9、B1—B13、C1—C11严格完整唯一；64章全部被至少一个规则引用；每项必须具有形成原理和不少于3步的处置流程。
+- 修改风险：章节映射和处置文字属于工艺知识；修改时必须保留现场规程、联锁、审批和C类独立证据边界，不得把建议改成自动控制命令。
+
+# tools/verify_abc33_heat_batch_rate_docx.py
+
+- 职责：重新打开实际生成DOCX，同时扫描正文与表格，核对A2/B4/B5共6处料速判据、公式第一位、权重20、其余权重合计80、双基线、正常/硬上限、两小时强预警和全段粗体格式。
+- 对应需求：[REQ-ABC33-HEAT-BATCH-RATE-CRITERION-20260810](./requirements_traceability.md#req-abc33-heat-batch-rate-criterion-20260810)。
+- 入口：[verify_document:L24-L104](../tools/verify_abc33_heat_batch_rate_docx.py#L24-L104)。
+
+# 自动诊断服务/abc_burden_rate.py
+
+- 职责：从`bf_imes.raw_rows`的`bf2_batch_input_detail_list_page_data2`煤/矿事件重建完整大批周期，计算前后30分钟、连续2小时、滚动24小时和昨日平均料速，并生成`BurdenRateDev/Slow/Fast`。
+- 对应需求：[REQ-ABC33-HEAT-BATCH-RATE-CRITERION-20260810](./requirements_traceability.md#req-abc33-heat-batch-rate-criterion-20260810)。
+- 数据合同：大批按相邻矿批之间完成煤矿组合的周期计速；缺窗口、事件过期或基线不足时返回不可用，不填0。
+
+# tools/deploy_abc33_burden_rate_22012.ps1
+
+- 职责：PowerShell 7本地门禁、持久SSH复用、9个精确文件暂存、8093守卫部署和独立8768重启验收。
+- 配套：[8093远端互斥部署](../tools/remote_guarded_deploy_abc33_burden_rate_8093.ps1)、[8768受控重启](../tools/remote_restart_abc33_burden_rate_8768.ps1)、[本地测试门禁](../tools/test_abc33_burden_rate_local.ps1)。
+- 生产边界：8093阶段保护8094/8768/8770/5432/8892/11434 PID；8768阶段保护8093/8094/8770/5432/8892/11434 PID。
+
+# docs/ABC33_B类关键变量核对_20260810.md
+
+- 职责：逐条比较B1—B13规则公式、校准因子、复合因子真实传感器依赖和`primary_sensors`，记录历史缺项及2026-08-10在线修复结果。
+- 核心结论：B类权重合计与方向正确；复核目录已补齐实际依赖，B4/B5已接入`BurdenRateSlow/Fast`和权重20；`P_blast/PCI_rate`语义边界保持不变。
+- 报告：[ABC33 B类关键变量核对](./ABC33_B类关键变量核对_20260810.md)。
+
+## 软熔带移动特征融合诊断（2026-08-10）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [cohesive_zone_intelligent_diagnosis.py:L63-L469](../炉况规则引擎/features/cohesive_zone_intelligent_diagnosis.py#L63-L469) | 校验安全配置，按历史截止切分当前/参考窗口，提取Word定义的特征，生成方向概率、逐项驱动、关联炉况证据，并可与现有C2几何估算器组合 | `REQ-COHESIVE-ZONE-INTELLIGENT-DIAGNOSIS-20260810` |
+| [cohesive_zone_intelligent_diagnosis.yaml:L9-L209](../炉况规则引擎/config/cohesive_zone_intelligent_diagnosis.yaml#L9-L209) | 特征别名、有效范围、变化尺度、方向、权重、覆盖门禁和炉况关联映射 | 同上 |
+| [run_cohesive_zone_intelligent_diagnosis.py:L24-L88](../tools/run_cohesive_zone_intelligent_diagnosis.py#L24-L88) | 本机CSV读取、历史截止、可选C2组合和UTF-8 JSON输出 | 同上 |
+| [verify_cohesive_zone_intelligent_diagnosis.ps1:L1-L41](../tools/verify_cohesive_zone_intelligent_diagnosis.ps1#L1-L41) | PowerShell 7 Core与UTF-8门禁、语法、30项pytest和CLI帮助检查 | 同上 |
+| [test_cohesive_zone_intelligent_diagnosis.py:L84-L161](../tests/test_cohesive_zone_intelligent_diagnosis.py#L84-L161) | 三方向、风险证据、防未来泄漏、缺失输入、组合包装和CSV端到端合同 | 同上 |
+
+修改风险：特征方向、单位、有效范围和`delta_scale`共同决定诊断方向；修改YAML时必须保持`confidence_cap<=0.45`和`control_use=prohibited`，并运行专项验证。没有经接受的`H_cz`真值时不得把`prediction_method`改成训练模型名称。
+
+## HCZ专家弱标签工作台（2026-08-10）
+
+| 程序 | 职责 |
+|---|---|
+| [hcz_expert_label.py](../高炉前端数据/智能助手/backend/hcz_expert_label.py) | 校验人工标签、知识时间、盲标字段，计算实测窗口SHA-256并追加写入PostgreSQL |
+| [soft_zone_replay_server.py](../tools/soft_zone_replay_server.py) | 在8892提供标签配置、实测上下文、追加提交、历史和CSV导出API |
+| [hcz-labeling.html](../高炉前端数据/soft_zone_replay/hcz-labeling.html) / [hcz-labeling.js](../高炉前端数据/soft_zone_replay/hcz-labeling.js) | 高炉长任务表单、实测回放选时、证据固定、状态反馈、历史和修订入口 |
+| [soft-zone-replay.js](../高炉前端数据/soft_zone_replay/soft-zone-replay.js) | `labeling_blind=1`时强制`include_cohesive=0`并隐藏估计控件，通过同源消息传递标注时刻 |
+| [deploy_hcz_expert_label_22012.ps1](../tools/deploy_hcz_expert_label_22012.ps1) | 上传受控文件并调用远端部署 |
+| [remote_guarded_deploy_hcz_expert_label_8892.ps1](../tools/remote_guarded_deploy_hcz_expert_label_8892.ps1) | 备份、只重启8892、迁移任务到PowerShell 7、验证API/页面/受保护PID并失败回滚 |
+| [audit_pspace_top4_hcz_aug9.py](../tools/audit_pspace_top4_hcz_aug9.py) | 在220.12只读直连pSpace，读取GL02四点顶温并输出小时均值、样本数和证据SHA-256 |
+| [remote_submit_hcz_aug9_upward_label.ps1](../tools/remote_submit_hcz_aug9_upward_label.ps1) | 在PowerShell 7中刷新8892盲证据哈希、拒绝同刻重复并追加/回读8月9日上移弱标签 |
+
+追踪编号：`REQ-HCZ-EXPERT-WEAK-LABEL-20260810`。修改盲标、知识时间或追加式存储合同后必须运行[专项测试](../tests/test_hcz_expert_label.py)和[跨引擎UI验收](../tools/verify_hcz_expert_label_ui.cjs)。
+
+## HCZ上移综合趋势经验规则（2026-08-10）
+
+| 程序 | 职责 |
+|---|---|
+| [hcz_upward_expert_rule.py](../炉况规则引擎/features/hcz_upward_expert_rule.py) | 聚合小时输入，比较24小时与前5天，执行五项核心、炉壁层数和连续12小时严格AND门禁 |
+| [hcz_upward_expert_rule.yaml](../炉况规则引擎/config/hcz_upward_expert_rule.yaml) | 固化阈值、单位、覆盖条件、变量映射和安全合同 |
+| [hcz_upward_rule_api.py](../高炉前端数据/智能助手/backend/hcz_upward_rule_api.py) | 从220.12本地`bf_sensor`只读聚合144小时数据并提供120秒缓存 |
+| [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 注册`GET /api/hcz-upward-rule`同源路由 |
+| [hcz_upward_rule.html](../高炉前端数据/hcz_upward_rule.html) / [hcz-upward-rule.js](../高炉前端数据/assets/hcz-upward-rule.js) | 展示结论、5项指标、7层温度、3个规则门和完整公式 |
+| [deploy_hcz_upward_rule_22012.ps1](../tools/deploy_hcz_upward_rule_22012.ps1) | PowerShell 7本机上传入口 |
+| [remote_guarded_deploy_hcz_upward_rule_8093.ps1](../tools/remote_guarded_deploy_hcz_upward_rule_8093.ps1) | 8093守卫停—改—启、原子部署、回滚和受保护端口验收 |
+| [remote_probe_hcz_cold_blast_pressure_8093.ps1](../tools/remote_probe_hcz_cold_blast_pressure_8093.ps1) | 只读核对生产配置哈希、压力标签、实际变量口径和受保护监听 |
+| [deploy_hcz_cold_blast_pressure_22012.ps1](../tools/deploy_hcz_cold_blast_pressure_22012.ps1) | 验证准备清单、生成单文件差量、复用持久SSH预暂存并调用守卫部署 |
+| [remote_guarded_deploy_hcz_cold_blast_pressure_8093.ps1](../tools/remote_guarded_deploy_hcz_cold_blast_pressure_8093.ps1) | 只替换HCZ规则YAML，验证`P_blast_cold`、API标签、阈值、回滚和受保护PID |
+| [hcz_upward_expert_rule.py](../炉况规则引擎/features/hcz_upward_expert_rule.py) | 复用准备后的小时序列，按生产默认与单次试算参数回放上移及符号对称下移候选 |
+| [hcz_upward_rule_api.py](../高炉前端数据/智能助手/backend/hcz_upward_rule_api.py) | 提供`GET /api/hcz-rule-sensitivity`，缓存90天只读小时数据并在入口完成`GasUtil × 100` |
+| [verify_hcz_upward_rule_ui.cjs](../tools/verify_hcz_upward_rule_ui.cjs) | 标准17组合验证阈值15→10、诊断量变化、百分数/百分点单位和响应式布局 |
+| [prepare_hcz_rule_sensitivity_8093_release.ps1](../tools/prepare_hcz_rule_sensitivity_8093_release.ps1) / [deploy_hcz_rule_sensitivity_22012.ps1](../tools/deploy_hcz_rule_sensitivity_22012.ps1) | 封存六文件发布清单并执行持久SSH差量部署 |
+| [remote_guarded_deploy_hcz_rule_sensitivity_8093.ps1](../tools/remote_guarded_deploy_hcz_rule_sensitivity_8093.ps1) | 在全局互斥下备份、仅暂停8093、原子替换、恢复、真实90天试算和受保护PID验收 |
+
+追踪编号：`REQ-HCZ-UPWARD-EXPERT-RULE-20260810`、`REQ-HCZ-RULE-SENSITIVITY-20260811`。2026-08-11第五项已按高炉长口径切换为冷风风压`P_blast_cold`；禁止只改中文标签而继续读取热风压力`P_blast`。页面试算值不保存；正式阈值、单位、变量或持续时间变化仍属于工艺规则变更，必须同步更新[规则文档](./GL02软熔带上移综合趋势经验规则_20260810.md)、专项测试并重新走守卫部署。
+
+## 8093炉况详情提示精简（2026-08-10）
+
+| 程序 | 职责 |
+|---|---|
+| [abc-furnace-rules-production.js](../高炉前端数据/assets/abc-furnace-rules-production.js) | 8093详情不创建“严重事件交叉确认”提示元素；8094保持原显示逻辑 |
+| [test_abc_production_ui.py](../tests/test_abc_production_ui.py) | 锁定8093端口级渲染门禁，防止提示条回归 |
+| [remote_guarded_remove_8093_cross_confirmation_banner.ps1](../tools/remote_guarded_remove_8093_cross_confirmation_banner.ps1) | 仅暂停/恢复8093守卫，原子更新资源、缓存版本、失败回滚并保护其他端口 |
+
+追踪编号：`REQ-8093-REMOVE-CROSS-CONFIRMATION-BANNER-20260810`。本项仅为8093显示精简，不得借此修改ABC33公式、分数、接口合同或8094页面。
+
+## 8093炉况处置首屏与工艺依据按钮（2026-08-10）
+
+| 程序 | 职责 |
+|---|---|
+| [abc-furnace-rules-production.js](../高炉前端数据/assets/abc-furnace-rules-production.js) | 8093详情首屏显示处置顺序，按钮展开工艺依据/操作原理，不渲染来源章节索引 |
+| [test_abc_production_ui.py](../tests/test_abc_production_ui.py) | 锁定处置顺序、按钮可访问状态、两块内容和8093无章节索引合同 |
+| [remote_guarded_deploy_8093_action_first_basis_toggle.ps1](../tools/remote_guarded_deploy_8093_action_first_basis_toggle.ps1) | 只暂停/恢复8093守卫，备份、原子部署、API合同和受保护端口验证 |
+
+追踪编号：`REQ-8093-ABC33-ACTION-FIRST-BASIS-TOGGLE-20260810`。来源章节继续保留在后台审计与文档，不得重新暴露到8093生产操作详情。
+
+## 8093 ABC33复核点中文名称统一（2026-08-10）
+
+| 程序 | 职责 |
+|---|---|
+| [abc_public_review.py](../自动诊断服务/abc_public_review.py) | 生产复核详情的中文名称和单位目录；补齐理论燃烧温度、热风温度、料罐重量/设定及氮气压力/流量 |
+| [abc-furnace-rules-production.js](../高炉前端数据/assets/abc-furnace-rules-production.js) | 复核点只渲染中文名称，不在操作页面展示内部变量键；内部键仅作为不可见审计属性保留 |
+| [audit_abc33_operator_metric_labels.py](../tools/audit_abc33_operator_metric_labels.py) | 遍历生产最新33条详情的全部指标，报告非中文、内部键直出和详情读取错误 |
+| [test_abc_public_review_labels.py](../tests/test_abc_public_review_labels.py) | 锁定后端中文名称与单位合同 |
+| [test_abc_production_ui.py](../tests/test_abc_production_ui.py) | 锁定前端中文优先和不显示内部变量键合同 |
+| [remote_guarded_deploy_8093_chinese_metric_labels.ps1](../tools/remote_guarded_deploy_8093_chinese_metric_labels.ps1) | 仅暂停/恢复8093守卫，原子部署前后端文件，并以33项全量扫描作为上线硬门禁 |
+
+追踪编号：`REQ-8093-ABC33-CHINESE-METRIC-LABELS-20260810`。新增复核变量时必须同时配置中文名称，并通过全量生产扫描后方可发布。
+
+## 8093 ABC33复核分组互斥（2026-08-10）
+
+| 程序 | 职责 |
+|---|---|
+| [abc_public_review.py](../自动诊断服务/abc_public_review.py) | `_group_metrics`按重要性选出主复核点，再从剩余变量构造炉壳、冷却和其他分组，保证四组互斥 |
+| [abc-furnace-rules-production.js](../高炉前端数据/assets/abc-furnace-rules-production.js) | `disjointReviewGroups`提供浏览器端第二道按变量键去重，后续分组标题明确为“其余”点位 |
+| [audit_abc33_review_group_duplicates.py](../tools/audit_abc33_review_group_duplicates.py) | 逐条读取33项生产详情，统计跨组重复变量、重复展示次数和受影响规则；`--require-clean`作为部署硬门禁 |
+| [test_abc_public_review_labels.py](../tests/test_abc_public_review_labels.py) | 验证后端四组变量并集不丢失、交集为空 |
+| [test_abc_production_ui.py](../tests/test_abc_production_ui.py) | 锁定前端去重顺序、`seen`保护和“其余”分组渲染 |
+| [remote_guarded_deploy_8093_disjoint_review_groups.ps1](../tools/remote_guarded_deploy_8093_disjoint_review_groups.ps1) | 守卫停—改—启、原子部署、中文标签回归和33项零重复硬门禁 |
+
+追踪编号：`REQ-8093-ABC33-DISJOINT-REVIEW-GROUPS-20260810`。后续新增分组时必须接在同一去重顺序之后，不得重新从完整指标集构造页面分组。
+
+## 8093 ABC33复核表纵向语义布局（2026-08-10）
+
+| 程序 | 职责 |
+|---|---|
+| [abc-furnace-rules-production.js](../高炉前端数据/assets/abc-furnace-rules-production.js) | 复核数值使用无最小宽度的6列固定布局；语义独占下一整行；详情禁止横向溢出、允许纵向增长，窄屏改为两列卡片 |
+| [test_abc_production_ui.py](../tests/test_abc_production_ui.py) | 锁定无1120px强制宽度、无内部固定高度、语义跨6列、自动换行和窄屏结构 |
+| [audit_abc33_review_group_duplicates.py](../tools/audit_abc33_review_group_duplicates.py) | 在既有跨组去重审计之外统计473条语义覆盖率、缺失数和最长语义压力样本 |
+| [remote_guarded_deploy_8093_vertical_metric_layout.ps1](../tools/remote_guarded_deploy_8093_vertical_metric_layout.ps1) | 只更新8093页面资源，校验纵向布局标记、33项语义完整性和受保护服务PID |
+
+追踪编号：`REQ-8093-ABC33-VERTICAL-METRIC-LAYOUT-20260810`。不得重新引入表格固定最小宽度、语义末列或表格内部横向滚动。
+
+## 8093受控更新Skill（2026-08-10）
+
+| 程序/资源 | 职责 |
+|---|---|
+| [SKILL.md](../.codex/skills/deploy-8093-guarded-update/SKILL.md) | 项目版本源；固化准备一次/差量上线、持久SSH复用、upload-only暂存、8093守卫停—改—启、验收和失败回滚的低自由度流程 |
+| [project-contract.md](../.codex/skills/deploy-8093-guarded-update/references/project-contract.md) | 记录220.12根目录、服务身份、PowerShell 7、部署互斥、受保护端口和最小证据合同 |
+| [two-phase-fast-deployment.md](../.codex/skills/deploy-8093-guarded-update/references/two-phase-fast-deployment.md) | 不可变准备清单、Luna/只读预检并行、差量上传、确定性验收和即时生效通知合同 |
+| [release_manifest.py](../.codex/skills/deploy-8093-guarded-update/scripts/release_manifest.py) | 生成/校验`prepared-release`，依据实时远端哈希生成密封`delta-plan`并拒绝失效产物、未评审基线和错误create边界 |
+| [python-artifact-protection.md](../.codex/skills/deploy-8093-guarded-update/references/python-artifact-protection.md) | 规定`.pyc`/Nuitka/Cython选择、本机构建、只传原生产物、入口切换、验收和逆向风险边界 |
+| [sync_deploy_8093_guarded_update_skill.ps1](../tools/sync_deploy_8093_guarded_update_skill.ps1) | 以14文件白名单在项目版本源和全局Codex运行镜像之间执行显式导入、单向发布和逐文件哈希校验；不访问生产环境 |
+| [remote_22012_session.py](../tools/remote_22012_session.py) | localhost会话代理：持有一个已认证SSH transport、keepalive、断线重连计数、每请求独立channel且不重放不确定命令 |
+| [start_remote_22012_session.ps1](../tools/start_remote_22012_session.ps1) | PowerShell 7/UTF-8入口；确保会话存在并复用，代理自身以隐藏进程持续运行 |
+| [stop_remote_22012_session.ps1](../tools/stop_remote_22012_session.ps1) | 显式停止会话代理；正常部署结束不调用 |
+| [deploy_8093_guarded_update.ps1.template](../.codex/skills/deploy-8093-guarded-update/assets/deploy_8093_guarded_update.ps1.template) | 本机Phase B模板：校验准备清单和远端状态、生成差量、只上传变化文件、复用会话并输出即时通知信号 |
+| [remote_guarded_deploy_8093.ps1.template](../.codex/skills/deploy-8093-guarded-update/assets/remote_guarded_deploy_8093.ps1.template) | 消费密封差量计划，执行基线哈希、互斥、备份、原子安装、恢复、验收与回滚 |
+| [validate_skill.ps1](../.codex/skills/deploy-8093-guarded-update/scripts/validate_skill.ps1) | 只读检查Skill关键合同并用PowerShell解析两份模板；不访问生产环境 |
+
+追踪编号：`OPS-8093-GUARDED-UPDATE-SKILL-20260810`、`OPS-22012-PERSISTENT-SSH-AND-PYTHON-PROTECTION-20260810`。实际部署仍必须在仓库`tools/`生成或复用经过评审的功能专用脚本；不得直接执行未替换占位符、未加功能验收的模板。
+
+## 8093 Skill复用计时、受控学习与Reliable SSH MCP保活（2026-08-10）
+
+| 程序/资源 | 职责 |
+|---|---|
+| [verify_22012_persistent_ssh_reuse.ps1](../tools/verify_22012_persistent_ssh_reuse.ps1) | 本机PowerShell 7入口；冷连接可选、同一会话双次独立`.ps1`、连接/请求号断言、延迟与本机JSONL证据 |
+| [remote_probe_22012_persistent_session.ps1](../tools/remote_probe_22012_persistent_session.ps1) | 远端独立UTF-8只读探针，输出PowerShell版本/Core、UTF-8、主机、PID和时间 |
+| [remote_22012_exec.py](../tools/remote_22012_exec.py) | 允许调用者注入并持有SSH和SFTP客户端；普通单次入口仍自行关闭资源 |
+| [remote_22012_session.py](../tools/remote_22012_session.py) | 同时复用认证transport和串行SFTP通道，断线不重放命令 |
+| [deployment_memory.py](../.codex/skills/deploy-8093-guarded-update/scripts/deployment_memory.py) | 本机部署耗时、失败脱敏、指纹聚合、候选学习和统计摘要 |
+| [connection-pool.js](../../网络登录服务器管理/reliable-ssh-mcp/src/connection-pool.js) | OpenSSH/Plink常驻远端runner、应用心跳、请求指标、按请求前恢复且不自动重放 |
+| [server.js](../../网络登录服务器管理/reliable-ssh-mcp/src/server.js) | 单服务器MCP可选连接池并提供`connection_status` |
+| [reliable_ssh_22012_cli.mjs](../tools/reliable_ssh_22012_cli.mjs) | 220.12连接池验证和诊断包传输；远端ZIP结构化解压后使用PowerShell 7 `-File` |
+| [benchmark_22012_ssh_command_latency.ps1](../tools/benchmark_22012_ssh_command_latency.ps1) | 5组冷/复用交错样本，输出median、p90、分阶段耗时、每命令节约和新会话盈亏平衡点 |
+| [build_python_native_artifact.ps1](../tools/build_python_native_artifact.ps1) | PowerShell 7原生构建入口；默认计划模式，显式创建Python 3.11 x64环境、安装依赖和执行Nuitka/Cython |
+| [build_python_native_artifact.py](../tools/build_python_native_artifact.py) | 校验构建spec、生成三类原生产物命令和哈希/ABI/入口/回滚清单，源码保密模式拒绝`.py/.pyw`产物 |
+| [deploy_abc33_b4_score_source_22012.ps1](../tools/deploy_abc33_b4_score_source_22012.ps1) | 复用持久SSH，上传五个精确文件并执行8093守卫部署 |
+| [remote_guarded_deploy_abc33_b4_score_source_8093.ps1](../tools/remote_guarded_deploy_abc33_b4_score_source_8093.ps1) | 基线哈希、全局互斥、备份、原子安装、B4/归档/API/PID验收和失败回滚 |
+
+追踪编号：`OPS-8093-SKILL-REUSE-METRICS-LEARNING-AND-RSSH-MCP-20260810`。
+
+评分源追踪编号：`REQ-8093-ABC33-B4-CANONICAL-SCORE-20260810`。
+
+## 8093风险分级浏览器验收（OPS-8093-RISK-TIERED-VALIDATION-20260810）
+
+| 程序 | 作用 |
+| --- | --- |
+| [verify_diagnosis_review_local.py](../tools/verify_diagnosis_review_local.py) | 提供`quick/standard/full`三档矩阵，按内核复用浏览器context并记录导航与总耗时 |
+| [test_diagnosis_review_browser_profiles.py](../tests/test_diagnosis_review_browser_profiles.py) | 固定4/17/85项数量、受影响路由边界及1546×864完整矩阵合同 |
+| [validation-tiers.md](C:/Users/hmw20/.codex/skills/deploy-8093-guarded-update/references/validation-tiers.md) | 8093 Skill的风险选择、升级条件与生产定向冒烟规则 |
+
+## Codex经济型委派（OPS-CODEX-ECONOMICAL-DELEGATION-20260810）
+
+| 程序 | 作用 |
+| --- | --- |
+| [SKILL.md](C:/Users/hmw20/.codex/skills/codex-economical-delegation/SKILL.md) | 选择“不调用模型/Luna/Terra/Sol”、委派边界、验收与成本核算 |
+| [invoke_codex_delegate.ps1](C:/Users/hmw20/.codex/skills/codex-economical-delegation/scripts/invoke_codex_delegate.ps1) | PowerShell 7 UTF-8入口；实时模型探测、只读默认、最小工具面、JSON用量/耗时输出 |
+| [model-routing.md](C:/Users/hmw20/.codex/skills/codex-economical-delegation/references/model-routing.md) | 当前CLI能力、任务分级和委派prompt合同 |
+
+## 8093前端生产构建与轻量运行时（REQ-8093-FRONTEND-PERF-R1）
+
+| 程序 | 作用 |
+| --- | --- |
+| `高炉前端数据/dashboard_build/scripts/build-dashboard.mjs` | 从现有HTML提取React入口并用Vite/esbuild生成生产HTML和哈希资源 |
+| `高炉前端数据/dashboard_build/src/overview-route-loader.js` | 只在总览路由顺序加载共享连接与3D运行时 |
+| `高炉前端数据/assets/bf-shared-runtime-scheduler.js` | 合并周期任务并在页面隐藏时暂停 |
+| `高炉前端数据/智能助手/backend/http_static_compression.py` | gzip/Brotli协商压缩 |
+| `tools/verify_8093_frontend_production_build.py` | 默认Chromium 1366x768核心冒烟；显式参数才运行85项矩阵 |
+| `tools/deploy_8093_frontend_perf_22012.ps1` | 本机构建、定向验证、持久SSH预暂存、远端受控部署和同会话复核入口 |
+| `tools/remote_guarded_deploy_8093_frontend_perf.ps1` | 远端互斥、备份、只暂停8093守卫、原子替换、恢复、压缩/缓存/PID验收与失败回滚 |
+
+## 8093核心变量弹窗与独立基线（BUG-8093-CORE-PORTAL-BASELINE-20260811）
+
+| 程序 | 作用 |
+| --- | --- |
+| [verify_8093_core_spark_detail.py](../tools/verify_8093_core_spark_detail.py) | 验证弹窗挂载到body、最高层显示、可交互、无横向溢出；支持受影响路由17组合 |
+| [verify_8093_core_metrics_pspace_live.py](../tools/verify_8093_core_metrics_pspace_live.py) | 逐行复算raw、median、IQR、deviation、status并核对28变量证据 |
+| [deploy_8093_core_modal_baseline_22012.ps1](../tools/deploy_8093_core_modal_baseline_22012.ps1) | 校验不可变清单、复用SSH、只上传HTML与哈希主包并调用受控上线 |
+| [remote_guarded_deploy_8093_core_modal_baseline.ps1](../tools/remote_guarded_deploy_8093_core_modal_baseline.ps1) | 全局互斥、备份、只暂停8093、原子替换、恢复、HTTP/哈希/受保护PID验收与回滚 |
+## 时间序列排行榜（2026-08-11）
+
+| 程序 | 责任 | 风险边界 |
+|---|---|---|
+| [tools/timeseries_leaderboard.py](../tools/timeseries_leaderboard.py) | 合并同切点评测明细，计算综合和分维度排名，输出JSON/CSV/Markdown | 离线只读，不切换模型 |
+| [tools/timeseries_sidecar_service.py](../tools/timeseries_sidecar_service.py) | 在8778热加载排行榜JSON并提供只读接口 | 文件缺失返回503，预测默认模型保持独立 |
+| [tools/check_timeseries_sidecar_python.py](../tools/check_timeseries_sidecar_python.py) | 检查8778状态、模型目录和排行榜schema | 只读HTTP检查 |
+| [tests/test_timeseries_leaderboard.py](../tests/test_timeseries_leaderboard.py) | 验证共同切点、排名和schema拒绝 | 本机测试 |
+## 8093 ABC33炉况总览入口（2026-08-11）
+
+- 页面运行时：`高炉前端数据/assets/abc-furnace-rules-production.js`
+- 页面装载：`高炉前端数据/frontend_dashboard_v3.server.html`
+- 标准矩阵：`tools/verify_abc33_overview_entry_standard.cjs`
+- 生产冒烟：`tools/verify_abc33_overview_entry_production.cjs`
+- 受控部署：`tools/deploy_abc33_overview_entry_22012.ps1`
+## pSpace探尺实时料速（2026-08-11）
+
+- 计算入口：`自动诊断服务/abc_burden_rate.py::fetch_burden_rate_snapshot`
+- 小批识别：`_probe_events`；南北合并：`_merge_probe_events`；重量分型：`_classify_charge_events`。
+- 规则消费者：A2 `BurdenRateDev`、B4 `BurdenRateSlow`、B5 `BurdenRateFast`。
+- 测试：`tests/test_abc_burden_rate.py`、`tools/verify_abc33_probe_burden_rate.ps1`、`tools/audit_8093_probe_burden_rate_http.py`。
+
+## 220.12:8093维护交接包（2026-08-11）
+
+- 构建入口：`tools/build_8093_handoff_package.ps1`
+- 源文件白名单：`tools/handoff/8093_handoff_manifest.json`
+- 包内接手说明源：`tools/handoff/8093_HANDOFF_README.md`
+- 合同测试：`tests/test_8093_handoff_package.py`
+- 本地输出：`handoff_packages/`（Git忽略）
+
+## ABC33 上下文智能助手
+
+- 解释合同：`自动诊断服务/abc_rule_explanation.py`
+- 权威适配：`高炉前端数据/智能助手/backend/abc_rule_assistant_analysis.py`
+- API/会话/SSE：`高炉前端数据/智能助手/backend/ollama_proxy_server.py`
+- 数据迁移：`高炉前端数据/智能助手/backend/schema/20260811_abc_contextual_assistant.sql`
+- 炉框入口：`高炉前端数据/assets/abc-furnace-rules-production.js`
+- 弹窗：`高炉前端数据/assets/bf-abc33-assistant-dialog.js` 与 `.css`
+
+## 8093 QA 会话登录桥接（2026-08-12）
+
+- 页面与传输：[frontend_dashboard_v3.server.html](../高炉前端数据/frontend_dashboard_v3.server.html)：类型化保留 HTTP 错误码，识别 `qa_session_required`，显示同源登录框并在成功后重新 bootstrap。
+- 浏览器合同：[verify_qa_session_login_bridge.cjs](../tools/verify_qa_session_login_bridge.cjs)：模拟 403→登录→会话加载，断言模型/问答 POST 为 0、密码输入框销毁。
+- 生产更新：[remote_guarded_deploy_qa_session_login_bridge_8093.ps1](../tools/remote_guarded_deploy_qa_session_login_bridge_8093.ps1)：基线哈希、唯一锚点、Dry Run、互斥、备份、仅停 8093、受保护 PID 和回滚。
+## QA 共享访客与 MCP 最终回答降级（2026-08-13）
+
+- [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)：`shared_guest_identity/ensure_shared_guest_conversation/qa_access_identity` 固定共享房间；`qa_mcp_final_fallback/qa_mcp_result_with_fallback` 保证工具失败后仍有一次无工具模型最终回答。
+- [frontend_dashboard_v3.server.html](../高炉前端数据/frontend_dashboard_v3.server.html)：未登录默认显示共享访客窗口和数据库时间戳，私有登录入口独立保留。
+- [postgresql_assistant.sql](../高炉前端数据/智能助手/backend/schema/postgresql_assistant.sql)：条件唯一索引保证每个访客房间只有一个会话。
+
+## 153点位语义目录与智能体评测（2026-08-13）
+
+- `tools/generate_semantic_point_catalog.py`：从七列权威TSV生成版本化别名、完整问法、碰撞和哈希。
+- `数据库同步和存取/config/点位语义目录.json`：153个标准ID的语义伴生目录，不含凭据。
+- `高炉前端数据/智能助手/mcp/bf_data_mcp_server.py`：加载语义别名和完整物理fallback目录，精确解析。
+- `高炉前端数据/智能助手/backend/ollama_proxy_server.py`：单点/组合路由和静压、喷煤小时、阀前后抑制。
+- `.codex/skills/agent-tool-capability-evaluation/`：十类指标、评分规则与机器评测入口。
+- `tests/test_semantic_point_catalog.py`：全量别名、唯一口语、多点集合和未知拒识回归。
+
+## MCP传感器推断与多工具计算评测（2026-08-13）
+
+- `tools/evaluate_8093_mcp_sensor_reasoning.py`：三题生产 SSE 评估入口；每题只发一次、不重试，
+  分开计算工具合同与答案合同，并独立复算极差、CV 和相关性证据。
+- `tools/probe_8093_cross_mcp_computation.py`：底层共享访客 bootstrap、SSE 解析和工具轨迹采集。
+- `tests/test_evaluate_8093_mcp_sensor_reasoning.py`：验证分层评分、统计复算和完整 source_status 证据读取。
+- `PT/MCP可执行功能及口语调用模板.md` 第16节：固定题目、字段合同、执行命令和判分口径。
+- `.codex/skills/agent-tool-capability-evaluation/scripts/evaluate_mcp_template_lines.py`：逐行解析、
+  预期/实际比较、四类能力评分、检查点续跑与报告生成的权威实现。
+- `tools/evaluate_mcp_template_lines.py`：项目根目录薄入口，不重复实现 Skill 逻辑。
+- `tools/sync_agent_tool_capability_evaluation_skill.ps1`：七文件精确清单，从项目版本源发布到全局运行镜像并校验哈希。
+
+## MCP 扩展生产回归与隔离故障预览（2026-08-14）
+
+- `PT/智能体工具能力扩展生产回归.v1.json`：14 个权威变量、42 个真实问法和证据合同。
+- `tools/evaluate_mcp_extended_production.py`：逐题或 6 并发执行生产 SSE，记录事件、工具轨迹、
+  证据字段、请求数、重试数和延迟，不自动重发失败请求。
+- `tools/mcp_fault_preview_acceptance.py`：只供隔离回环预览使用，注入超时、部分失败、全失败与
+  工具结果注入夹具；禁止把该入口指向生产 8093。
+- `tools/rescore_mcp_gold_report.py` 与 `tools/rescore_mcp_fault_preview.py`：只读重评分已保存报告，
+  输出 `additional_model_requests=0`，保留原始结果。
+- `tools/build_mcp_extended_regression_summary.py`：合并 pass^5、42 点位、并发、会话隔离和故障报告。
+- `tools/remote_verify_8093_guest_owner_isolation.ps1`：只读验证共享访客与登录 owner 的会话隔离，
+  不回显凭据、不发送模型问答。
+- `PT/智能体工具能力口语化生产回归.v1.json`：不含任何内部变量 ID 的 42 个现场口语问题；
+  A-H 只作为独立方位字母。与标准名矩阵分开统计，避免把 `中文名称（ID）` 的成功冒充为纯口语
+  解析成功。
+- `tools/evaluate_mcp_extended_production.py::validate_spoken_prompt_policy`：发送请求前加载完整点位目录，
+  拒绝已知内部 ID 和未知下划线技术串；违规题零模型请求。
+
+## 炉体温度分层与单点确定性统计（2026-08-14）
+
+| 程序 | 职责 | 追踪编号 |
+|---|---|---|
+| [bf_data_extended_mcp_server.py](../高炉前端数据/智能助手/mcp/bf_data_extended_mcp_server.py#L308) | 单次只读批量查询 7–16 层 A–H，计算逐层、单点、滚动波动和完整质量事实 | `REQ-MCP-BODY-LAYER-STATISTICS-20260814` |
+| [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L4286) | 解析中文层范围/时间范围，生成一次复合调用并确定性格式化答案 | 同上 |
+| [cross_source_executor.py](../高炉前端数据/智能助手/backend/mcp_host/cross_source_executor.py#L413) | 将紧凑统计结果投影为 `body_temperature_statistics` 事实 | 同上 |
+| [calculation_tools.json](../高炉前端数据/智能助手/mcp/catalog/calculation_tools.json#L71) | 登记 `body_temperature_layer_statistics` 计算能力 | 同上 |
+| [test_body_temperature_layer_statistics.py](../tests/test_body_temperature_layer_statistics.py) | 覆盖 7–13 层展开、显式钟点、总窗/滚动窗分离、工具计算和证据格式 | 同上 |
+| [ollama_proxy_server.py 执行摘要与解释边界](../高炉前端数据/智能助手/backend/ollama_proxy_server.py) | 生成脱敏 `public_trace`、一次复合调用耗时/证据计数，并对模型解释执行新增数字拒绝 | `REQ-QA-COMPOSITE-MCP-EXECUTION-TRACE-20260814` |
+| [frontend_dashboard_v3.server.html](../高炉前端数据/frontend_dashboard_v3.server.html) | 消费五类 SSE 进度事件，将 `public_trace` 实时显示为“执行详情”，不渲染原始工具参数/结果 | 同上 |
+| [test_qa_tool_execution_trace_ui.py](../tests/test_qa_tool_execution_trace_ui.py) | 验证 SSE 分发、当前 QA 页面接线和只消费脱敏字段 | 同上 |
+
+受控发布入口为 `tools/prepare_8093_body_temperature_statistics_release.ps1` 与
+`tools/run_8093_body_temperature_statistics_deploy_20260814.ps1`；时间窗增量修复使用对应
+`body_temperature_window_fix` 脚本。生产 Git 已保存为 `849d9554060f7c1252722e8394a9cb224ff13488`。
+# REQ-QA-MCP-VISUAL-RECOMMENDATIONS-20260814
+
+- [ollama_proxy_server.py:L4662-L4712](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L4662-L4712)：
+  纯中文炉体温度矩阵热度图路由，生成单个 `plot_gl02_body_temperature_matrix` 调用。
+- [frontend_dashboard_v3.server.html:L8881-L8882](../高炉前端数据/frontend_dashboard_v3.server.html#L8881-L8882)：
+  安全解析并渲染同源 MCP PNG。
+- [frontend_dashboard_v3.server.html:L9223-L9252](../高炉前端数据/frontend_dashboard_v3.server.html#L9223-L9252)：
+  常用 MCP 模板、相关追问、浏览器固定/自定义持久化和滚动推荐区。
+- [verify_abc_contextual_assistant_viewports.cjs:L350-L388](../tools/verify_abc_contextual_assistant_viewports.cjs#L350-L388)：
+  QA 单视口验证固定、自定义、相关问题与零真实模型请求。
+- 修改风险：调整模板顺序会影响推荐排序；调整安全图片正则会影响历史图表显示，禁止放宽为任意 URL。
+
+## REQ-QA-MESSAGE-COPY-20260814
+
+- [frontend_dashboard_v3.server.html:L8920](../高炉前端数据/frontend_dashboard_v3.server.html#L8920)：
+  统一处理 `.qa-server-msg` 和旧 `.qa-msg`，为用户/助手消息分别注入“复制问题/复制回复”。
+- [frontend_dashboard_v3.server.html:L8938](../高炉前端数据/frontend_dashboard_v3.server.html#L8938)：
+  从克隆节点提取可见正文，移除时间、按钮和隐藏内容，并附带经既有同源规则归一化的 MCP 图表地址。
+- [test_qa_message_copy_ui.py](../tests/test_qa_message_copy_ui.py)：验证双角色、正文边界、图表 URL、
+  Clipboard 回退、状态反馈和零 QA API 调用。
+- [verify_abc_contextual_assistant_viewports.cjs](../tools/verify_abc_contextual_assistant_viewports.cjs)：
+  在 QA 只读夹具中实际点击两种复制按钮，检查剪贴板正文并证明 `real_sent=0`。
+- 修改风险：复制器采用 DOM 观察器适配流式更新与历史消息；若消息容器类名变化，必须同步更新选择器和
+  浏览器验收。禁止将隐藏 Prompt、上下文快照、时间元数据或任意外部图片 URL 纳入复制内容。
+
+## REQ-QA-LOCAL-RECOMMENDATION-PRESERVATION-20260814
+
+- [QaPromptRecommendations:L9325](../高炉前端数据/frontend_dashboard_v3.server.html#L9325)：
+  将原有动态常用问题与固定 MCP 模板作为独立分区渲染，旧问题排在 MCP 模板之前；滚动容器支持
+  鼠标/触控滚动和键盘聚焦。
+- [QaPromptRecommendationsPersistent:L9331](../高炉前端数据/frontend_dashboard_v3.server.html#L9331)：
+  `props.common` 保留原动态推荐，`QA_MCP_RECOMMENDED_PROMPTS` 单独作为 `mcpCommon`，不再合并后
+  失去来源和顺序语义。
+- [test_original_common_questions_are_preserved_before_mcp_templates](../tests/test_qa_mcp_visual_recommendations.py#L72)：
+  验证分区、顺序、可访问滚动合同和禁止恢复旧拼接写法。
+- 修改风险：不得把动态问题重新追加到 MCP 数组尾部；新增推荐来源时必须使用独立分区或显式来源字段，
+  并保持点击只填入、不自动发送。
+
+## 炉况诊断8类与ABC33数学公式手册（2026-08-14）
+
+| 程序/产物 | 职责 | 追踪编号 |
+|---|---|---|
+| [generate_furnace_rules_formula_handbook.py](../tools/generate_furnace_rules_formula_handbook.py) | 从旧8类YAML和ABC33服务端目录/审计公式生成41规则Markdown | `REQ-FURNACE-RULE-FORMULA-HANDBOOK-20260814` |
+| [export_furnace_rules_handbook_pdf.ps1](../tools/export_furnace_rules_handbook_pdf.ps1) | 在PowerShell 7.6.4中通过Pandoc和Edge无头模式导出PDF | 同上 |
+| [verify_furnace_rules_formula_handbook.py](../tools/verify_furnace_rules_formula_handbook.py) | 校验8+33章节、关键公式、PDF页数和中文文本标记 | 同上 |
+| [furnace_rules_handbook.css](../tools/furnace_rules_handbook.css) | A4、中文字体、公式块和跨页表格排版 | 同上 |
+| [公式手册Markdown](./炉况诊断8类与ABC33规则数学公式手册_20260814.md) / [PDF](./炉况诊断8类与ABC33规则数学公式手册_20260814.pdf) | 用户可阅读与打印的当前审计产物 | 同上 |
+
+修改风险：ABC目录、因子公式或旧YAML变化后必须重新生成并验证；不得手工修改生成文件后不更新生成器。
+原8类历史实现缺失期间，禁止把硬门和Resolver语义从推测写成确定事实。

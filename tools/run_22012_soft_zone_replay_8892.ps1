@@ -1,5 +1,12 @@
 $ErrorActionPreference = 'Stop'
-$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'This entrypoint requires PowerShell 7 Core or later.'
+}
+$Utf8NoBom = [Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $Utf8NoBom
+[Console]::OutputEncoding = $Utf8NoBom
+$OutputEncoding = $Utf8NoBom
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
 
 $ProjectRoot = 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW'
 $Python = 'C:\Program Files\Python311\python.exe'
@@ -9,16 +16,16 @@ $DbConfig = Join-Path $ProjectRoot 'tools\service_configs\22012_BFV4PreviewProxy
 $LogDir = Join-Path $ProjectRoot 'logs'
 $LogFile = Join-Path $LogDir 'soft_zone_replay_8892.log'
 
-if (-not (Test-Path -LiteralPath $Python)) {
+if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) {
     throw "Python runtime missing: $Python"
 }
-if (-not (Test-Path -LiteralPath $Server)) {
+if (-not (Test-Path -LiteralPath $Server -PathType Leaf)) {
     throw "Replay server missing: $Server"
 }
-if (-not (Test-Path -LiteralPath $StaticDir)) {
+if (-not (Test-Path -LiteralPath $StaticDir -PathType Container)) {
     throw "Replay static directory missing: $StaticDir"
 }
-if (-not (Test-Path -LiteralPath $DbConfig)) {
+if (-not (Test-Path -LiteralPath $DbConfig -PathType Leaf)) {
     throw "Read-only database config missing: $DbConfig"
 }
 

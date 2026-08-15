@@ -1,5 +1,33 @@
 # 自动化与运行可追踪映射
 
+## OPS-SENSOR-REGISTRY-HOPPER-WEIGHT-SET-20260814
+
+- 流程：正式 TSV 固定 11 个物理分量与 1 个派生语义 → 远端清单哈希和备份 →
+  `sensor_registry` 事务登记 → 复用既有 `sync_from_243_pg.py` 单次同步物理分量 →
+  注册表与分钟历史复核。
+- 运行边界：没有增加常驻读取程序，没有创建计划任务，没有重启 8093、8768 或 8770；
+  现有持续同步任务的定义未修改。
+- 生产结果：14/14 注册匹配，11/11 物理点采集成功，写入 59 条分钟值和 71 条 raw 值。
+- 未完成边界：派生 `Hopper_weight_set` 尚未由现有同步链路物化；后续实现必须复用现有读取
+  结果，不另开 pSpace 连接。详见[生产登记交接](handoffs/2026-08-14-hopper-weight-set-registry-production.md)。
+
+## REQ-TS-LEADERBOARD-CORRECTION-20260811
+
+- 需求：修复19项两小时预测排行榜，使用同切点、IQR归一化分段误差、归一化WIS、方向、覆盖和动态性共同排名，并保留分维度冠军。
+- 程序：[排行榜生成器](../tools/timeseries_leaderboard.py)、[8778只读接口](../tools/timeseries_sidecar_service.py)、[健康检查](../tools/check_timeseries_sidecar_python.py)、[专项测试](../tests/test_timeseries_leaderboard.py)。
+- 数据：[排行榜JSON](../PT/时间序列预测评测/results/timeseries_model_leaderboard_current.json)、[排行榜CSV](../PT/时间序列预测评测/results/timeseries_model_leaderboard_current.csv)、[排行榜报告](../PT/时间序列预测评测/results/timeseries_model_leaderboard_current.md)。
+- API：新增`GET /api/timeseries/leaderboard`，schema为`bf.timeseries.leaderboard.v1`；文件缺失或schema错误时返回503，不影响预测默认模型。
+- 验证：Python语法通过；pytest 3项通过；真实8切点/19项目标生成成功；本机18778状态、模型和排行榜接口通过，默认模型仍为LastValue。
+- 边界：本轮只完成本机代码和产物，未更新220.12的8778，未修改或重启8093/8768/8777/8094/8770/数据库。
+
+## REQ-TIMESERIES-ACTUAL-PREDICTION-CURVES-20260811
+
+- 需求：以趋势页19项同屏形式展示真实预测曲线，必须能区分切点前历史实测、切点后未来实测真值、模型P50预测和P10-P90区间，不能用指标表或示意线代替。
+- 程序：[实际曲线导出器](../tools/plot_ridge_actual_prediction_curves_19.py)读取既有评测CSV、38套Ridge模型和首轮公共切点；不连接生产服务。
+- 输出：[19项实际预测曲线](../PT/时间序列预测评测/results/ridge_actual_prediction_curves_20260808_0948_expert_sparse.png)、[逐分钟实际与预测值](../PT/时间序列预测评测/results/ridge_actual_prediction_curves_20260808_0948_expert_sparse.csv)。
+- 固定样本：`2026-08-08 09:48`，`Ridge-Delta expert_sparse`，历史60分钟、预测120分钟；每个变量保持真实量纲。
+- 验证：Python语法检查通过；19项目标全部成功生成；PNG人工核查无裁切，CSV包含历史与未来两阶段、实际值和P10/P50/P90；8777/8778及生产趋势页未修改。
+
 ## OPS-DIAG-RULES-ONE-CLICK-DEPLOY-20260806
 
 - 流程：本地白名单/语法/合同测试 → 生成单一ZIP与SHA-256清单 → `reliable_ssh`固定路由和身份校验 → 原子上传 → 远端以当前代理为基线合并诊断块 → 全量备份 → 暂停8093守卫并原子安装 → 恢复8093 → 精确重启8094 → HTTP/资产标记验证；失败执行文件回滚与服务恢复。
@@ -1315,3 +1343,174 @@
 - 08:37发现132炉已有平均Si但`si_available_at`为空。原因是`HeatPerformanceQualitySync`仍执行独立目录旧副本；已在保留任务XML和文件备份后更新独立副本，使用`aggregated_at`保守恢复，数据库缺失由1降为0。
 - `IMESRealtime`、`HeatPerformanceQualitySync`、`SiV20StrictHourlyPrediction`、`SiV20ScheduledShadowPrediction`均已逐项迁移到PowerShell 7.6.4；远端探针现在记录每项Action并拒绝V20相关`powershell.exe`。
 - 复验：01:00~08:00八个严格槽全部成功，重复/非整点/截止违规/陈旧/逾期为0；133炉已在08:52自动回填，严格预测6条完成评价、±0.05命中率50%。8093/8094、8768/8770/5432、每小时汇总表和CSV正常。最新通过证据为`reports/acceptance/SI_V20_NEW_HEAT_20260810/20260810T005251Z_check.json`。
+
+# 2026-08-10 软熔带移动预测Word本机代码化
+
+- 需求：`REQ-COHESIVE-ZONE-INTELLIGENT-DIAGNOSIS-20260810`；来源Word提供14类过程特征、上移/下移经验组合和4类炉况关联，但没有真实`H_cz`标签或训练参数。
+- 程序：[特征融合诊断](../炉况规则引擎/features/cohesive_zone_intelligent_diagnosis.py)、[YAML参数](../炉况规则引擎/config/cohesive_zone_intelligent_diagnosis.yaml)、[CSV CLI](../tools/run_cohesive_zone_intelligent_diagnosis.py)、[验证入口](../tools/verify_cohesive_zone_intelligent_diagnosis.ps1)。
+- 运行合同：15分钟当前窗口、15分钟隔离、15分钟参考；只读评价截止及以前数据；缺失不补0；压力/透气性和温度场为必需分组；输出方向概率、特征/趋势向量、逐项驱动和关联证据。
+- 安全合同：固定`estimated/uncalibrated/control_use=prohibited/confidence<=0.45`；关联证据不覆盖现有8类炉况或ABC33分数；未冒充Chronos-2、TabPFN或Transformer训练结果。
+- 验收：专项与既有C2估算器合计`30 passed`，CLI CSV→UTF-8 JSON通过，PowerShell 7.6.4 Core与UTF-8检查通过。未新增API/schema/task，未连接或修改本机/220.12数据库，未部署远端。
+# 2026-08-10 ABC33手册形成原理与五步处置接入建议页面
+
+- 需求：`REQ-ABC33-HANDBOOK64-MECHANISM-INTERVENTION-20260810`。
+- 数据流：见习高炉长64章映射与ABC33补充文档 → `tools/export_abc_rule_guidance.py`机械导出 → `自动诊断服务/abc_rule_guidance.py`生产安全工艺目录 → `abc_rule_catalog.py`合并到33项规则 → 8768下一批计算写入`public_detail` → 8093/8094详情API白名单输出 → `abc-furnace-rules-production.js`显眼展示。
+- 返回合同：沿用`principle`、`intervention_order`、`source_refs`，不扩展内部公式字段；每项形成原理专属、处置严格5步、章节引用至少1条。
+- 页面位置：每条A/B/C规则点击“查看复核详情”后，状态卡下方优先展示“炉况形成原理”和“五步干预处置流程”，其后才是逐点传感器、缺数、人工复核、观察窗口与审批要求。
+- 安全边界：本目录只含工艺层说明；公式、权重、精确阈值、归一化值、贡献和内部特征仍由后台保护。所有处置为只读建议，不授予生产写权限。
+- 本机验收：Python/JavaScript语法通过，ABC33全套相关回归`128 passed`；本地浏览器夹具验证两个新增板块、5个有序步骤、手册章节和审批信息完整可见。
+- 8093部署状态：2026-08-10 12:48已完成。先受控重启`BFV4PreviewWs8768`，再按`BFV4PreviewProxy8093`守卫停—改—启发布页面资源；最新API批次目录版本为`abc33-catalog.v3.handbook64-guidance`，返回33条规则、A1专属原理、严格5步流程和7条手册章节。
+- 同批次修复：`abc_runtime_store.py`在`(furnace_id,evaluation_ts,config_hash)`冲突时同步刷新目录版本、配置版本、数据质量和公开包，避免页面内容已更新但批次元数据仍显示旧`v2.calibrated`。合同测试与规则/页面测试合计`31 passed`，ABC33全套相关回归`129 passed`。
+- 运行隔离：8093 PID由`2044`变为`10008`，8768最终PID=`18436`；8094=`2988`、8770=`3732`、11434=`5968`均未重启。8094页面哈希保持不变，因此本次不得表述为8094已同步。
+
+# 2026-08-10 HCZ专家弱标签8892部署
+
+| 需求 | 程序 | 配置/任务 | 表/API | 验证 | 文档 |
+|---|---|---|---|---|---|
+| `REQ-HCZ-EXPERT-WEAK-LABEL-20260810`：无直接HCZ真值时由高炉长盲标并可追溯收集 | [标签合同](../高炉前端数据/智能助手/backend/hcz_expert_label.py)、[8892服务](../tools/soft_zone_replay_server.py)、[页面](../高炉前端数据/soft_zone_replay/hcz-labeling.html) | [运行入口](../tools/run_22012_soft_zone_replay_8892.ps1)、任务`SoftZoneTemperatureReplay8892`、[受控部署](../tools/remote_guarded_deploy_hcz_expert_label_8892.ps1) | [DDL](../高炉前端数据/智能助手/backend/schema/postgresql_hcz_expert_label.sql)、`/api/hcz-label-*` | [pytest](../tests/test_hcz_expert_label.py)、[17视口矩阵](../tools/verify_hcz_expert_label_ui.cjs)、[生产只读冒烟](../tools/verify_hcz_expert_label_remote_ui.cjs) | [交接](./handoffs/2026-08-10-hcz-expert-weak-label-production.md) |
+
+自动化边界：任务只负责8892常开服务；不自动生成标签、不自动训练、不自动修改控制值。部署前备份文件和任务XML，失败恢复原任务/文件；成功后要求PowerShell 7 Action、真实API/页面、非法提交不落库及五个受保护端口PID不变。
+
+# 2026-08-10 HCZ上移综合趋势经验规则8093部署
+
+| 需求 | 程序 | 配置 | API/表 | 验证 | 文档 |
+|---|---|---|---|---|---|
+| `REQ-HCZ-UPWARD-EXPERT-RULE-20260810`：把高炉长综合经验公式固化为一个只读判断并上线8093 | [规则引擎](../炉况规则引擎/features/hcz_upward_expert_rule.py)、[8093适配器](../高炉前端数据/智能助手/backend/hcz_upward_rule_api.py)、[页面](../高炉前端数据/hcz_upward_rule.html) | [YAML](../炉况规则引擎/config/hcz_upward_expert_rule.yaml)、[受控部署](../tools/remote_guarded_deploy_hcz_upward_rule_8093.ps1) | `GET /api/hcz-upward-rule`；无新增表、无写API | [专项pytest](../tests/test_hcz_upward_expert_rule.py)、[17视口](../tools/verify_hcz_upward_rule_ui.cjs)、[生产Edge](../tools/verify_hcz_upward_rule_remote_ui.cjs) | [规则](./GL02软熔带上移综合趋势经验规则_20260810.md)、[交接](./handoffs/2026-08-10-hcz-upward-expert-rule-8093.md) |
+| `REQ-HCZ-COLD-BLAST-PRESSURE-20260811`：风压口径改为真实冷风风压 | [规则配置](../炉况规则引擎/config/hcz_upward_expert_rule.yaml) | `P_blast -> P_blast_cold`；[只读预检](../tools/remote_probe_hcz_cold_blast_pressure_8093.ps1)；[单文件受控部署](../tools/remote_guarded_deploy_hcz_cold_blast_pressure_8093.ps1) | API路径不变；无数据库写入 | [专项pytest](../tests/test_hcz_upward_expert_rule.py)、[页面验收](../tools/verify_hcz_upward_rule_remote_ui.cjs) | [生产交接](./handoffs/2026-08-11-hcz-cold-blast-pressure-8093.md) |
+
+运行边界：API请求时只读144小时分钟实测并缓存120秒，不新增自动任务；页面不写生产控制。最终部署通过8093守卫停—改—启，PID由12616变为15224；8094/8768/8770/5432/8892均未重启。真实结果为`not_triggered`，生产Edge无错误。
+
+# OPS-8093-GUARDED-UPDATE-SKILL-20260810
+
+- 自动化目标：把8093功能部署统一为“本机测试→远端只暂存→生产临界区→原子安装→服务恢复→业务与隔离验收→失败回滚”，减少临时命令、并发部署碰撞和守卫未恢复风险。
+- Skill入口：项目版本源`.codex\skills\deploy-8093-guarded-update\SKILL.md`同步到全局`C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update`运行镜像；只有用户明确授权生产部署时才允许进入远端写阶段，说明/评审/排障保持只读。
+- Skill同步层：`tools/sync_deploy_8093_guarded_update_skill.ps1`使用14文件精确白名单；`ImportGlobalToProject`只作首次导入/恢复，`PublishProjectToGlobal`是日常发布方向，`Verify`要求两侧bundle SHA-256一致。同步只发生在本机，不调用SSH、服务管理或生产写入。
+- 本机层：先由`tools/remote_22012_session.py ensure`建立或复用localhost代理持有的已认证Paramiko transport，再把`run -- --upload-only`和`run -- --script`作为两个独立channel调用；复杂payload保持为独立UTF-8 `.ps1`，禁止`-Command`/`EncodedCommand`传输正文。部署后保留会话；传输中断不自动重放远端命令。
+- 远端层：非阻塞获取`Global\BFV4PreviewProxy8093Deployment`；校验基线哈希和暂存标记；备份；通过`manage_22012_managed_services.ps1`只暂停/恢复`BFV4PreviewProxy8093`；确认8093端口空窗；目标邻近临时文件原子替换；失败恢复备份；最终释放互斥。
+- 验收层：必须同时证明新文件哈希、缓存版本/需求标记、8093 HTTP/API、`guard_paused/guard_restored/rollback_applied`、新监听PID和8094/8768/8770/5432/11434等受保护PID。HTTP 200或`Start-Service`单项成功不构成上线完成。
+- 创建验收：Skill Creator结构校验通过；PowerShell 7.6.4只读合同验证通过并解析2份模板；`remote_write_performed=false`。本次没有上传文件、停止服务或修改220.12。
+
+# OPS-22012-PERSISTENT-SSH-AND-PYTHON-PROTECTION-20260810
+
+| 需求 | 程序 | 配置/状态 | 执行入口 | 测试 | 文档 |
+|---|---|---|---|---|---|
+| 220.12命令复用同一个SSH认证连接，并把可选Python源码保护加入8093 Skill | `tools/remote_22012_session.py`、`tools/remote_22012_exec.py::execute` | `%LOCALAPPDATA%\Codex\ssh-sessions\22012.json`只含localhost端口、随机令牌和会话身份；凭据只在代理内存 | `pwsh.exe -File tools/start_remote_22012_session.ps1`；后续`remote_22012_session.py run -- ...`；正常部署后不stop | `tests/test_remote_22012_persistent_session.py`；Skill合同/结构验证；PowerShell 7 UTF-8验证 | Skill的`project-contract.md`与`python-artifact-protection.md` |
+
+固定状态机：`ensure→active/authenticated→run(channel N)→keepalive→run(channel N+1)`；只有请求之间检测到transport失效才重连。远端执行期间掉线返回`uncertain_execution=true`和`automatic_replay=false`，由操作者先核对生产状态，不能把部署命令自动再发一次。
+
+源码保护发生在上传前：`source`保留`.py`；`bytecode`仅作兼容打包且不视为保密；`native`要求本机按Python 3.11 x64用Nuitka standalone/模块或Cython扩展构建、测试并生成清单，只上传`.exe`/standalone/`.pyd`及明确运行依赖。服务入口变更与产物一同备份、验收、回滚。HTML/JS/PS1/JSON不适用Python编译，任何编译产物都不能宣称绝对不可逆向。
+
+# OPS-8093-SKILL-REUSE-METRICS-LEARNING-AND-RSSH-MCP-20260810
+
+自动化链路：8093变更意图触发Skill → 读评审失败规则库 → Phase A本机构建/验证一次，同时运行Luna low最小diff审查与只读远端预检 → 密封`prepared-release` → Phase B刷新远端哈希并生成`delta-plan` → 只上传变化文件 → 8093守卫临界区 → 确定性HTTP/API优先验收 → 必要时浏览器等级验收 → 立即报告`deployed` → 文档/计时/失败指纹。计时与学习记录位于`%LOCALAPPDATA%\Codex\deploy-8093-guarded-update`，不写密码、命令正文、源码或生产响应。
+
+准备清单把源、产物、验证结果、stage/target、允许基线、标记和等级绑定到内容SHA-256。部署脚本重新验证清单并以最新只读生产状态计算差量；任何篡改、源/产物漂移、未评审基线或范围扩大都返回Phase A。零差量不获取部署互斥、不停服务。清单优化只消除重复构建/测试和未变化上传，不削弱远端备份、原子替换、`finally`恢复、回滚或受保护PID检查。
+
+Reliable SSH MCP的220.12固定实例启用一个常驻Plink会话、30秒SSH协议keepalive和60秒只读身份心跳；每个MCP调用仍是独立JSON请求。进程关闭或传输失败后，连接池只在下一次请求前重建；已经发出的命令不自动重放。诊断一键包不再通过`powershell.exe -Command`展开/启动，而由远端runner安全解压ZIP后精确调用`C:\Program Files\PowerShell\7\pwsh.exe -File remote_deploy_diag_rules.ps1`。
+
+# REQ-8093-ABC33-B4-CANONICAL-SCORE-20260810 在线闭环
+
+固定展示流：`abc_rule_evaluation_batches.public_bundle.rules[B4] → load_latest_abc33_review_score → apply_abc33_display_score → 异常复核/手动评分/AI解释`。查询禁止未来批次，优先精确`source_snapshot_id`，否则只接受15分钟内批次；墙钟超过20分钟、规则身份/0～100范围/版本/生产可用状态任一失败均显示`--`。旧`raw_scores.hot`只进入`legacy_score_archive`和事件JSONB的`_display_contract`，不改写历史行。
+
+发布流：`51项本地合同 → 持久SSH upload-only → Global部署互斥 → 备份 → 只停8093 → 五文件原子替换 → 恢复8093 → latest/detail/context/资源/受保护PID验收`。第一次v1载荷因暂存标记与实际JS字面不一致在互斥/停服前停止；v2修正确定性标记后成功。最终批次839的B4和弹窗均为14.9623，旧分28.12保留，8768及数据库未修改。
+
+# REQ-ABC33-HEAT-BATCH-RATE-CRITERION-20260810 在线闭环
+
+固定数据流：`bf_imes.raw_rows(data2煤矿事件) → abc_burden_rate.py → BurdenRateDev/Slow/Fast → abc_feature_builder → A2/B4/B5 → 8768 abc_rule_bundle.v1 → 8093安全化复核详情`。前后30分钟按完整大批周期速率计算，昨日平均与滚动24小时同时保留；缺数、过期和窗口不足均保持不可用。
+
+固定发布流：`test_abc33_burden_rate_local.ps1 → persistent SSH upload-only → remote_guarded_deploy_abc33_burden_rate_8093.ps1 → remote_restart_abc33_burden_rate_8768.ps1 → WebSocket/HTTP/浏览器验收`。2026-08-10生产结果：8093守卫恢复、未回滚；8768返回33条完整规则；持久SSH在请求5—8继续使用同一`session_id/connection_id`且`reconnect_count=0`。
+
+# OPS-8093-RISK-TIERED-VALIDATION-20260810 自动化闭环
+
+固定决策流：`识别改动边界 → quick(4)/standard(17)/full(85) → 本机或预览浏览器验收 → 失败/边界不清自动升级 → 生产定向冒烟`。浏览器等级只决定UI覆盖量，不得跳过部署互斥、备份、守卫暂停/恢复、原子替换、失败回滚、HTTP/API或受保护PID验证。
+
+验证器按浏览器内核复用context，让同内核后续case复用不可变静态资源缓存；每个case仍使用独立page、精确viewport、控制台错误、溢出和核心交互检查。`full`不在生产循环加载85次，避免测试流量和冷缓存掩盖真实用户性能。
+
+# OPS-CODEX-ECONOMICAL-DELEGATION-20260810 自动化闭环
+
+固定决策流：`是否确定性 → 是否可独立验收 → 实时模型目录 → Luna/Terra/Sol或主任务 → 只读/明确所有权 → 一次执行 → 主任务独立验收 → 记录tokens/耗时/重试`。确定性任务直接脚本；一次低价模型失败即升级，不进入重复猜测循环。
+
+8093相关委派只允许在本地准备阶段出现。任何凭据、远程命令、上传、部署锁、服务停启、原子替换、回滚和最终生产验收都由`deploy-8093-guarded-update`主流程持有。当前Luna最小化前后对照为89004ms/58097输入tokens与29197ms/38309输入tokens；网络回退仍是剩余延迟来源。
+
+# REQ-8093-OVERVIEW-SI24H-20260811 本机待部署闭环
+
+总览页右侧下方仅嵌入最近24个自然小时的V20严格整点Si预测，不搬入候选炉次、预测按钮、回放表或133点详情。组件只读调用`GET /api/si-v20/hourly-table?limit=24`并每60秒刷新；缺失保持`null`，不以0填充，完整操作继续跳转独立工作台。
+
+图表使用同一连续时间轴但不强制点位对齐：预测P50/P10/P90按`schedule_slot_ts`落在整点，实际平均Si按`matched_actual_open_ts`落在真实开口时间，并按`matched_actual_meltno`去重。合同测试`python -B -m pytest tests/test_si_v20_shadow_workbench.py -q`为17项通过，前端构建与两份Babel语法检查通过。
+
+2026-08-11已受控部署220.12：8093生产页、Vite主包和8094独立页目标SHA-256分别为`9B6ECCAB...A61F92`、`350D80AC...798880`、`C55FE8E4...03E196`，备份位于`backups\overview_si24h_20260811\20260811_094618`。8093守卫恢复后8093/8094均HTTP 200，两端`hourly-table?limit=24`均返回24行且schema为`bf.si.v20.hourly_table.v1`；8093、8094、8768、8770、5432、11434均保持监听。
+
+# BUG-8093-CORE-PORTAL-BASELINE-20260811 自动化闭环
+
+固定显示流：`8768 diagnosis.baseline_compare(数据库30日基线) + 8770 pSpace当前原始值 → 每个变量独立(raw-median)/IQR → iqrStatus → 行级data-baseline-evidence`。28行不得共享总状态；实时显示源降级时，判断必须使用同一次`coreMetricCurrent8093`返回的原始值。
+
+固定发布流：`16项合同 + 总览17组合 + Luna low只读复核 → prepared-release/delta-plan → 持久SSH upload-only → Global互斥 → 备份 → 只停8093 → 两文件原子替换 → 恢复 → HTTP/哈希/受保护PID/生产浏览器复算`。首次尝试因并行发布改变生产基线而在停服前停止；重新取证并封存同源构建后成功，未回滚。
+## 8093 ABC33总览入口受控发布（2026-08-11）
+
+- 需求ID：`BUG-8093-ABC33-OVERVIEW-ENTRY-20260811`。
+- 使用持久SSH会话完成upload-only预暂存，再由受控PowerShell 7脚本获取部署互斥锁、备份、仅暂停`BFV4PreviewProxy8093`、原子替换、恢复和验收。
+- 备份：`F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\abc33_overview_entry_8093_20260811_114520`。
+- 结果：`guard_paused=true`、`guard_restored=true`、`rollback_applied=false`；8093 PID从3704切换为16428，受保护服务PID未变化。
+# 2026-08-11 时间序列分时段融合实验
+
+- 需求：`REQ-TS-FORECAST-SEGMENTED-ENSEMBLE-20260811`
+- 程序：`tools/experiment_segmented_ensemble_19.py`
+- 测试：`tests/test_segmented_timeseries_ensemble.py`
+- 数据与结果：`PT/时间序列预测评测/results/segmented_ensemble_*_20260811_121921.*`
+- 报告：`PT/时间序列预测评测/2026-08-11_Chronos与Ridge分时段融合实验报告.md`
+- 运行边界：本机历史数据；Chronos仅调用8777只读推理；没有生产写入、服务重启或模型切换。
+## ABC33实时探尺料速链路（2026-08-11）
+
+- 每个ABC计算周期通过现有PostgreSQL连接读取`bf_sensor.one_minute_values`中南探尺、北探尺和料罐重量；不新增数据库写权限或独立计划任务。
+- 识别顺序：探尺有效下降→回到提尺零位→南北同期合并→事件前2分钟料罐重量分型→计算前/后30分钟小批节奏→折算大批节奏→注入A2/B4/B5。
+- 探尺或重量数据过期、窗口覆盖不足75%或无法形成有效周期时保持`needs_data`，禁止补0。
+
+## 8093维护交接包生成链路（2026-08-11）
+
+- 需求：`OPS-8093-MAINTAINER-HANDOFF-PACKAGE-20260811`。
+- 输入：`tools/handoff/8093_handoff_manifest.json`的显式白名单和构建时当前工作区内容。
+- 处理：PowerShell 7 UTF-8复制到随机本地暂存目录 → 禁止路径/扩展名检查 → 高置信敏感信息扫描 → Git快照与逐文件SHA-256 → ZIP → 回读归档逐项哈希验证 → 受控清理暂存目录。
+- 输出：Git忽略的`handoff_packages/*.zip`，包内含`HANDOFF_README.md`和`PACKAGE_MANIFEST.json`。
+- 失败策略：缺文件、敏感项、高风险扩展名、归档缺项或哈希不一致时立即失败，不留下可交付结果；暂存目录在`finally`内仅经父路径校验后清理。
+- 权限边界：不读取凭据文件，不连接220.12，不取得`Global\BFV4PreviewProxy8093Deployment`，不暂停或重启任何服务。
+## 2026-08-11 8093 炉喉变量、自动诊断与 PowerShell 7 闭环
+
+| 需求/故障 | 程序与配置 | 确定性验证 | 生产结果 |
+|---|---|---|---|
+| `BUG-8093-REMOVE-THROAT-RESTORE-HEAT-QUERY-20260811` | `frontend_dashboard_v3.server.html`、Vite 主包、`bf-heat-performance-quality-8093-query-v2.js`、受控部署器 | 37 pytest；diagnosis standard 17/17；生产 Chromium 单页冒烟 | 32 项核心变量，移除 `T_throat_A-D`，保留 `T_top_A-D`；8093/资源 HTTP 200 |
+| `BUG-AUTOGUARD-OLLAMA-SUMMARY-FALLBACK-20260811` | `llm_short_window_summarizer.py`、`auto_guard_once.py` | 404/主体失败专项 3 passed；Ollama `/api/chat` 最小请求成功 | 生产任务 2026-08-11 16:51 退出码 0；摘要异常可降级且不掩盖主体失败 |
+| `OPS-8093-PWSH7-RUNTIME-MIGRATION-20260811` | NSSM wrapper、health、daily baseline、单目标迁移/回滚器 | 迁移 4 passed、健康守卫 5 passed、PS7/UTF-8 ok | 两旧任务 Disabled；服务包装、健康任务、每日基线均使用 PowerShell 7.6.4 |
+| 旧哈希主包保留策略 | `cleanup_8093_dashboard_build_assets.py` | 默认 dry-run、哈希/路径/HTML引用门；7 passed | 保留当前+最近回滚，删除四个旧包 2,430,462 字节 |
+
+完整生产证据见 [交接记录](handoffs/2026-08-11-8093-throat-autoguard-pwsh7.md)。
+
+## 8093 诊断智能分析 JSONB 修复（2026-08-11）
+
+- 错误：`ERR-8093-DIAGNOSIS-AI-JSON-DATETIME-20260811`。
+- 链路：`/api/diagnosis-ai-analysis` → `run_five_minute_analysis_once()` →
+  `DiagnosisReviewStore.begin_ai_analysis()` → PostgreSQL
+  `bf_assistant.diagnosis_ai_analysis_snapshots.canonical_context`。
+- 程序：[JSONB归一化](../高炉前端数据/智能助手/backend/diagnosis_review.py)、
+  [回归测试](../tests/test_diagnosis_review_api.py)、
+  [准备器](../tools/prepare_8093_diagnosis_ai_json_fix_release.ps1)、
+  [受控部署器](../tools/deploy_8093_diagnosis_ai_json_fix_22012.ps1)。
+- 验收：52 项定向测试；生产分析 `completed/attempt_count=1`；唯一 keyword SSE
+  `request_count=1`，证据 2 条，全部受保护 PID 不变。
+- 交接：[2026-08-11-8093-diagnosis-ai-jsonb-fix.md](handoffs/2026-08-11-8093-diagnosis-ai-jsonb-fix.md)。
+
+## 220.12 可复用产物保留边界（2026-08-12）
+
+- 需求：`OPS-22012-REUSABLE-ARTIFACT-RETENTION-20260812`。
+- 目标：优先复用已审查脚本、模板、schema、无凭据夹具、密封产物和常驻 SSH broker，减少重复编码、验证与连接开销。
+- 安全边界：Playwright `storageState`、Cookie、Token、密码、私钥以及含凭据环境变量的远端服务配置快照不得进入仓库或普通复用缓存；保留生成器、脱敏 schema、权威路径和刷新命令。
+- 复用门：复用前检查 producer/source SHA-256、目标身份、运行时、合同测试、有效期和失效条件；远端 PID、监听、当前文件哈希与生产配置仍必须现场刷新。
+- 实现：[Skill 主规则](../.codex/skills/deploy-8093-guarded-update/SKILL.md)、[详细保留策略](../.codex/skills/deploy-8093-guarded-update/references/reusable-artifact-retention.md)、[合同验证器](../.codex/skills/deploy-8093-guarded-update/scripts/validate_skill.ps1)。
+- 本次结论：`viewport-storage-state.json` 是浏览器鉴权夹具，`22012_BFV4PreviewProxy8093.remote.json` 是一次性远端配置快照；二者都不是每次 SSH 连接生成的文件。常规连接复用由 `tools/remote_22012_session.py` 和 LocalAppData 中受保护的 broker 状态承担。
+## OPS-22012-BIDIRECTIONAL-SYNC-20260813
+
+- 任务：Codex 自动任务 `220-12`，每两小时只读检查 `10.30.220.12` 的 V4 生产项目是否出现源码或功能更新。
+- 检测：远端 Git 可用时记录仓库身份、分支和 HEAD；不可用时使用白名单文件 SHA-256 清单形成 server version。复用 `tools/remote_22012_session.py` 和 `tools/remote_export_8093_authoritative_snapshot.ps1`。
+- 同步：只下载变化的非敏感白名单文件；本地同路径存在并行修改时不覆盖，候选副本保存在 `reports/server_sync/incoming/<timestamp>/` 并通知人工审查。
+- 验证：按文件类型运行语法、单元和合同测试；PowerShell 变更额外运行 `tools/verify_pwsh7_utf8.ps1`。失败时仅回退本轮自动替换，不触碰运行前已有本地改动。
+- Git version：测试通过后只按精确 pathspec 暂存本轮同步文件，执行 cached diff 检查，创建普通 commit 和唯一的本地 annotated tag；不 push 外部 remote，不创建空 commit。
+- 影响范围：远端只读；不得上传、停启 8093/8768/8094/Ollama/数据库，不修改远端 Git、任务或配置。完整边界见 [需求追踪](requirements_traceability.md#ops-22012-bidirectional-sync-20260813) 与 [交接记录](handoffs/2026-08-13-22012-two-hour-sync-automation.md)。

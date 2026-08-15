@@ -6,6 +6,7 @@ import os
 import time
 from datetime import datetime
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from diagnosis_queue_service import build_queue
@@ -50,10 +51,32 @@ def call_ollama(prompt: dict, model: str, base_url: str) -> str:
     return ((payload.get("message") or {}).get("content") or payload.get("response") or "").strip()
 
 
-def fallback_summary(queue: dict) -> str:
+def fallback_summary(queue: dict, *, llm_unavailable: bool = False) -> str:
     labels = [str(item.get("main_label") or "unknown") for item in queue.get("diagnosis_json") or []]
     dominant = max(set(labels), key=labels.count) if labels else "unknown"
-    return f"最近1小时短时诊断队列以 {dominant} 为主，共 {len(labels)} 条诊断。当前为自动摘要占位，未调用大模型。"
+    suffix = "大模型摘要暂不可用，已使用确定性队列摘要。" if llm_unavailable else "当前为自动摘要占位，未调用大模型。"
+    return f"最近1小时短时诊断队列以 {dominant} 为主，共 {len(labels)} 条诊断。{suffix}"
+
+
+def summary_degradation(exc: BaseException) -> dict:
+    """Build a safe, structured record for an unavailable Ollama summary."""
+    if isinstance(exc, HTTPError):
+        reason_code = "ollama_http_error"
+    elif isinstance(exc, URLError):
+        reason_code = "ollama_connection_error"
+    elif isinstance(exc, TimeoutError):
+        reason_code = "ollama_timeout"
+    else:
+        reason_code = "ollama_response_error"
+    http_status = getattr(exc, "code", None)
+    return {
+        "stage": "llm_summary",
+        "reason_code": reason_code,
+        "error_type": type(exc).__name__,
+        "message": str(exc),
+        "http_status": int(http_status) if isinstance(http_status, int) else None,
+        "fallback_kind": "deterministic_queue_summary",
+    }
 
 
 def export_docx(queue: dict, summary: str, target_dir: Path) -> tuple[str, str]:
@@ -112,10 +135,19 @@ def summarize(
     if queue is None:
         queue = build_queue(config_path, write=write and not dry_run)
     prompt = build_prompt(queue)
+    degradation = None
     if dry_run:
         summary = fallback_summary(queue)
     else:
-        summary = call_ollama(prompt, model, ollama_url)
+        try:
+            summary = call_ollama(prompt, model, ollama_url)
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError) as exc:
+            degradation = summary_degradation(exc)
+            summary = fallback_summary(queue, llm_unavailable=True)
+            prompt["summary_runtime"] = {
+                "mode": "fallback",
+                "degradation": degradation,
+            }
     docx_path = ""
     md_path = ""
     if export_word and not dry_run:
@@ -130,10 +162,13 @@ def summarize(
         "diagnosis_queue_json": queue.get("diagnosis_json") or [],
         "docx_path": docx_path,
         "markdown_path": md_path,
-        "status": "dry_run" if dry_run else "ok",
+        "status": "dry_run" if dry_run else ("degraded" if degradation else "ok"),
     }
     saved = store.upsert_short_window_summary(payload) if write and not dry_run else payload
-    return {"ok": True, "summary": saved}
+    result = {"ok": True, "degraded": bool(degradation), "summary": saved}
+    if degradation:
+        result["degradation"] = degradation
+    return result
 
 
 def main() -> int:

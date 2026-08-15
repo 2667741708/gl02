@@ -1,0 +1,69 @@
+schema_version: gl02.hcz-upward-expert-rule.config.v1
+requirement_id: REQ-HCZ-UPWARD-EXPERT-RULE-20260810
+rule_id: HCZ-UP-FOREMAN-001
+rule_name: 软熔带上移综合趋势经验规则
+furnace_id: GL02
+
+windows:
+  current_hours: 24
+  baseline_days: 5
+  required_consecutive_hours: 12
+
+coverage:
+  min_core_samples_per_hour: 30
+  min_body_samples_per_point_hour: 1
+  min_current_valid_hours: 18
+  min_baseline_valid_hours: 96
+  min_top_points_per_hour: 3
+  min_body_sectors_per_layer_hour: 4
+
+core_metrics:
+  top_temperature:
+    label: 平均顶温
+    variables: [T_top, T_top_A, T_top_B, T_top_C, T_top_D]
+    direction: increase
+    threshold: 15.0
+    unit: "℃"
+  total_pressure_drop:
+    label: 全压差
+    variables: [DP_total]
+    direction: increase
+    threshold: 5.0
+    unit: kPa
+  permeability_index:
+    label: 透气性指数
+    variables: [PI]
+    direction: decrease
+    threshold: 0.5
+    unit: "m³/(min·kPa)"
+  gas_utilisation:
+    label: 煤气利用率
+    variables: [GasUtil]
+    direction: decrease
+    threshold: 1.0
+    unit: percentage_point
+  blast_pressure:
+    label: 冷风风压
+    variables: [P_blast_cold]
+    direction: increase
+    threshold: 5.0
+    unit: kPa
+
+body_temperature:
+  layers: [7, 8, 9, 10, 11, 12, 13]
+  sectors: [A, B, C, D, E, F, G, H]
+  rise_threshold_c: 10.0
+  strong_rise_threshold_c: 20.0
+  min_rising_layers: 2
+  strong_rising_layers: 3
+
+safety:
+  evidence_type: expert_rule_indication
+  direct_measurement_truth: false
+  calibrated_model: false
+  automatic_control: prohibited
+  missing_data_policy: indeterminate
+  notes:
+    - 本规则只判断是否达到高炉长给出的软熔带上移经验组合，不输出下移或稳定结论。
+    - 所有阈值按当前24小时小时均值与之前连续5天小时均值比较。
+    - 综合组合必须连续满足至少12个完整或有效小时；缺数不补0并会中断持续时间。

@@ -1,11 +1,18 @@
 param(
     [Parameter(Mandatory = $true)]
-    [string]$ConfigPath
+    [string]$ConfigPath,
+    [switch]$ValidateOnly
 )
 
-$ErrorActionPreference = "Continue"
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
+$ErrorActionPreference = "Stop"
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'This health check requires PowerShell 7 Core or later.'
+}
+$Utf8NoBom = [Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $Utf8NoBom
+[Console]::OutputEncoding = $Utf8NoBom
+$OutputEncoding = $Utf8NoBom
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
 $env:PYTHONIOENCODING = "utf-8"
 $env:PYTHONUTF8 = "1"
 
@@ -218,6 +225,23 @@ function Restart-ManagedService([string]$Reason) {
 
 $Config = Read-Config $ConfigPath
 $script:ServiceName = [string]$Config.serviceName
+if ([string]::IsNullOrWhiteSpace($script:ServiceName)) {
+    throw 'Config serviceName is required.'
+}
+if (-not $Config.health) {
+    throw 'Config health section is required.'
+}
+if ($ValidateOnly) {
+    [ordered]@{
+        schema = 'ops.managed-service-health.validate-only.v1'
+        ok = $true
+        service = $script:ServiceName
+        ps_edition = $PSVersionTable.PSEdition
+        ps_version = $PSVersionTable.PSVersion.ToString()
+        config = (Resolve-Path -LiteralPath $ConfigPath).Path
+    } | ConvertTo-Json -Depth 4
+    exit 0
+}
 $LogDir = if ($Config.logDir) { [string]$Config.logDir } else { Join-Path ([string]$Config.root) "logs" }
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 $LogPrefix = if ($Config.logPrefix) { [string]$Config.logPrefix } else { $script:ServiceName }

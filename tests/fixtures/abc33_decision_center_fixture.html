@@ -13,7 +13,7 @@
   <script>
     const names={A:'维护',B:'风险',C:'报警'};
     const rules=[];
-    for(const [category,count] of [['A',9],['B',13],['C',11]])for(let i=1;i<=count;i++)rules.push({rule_id:category+i,category,display_name:names[category]+'炉况'+i,score:i%4===0?null:20+i,status:i%4===0?'needs_data':'eligible',score_available:i%4!==0,confidence:i%4===0?0:.88,alert_state:category==='C'?'red':category==='B'?'yellow':'none',missing_sensors:i%4===0?['P_top','DP_total']:[],primary_review:['P_top','DP_total','Q_blast'],expanded_review:['PI','GasUtil'],manual_review:['现场确认风口和料面'],intervention_order:['确认数据','现场复核','记录结论'],observation_window:'15–30分钟',approval:'须值班工长批准',principle:'按受控工艺手册复核',source_refs:['见习高炉长手册']});
+    for(const [category,count] of [['A',9],['B',13],['C',11]])for(let i=1;i<=count;i++)rules.push({rule_id:category+i,category,display_name:names[category]+'炉况'+i,score:i%4===0?null:20+i,status:i%4===0?'needs_data':'eligible',score_available:i%4!==0,confidence:i%4===0?0:.88,alert_state:category==='C'?'red':category==='B'?'yellow':'none',missing_sensors:i%4===0?['P_top','DP_total']:[],primary_review:['P_top','DP_total','Q_blast'],expanded_review:['PI','GasUtil'],manual_review:['现场确认风口和料面'],intervention_order:['确认数据有效性','复核现场与趋势','执行最小有效处置','按观察窗口持续复核','记录结论并确认退出条件'],observation_window:'15–30分钟',approval:'须值班工长批准',principle:'炉料下降、煤气上升、热制度和渣铁排放共同形成当前炉况，必须结合多类证据判断。',source_refs:['见习高炉长手册·第17章判断框架','见习高炉长手册·第36章调节—观察—复核']});
     const nativeFetch=window.fetch.bind(window);
     window.fetch=async function(url,options){
       if(String(url).includes('/api/furnace-rules/latest'))return new Response(JSON.stringify({ok:true,rules}),{status:200,headers:{'Content-Type':'application/json'}});

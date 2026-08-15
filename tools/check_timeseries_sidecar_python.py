@@ -19,11 +19,12 @@ def main() -> int:
     result = {
         "status": read_json(base + "/api/timeseries/status", args.timeout),
         "models": read_json(base + "/api/timeseries/models", args.timeout),
+        "leaderboard": read_json(base + "/api/timeseries/leaderboard", args.timeout),
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0 if result["status"].get("ok") else 1
+    valid = result["status"].get("ok") and result["leaderboard"].get("schema") == "bf.timeseries.leaderboard.v1"
+    return 0 if valid else 1
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

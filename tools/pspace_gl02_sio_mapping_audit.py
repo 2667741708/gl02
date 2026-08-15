@@ -53,8 +53,18 @@ class ManualCandidate:
 
 MANUAL_CANDIDATES: tuple[ManualCandidate, ...] = (
     ManualCandidate("L", (rf"{SIO_ROOT}\LD\SIO_GL02_LD_T0046",), "high", "高炉炉体料位雷达探尺，SIO 下最直接的雷达探尺点。"),
-    ManualCandidate("L_south", (), "none", "SIO 下未发现可明确区分南尺/1#探尺的点；不要用 EQ 的 1#探尺料线混入。"),
-    ManualCandidate("L_north", (), "none", "SIO 下未发现可明确区分北尺/2#探尺的点；不要用 EQ 的 2#探尺料线混入。"),
+    ManualCandidate(
+        "L_south",
+        (rf"{SIO_ROOT}\LD\SIO_GL02_LD_T0075",),
+        "high",
+        "业务/PLC 映射为南探尺（DB8.DD16）；pSpace 描述虽为下限位24米，但原始周期波形与现场南尺一致。",
+    ),
+    ManualCandidate(
+        "L_north",
+        (rf"{SIO_ROOT}\LD\SIO_GL02_LD_T0076",),
+        "high",
+        "业务/PLC 映射为北探尺（DB8.DD4）；pSpace 描述虽为下极限位6米，但原始周期波形与现场北尺一致。",
+    ),
     ManualCandidate("Hopper_weight", (), "none", "SIO 下未发现可靠的炉顶料罐实际重量；喷吹罐重量不是炉顶罐重，不建议替代。"),
     ManualCandidate(
         "Hopper_weight_set",

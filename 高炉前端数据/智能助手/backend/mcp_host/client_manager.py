@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import sys
 from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
 from typing import Any, Iterable
@@ -20,6 +22,33 @@ class McpServerUnavailable(McpHostError):
 
 class McpToolNotAttached(McpHostError):
     """Raised when a requested exposed tool is not attached to this request."""
+
+
+def exception_leaves(exc: BaseException) -> list[dict[str, str]]:
+    """Flatten exception groups into a small, credential-safe diagnostic."""
+
+    leaves: list[dict[str, str]] = []
+
+    def visit(current: BaseException) -> None:
+        children = getattr(current, "exceptions", None)
+        if isinstance(children, (list, tuple)) and children:
+            for child in children:
+                if isinstance(child, BaseException):
+                    visit(child)
+            return
+        message = " ".join(str(current).split())[:500]
+        leaves.append({"type": type(current).__name__, "message": message})
+
+    visit(exc)
+    return leaves or [{"type": type(exc).__name__, "message": ""}]
+
+
+def lifecycle_error(stage: str, exc: BaseException) -> dict[str, Any]:
+    return {
+        "stage": stage,
+        "type": type(exc).__name__,
+        "leaves": exception_leaves(exc),
+    }
 
 
 @dataclass(frozen=True)
@@ -45,16 +74,34 @@ class McpClientManager:
         self._sessions: dict[str, Any] = {}
         self._bindings: dict[str, McpToolBinding] = {}
         self._errors: dict[str, str] = {}
+        self._lifecycle_warnings: list[dict[str, Any]] = []
 
     async def __aenter__(self) -> "McpClientManager":
         return self
 
     async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
-        await self._stack.aclose()
+        try:
+            await self._stack.aclose()
+        except asyncio.CancelledError:
+            raise
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except BaseException as close_exc:  # AsyncExitStack/anyio may raise ExceptionGroup.
+            warning = lifecycle_error("stdio_teardown", close_exc)
+            self._lifecycle_warnings.append(warning)
+            print(
+                json.dumps({"event": "mcp_lifecycle_warning", **warning}, ensure_ascii=False),
+                file=sys.stderr,
+                flush=True,
+            )
 
     @property
     def errors(self) -> dict[str, str]:
         return dict(self._errors)
+
+    @property
+    def lifecycle_warnings(self) -> tuple[dict[str, Any], ...]:
+        return tuple(self._lifecycle_warnings)
 
     @property
     def bindings(self) -> tuple[McpToolBinding, ...]:
@@ -109,7 +156,9 @@ class McpClientManager:
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001
-                self._errors[server_id] = f"{type(exc).__name__}: {exc}"
+                diagnostic = lifecycle_error("attach", exc)
+                diagnostic["server_id"] = server_id
+                self._errors[server_id] = json.dumps(diagnostic, ensure_ascii=False)
         if not self._sessions:
             detail = "; ".join(f"{key}={value}" for key, value in self._errors.items()) or "no selected server"
             raise McpServerUnavailable(f"No selected MCP server could be attached: {detail}")

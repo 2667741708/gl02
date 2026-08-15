@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "name": "BFV4PreviewProxy8093-assistant-native-20260812-r1",
+  "mode": "nuitka-accelerated",
+  "entrypoint": "../../高炉前端数据/智能助手/backend/ollama_proxy_server.py",
+  "source_files": [
+    "../../高炉前端数据/智能助手/backend/assistant_pg.py",
+    "../../高炉前端数据/智能助手/backend/abc_rule_assistant_analysis.py",
+    "../../自动诊断服务/abc_rule_explanation.py"
+  ],
+  "output_dir": "C:/Users/hmw20/AppData/Local/Codex/python-native-build/releases/BFV4PreviewProxy8093-20260812-assistant-native-r1",
+  "source_confidential": true,
+  "artifact_entrypoint": "bf_8093_assistant_native.exe",
+  "data_files": [],
+  "stage_files": [],
+  "build_args": [
+    "--follow-imports",
+    "--mingw64",
+    "--jobs=8",
+    "--lto=no",
+    "--python-flag=unbuffered",
+    "--output-filename=bf_8093_assistant_native.exe",
+    "--nofollow-import-to=anyio,anyio.*",
+    "--nofollow-import-to=brotli",
+    "--nofollow-import-to=httpcore,httpcore.*",
+    "--nofollow-import-to=httpx,httpx.*",
+    "--nofollow-import-to=jsonschema,jsonschema.*",
+    "--nofollow-import-to=mcp,mcp.*",
+    "--nofollow-import-to=numpy,numpy.*",
+    "--nofollow-import-to=pandas,pandas.*",
+    "--nofollow-import-to=psycopg,psycopg.*",
+    "--nofollow-import-to=psycopg_pool,psycopg_pool.*",
+    "--nofollow-import-to=pydantic,pydantic.*",
+    "--nofollow-import-to=scipy,scipy.*",
+    "--nofollow-import-to=sklearn,sklearn.*",
+    "--nofollow-import-to=yaml,yaml.*",
+    "--nofollow-import-to=pytest,pytest.*",
+    "--nofollow-import-to=setuptools,setuptools.*",
+    "--nofollow-import-to=unittest,unittest.*"
+  ],
+  "service": {
+    "command": ["bf_8093_assistant_native.exe"],
+    "marker": "abc33-assistant-native-20260812-r1",
+    "rollback_target": "BFV4PreviewProxy8093-20260812-assistant-native-r0"
+  }
+}

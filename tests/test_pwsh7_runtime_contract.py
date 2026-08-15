@@ -21,6 +21,18 @@ def test_local_core_entrypoints_use_pwsh7() -> None:
     assert "powershell.exe" not in hidden_runner.lower()
 
 
+def test_local_start_defaults_to_native_postgresql_without_embedded_credentials() -> None:
+    start_script = (ROOT / "start_v3_full.ps1").read_text(encoding="utf-8-sig")
+    assert '$env:GL02_LOCAL_PGHOST = "127.0.0.1"' in start_script
+    assert '$env:GL02_LOCAL_PGPORT = "18000"' in start_script
+    assert '$env:GL02_LOCAL_PGDATABASE = "bf_trend"' in start_script
+    assert '$env:GL02_LOCAL_PGUSER = "postgres"' in start_script
+    assert "$env:GL02_PGPASSWORD = $env:GL02_LOCAL_PGPASSWORD" in start_script
+    assert "BF_USE_EXISTING_PG_ENV" in start_script
+    assert "15432" not in start_script
+    assert "gl02_local_sync" not in start_script
+
+
 def test_runtime_verifier_checks_utf8_and_core() -> None:
     verifier = (ROOT / "tools" / "verify_pwsh7_utf8.ps1").read_text(encoding="utf-8")
     assert "$PSVersionTable.PSEdition -ne 'Core'" in verifier

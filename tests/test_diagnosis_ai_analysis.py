@@ -85,6 +85,26 @@ def test_context_is_server_owned_and_bucketed_to_five_minutes() -> None:
     assert set(context["scores"]) == set(diagnosis_model_review.DIAGNOSIS_LABELS)
 
 
+def test_ai_context_uses_the_same_abc33_b4_hot_display_score() -> None:
+    canonical = canonical_context()
+    canonical["display_scores"] = {**canonical["raw_scores"], "hot": 64.25}
+    canonical["display_main_score"] = canonical["main_score"]
+    canonical["score_sources"] = {
+        "hot": {"source": "abc33", "rule_id": "B4", "evaluation_id": 662, "state": "current"}
+    }
+    context = diagnosis_model_review.normalize_five_minute_context(canonical, [], bucket_minutes=5)
+    assert context["scores"]["hot"] == 64.25
+    assert context["score_sources"]["hot"]["rule_id"] == "B4"
+    messages = diagnosis_model_review.build_single_condition_analysis_messages(
+        context, "hot"
+    )
+    assert '"rule_id": "B4"' in messages[1]["content"]
+    assert '"rule_score": 64.25' in messages[1]["content"]
+    assert "v7-abc33-b4" in diagnosis_model_review.single_condition_prompt_version(
+        "hot"
+    )
+
+
 def test_one_prompt_requires_all_eight_conditions_and_forbids_rule_rewrite() -> None:
     context = diagnosis_model_review.normalize_five_minute_context(
         canonical_context(), [], bucket_minutes=5
@@ -376,8 +396,8 @@ def test_api_routes_store_schema_and_combined_dialog_contracts() -> None:
     assert 'parsed.path == "/api/diagnosis-ai-analysis/retry"' in proxy
     assert 'parsed.path == "/api/diagnosis-core-evidence"' in proxy
     assert "install_handler(Handler, globals())" in proxy
-    assert "bf-diagnosis-manual-score-local.js?v=20260806-core19-r10-foreman-knowledge" in proxy
-    assert '<script src="/assets/bf-diagnosis-manual-score-local.js?v=20260806-core19-r10-foreman-knowledge"></script>' in proxy
+    assert "bf-diagnosis-manual-score-local.js?v=20260810-abc33-b4-score-r1" in proxy
+    assert '<script src="/assets/bf-diagnosis-manual-score-local.js?v=20260810-abc33-b4-score-r1"></script>' in proxy
     assert "canonical_review_context" in api
     assert "diagnosis_ai_analysis_snapshots" in review_store
     assert "UNIQUE (furnace_id, bucket_ts, prompt_version)" in review_store

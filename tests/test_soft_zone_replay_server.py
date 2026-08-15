@@ -147,6 +147,9 @@ def test_frontend_exposes_database_replay_and_video_controls() -> None:
         'id="pressureTrendCanvas"',
         'id="temperatureLayerSelect"',
         'id="pressureBandSelect"',
+        'id="rangePrevButton"',
+        'id="rangeNextButton"',
+        'step="3600"',
     ):
         assert marker in html
     assert "/api/replay" in javascript
@@ -154,5 +157,8 @@ def test_frontend_exposes_database_replay_and_video_controls() -> None:
     assert "MediaRecorder" in javascript
     assert "renderTrendCharts" in javascript
     assert "pressure_band" in javascript
+    assert "contextmenu" in javascript
+    assert "点位ID" in javascript
+    assert "时间戳" in javascript
     assert "SimSun" in css
     assert "overflow-x: hidden" in css

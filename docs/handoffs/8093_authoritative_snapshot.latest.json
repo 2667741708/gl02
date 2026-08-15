@@ -1,0 +1,189 @@
+{
+  "schema": "bf.8093.authoritative-redacted-snapshot.v1",
+  "generated_at": "2026-08-13T11:43:31.9472855+08:00",
+  "requirement_id": "OPS-8093-AUTHORITATIVE-LOCAL-SYNC-20260813",
+  "target": "10.30.220.12:8093",
+  "sensitivity": "internal_non_secret",
+  "secret_values_included": false,
+  "runtime": {
+    "os": "Microsoft Windows NT 10.0.14393.0",
+    "powershell": "7.6.4",
+    "python": "Python 3.11.9",
+    "service": "Running",
+    "listeners": {
+      "8093": 15368,
+      "8094": 5912,
+      "8768": 4036,
+      "8770": 3732,
+      "5432": 12372,
+      "11434": 16232
+    }
+  },
+  "service_config": {
+    "schema": null,
+    "serviceName": "BFV4PreviewProxy8093",
+    "root": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW",
+    "workDir": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW",
+    "executable": "C:/Program Files/Python311/python.exe",
+    "python": "C:/Program Files/Python311/python.exe",
+    "arguments": [
+      "-X",
+      "utf8",
+      "-u",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/tools/start_v3_8092_python.py",
+      "--db-profile",
+      "inherit",
+      "--ollama-base-url",
+      "http://127.0.0.1:11434",
+      "--model",
+      "chiqiong-blast-furnace:latest",
+      "--public-model",
+      "炽穹·高炉炼铁大模型",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8093"
+    ],
+    "envMachine_names": [
+      "GL02_PGHOST",
+      "GL02_PGPORT",
+      "GL02_PGDATABASE",
+      "GL02_PGUSER",
+      "GL02_PGPASSWORD",
+      "IMES_DB_USER",
+      "IMES_DB_PASSWORD",
+      "IMES_OPS_DB_USER",
+      "IMES_OPS_DB_PASSWORD",
+      "IMES_LAB_DB_USER",
+      "IMES_LAB_DB_PASSWORD",
+      "IMES_WEB_USER",
+      "IMES_WEB_PASSWORD",
+      "IMES_WEB_SESSION_COOKIE"
+    ],
+    "env_redacted": {
+      "PYTHONIOENCODING": "utf-8",
+      "PYTHONUTF8": "1",
+      "BF_PROXY_HOST": "0.0.0.0",
+      "BF_PROXY_PORT": "8093",
+      "BF_FRONTEND_DIR": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据",
+      "BF_INDEX_FILE": "frontend_dashboard_v3.server.html",
+      "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
+      "BF_LLM_MODEL": "chiqiong-blast-furnace:latest",
+      "BF_PUBLIC_MODEL_NAME": "炽穹·高炉炼铁大模型",
+      "BF_MCP_PYTHON": "C:/Program Files/Python311/python.exe",
+      "BF_TREND_HISTORY_SOURCE": "postgres",
+      "BF_MCP_DATA_SOURCE": "database",
+      "BF_MCP_AUTO_PSPACE_FALLBACK": "0",
+      "BF_GL02_MAPPING_PATH": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/趋势分析/trend_backend/config/gl02_sio_mapping.json",
+      "BF_GL02_STORAGE_CONFIG": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/趋势分析/trend_backend/config/gl02_1min_storage.json",
+      "PSPACE_SDK_ROOT": "F:/高炉炼铁项目-real-sensor-v2_V3/pythonSDK(1)",
+      "PSPACE_CONFIG": "F:/高炉炼铁项目-real-sensor-v2_V3/ghsc/src/main/resources/application-prod.yml",
+      "BF_DIAGNOSIS_REVIEW_ENABLED": "1",
+      "BF_DIAGNOSIS_REVIEW_TEST_MODE": "0",
+      "BF_DIAG_REVIEW_REQUIRE_LOGIN": "0",
+      "BF_DIAG_REVIEW_ANONYMOUS_USERNAME": "onsite_8093",
+      "BF_DIAG_REVIEW_ANONYMOUS_ROLE": "现场高炉长",
+      "BF_DIAG_REVIEW_PGHOST": "127.0.0.1",
+      "BF_DIAG_REVIEW_PGPORT": "5432",
+      "BF_DIAG_REVIEW_PGDATABASE": "bf_trend",
+      "BF_DIAG_REVIEW_PGUSER": "gl02_sync",
+      "BF_DIAG_REVIEW_PGPASSWORD_ENV": "<redacted>",
+      "BF_DIAG_REVIEW_PGSCHEMA": "bf_assistant",
+      "BF_QA_KNOWLEDGE_SEARCH_MODE": "keyword",
+      "BF_DIAGNOSIS_AI_ANALYSIS_ENABLED": "1",
+      "BF_DIAGNOSIS_AI_ANALYSIS_BACKGROUND_ENABLED": "1",
+      "BF_DIAGNOSIS_AI_ANALYSIS_BUCKET_MINUTES": "5",
+      "BF_DIAGNOSIS_AI_ANALYSIS_POLL_SECONDS": "30",
+      "BF_DIAGNOSIS_AI_ANALYSIS_RETRY_SECONDS": "120",
+      "BF_DIAGNOSIS_AI_ANALYSIS_HISTORY_LIMIT": "12",
+      "BF_QA_MCP_SERVER_REGISTRY": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/mcp_host/server_registry.json",
+      "BF_ABC_RULE_ASSISTANT_ENABLED": "1",
+      "BF_ABC_RULE_ASSISTANT_AUTO_ANALYSIS": "1",
+      "BF_ABC_RULE_ASSISTANT_RETRY_SECONDS": "120",
+      "BF_ABC_RULE_ASSISTANT_PROMPT_VERSION": "abc_rule_explanation.v1",
+      "IMES_MCP_CONNECTION_MODE": "<redacted>",
+      "IMES_RELAY_DB_HOST": "10.10.181.195",
+      "IMES_RELAY_DB_PORT": "5432",
+      "IMES_ACTIVE_HEAT_MAX_AGE_HOURS": "72",
+      "IMES_WEB_URL": "http://10.10.181.209:8080/imes.web/",
+      "BF_LOGIN_USERS": "glmx",
+      "BF_LOGIN_GLMX_PASSWORD": "<redacted>",
+      "BF_LOGIN_GLMX_ROLE": "系统管理员",
+      "BF_QA_GUEST_ENABLED": "1",
+      "BF_QA_MCP_MAX_TOOL_ROUNDS": "5",
+      "BF_QA_MCP_MAX_TOOL_CALLS": "5",
+      "BF_QA_MCP_PARALLEL_TOOL_CALLS": "1",
+      "BF_QA_MCP_MAX_PARALLEL_TOOL_CALLS": "5"
+    },
+    "health": {
+      "tcpTimeoutMilliseconds": 5000,
+      "tcp": [
+        {
+          "host": "127.0.0.1",
+          "port": 8093
+        }
+      ],
+      "http": [
+        {
+          "url": "http://127.0.0.1:8093/api/ollama/status",
+          "timeoutSeconds": 20
+        },
+        {
+          "url": "http://127.0.0.1:8093/api/automation/status",
+          "timeoutSeconds": 20
+        },
+        {
+          "url": "http://127.0.0.1:8093/api/qa/mcp/health",
+          "timeoutSeconds": 5
+        }
+      ],
+      "failureThreshold": 3,
+      "serviceNotRunningFailureThreshold": 1,
+      "preRestartBackoffSeconds": 15,
+      "restartCooldownSeconds": 600
+    }
+  },
+  "file_hashes": {
+    "高炉前端数据\\frontend_dashboard_v3.server.html": {
+      "exists": true,
+      "sha256": "455BF6E0079C4DDD5DE90C1BA74AF072AF8B32A0D87EA723D501E0C12C023F4B"
+    },
+    "高炉前端数据\\assets\\abc-furnace-rules-production.js": {
+      "exists": true,
+      "sha256": "EBD128560FDDC8078C635B009025747462A58C2C1FA995901B911E2E84EB911B"
+    },
+    "高炉前端数据\\智能助手\\backend\\ollama_proxy_server.py": {
+      "exists": true,
+      "sha256": "B25DF3BEF775F90F592B7DD30AE6090A928D6D35D6A77D6E82B42FD6C4FD151A"
+    },
+    "高炉前端数据\\智能助手\\backend\\abc_score_explanation.py": {
+      "exists": true,
+      "sha256": "55A43F7C06E4E30F4A3A5EBAC068402C0806F05182BE7F21B04E2281A403BDC2"
+    },
+    "高炉前端数据\\智能助手\\backend\\assistant_pg.py": {
+      "exists": true,
+      "sha256": "5C73415FEFC0BE77D09ACFDDBF0711ED0BCCD266422D8A8EA774118A8AECC9AC"
+    },
+    "高炉前端数据\\智能助手\\backend\\abc_rule_assistant_analysis.py": {
+      "exists": true,
+      "sha256": "880B181FC87593C2D4C43DE77C111C440790C8AED53B6B444407F4701494D17C"
+    },
+    "高炉前端数据\\智能助手\\backend\\schema\\postgresql_assistant.sql": {
+      "exists": true,
+      "sha256": "ECD7BA37694AE4889DEAFC182276317CFA7C12A63170328D42C00581D8904F60"
+    },
+    "高炉前端数据\\智能助手\\backend\\schema\\20260811_abc_contextual_assistant.sql": {
+      "exists": true,
+      "sha256": "CB996AE5EF3CE5E1A83016D2E9ABC55C20B723081409BAFC16C899B6E8348D6E"
+    },
+    "tools\\manage_22012_managed_services.ps1": {
+      "exists": true,
+      "sha256": "E0D601CACD788351940E225C712B3527359C9E162826FC14B6392C88AF597270"
+    },
+    "tools\\service_configs\\22012_BFV4PreviewProxy8093.json": {
+      "exists": true,
+      "sha256": "887A0A427B7FAD9256AE4C4BFDFC3FDEDFAFF10B68EF4FB62AC180E9B10638C6"
+    }
+  },
+  "invalidation": "Refresh before every production mutation and after every successful deployment."
+}

@@ -295,3 +295,307 @@ can't subtract offset-naive and offset-aware datetimes
 - 根因：`HeatPerformanceQualitySync`计划任务执行`standalone_heat_dashboard_8891`下的旧同步副本，而主项目后端已更新；旧副本在实时镜像先写平均Si的竞争顺序下没有补齐首次汇总可用时间。任务Action同时仍指向Windows PowerShell 5.1。
 - 修复：[汇总存储](../高炉前端数据/智能助手/backend/heat_performance_quality.py)允许在已有Si但可用时间为空时使用本次观测或`aggregated_at`保守恢复；[同步包装](../tools/run_22012_heat_performance_sync.ps1)强制PowerShell 7；独立副本受控更新并备份，任务Action迁移到`pwsh.exe`。
 - 验证：`33 passed`；生产核验`missing_availability=0`，01:00~08:00八槽全成功；8093/8094/8768/8770/5432 PID未改变。随后`IMESRealtime`和可调V20任务也按独立XML备份迁移到PowerShell 7。
+
+## ERR-SI-V20-ACCEPTANCE-DOWNLOAD-SAVE-HANG-20260810
+
+- 现象：本小时V20持续验收已完成API快照和两张页面截图，但在页面CSV下载阶段连续超过180秒无结果，外层命令超时后遗留验收Node与Playwright无头浏览器进程。
+- 根因：页面下载事件已有15秒上限，但`download.saveAs()`没有独立超时；一次浏览器下载流未结束会让整个验收永远停在写文件前，因而远端探针、数据库探针和本小时报告均不能落盘。
+- 修复：[验收脚本](../tools/audit_si_v20_new_heat_acceptance.cjs)为点击、下载事件和`saveAs()`分别设置上限，超时后取消该下载、记录`download_errors`并继续生成失败证据；只有3个页面CSV全部成功时页面验收才算健康。精确清理了本次遗留的验收Node及其Playwright子进程，未影响用户Chrome或生产服务。
+- 验证：`node --check tools/audit_si_v20_new_heat_acceptance.cjs`通过；修复后完整验收60.2秒结束，最新139炉Si=`0.27%`接入，17:00严格整点槽成功，API、UI、远端运行时、数据库及3个页面CSV全部通过。
+
+## ERR-SI-V20-ACCEPTANCE-API-PROBE-KEEPALIVE-20260810
+
+- 现象：18:00以后持续验收多次把远端运行态判为失败；8094端口仍监听，但`strict-hourly/status`出现503、`hourly-table`超时。修复8094后，远端探针偶发仍需80～174秒，完整验收还会因16.8MB严格历史响应超时。
+- 根因：8094预览后端长期运行后请求队列阻塞；验收探针重复调用`Get-NetTCPConnection`并对单线程HTTP服务并发复用连接，扩大了排队。浏览器验收又请求携带完整特征快照的168条严格历史，响应达到16.8MB；外层只看远端进程退出码，没有解析顶层`ok`。
+- 修复：使用[8094受控重启脚本](../tools/restart_22012_8094_preview.ps1)把8094 PID从2988替换为18628，8093、8768、8770和11434在重启闭环内保持不变；[远端验收探针](../tools/remote_probe_si_v20_acceptance.ps1)一次读取监听表、逐请求创建/关闭HTTP连接并仅保留紧凑摘要；[持续验收脚本](../tools/audit_si_v20_new_heat_acceptance.cjs)解析远端顶层`ok`、为API错误留证、严格历史仅探测1条，完整严格指标从轻量每小时汇总重建。
+- 验证：远端探针由174.2秒降至8.6秒并返回`ok=true`；最终完整验收21.6秒结束，140炉Si=`0.29%`接入，19:00严格槽成功，19槽无失败、重复、逾期或截止违规，8093/8094 API、页面、截图和3个下载CSV均通过。
+## ERR-8093-HOT-SCORE-DUAL-SOURCE-20260810
+
+- 现象：8093异常复核弹窗中的“热制度上行”候选分与ABC窗口B4“热制度上行风险”不同。
+- 根因边界：弹窗读取[derive_current_episode](../高炉前端数据/智能助手/backend/diagnosis_review.py)规范化的旧8类诊断快照`raw_scores.hot`；ABC读取[handle_furnace_rules_latest](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)返回的独立ABC33数据库评估批次。两个评分器、窗口、配置版本和调度时刻不同，目前没有“必须相等”的程序合同。
+- 修复：B4成为唯一展示源；禁止未来批次，优先同一`snapshot_id`，增加15分钟对齐门和20分钟墙钟门；缺失/无效显示`--`。AI解释缓存升级，`/latest`与`/detail`使用相同当前批次陈旧语义，趋势明确为historical。旧分只归档，不改写历史行。
+- 验证：生产评价批次839中ABC B4与弹窗均为14.9623，legacy hot=28.12保留；8093守卫闭环成功且受保护PID未变。完整跨浏览器生产矩阵超时，未冒充通过。
+
+## ERR-8093-B4-DEPLOY-STAGED-MARKER-MISMATCH-20260810
+
+- 现象：v1暂存完成后，远端预检报告`Staged marker missing: return "--"`。
+- 根因：部署清单写的是示例字面量，实际压缩JS使用三元表达式`scoreText=...:"--"`。这是本地清单合同错误，不是远端文件或服务异常。
+- 处理：流程在获取互斥/暂停服务前停止，生产未变；改为匹配实际完整表达式，加入静态合同测试，并用独立v2暂存目录重新执行。第二次成功。
+- 学习状态：首次出现，仅记录脱敏指纹；未达到三次候选门槛，不写入自动学习规则库。
+
+## ERR-22012-PERSISTENT-SSH-REUSE-NO-SPEEDUP-20260810
+
+- 现象：首次独立`.ps1`基准虽复用同一SSH transport，但冷连接`17159ms`，两次复用均值`17952ms`，单样本慢4.6%。
+- 根因：每次请求仍新建SFTP子系统用于payload、wrapper和清理，认证复用收益被子通道成本覆盖。
+- 修复：`remote_22012_exec.py`支持调用者持有SFTP，`remote_22012_session.py`在同一串行会话复用SFTP；任何异常仍关闭整条连接且不重放命令。
+- 复验：重启本机会话代理加载新代码后，冷`22225ms`，复用`16943/17010ms`，单样本节约`5248.5ms/23.6%`；仍需5组交错样本再形成长期结论。
+
+## ERR-8093-FULL-MATRIX-COLD-LOAD-AMPLIFICATION-20260810
+
+- 现象：一个局部弹窗改动也执行5路由×跨内核85项，完整生产矩阵长时间运行或超时。
+- 根因：验收规则没有风险等级；验证器每个组合新建browser context，主动清空缓存，把单体HTML、Babel、依赖和GLB的冷加载成本放大85次。
+- 修复：增加`quick/standard/full`三档并默认quick；每个内核复用一个context、新建page和调整viewport；85项只用于共享运行时/布局基础设施的本机或预览验收。
+- 复验：quick 4/4通过，耗时9.019秒；减少81项（95.3%）。本次没有生产写，也没有把局部通过表述为全站响应式通过。
+
+## ERR-SI-V20-ACCEPTANCE-8094-STATUS-TRANSIENT-TIMEOUT-20260811
+
+- 现象：01:21与01:25两轮持续验收中，仅`8094_status`在30秒后超时；8094端口、严格整点状态、每小时汇总、8093全部接口和数据库均正常，紧接着单独复核六个接口又全部通过。
+- 根因边界：8094普通状态接口在验收页面/API读取并发期间出现一次瞬态排队，单次失败会把整轮远端运行态判为异常；这不是整点槽缺失，也没有证据表明预测或化验同步中断。
+- 修复：[远端验收探针](../tools/remote_probe_si_v20_acceptance.ps1)改为两阶段读取：首轮完成全部六个接口后，只对失败接口再建一个独立HTTP连接复核；结果保存`attempt_count`和`initial_error`，不会掩盖连续两次失败。
+- 验证：PowerShell 7本机语法/执行检查通过；220.12六个接口复核通过；修复后的完整验收28.1秒退出0，01:00严格槽及25槽连续性正常，截图和三个页面CSV完整保留。
+
+## BUG-HCZ-GASUTIL-UNIT-20260811
+
+- 现象：8093软熔带上移规则把煤气利用率24小时较前5天差值直接与`-1.0个百分点`比较，生产页面曾显示约`-0.002个百分点`。
+- 根因：220.12 `GasUtil`实际存储为0～1比例值；只读统计范围内最小`0.366721`、最大`0.622816`、平均`0.449463`。规则引擎未在比较和展示前执行`比例差 × 100 = 百分点差`，因此当前门禁等价于下降100个百分点。
+- 影响：煤气利用率门几乎不可能通过，生产上移规则存在漏报风险；其他四项核心指标、炉壁层数和12小时门不受这个单位错误直接影响。
+- 核对：2026-05-11至2026-08-11逐小时执行当前原样回放和`GasUtil×100`校正回放，两者完整上移均0次；镜像下移候选也0次。单位校正后上移单小时组合最长1小时。
+- 状态：已确认、未修复。本次用户请求是只读历史核对，未授权修改8093代码、配置或服务。修复时应在规则输入适配层统一输出百分点，补0.45→45.0及-0.01→-1.0的合同测试，并按`deploy-8093-guarded-update`流程受控部署。
+- 证据：[三个月历史核对报告](./HCZ软熔带上下移动三个月历史核对_20260811.md)。
+## BUG-8093-ABC33-OVERVIEW-ENTRY-20260811
+
+- 现象：总览页显示固定悬浮“查看A/B/C 33项炉况”，遮挡面板文字，点击后又被挂载逻辑隐藏，表现为无法打开。
+- 根因：旧挂载器只识别参数优化页锚点；总览路由退化为`position:fixed`入口，并在MutationObserver重新挂载时无条件隐藏弹层。
+- 修复：入口改挂炉况总览标题栏；增加弹层打开状态；只在内容变化时写关闭按钮文本，消除观察器重复触发。
+- 生产结果：8093 HTTP 200，33项可打开，页面横向溢出0；8094、8768、8770、5432、11434监听PID未改变。
+# ERR-SI-V20-ACCEPTANCE-HANG-20260811
+
+- 现象：`audit_si_v20_new_heat_acceptance.cjs` 在页面数据等待失败后仍保留 Playwright 进程，外层只能在数分钟后强制超时；生产 `/api/si-v20/history` 同时返回 `SI_V20_HISTORY_UNAVAILABLE`。
+- 根因：一次性验收脚本的异常出口只设置 `process.exitCode`、没有结束仍存活的浏览器传输；生产 `ollama_proxy_server.py` 已传入 `compact`，但运行中的 `si_v20_shadow.py` 仍是缺少该参数的旧副本，形成后端版本错配。
+- 本机修复：验收远端探针改为复用 `remote_22012_session.py`；页面就绪只以整点汇总行存在为准；异常出口确定性退出，避免阻塞下一小时任务。
+- 验证：`node --check tools/audit_si_v20_new_heat_acceptance.cjs`；脚本现可在约38秒内明确报告页面等待错误，并在约135秒内完成完整证据输出，不再被外层240秒超时杀死。`python -B -m pytest tests/test_si_v20_shadow_workbench.py -q` 为17项通过。
+- 待办：按8093受控部署流程同步本机新版 `si_v20_shadow.py` 到220.12的8093/8094运行副本并复验 history API、预测/实际曲线CSV下载；部署前不得把当前503标记为健康。
+
+## ERR-8093-DIAGNOSIS-AI-JSON-DATETIME-20260811
+
+- 现象：`GET /api/diagnosis-ai-analysis?label=normal` 长期返回
+  `state=preparing`、`attempt_count=0`；8093 日志持续出现
+  `five-minute diagnosis AI analysis failed: TypeError`。主 `/api/qa/chat`、keyword
+  知识检索和 Ollama 状态均正常。
+- 根因：ABC33 B4 展示分接入后，PostgreSQL 返回的 `evaluation_ts`
+  及完整证据上下文中的 Python 原生 `datetime/Decimal` 等值进入
+  `DiagnosisReviewStore.begin_ai_analysis()` 的 `Jsonb(canonical_context)`。序列化在
+  INSERT 之前抛 `TypeError`，所以尝试计数始终为 0，前端只能看到
+  `preparing`。
+- 复现：新增红测首先精确得到
+  `TypeError: Object of type datetime is not JSON serializable`；第一次只归一化
+  `evaluation_ts` 后，生产完整上下文仍在 JSONB 边界失败，受控脚本已回滚。
+- 正式修复：[diagnosis_review.py](../高炉前端数据/智能助手/backend/diagnosis_review.py)
+  新增 `json_safe_value()`，在所有诊断 JSONB 写入边界统一处理
+  `datetime/date/Decimal`、容器和非有限浮点；ABC33 时间源元数据显式使用
+  ISO-8601。未修改模型、Prompt、RAG、连接池或数据库 schema。
+- 生产验收：仅替换 `diagnosis_review.py`，SHA-256 为
+  `0C5EEC107593A090209107AA8422A80F176EDED47023F501F39C6F15E1F4B799`；8093 PID
+  `19076→436`，分析 `completed`、`attempt_count=1`、摘要 40 字。后续 code review
+  增量因模型结果 `failed/attempt_count=1` 按合同回滚，最终同版本运行 PID 为 `9152`。
+  正式版本随后按 120 秒冷却策略自动重试为 `completed/attempt_count=1`、
+  `has_analysis=true`，最近失败日志为空。8094/8768/8770/5432/11434 PID 均不变，
+  守卫恢复；最终只读核验为服务 Running、HTTP 200、keyword 证据 2 条。
+- 主链路验收：唯一 1 次 keyword SSE 请求通过，完整收到
+  `preparing→prepared→delta→final→done`；首 delta `5027.5ms`、总计
+  `16885.6ms`，知识证据 2 条，过程中无守卫重启。
+- 备份：`F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\diagnosis_ai_json_fix_8093_20260811_212736`。
+
+## ERR-8093-ABC33-EXPLANATION-PERMISSION-20260812
+
+- 现象：参数优化页 33 个炉框仍能计算，但“智能助手解释”显示
+  `explanation_permission_required` 和“规则分析接口暂不可用”；同一截图中的工长建议曾短暂显示
+  `8768未返回完整建议合同`。
+- 根因：`explanation-context` 是对公共 latest/detail evaluation 的确定性只读展开，却误用了
+  `operator/admin` 会话门禁。公共页面没有登录会话，GET 返回 403；前端又把该 GET 与受保护的
+  会话 POST 合并成单一失败状态。8768 随后连续返回完整 `init/tick` 合同，属于独立瞬态，不是
+  本次稳定权限根因。
+- 修复：确定性 explanation GET 改为公共只读；会话创建和模型聊天继续受登录、owner、同源和
+  固定首问保护。前端在会话无权限时仍展示确定性规则上下文，并提示登录后继续对话。
+- 生产结果：2026-08-12 受控替换 HTML、对话框 JS 和 8093 proxy 共 3 个文件；守卫暂停/恢复成功，
+  匿名解释由 HTTP 403 变为 200，受控上下文会话创建成功。8093 PID `9692→16452`；8094、8768、
+  8770、5432、11434 PID 均未变化。首轮模型 SSE 遇到传输关闭后已自动回滚；第二轮按本次 quick
+  风险边界跳过模型生成，仅验确定性解释和会话合同，未重放 SSE。
+- 验证：46 项聚焦测试；PowerShell 7 UTF-8 与任务脚本 AST；Chromium 桌面/手机、Firefox、
+  WebKit 共 4/4；真实匿名接口 HTTP 200；8768 `init/tick` 均为 8 条件、16 动作完整合同。
+- 证据：[实施交接](./handoffs/2026-08-12-abc33-advice-permission-fix.md)。
+
+## ERR-8093-QA-SESSION-REQUIRED-20260812
+
+- 现象：智能助手页显示“代理不可达或问答服务未启动：qa_session_required”。
+- 根因：后端为跨用户会话安全新增 operator/admin 与 owner 门禁，但正式 QA 页面没有登录入口；前端又丢弃 HTTP 状态和错误码，把合法 403 包装成网络故障。
+- 修复：JSON 与 SSE 传输保留 `status/code`；403 时显示专用登录框，成功后重新 bootstrap。会话在问答 POST 时过期则删除乐观消息、恢复原问题并要求手动发送，不自动重放。
+- 生产：执行 `qa-session-login-prod-20260812-2248`，8093 PID `16452→4308`；8094/8768/8770/5432/11434 PID 未变，守卫恢复、未回滚、匿名 bootstrap 继续 403，安装哈希 `C5148D9BBE96F19935B71E470180C72EAD5E8DBA37DB1DDC192FBF33D6FC42FB`。
+- 验收：11 项聚焦测试、生产构建检查、桌面/手机登录浏览器合同和真实 8093 生产冒烟通过；`/api/ollama/status` 为全绿，验收未发送 SSE。
+- 证据：[实施交接](./handoffs/2026-08-12-qa-session-login-bridge.md)。
+
+## ERR-MCP-STATIC-PRESSURE-TASKGROUP-20260814
+
+- 现象：模板逐行验收中的 `P_static_lower_A-F` 与 `P_static_upper_B` 两题在 SSE 层只返回
+  `unhandled errors in a TaskGroup (1 sub-exception)`，子异常类型和生命周期阶段丢失。
+- 根因边界：权威静压力 A-F 点位和口语映射均已存在；问题位于 MCP stdio/anyio 生命周期异常的
+  暴露方式。`AsyncExitStack.aclose()` 的 `ExceptionGroup` 会覆盖已经取得的工具结果，而请求边界
+  又只调用 `str(exc)`，无法区分 attach、tool call、stdio teardown 与 request handler。
+- 修复：`mcp_host/client_manager.py` 展开异常组为脱敏叶子类型，stdio teardown 只形成结构化警告；
+  `run_qa_mcp_tool_loop()` 将逃逸的请求异常组转换为结构化失败，交由现有恰好一次无工具降级，
+  不自动重放。没有把 A-F 点位替换成均值代理或相似压力点。
+- 验证：`tests/test_mcp_lifecycle_diagnostics.py` 覆盖异常组展开、teardown 不覆盖成功结果和请求边界；
+  本机部署/MCP/证据/跨源/金标聚焦套件合计 87 项通过。2026-08-14 已受控部署到 8093；唯一一次
+  真实 `P_top` SSE 完整得到 `tool_start/tool_result/final/done`，没有生命周期执行错误。该单工具验收
+  证明生产修复路径生效，但静压力两条历史题仍需按金标逐题、每题一次复核。
+
+## BUG-MCP-EVIDENCE-FORMATTER-20260814
+
+- 现象：传感器工具已返回来源、时间、质量和完整统计，但确定性答案只输出值/均值/最小/最大/趋势；
+  T2 因遗漏总体标准差、极差、首末值、变化量、斜率、CV 和公式而失败。
+- 修复：传感器最新值固定输出标准变量、权威单位、数据时间、质量、采集时间和脱敏只读来源；统计
+  固定输出完整时间窗、`STDDEV_POP`、极差、首末值、变化量、斜率和
+  `CV = STDDEV_POP ÷ 均值 × 100%`。缺单位显示“单位未登记”，不猜测未知单位。
+- 验证：`tests/test_mcp_evidence_formatter.py` 覆盖最新值证据、DSN 不泄露及完整 T2 合同。
+- 生产：唯一一次 `P_top` 验收答案包含数值、`kPa`、数据时间、质量、采集时间和脱敏只读来源；
+  `request_count=1`，未重试。
+
+## BUG-MCP-CROSS-SOURCE-FACT-PROJECTION-20260814
+
+- 现象：相关性工具返回 `pearson_r/aligned_count`，跨源快照却只保存图片 URL，导致 T3 模型只能
+  声明相关数值缺失。
+- 修复：跨源计划将 `pearson_r/aligned_count/left/right/time_window` 声明为独立事实；执行器从
+  `derived.correlation` 投影到事实表和 SSE 快照；分析 Prompt 与答案页脚强制声明相关不等于因果。
+- 验证：`tests/test_cross_source_mcp.py::TestDagExecution::test_correlation_tool_projects_numeric_facts_not_only_chart_url`。
+- 生产复核：GOLD-002 已逐条真实调用 IMES 与 GL02，答案返回 `pearson_r`、`aligned_count`、时间窗、
+  双来源并声明“相关不等于因果”；原先仅有单工具验收的边界已关闭。
+
+## BUG-MCP-GOLD003-MISSING-PTOP-20260814
+
+- 现象：用户并行询问当前 `P_top` 与上一炉铁水 Si，生产答案只返回 Si，截图中完全缺失 P_top。
+- 根因：确定性领域路由只识别中文“顶压”，未把规范变量标识 `P_top`（归一化为 `p_top`）纳入
+  GL02 词项，因此选择结果只含 IMES；不是 P_top 数据缺失。
+- 修复：`domain_router.py` 将 `p_top` 纳入 GL02 权威词项；跨源事实格式化补 P_top 权威单位与质量回退。
+- 生产验收：唯一一次 GOLD-003 SSE 同时出现 IMES 与 GL02 的工具事件，返回 P_top `258.355 kPa`
+  与上一炉 Si `0.42%`，分别列出时间和来源；两服务步骤真实并行且未自动重放。
+
+## BUG-MCP-GOLD005-DEPENDENCY-GATE-20260814
+
+- 现象：先解析口语炉次 `072` 再查询 Si 时，旧路径在解析结果为
+  `HEAT_REFERENCE_NOT_FOUND` 后仍继续调用当前炉况和化验工具，并最终显示“未知错误”。
+- 根因：跨源 DAG 曾只对“两种不同 server_id”启用，单个 IMES 服务内部的有向依赖退回模型规划；
+  下游未被上游失败门禁约束。评测器还把已被生产数据证伪的题设误计为产品失败。
+- 修复：同一 IMES 服务的 `resolve → chemistry` 也使用确定性 DAG；下游参数只能来自
+  `resolved_heat_no`，上游失败时标记 `DEPENDENCY_FAILED` 且不启动工具。答案明确“不猜炉号”；
+  评测器将权威窗口不存在/歧义分类为 `oracle_invalid`。
+- 生产验收：执行 `mcp-gold005-20260814-1205-r2`，只收到 1 个 resolver 的
+  `tool_start/tool_result`，下游 Si 未启动，答案明确未找到 072、禁止猜测；8093 PID
+  `8348→14124`，受保护 PID 不变。生产 Git HEAD 为 `67d2434cbbb69591ff8e35d4027fd47acfa37850`。
+- 证据：[生产逐条实测交接](./handoffs/2026-08-14-mcp-gold-live-production.md)。
+
+## BUG-MCP-GOLD-ORACLE-SEMANTIC-20260814
+
+- 现象：扩展 `pass^5` 首次汇总把 GOLD-004 五次均判为失败；隔离故障预览首次精确词评分也把
+  4 条安全回答判为失败，但原始 SSE/答案显示工具、边界和降级语义正确。
+- 根因：金标 oracle 把工具路径和中文声明写成单一精确字符串。GOLD-004 第一轮既可能调用
+  `get_gl02_variable_info`，也可能从共享会话已有确认中直接继承 `P_top`；故障回答中的“未核实、
+  查询失败、禁止编造”等同义表达也不应被单个固定短语否决。
+- 修复：调用合同支持显式 `alternatives` 和 `optional`，GOLD-004 增加“首轮必须明确确认 P_top、
+  第二轮必须实际查询统计”的专用语义判定；故障合同改为版本化同义词组。所有重评分只读取已经
+  保存的原始结果，`additional_model_requests=0`，不通过放宽产品安全边界制造通过。
+- 结果：`pass^5` 由 20 passed/5 failed/5 oracle_invalid 修正为
+  25 passed/0 failed/5 oracle_invalid；隔离故障由 0/4 精确词误判修正为 4/4。原始报告继续保留，
+  可与 `pass5.rescored.json`、`fault_preview.rescored.json` 对照审计。
+
+## BUG-MCP-SPOKEN-TTOP-L-20260814
+
+- 现象：不带标准 ID 的 42 个口语化生产问题中，36 题通过；“四个顶温的平均值”和“雷达探尺”
+  各三题失败，但全部请求均得到完整 SSE，没有网络或 MCP 执行错误。
+- `T_top` 根因：口语分组逻辑把包含“四个”的顶温问题优先展开为 `T_top_A-D`；“四个顶温的
+  平均值”没有被识别为派生对象 `T_top`。MCP 本身已实现 `T_top` 派生平均，因此缺口位于 QA 口语
+  路由，不应在模型答案里临时计算掩盖。
+- `L` 根因：硬编码口语别名只含“料线/平均料线/料面/料位”，没有“雷达探尺”；生产请求因此
+  进入模型目录规划。最终虽找到 `L`，但点位目录没有权威单位字段，答案出现“单位未登记”或错误
+  “无量纲”；三题耗时分别约 33.0s、75.9s、29.5s。
+- 建议修复：为 `T_top` 增加平均意图优先级并直接传 `variables=['T_top']`；为 `L` 增加“雷达探尺/
+  主料线/雷达料线”确定性别名，并在权威点位元数据登记经现场确认的单位后再输出。修复后仅重跑
+  这 6 题，每题一次，不重放其余 36 个已通过问题。
+- 定位：[口语别名与分组](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L3973-L4384)、
+  [确定性传感器计划](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L4620)、
+  [T_top 派生实现](../高炉前端数据/智能助手/mcp/bf_data_mcp_server.py#L2415-L2530)。
+
+## BUG-MCP-BODY-LAYER-STATS-PLANNER-20260814
+
+- 现象：询问 7–13 层 A–H 的逐层平均、极差、变化量和滚动标准差时，8093 在 5 次工具调用后只
+  查询第 7 层 A–E，耗时 `156890.7ms`，回答遗漏 7 层 F–H 及 8–13 层全部结果。
+- 根因：口语解析能展开 7–13 层共 56 个内部点，但 extended MCP 只接受单层/单方位范围并返回原始
+  历史；模型把每个方位规划为独立调用，撞上 `BF_QA_MCP_MAX_TOOL_CALLS=5`。系统已有最多 80 点的
+  基础批量查询，却没有“按层聚合/滚动标准差”复合工具和确定性路由。
+- 证据错误：第 10 层 C 点单测重复调用相同工具两次。工具历史 `count=61` 且包含质量为 Good 的
+  `18.6631945`，最终答案却给出 `count=60/min=36.50`，没有声明过滤，属于模型基于原始序列心算
+  造成的证据不忠实，不能视为“回答大致正确”。
+- 最小修复：在 MCP 层新增单次批量统计并返回紧凑层级事实；QA 直接调用，最终答案由确定性格式器
+  输出。不得通过提高 5 次上限、循环 56 个工具或让模型读取数千行原始序列修复。
+- 修复状态：`fixed_and_deployed`。新增复合工具、确定性路由和证据格式器后，生产逐层题与单点题
+  均为 1 次工具调用、0 次模型计算；8093 PID 更新为 `9468`，受保护服务 PID 未变化。
+- 定位：[工具调用上限](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L264)、
+  [复合路由](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L4286)、
+  [确定性格式器](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L5803)、
+  [复合统计工具](../高炉前端数据/智能助手/mcp/bf_data_extended_mcp_server.py#L308)、
+  [跨源事实投影](../高炉前端数据/智能助手/backend/mcp_host/cross_source_executor.py#L413)。
+
+## BUG-MCP-BODY-WINDOW-ROLLING-DURATION-20260814
+
+- 现象：首次部署后，问题同时包含“最近一小时”和“15 分钟滚动标准差”时，工具参数错误地只查询
+  最近 15 分钟。
+- 根因：通用时长解析先命中阿拉伯数字 `15`，把滚动窗口误当成总查询窗口，覆盖了中文“一小时”。
+- 修复：总时间窗改由 [显式时间范围解析](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L4215)
+  独立决定；滚动分钟数只写入 `rolling_window_minutes`，两者不再共用同一个 duration 结果。
+- 验收：生产参数为 `start_time=2026-08-14T14:04:00+08:00`、
+  `end_time=2026-08-14T15:04:00+08:00`、`rolling_window_minutes=15`；7–13 层每层获得
+  60 个对齐样本、61 个期望分钟。状态：`fixed_and_deployed`。
+
+## BUG-MCP-BODY-STATS-ANSWER-INTEGRITY-20260814
+
+- 现象：2026-08-14 16:28–16:30 的五个人工问题中，两项逐层统计显示“模型未返回内容”；一项
+  第 12 层 A–H 明细把同一个层平均复制成八个完全相同的方位值；一项显式 08:00–09:00 查询没有
+  命中数据库工具，错误降级为“实时数据库未核实”。
+- 根因：后续 A/B/C 评分整文件发布覆盖了生产代理中的复合路由；纯中文层范围识别依赖“炉体/炉身”
+  或方位字母；领域路由没有把“第7层到第13层…温度”选到 `gl02-extended`；修正选择后，通用跨源
+  DAG 又先于复合计划把 56 点展开。另有单层 A–H 未开启 point statistics、20,000 字符截断以及
+  失败后错误进入模型计算等答案完整性问题。HTTP、Ollama 和数据库均正常，对应点位存在。
+- 修复：扩大“层范围 + 温度统计词”的确定性识别；“各方位/各点”开启逐点统计；复合统计结果在
+  确定性分支保留完整结构化 JSON；格式器展开每个方位的独立 count/coverage/avg/std/min/max/range，
+  逐层输出补齐 coverage/min/max/CV/滚动方向；领域路由显式识别中文层号；复合计划优先于通用
+  跨源 DAG；解析失败时 fail closed，不再交给模型心算。
+- 定位：[中文复合计划](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L4150)、
+  [MCP 结果转换](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L5723)、
+  [确定性格式器](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L5784)、
+  [回归测试](../tests/test_body_temperature_layer_statistics.py)。
+- 本机预检：相关 `116 passed`；无模型直接 MCP 返回 7 层/3248 行、耗时 `2520.9ms`。R4/R5 两次
+  真实生产验收均自动回滚，分别证明领域选择和复合计划优先级缺陷。
+- 2026-08-14 本机可观测性增量：SSE 现在公开脱敏的中文解析、复合工具、数据库批量统计和模型解释
+  阶段，前端实时显示“执行详情”。确定性结果先返回；解释失败或含证据外新数字时丢弃解释，避免
+  再次把模型空输出放大成整题无答案。
+- 生产闭环：20:24 的失败记录确认 HTTP 200、Ollama/MCP 正常，实际助手消息为“模型未返回内容”，
+  根因是旧后端仍把 56 点交给通用模型/工具规划。受控部署
+  `body-temperature-trace-20260814-2046-r3` 后，唯一一次相同原问法 SSE 调用一个复合工具和一次
+  受控解释，返回 56 点/3304 行/7 层统计，答案 1562 字；状态更新为
+  `fixed_and_accepted_in_production`。
+
+## BUG-8093-BODY-TRACE-DEPLOY-CONTRACT-20260814
+
+- 第一轮受控部署在验收阶段发现最终 SSE 未携带 `model_request_count`，部署器按合同自动回滚；修复
+  为 JSON/SSE final 统一透传确定性模型请求计数，避免“实际只调用一次但验收无法证明”。
+- 第二轮受控部署读取计划任务 `LastTaskResult=2147946720 (0x800710E0)` 时发生 Int32 转换溢出；该值
+  表示已有任务实例运行，并非服务故障。修复为 Int64 解析并等待活动实例结束，第二轮也已自动回滚。
+- Git 保存器在提交已经成功后对空变更集合执行 `Compare-Object`，脚本随后失败。按不确定执行规则没有
+  重放提交；先只读确认 HEAD/父提交/精确三路径/干净工作树，再以幂等 finalizer 补标签和发布清单。
+- 最终生产提交为 `5d23c0e5e2456c597ad9ba5a9a8c03627c2c5ae9`，标签为
+  `prod-8093/20260814-body_trace-5d23c0e5e245`；两次失败均未留下运行文件或服务漂移。
+
+## ERR-QA-HTTP400-FURNACE-ANALYSIS-20260814
+
+- 现象：ABC33 炉况规则弹窗显示“问答接口 HTTP 400；本次提问未自动重发”，没有进入具体炉况分析。
+- 根因：前端固定首问包含“形成过程与五步处置顺序”，后端
+  `ABC_RULE_INITIAL_QUESTION` 只接受“形成过程与处置顺序”；后端逐字校验后返回
+  `invalid_initial_analysis_question`，请求在模型、知识检索和炉况上下文分析前被拒绝。
+- 本机修复：前端固定首问与后端常量对齐；非 2xx 响应解析并显示
+  `error/error_code/message`，继续禁止自动重发；新增跨 Python/JavaScript 固定首问一致性回归。
+- 本机验证：JavaScript 语法通过；聚焦测试 `32 passed`；参数优化页 `quick` 浏览器检查
+  Chromium 桌面/手机、Firefox、WebKit 共 `4/4` 通过且真实模型请求为 0。
+- 当前状态：`fixed_and_accepted_in_production`。2026-08-14 执行
+  `abc33-http400-20260814-r2` 仅替换弹窗 JS 与从最新生产 HTML 派生的缓存版本单行变更；
+  8093 PID `240 → 15392`，真实固定首问只发送 1 次并返回
+  `preparing → prepared → delta → final → done`，答案非空且不再 HTTP 400。远端 Git 提交
+  `d24543a`，标签 `prod-8093-abc33-http400-20260814-r2`；8094/8768/8770/5432/11434 PID 未变。

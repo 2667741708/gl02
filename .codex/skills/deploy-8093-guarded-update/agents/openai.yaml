@@ -1,0 +1,7 @@
+interface:
+  display_name: "8093 Guarded Update"
+  short_description: "Prepare once, delta-deploy safely over reused SSH"
+  default_prompt: "Use $deploy-8093-guarded-update to seal a validated 8093 release once, delta-upload it over persistent SSH, and activate it through the guarded rollback-safe workflow."
+
+policy:
+  allow_implicit_invocation: true

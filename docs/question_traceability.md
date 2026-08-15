@@ -1,5 +1,27 @@
 # 问题核查追踪
 
+## Q-FOREMAN-CURVE-POINT-MAPPING-20260814
+
+- 用户问题：工长趋势中部分曲线和传感器数值没有完全对应，要求重新核查正式点位清单。
+- 核查结论：截图中的 `P_top=22.381063` 同时得到 220.12 分钟表和 pSpace 单点原始历史确认，
+  `P_top -> SIO_GL02_LD_T0034` 没有串点；页面顶部是 12:29 当前值，曲线是 06:00–08:00
+  历史值，两者当前不联动。
+- 已确认问题：`GasUtil` 当前卡片按百分比换算而历史提示仍为 0–1 原值；
+  `Hopper_weight_set` 未进入 220.12 `sensor_registry`，且没有单一物理点。补充 pSpace 原始
+  核查确认它应由 1–11 号布料重量设定状态求和派生。`L_south/L_north` 的 `T0075/T0076`
+  点位正确，pSpace 的限位文字是误导性注释；现场值、业务/PLC映射和周期波形均已交叉确认。
+- 显示边界：主图纵轴是多量纲泳道归一化坐标，右键提示第三维才是原始值；页面应增加口径说明。
+- 后续修复：顶部指标、曲线悬浮和右键点位值已在本机统一为两位小数；`GasUtil` 历史
+  `0–1` 比例先乘100再展示，例如 `0.482998 -> 48.30%`。对应需求为
+  `REQ-FOREMAN-TREND-TWO-DECIMAL-PERCENT-20260814`，尚未部署220.12。
+- 登记更新：2026-08-14 已将 `L_south/L_north`、11 个 `Hopper_weight_set_*` 物理分量及
+  派生目录项写入 220.12 `sensor_registry`，登记审计 14/14；既有同步器已成功采集 11/11
+  个物理分量。派生总量尚未物化到分钟表，不应在页面冒充已有历史曲线。
+- 证据与逐项结果：[工长趋势曲线—点位映射核查](handoffs/2026-08-14-foreman-curve-point-mapping-audit.md)。
+- 影响范围：已更新生产点位清单和 `sensor_registry`，并调用既有同步器补入物理分量历史；
+  没有修改8093页面、8768/8770程序或计划任务，也没有新增 pSpace 读取进程。详见
+  [登记交接](handoffs/2026-08-14-hopper-weight-set-registry-production.md)。
+
 ## Q-COHESIVE-ZONE-TREND-CALCULATION-20260808
 
 - 用户问题：当前软熔带上升/下降趋势应该怎样计算。
@@ -514,7 +536,10 @@
 
 - 用户问题：重新测试南北探尺、A-D 上升管煤气压力、冷风管道压力、富氧流量/富氧率四条 8093 口语是否成功，并继续扩展 MCP 绘图。
 - 真实接口结论：绘图扩展最终部署后再次复测为 4/4，均为 HTTP 200、无敏感信息泄漏；完整结果见 [8093_mcp_four_prompt_retest_after_chart_expansion_20260715.json](../logs/8093_mcp_four_prompt_retest_after_chart_expansion_20260715.json)。
-- 精确路由：南北探尺为 `L_south,L_north`；A-D 压力为 `P_top_gas_A-D` 四点；冷风压力为 `P_blast_cold`；富氧为 `Q_O2,O2_rate`。
+- 精确路由：南北探尺为 `L_south,L_north`；A-D 顶压的对外标准名为 `P_top_A-D`，
+  旧 `P_top_gas_A-D` 仅作兼容别名，底层映射 pSpace `SIO_GL02_LD_T0067..T0070`；
+  冷风压力为 `P_blast_cold`；富氧为 `Q_O2,O2_rate`。权威目录实读与迁移边界见
+  [MCP 多轮规划与顶温/顶压点位审计](handoffs/2026-08-13-mcp-point-name-planning-audit.md)。
 - 数据事实：最终复测采样时间为 `2026-07-15 15:23-15:25`；预取类型分别为 `multi_latest/multi_latest/latest/multi_latest`。
 - 绘图扩展需求映射：[REQ-8093-MCP-CHART-003](提高MCP口语调用准确率计划.md#req-8093-mcp-chart-003-数据绘图能力扩展)。
 - 回归脚本已补充 `mcp_latest_cold_blast_pressure`，并记录 `mcp_prefetch_variables` 与 `tool_names`，避免只按回答关键词判定成功。
@@ -1295,3 +1320,306 @@ AO/PBR？
 - 结论：本机代码已实现。页面改数据库配置，固定一分钟后台分发器执行；预测配置、运行批次和逐点预测分别入三张规范化表。实时点匹配发起后下一真实开口，历史点匹配时间槽后下一真实开口。
 - 证据：[需求](requirements_traceability.md#req-si-v20-configurable-schedule-20260809)、[API](api_reference.md)、[数据表](data_schema_reference.md)、[测试](test_reference.md#test-si-v20-configurable-schedule-20260809)。
 - 状态：`local_implementation_ready_not_deployed`。
+
+## Q-COHESIVE-ZONE-DOCX-TO-CODE-20260810
+
+- 用户问题：如何在本机把《1780级高炉软熔带移动预测特征总结与智能诊断模型》转化为代码。
+- 结论：已实现独立的解释型特征融合诊断、YAML参数、CSV CLI、既有C2几何组合包装和专项验证。它按15分钟当前窗口、15分钟隔离区和15分钟参考窗口计算文档特征，输出上移/稳定/下移概率与管道、悬料、边缘气流、热制度下行关联证据。
+- 实现依据：[主诊断函数](../炉况规则引擎/features/cohesive_zone_intelligent_diagnosis.py#L214-L432)、[特征配置](../炉况规则引擎/config/cohesive_zone_intelligent_diagnosis.yaml#L33-L209)、[本机CLI](../tools/run_cohesive_zone_intelligent_diagnosis.py#L24-L88)、[专项测试](../tests/test_cohesive_zone_intelligent_diagnosis.py#L84-L161)。
+- 关键边界：Word只给出特征和经验方向，没有真实`H_cz`标签、样本、模型参数或回测结果；因此当前代码不能被称为已训练的Chronos-2/TabPFN/Transformer，也不能用于自动控制。取得真值后，可直接复用输出的`feature_vector/trend_vector`训练候选模型并按时间切分回测。
+- 验证：PowerShell 7专项入口结果为`30 passed`，CLI端到端写出UTF-8 JSON；未修改本机/远端数据库、生产端口、服务或页面。
+
+## 2026-08-10 无真实HCZ时由高炉长人工标注并部署
+
+- 用户问题：先制作没有真实HCZ标签时可用的代码，后续由高炉长人工标注；制作完成后直接部署。
+- 回答落点：采用独立、盲化、版本化的`expert_weak_label`，不把当前C2/HCZ估计当真值；通过实测回放选时、服务器实测哈希、追加式审计、手填实际标注人和修订链收集。
+- 生产入口：`http://10.30.220.12:8892/hcz-labeling.html`。
+- 完整实现与验收：[2026-08-10 HCZ专家弱标签生产交接](./handoffs/2026-08-10-hcz-expert-weak-label-production.md)。
+
+## Q-HCZ-UPWARD-FOREMAN-COMPOSITE-RULE-20260810
+
+- 用户问题：按“平均顶温升15℃、至少12小时、24小时均值对比前5天、全压差升5、透气性降0.5、煤气利用率降1个百分点、风压升5、7～13层至少2～3层升10～20℃”汇总为一个软熔带上移判断规则并部署8093。
+- 回答落点：已固化为`HCZ-UP-FOREMAN-001`严格AND规则；3层且至少1层升20℃作为强证据，不替代2层升10℃触发门；缺数不补0。
+- 生产入口：`http://10.30.220.12:8093/hcz_upward_rule.html`。当前真实数据覆盖充足但未达到组合，状态为`not_triggered`，不能反推稳定或下移。
+- 证据：[规则文档](./GL02软熔带上移综合趋势经验规则_20260810.md)、[需求追踪](./requirements_traceability.md#req-hcz-upward-expert-rule-20260810)、[生产交接](./handoffs/2026-08-10-hcz-upward-expert-rule-8093.md)。
+## Q-ABC33-B-KEY-VARIABLE-AUDIT-20260810
+
+- 用户问题：料速权重20加入A2/B4/B5后，B类关键变量是否准确。
+- 结论：B1—B13运行时校准权重均合计100，已有因子方向基本正确；但主复核传感器清单普遍不完整，B4/B5尚无新料速因子与MES派生数据，不能视为已经准确接入。
+- 证据：[B类目录与权重](../自动诊断服务/abc_rule_catalog.py#L71-L123)、[复合特征计算](../自动诊断服务/abc_feature_builder.py#L381-L673)、[因子传感器依赖](../自动诊断服务/abc_factor_audit.py#L35-L73)。
+- 逐条结果：[ABC33 B类关键变量核对](./ABC33_B类关键变量核对_20260810.md)。
+- 后续：建立MES大小批料速派生表，实现`BurdenRateDev/Slow/Fast`，同步A2/B4/B5在线权重并补齐B1—B13复核变量后，再做历史回放和生产部署。
+
+## Q-8093-GUARDED-UPDATE-SKILL-20260810
+
+- 用户问题：如何把本机修改后的代码上传到8093，暂停持续回滚守卫，让新程序实际运行，再恢复保护，并把整套流程固化为Skill。
+- 回答落点：已创建全局可发现Skill `deploy-8093-guarded-update`，固化本机验证、远端upload-only暂存、部署互斥、基线哈希、备份、只暂停/恢复`BFV4PreviewProxy8093`、原子安装、HTTP/API/受保护PID验收及失败回滚。
+- 关键澄清：8093页面/静态JS没有独立文件锁或自动回退守卫；用户口径中的守卫按现行项目合同对应托管服务`BFV4PreviewProxy8093`。健康检查可监督服务，但不能替代部署互斥和受控停—改—启。
+- 实现证据：[Skill](C:/Users/hmw20/.codex/skills/deploy-8093-guarded-update/SKILL.md)、[项目合同](C:/Users/hmw20/.codex/skills/deploy-8093-guarded-update/references/project-contract.md)、[测试参考](./test_reference.md#test-8093-guarded-update-skill-20260810)。
+- 状态：Skill与模板已完成本机只读验证；本轮没有连接、上传、停启或修改220.12。
+
+## Q-22012-PERSISTENT-SSH-AND-PYTHON-PROTECTION-20260810
+
+- 用户问题：持续维护220.12 SSH会话，避免每次上传/命令重新连接，并加入8093 Skill；上传程序后能否转成“pyb”使别人看不到源码再运行。
+- 回答落点：新增`remote_22012_session.py`本机localhost代理，持有一个认证transport并用keepalive维护，后续上传和payload执行走独立channel但复用连接；部署完继续保留代理。远端命令中断绝不自动重放。
+- 源码结论：不存在标准保护`.pyb`；`.pyc`仍可检查/反编译，不等于源码保密。需要降低源码暴露时，应在本机按目标ABI用Nuitka/Cython构建`.exe`/standalone/`.pyd`并通过同一受控部署流程只上传产物；二进制仍只能提高逆向成本。
+- 证据：[会话代理](../tools/remote_22012_session.py)、[Skill](C:/Users/hmw20/.codex/skills/deploy-8093-guarded-update/SKILL.md)、[保护合同](C:/Users/hmw20/.codex/skills/deploy-8093-guarded-update/references/python-artifact-protection.md)、[测试](./test_reference.md#test-22012-persistent-ssh-session-20260810)。
+
+## Q-8093-SKILL-AUTO-TRIGGER-SPEED-LEARNING-RSSH-20260810
+
+- 用户问题：把独立UTF-8 `.ps1`经`pwsh -File`双次复用加入Skill；以后更新8093是否自动调用；异常弹窗与ABC热制度上行分数不一致修复多久；Skill如何从高频错误学习并量化节约时间；Reliable SSH MCP是否可保活降延迟。
+- 回答：8093变更意图已成为隐式触发，但Skill不会替用户自动授权生产写。双次`.ps1`验证、阶段计时、冷/热基线、受控失败候选与评审规则库已固化。MCP单服务器220.12实例启用1连接池、30秒协议keepalive和60秒只读应用心跳，配置需MCP进程重新加载后生效。
+- 分数根因：弹窗读取旧8类诊断快照`raw_scores.hot`，ABC读取独立ABC33 B4批次；不同窗口/版本/调度会造成差异。预计只读复现30–60分钟、切换展示源60–120分钟、统一后端合同并上线2–4小时、统一业务评分0.5–1工作日。
+- 初次性能：Paramiko `.ps1`复用单样本节约23.6%；MCP握手19.7秒后，复用调用约0.3秒。长期收益必须至少5组同范围交错测试，用median/p90比较。
+- 证据：[需求](./requirements_traceability.md#ops-8093-skill-reuse-metrics-learning-and-rssh-mcp-20260810)、[测试](./test_reference.md#test-8093-skill-reuse-metrics-and-rssh-mcp-20260810)、[性能/学习合同](C:/Users/hmw20/.codex/skills/deploy-8093-guarded-update/references/deployment-performance-and-learning.md)。
+
+- 实施结果：原生构建器已支持Nuitka standalone/module与Cython extension的计划/构建清单；5冷+5复用基准中冷命令中位2600ms、复用1536ms，单命令中位节约1064ms（40.92%），新会话盈亏平衡为1条命令。B4统一已上线：批次839中弹窗与ABC均为14.9623，旧分28.12归档，8093守卫恢复且受保护服务未重启。
+
+## Q-8093-SIMPLIFY-VALIDATION-AND-LOAD-20260810
+
+- 用户问题：小改动是否可以免跑85个组合；如何降低生产大屏及跨内核验收的加载负担。
+- 回答落点：小改动默认`quick` 4项，中等单路由改动`standard` 17项，只有共享布局、导航、三维/浏览器运行时或多页基础设施改动才跑`full` 85项。任何失败或影响边界不清自动升级，部署事务安全门禁不简化。
+- 流程实测：4项跨内核定向检查9.019秒且全部通过，组合数减少95.3%；按内核复用context，避免85次人为冷缓存。
+- 页面加载审计：当前生产HTML约907KB、无内容压缩且`no-store`，浏览器还加载Babel并现场编译大段`text/babel`，本地React开发版、Babel、ECharts约5.35MB，首屏三维GLB约8.23MB。优先改为构建期打包、React生产版、路由按需加载、HTML压缩和三维延迟加载；这些是现状瓶颈证据，不冒充已测得的性能回归或上线收益。
+
+## Q-CODEX-CLI-MODEL-DELEGATION-20260810
+
+- 用户问题：能否保证后续小功能本地修改到8093更快；Codex CLI有哪些能力和模型；能否固化Skill并把低智能工作分配给Luna等低token模型。
+- 回答：可以保证默认走“quick验证+持久SSH+在线预暂存+一次守卫临界区”的快路径和全阶段计时，不能保证每次绝对耗时，因为测试失败、网络重试、服务启动和基线冲突仍是外部变量。
+- CLI核查：本机`codex-cli 0.144.3`支持交互TUI、`exec/review/resume/fork/debug models/doctor/mcp/plugin/app/cloud/apply/sandbox/features`等；当前账号实时目录包含`gpt-5.6-sol/terra/luna`等。官方模型指导将Luna定位为高吞吐经济型、Terra为平衡型、Sol为旗舰型。
+- 实施：新增`codex-economical-delegation` Skill并与8093 Skill建立安全边界。实测最小上下文Luna任务29.2秒、输入38309 tokens，说明只应委派需要语义判断且可并行的任务；哈希、格式化、固定命令等直接执行更省。
+
+## Q-8093-85-MATRIX-AND-LUNA-20260810
+
+- 用户问题：85组合是什么、为什么多、是否耗token，以及能否先做核心程序、最后再兼容并默认让Luna执行低风险任务。
+- 解释：Chromium为9视口×5路由=45；Firefox和WebKit各4视口×5路由=20，总计85。路由是总览、诊断、优化建议、趋势和问答；视口是桌面、平板、手机内容区尺寸。
+- 决策：核心开发默认仅运行Chromium 1366x768；85项只在最终兼容阶段显式运行。浏览器脚本自身不消耗模型token。
+- Luna实测：一次受限只读诊断耗时139636ms，输入72377（缓存40448）、输出520；因此保留Luna处理需要语义判断的本地任务，机械矩阵继续用零模型调用的脚本。
+
+## Q-8093-TWO-PHASE-FAST-DEPLOYMENT-20260811
+
+- 用户问题：把“准备一次、快速上线”、不可变产物清单、差量上传、Luna low最小diff与只读远端预检并行、确定性HTTP/API优先、UI才跑浏览器、生产成功立即通知固化进8093部署Skill。
+- 实现：[两阶段合同](../.codex/skills/deploy-8093-guarded-update/references/two-phase-fast-deployment.md)和[发布清单脚本](../.codex/skills/deploy-8093-guarded-update/scripts/release_manifest.py)新增四个schema；本机/远端模板分别消费准备清单和差量计划。有效清单不重复Phase A；任何绑定字节/验证/基线变化立即失效。
+- 安全边界：Luna只读且不接触凭据/生产控制；最新远端基线、互斥、备份、原子替换、`finally`恢复、回滚、HTTP/API和受保护PID仍是强制门禁。差量为空不重启。
+- 验证：清单脚本自测、Skill合同验证、PowerShell 7/Core UTF-8检查和Skill Creator结构验证均通过；`remote_write_performed=false`，未连接或修改220.12。
+
+## Q-8093-SKILL-PROJECT-MIRROR-20260811
+
+- 用户问题：把8093部署Skill和机械化框架同时保存到本项目文件夹，并与全局Codex Skill同步更新。
+- 决策：仓库[项目Skill](../.codex/skills/deploy-8093-guarded-update/SKILL.md)是唯一版本源；用户目录同名Skill是运行镜像。日常只编辑项目副本，验证后通过[同步脚本](../tools/sync_deploy_8093_guarded_update_skill.ps1)单向发布，禁止两边独立编辑。
+- 验证：首次导入、项目合同/结构校验、`PublishProjectToGlobal`和独立`Verify`均通过；两侧14文件bundle SHA-256为`F75B6DA1C3FC1F410A5DF6FAC4C09D42E67459B9E5BCF20471B4A6EC9B6FA323`，`remote_write_performed=false`。
+
+## Q-HCZ-THREE-MONTH-MOVEMENT-AUDIT-20260811
+
+- 用户问题：按照软熔带综合趋势经验规则，核对过去三个月是否出现上移动和下移动。
+- 核对窗口：`2026-05-11 10:00`至`2026-08-11 10:00`，逐小时评价2209次；2168小时覆盖合格，覆盖率98.14%。
+- 结论：生产上移规则完整触发0次；把煤气利用率正确换算为百分点后，上移仍为0次；对称镜像下移候选也为0次。上移最接近`2026-05-17 21:00`，核心3/5、炉壁1层、连续1小时；下移最接近`2026-05-21 16:00`，核心4/5、炉壁0层、连续0小时。
+- 发现：`GasUtil`存储为比例值，当前8093规则缺少`×100`百分点换算，登记`BUG-HCZ-GASUTIL-UNIT-20260811`；本次单位校正未改变0次总结果，但生产实现尚未修复。
+- 证据：[三个月历史核对报告](./HCZ软熔带上下移动三个月历史核对_20260811.md)、[规则文档](./GL02软熔带上移综合趋势经验规则_20260810.md)。本次只读数据库并在本机回放，没有修改220.12或重启任何服务。
+
+## Q-HCZ-AUG9-AUG10-TOP-TEMP-COMPARISON-20260811
+
+- 用户反馈：2026-08-09至08-10实际出现过一次软熔带上移，要求比较平均顶温变化。
+- 数据核对：08-09 20:00四点平均顶温`109.329℃`，22:00为`124.728℃`，两小时`+15.399℃`；23:00为`125.640℃`；08-10 06:00为`129.350℃`，较低点`+20.020℃`。A～D四点同步上升。
+- 窗口差异：以前后12小时均值比较只`+5.822℃`；08-10整日较08-09整日`-0.139℃`；两天各自24小时对前5天分别`-3.378℃/-3.626℃`。短时+15℃信号被长窗口稀释。
+- 数据边界：08-09 00:00～04:00顶温全缺；人工弱标签表仍为0条，当前没有准确标注时刻。本次以用户反馈作为现场确认，以20:00至次日06:00作为顶温变化段，不把它升级为直接HCZ真值。
+- 影响：三个月报告的0次只代表严格规则命中0次，不代表物理事件0次。建议保留24小时背景量，新增3～12小时短时顶温抬升特征后结合其他指标重新标定；本次未修改生产规则或8093。
+- 证据：[平均顶温专项对比](./HCZ上移事件平均顶温对比_20260811.md)、[三个月规则回放](./HCZ软熔带上下移动三个月历史核对_20260811.md)。
+
+## Q-HCZ-COLD-BLAST-PRESSURE-20260811
+
+- 用户问题：把软熔带上移规则中的风压改成冷风风压。
+- 回答落点：不能只把“热风压力”改名；项目变量映射确认`P_blast`是热风压力、`P_blast_cold`才是冷风压力，因此生产规则显示名改为“冷风风压”，实际数据源同步切换为`P_blast_cold`，阈值保持上升`+5kPa`。
+- 生产结果：8093 API已返回“冷风风压”，部署时变化`+0.589619kPa`、状态`not_triggered`；守卫恢复、未回滚，六个受保护PID未变化。
+- 证据：[配置](../炉况规则引擎/config/hcz_upward_expert_rule.yaml)、[专项测试](../tests/test_hcz_upward_expert_rule.py)、[生产交接](./handoffs/2026-08-11-hcz-cold-blast-pressure-8093.md)。
+
+## Q-HCZ-AUG9-PSPACE-LABEL-UP-20260811
+
+- 用户要求：从pSpace找到四个顶温数据，并把2026-08-09定义为软熔带上升。
+- pSpace直读：08-09 20:00四点均温`109.330℃`，22:00为`124.728℃`、约`+15.399℃`，23:00为`125.640℃`；A～D四点同向上升，无解析错误。
+- 生产标签：已追加`id=1`、`reference_id=HCZ-28cf0aad-63af-4e64-a27d-679ca79dbfdd`；观察时刻08-09 22:00，证据窗口20:00至次日06:00，`movement=up`、`root_level=uncertain`、可信等级4。
+- 边界：这是高炉长确认的`expert_weak_label`，不是直接HCZ高度实测；标签盲于模型，使用事后证据上下文，禁止用于自动控制。
+- 证据：[顶温与标签报告](./HCZ上移事件平均顶温对比_20260811.md)、[生产写入交接](./handoffs/2026-08-11-hcz-aug9-upward-expert-label.md)。
+
+## Q-HCZ-RULE-SENSITIVITY-GASUTIL-PERCENT-20260811
+
+- 用户需求：在8093页面手动调整经验阈值并查看真实历史上移/下移诊断量变化；把0～1的煤气利用率乘100并加`%`显示。
+- 回答落点：已新增7/30/90天只读历史试算。输入值只用于本次计算，不保存生产阈值；下移仅显示符号对称候选。`GasUtil`在API入口乘100一次，当前值/基线用`%`，变化量和阈值用“个百分点”。
+- 生产结果：近90天把平均顶温阈值`15→10℃`，完整上移事件`0→0`、对称下移候选事件`0→0`；现场煤气利用率约`45.83%`，前五天约`46.38%`，变化约`-0.55个百分点`。
+- 证据：[需求追踪](./requirements_traceability.md#req-hcz-rule-sensitivity-20260811)、[API合同](./api_reference.md#get-apihcz-rule-sensitivity2026-08-11)、[生产交接](./handoffs/2026-08-11-hcz-rule-sensitivity-8093.md)。
+## Q-QA-SHARED-GUEST-AND-MCP-FALLBACK-20260813
+
+- 用户问题：希望局域网同地址访问者默认共享匿名智能助手窗口，问答和时间戳入本地数据库；并要求 MCP/数据库工具失败时仍由模型给出有限回答。
+- 结论：工具规划与最终回答不需要拆成两个用户会话；采用同一请求内的“工具回合→最终无工具模型回合”。工具错误和轨迹保留用于审计，最终模型只能使用已取得事实、页面炉况、keyword知识与通用知识。
+- 实现：[共享访客与降级后端](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)、[共享访客界面](../高炉前端数据/frontend_dashboard_v3.server.html)、[数据库唯一房间约束](../高炉前端数据/智能助手/backend/schema/postgresql_assistant.sql)。
+- 边界：未登录用户共享可见，不适合输入个人信息或敏感项目材料；登录模式仍按 `owner_subject` 私有隔离。
+
+## Q-8093-MCP-POINT-NAME-PLANNING-20260813
+
+- 用户问题：当前模型是否具备多轮工具规划；顶温/顶压 A-D 是否可查；并要求直接核对
+  pSpace 权威点名，纠正 `P_top_gas_A-D` 拼写。
+- 权威核查：通过 220.12 官方 pSpace SDK 只读查询 `10.22.181.243:8889` 的
+  `\冀南钢铁\SIO\GL02\LD`。pSpace 物理属性名为 `SIO_GL02_LD_T0067..T0070`，描述为
+  `2号炉炉顶_上升管煤气压力A..D`；pSpace 本身不存在 `P_top_A` 或 `P_top_gas_A` 这种属性名。
+- 项目决策：业务/MCP 对外标准名统一为 `P_top_A-D`；旧 `P_top_gas_A-D` 仅作输入兼容别名，
+  两者过渡期映射到相同四个 pSpace 长名。历史模型特征暂保留旧字段，通过边界适配接收新名，
+  避免破坏训练产物和历史序列。
+- 验证：模型“查目录→用标准 ID 查询”两轮规划通过；MCP 与口语解析聚焦回归 `40 passed`；
+  “顶温 A-D + 顶压 A-D”已生成八个新标准 ID 和一次 `query_gl02_sensors` 计划。
+- 证据：[MCP 多轮规划与顶温/顶压点位审计](handoffs/2026-08-13-mcp-point-name-planning-audit.md)。
+- 边界：本轮完成本机修复，没有部署或重启 220.12 的 8093；生产仍需走受控部署验收。
+
+## Q-8093-CROSS-MCP-COMPUTATION-20260813
+
+- 用户问题：当前模型是否真正测试过多轮 MCP，以及能否组合不同 MCP 服务的返回值计算后回答。
+- 真实验收：8093 共享访客会话只提交一次有效 SSE 问答；并发调用 `imes-readonly` 获取上一炉
+  `si_avg=0.3%`，调用 `gl02-data` 获取 `P_top=255.29724799262152`，模型计算
+  `255.29724799262152 / 0.3 = 850.9908266420717`，与独立复算完全一致。
+- 结论：系统已具备“跨 MCP 取证 → 汇总事实 → 模型运算解释”的组合能力；跨服务选路和工具参数由
+  确定性 `CrossSourcePlan` 约束，不能表述成模型完全自由编排。此前另有同服务“目录→点位查询”两轮
+  规划实测，两者共同覆盖多轮与跨服务两种能力。
+- 回归：多服务主机与并行规划合同 `22 passed`；本次未部署或重启生产服务。
+- 证据：[跨 MCP 组合计算验收](handoffs/2026-08-13-cross-mcp-computation-audit.md)。
+
+## Q-MCP-SEMANTIC-POINT-ROUTER-20260813
+
+- 用户问题：如何衡量工具/MCP 智能体能力；能否把唯一语义点位目录作为固定上下文，让模型先定位
+  点位，再调用对应 MCP。
+- 结论：方向可行，但应采用“单一权威目录 → 规则/词法/可选语义检索 → Top-K 候选 → 模型消歧 →
+  服务端校验 ToolPlan → MCP”的分层方案。公共 Prompt 固定的是 token 前缀，不是 attention 分数；
+  当前也没有应用可寻址的持久 KV cache。完整目录不应默认塞进每轮 Prompt。
+- 当前基础：已有统一业务对象目录、标准名/历史别名解析、目录 MCP 工具、多轮规划、并行调用和跨源
+  DAG；主要缺口是多来源尚未收敛为唯一版本源、没有独立目录语义索引和系统化金标评测。
+- 评测：同时覆盖点位 Top-1/Recall@K/拒识、工具与参数 exact-match、可执行成功、多轮 `pass^k`、
+  数值忠实、失败安全、延迟/token/KV、并发和权限审计。
+- 详细设计：[智能体工具能力评测与唯一语义点位路由](handoffs/2026-08-13-semantic-point-router-agent-evaluation.md)。
+- 边界：本轮是设计审计，没有修改或部署 8093/8094。
+
+## Q-MCP-SEMANTIC-POINT-CATALOG-IMPLEMENTATION-20260813
+
+- 用户要求：把十类指标做成“智能体工具能力评估”Skill；为全部点位设计口语别称，评估单点、多点组合计算，并把稳定公共 Prompt 方案保存到 PT。
+- 结果：权威清单实际为151个物理点位+2个派生变量，共153条；为全部变量生成无歧义短别称和每项4个完整问法。全量本地评测153/153覆盖、全部精确别称、153/153唯一问法、6/6严格组合路由，未知点位拒绝。
+- 修复发现：补齐本机缺失映射时49个点位不进fallback的问题；修复倒装炉温、物理静压与旧mean重复、喷煤小时口径及富氧阀前后多查。
+- Skill：[agent-tool-capability-evaluation](../.codex/skills/agent-tool-capability-evaluation/SKILL.md)；PT：[153点位稳定Prompt路由](../PT/智能体工具能力评估与153点位稳定Prompt路由方案.md)。
+- 边界：本轮未部署8093/8094；全量为路由/参数合同，生产MCP实取需按点位族受控抽样。
+
+## Q-MCP-SENSOR-REASONING-20260813
+
+- 用户问题：扩充 PT MCP 调用模板，并真实测试传感器证据推断、一小时均值/标准差/波动计算、
+  多工具和额外计算工具调用。
+- 类型：智能体工具使用能力评估，具体包含 sensor-grounded reasoning、tool-augmented deterministic
+  computation 与 multi-tool orchestration。
+- 真实结果：8093 三次明确编号 SSE 均完成，MCP 执行 3/3；T3 的 IMES 与 GL02 两个工具并行。
+  但最终答案合同 0/3：T1/T2 被简版确定性格式化器截断，T3 未把 correlation derived 事实注入模型。
+- 独立复算：T2 极差 `3.6837902222221715`，CV `0.36898366819258316%`；T3
+  `Pearson r=-0.13431331121165607`、对齐 60 点，只能描述为很弱负相关，不能表述为因果。
+- 证据：[PT 第16节](../PT/MCP可执行功能及口语调用模板.md#16-传感器推断统计计算与多工具编排测评模板2026-08-13)、
+  [实施记录](handoffs/2026-08-13-mcp-sensor-reasoning-evaluation.md)、
+  [机器摘要](../logs/mcp_sensor_reasoning_20260813/report.json)。
+- 边界：本轮没有部署或修改 220.12；pass^5、六并发、失败注入、对抗输入和 token/KV 成本未测。
+
+## Q-MCP-TEMPLATE-LINE-EVALUATION-20260813
+
+- 用户要求：编写程序逐行执行 PT MCP 调用模板，逐项比较预期与实际；把传感器证据落地推断、
+  确定性工具增强计算、多工具跨 MCP 编排、最终答案证据忠实度写入评估 Skill。
+- 实现：新增逐行评估器、稳定 `case_id`、占位/重复分类、单次 SSE、无自动重试、JSONL 检查点、
+  `--resume/--case-id/--limit` 和 JSON/Markdown 报告。Skill 项目副本已发布到全局镜像并验证哈希一致。
+- 全量实测：160 行全部分类；125 个唯一请求、11 个重复复用、24 个跳过。工具合同 103/125，
+  最终答案忠实度 28/123（另2条执行错误），综合 24/125。
+- 关键发现：主要问题是答案漏来源（89）、时间（48）、单位（13）和公式（5），不是所有工具都不可用；
+  两条静压力题返回 `TaskGroup` 子异常。四类固定题严格重评均未通过答案门禁。
+- 证据：[完整实施记录](handoffs/2026-08-14-mcp-template-line-evaluation.md)、
+  [PT模板第16.6节](../PT/MCP可执行功能及口语调用模板.md#166-全模板逐行实测2026-08-14)、
+  [逐行Markdown报告](../logs/mcp_template_line_eval/report_full_20260813.md)。
+- 边界：本轮未部署、未停启服务、未修改远端文件或数据库结构。
+
+## Q-MCP-WHAT-COUNTS-AS-SPOKEN-POINT-NAME-20260814
+
+- 用户纠正：`P_top`、`T_top_A` 等内部英文点位名不属于口语；现场人员会说“炉顶压力”“顶温 A 点”。
+- 固定口径：纯口语 Prompt 只能使用中文物理含义；A-H 可以作为独立方位字母，但不得嵌入英文/
+  下划线技术标识。该规则对完整 153 点位目录生效，不仅检查本题 expected object。
+- 实现：[执行前门禁](../tools/evaluate_mcp_extended_production.py)、
+  [评估 skill](../.codex/skills/agent-tool-capability-evaluation/SKILL.md)和
+  [口语题集](../PT/智能体工具能力口语化生产回归.v1.json)。
+- 验证：8 项聚焦测试通过；当前 42 个口语 Prompt 全部通过全目录技术 ID 扫描，违规样例在网络
+  请求前拒绝，模型请求数为 0。
+
+## Q-MCP-BODY-LAYER-AVERAGE-AMPLITUDE-STDDEV-20260814
+
+- 用户问题：怎样询问 7–13 层平均温度、每层平均、幅值变化、标准差变化，以及某层某点某时段平均。
+- 当前答案：已支持。生产 8093 会把逐层或单点统计口语路由到一次只读复合工具，由确定性代码返回
+  平均、总体标准差、极差、首末变化、斜率、CV、滚动波动和质量，不把原始序列交给模型心算。
+- 生产证据：7–13 层 A–H 与第 10 层 C 点各执行 1 次真实 SSE，均恰好 1 个工具调用、0 个模型请求；
+  后者 60/61 个有效/期望分钟，平均 `39.60467341351319 ℃`、STDDEV_POP
+  `0.020773105250294396`，质量为 Good 34/Held60 24/Held120 2。
+- 推荐口语：“查询最近一小时第 7 层到第 13 层各层 A 到 H 的平均温度、极差、首末变化和总体
+  标准差，并比较 15 分钟滚动标准差”；或“查询今天 8 点到 9 点第 10 层 C 点的平均温度、总体
+  标准差、最高、最低、极差和样本数”。内部变量名只在服务端映射中出现。
+- 实施：[专项交接](handoffs/2026-08-14-body-temperature-layer-statistics.md)。
+- 16:28 人工复核推翻了“所有自然问法均可用”的过早结论：省略“炉体/炉身”的层范围问法会漏路由，
+  第 12 层 A–H 会把层平均复制为方位值，大结果截断后会显示“模型未返回内容”。修复必须以用户
+  原始问法逐项真实验收，不能继续沿用带“炉体”的较窄部署 Prompt 代替。
+- 后续闭环：确认 A/B/C 评分整文件发布覆盖了此前代理路由；R4/R5 生产验收分别暴露扩展 MCP 未选中
+  和跨源 DAG 抢先展开 56 点，均已自动回滚。最终本机顺序固定为“中文层号选服务 → 单个复合工具
+  → 其余跨源 DAG”，`116 passed`；直接只读 MCP 7 层/3248 行耗时 `2520.9ms`。R6 已密封，等待
+  恢复 220.12 SSH 凭据会话后发布，当前生产不可表述为已修复。
+## Q-QA-MCP-EXECUTION-VISIBILITY-20260814
+
+- 用户问题：能否把执行命令、MCP 和 tools 调用过程显示在“思考过程中”，并让炉体多层问题按
+  中文别称、确定性解析、单次复合 MCP、数据库批量计算和模型解释完成？
+- 结论：可以显示可审计执行轨迹，但不能展示模型隐藏思维链。本机现按五类 SSE 事件实时展示
+  对象范围、工具、调用次数、点数、行数、来源、耗时、缓存和失败边界。
+- 实现：后端 [ollama_proxy_server.py](../高炉前端数据/智能助手/backend/ollama_proxy_server.py)
+  生成脱敏 `public_trace` 并确保一次矩阵统计；前端
+  [frontend_dashboard_v3.server.html](../高炉前端数据/frontend_dashboard_v3.server.html)
+  只消费该摘要，不展示原始参数和返回。
+- 安全：确定性统计为权威答案；模型解释最多一次，出现未核实新数字时拒绝采用。SQL、DSN、密码、
+  Cookie、Token、内部路径和隐藏推理均不进入界面。
+- 状态：本机已实现并通过聚焦与扩展回归，尚未部署 220.12。
+# Q-QA-MCP-MATRIX-HEATMAP-AND-RECOMMENDATIONS-20260814
+
+- 原始问题：如何把查询结果绘制成矩阵热度图，并把常用 MCP 调用模板、自动相关问题、固定问题和
+  自定义问题放入可滚动推荐列表？
+- 回答：输入“绘制最近一小时第7层到第13层A到H炉体温度矩阵热度图，每格显示当前温度和变化
+  趋势。”会直接调用复合矩阵工具；生成的同源 PNG 在答案内显示。推荐区可滚动，点击问题只会
+  填入输入框，不会自动发送；星标用于固定，自定义问题添加后默认固定。
+- 实现：[图表路由](../高炉前端数据/智能助手/backend/ollama_proxy_server.py#L4662-L4712)、
+  [图表显示](../高炉前端数据/frontend_dashboard_v3.server.html#L8881-L8882)、
+  [推荐问题](../高炉前端数据/frontend_dashboard_v3.server.html#L9223-L9252)。
+- 验证：[合同测试](../tests/test_qa_mcp_visual_recommendations.py#L23-L81) 与
+  `logs/qa_mcp_visual_recommendations_1366x768_final2/report.json`。
+
+## Q-QA-MESSAGE-COPY-20260814
+
+- 用户问题：允许发出去的问题和回复均可以复制。
+- 回答：已在本机实现。每条用户消息右上角显示“复制问题”，每条助手消息显示“复制回复”；成功后短暂
+  显示“已复制”。复制回复会保留可见正文，若包含 MCP 矩阵图则在正文末尾附上安全同源图表地址。
+- 不复制：消息时间、流式状态、按钮文字、隐藏上下文、脚本和样式；复制操作不会再次发送问题，也不会
+  调用模型或更改数据库。
+- 验证：聚焦合同 `14 passed`；浏览器报告
+  `logs/qa_message_copy_1366x768/report.json` 为 `1/1 passed`，两种按钮的实际剪贴板内容均通过，
+  `real_sent=0`。当前仅本机完成，尚未部署 220.12。
+
+## Q-QA-PRESERVE-OLD-RECOMMENDED-QUESTIONS-20260814
+
+- 用户问题：之前几个常用问题也要放进推荐区，不能因新增 MCP 模板而丢失；列表需要支持用户自行滚动。
+- 结论：已在本机改成来源明确的分区。原有炉况动态问题显示在“原有常用问题”，固定 MCP 问法显示在
+  “常用 MCP 模板”；两者都在同一个推荐区内，原有问题排在前面。已固定、本轮相关追问和自定义问题
+  仍然保留。
+- 交互：推荐列表具备独立纵向滚动条，支持鼠标滚轮、触控板/触屏以及聚焦后的键盘滚动；点击任何问题
+  仍只填入输入框，不会自动调用模型。
+- 验证：`15 passed`；浏览器报告
+  `logs/qa_local_recommendations_1366x768_final/report.json` 为 `1/1 passed`，旧问题分区、MCP 分区、
+  实际滚动与键盘可访问性均为 `true`，`real_sent=0`。当前尚未部署 220.12。
+
+## Q-FURNACE-RULE-FORMULA-EXPORT-20260814
+
+- 用户问题：把原炉况诊断8类和ABC33规则制作成Markdown并导出PDF，能够看到具体数学公式以及
+  公式中每项的含义。
+- 回答：已生成41规则公式手册。每条规则包含总分公式、各项权重、0～1变换、物理含义、来源变量和
+  ABC33建议复核顺序；另外说明两套体系的重合关系、发布边界与缺失实现证据。
+- 产物：[Markdown](./炉况诊断8类与ABC33规则数学公式手册_20260814.md)和
+  [PDF](./炉况诊断8类与ABC33规则数学公式手册_20260814.pdf)。
+- 边界：ABC33是当前代码的直接导出；原8类普通公式按现存YAML还原，硬门与最终主次Resolver没有
+  足够本地代码证据，手册明确标注未核实而没有猜测。
+- 验证：8+33章节完整，PDF 55页、约1.46MB，封面、B4和C11页面视觉检查通过；没有连接或修改220.12。

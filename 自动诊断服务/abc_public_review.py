@@ -13,8 +13,10 @@ from datetime import datetime, timedelta
 from statistics import mean, pstdev
 from typing import Any, Mapping, Sequence
 
+from abc_burden_rate import fetch_burden_rate_snapshot
 from abc_feature_builder import BODY_POINT_NAMES
 from abc_rule_catalog import RULE_BY_ID
+from abc_rule_engine import load_config as load_abc_config
 
 
 COOLING_NAMES = (
@@ -38,6 +40,9 @@ COMMON_LABELS = {
     "T_taphole_2": "2号铁口温度", "L": "料线", "L_south": "南探尺料线",
     "L_north": "北探尺料线", "GasUtil": "煤气利用率", "PCI_rate": "实际喷煤速率",
     "PCI_set": "喷煤设定", "O2_rate": "富氧率", "Q_O2": "富氧流量",
+    "TFT": "理论燃烧温度", "T_blast": "热风温度",
+    "Hopper_weight": "料罐重量", "Hopper_weight_set": "料罐重量设定",
+    "P_N2": "氮气压力", "Q_N2": "氮气流量",
 }
 UNITS = {
     "Q_soft_water": "m³/h", "Q_high_pressure_water": "m³/h", "Q_blast": "m³/min",
@@ -46,6 +51,8 @@ UNITS = {
     "DP_lower": "kPa", "P_blast": "kPa", "P_blast_cold": "kPa", "PI": "-",
     "GasUtil": "%", "PCI_rate": "t/h", "PCI_set": "t/h", "O2_rate": "%", "Q_O2": "m³/min",
     "L": "m", "L_south": "m", "L_north": "m",
+    "TFT": "°C", "T_blast": "°C", "Hopper_weight": "t", "Hopper_weight_set": "t",
+    "P_N2": "kPa", "Q_N2": "m³/min",
 }
 
 
@@ -179,6 +186,92 @@ def _metric(name: str, samples: Sequence[tuple[datetime, float]], baseline: Mapp
     return metric
 
 
+def _burden_rate_metric(snapshot: Mapping[str, Any], evaluation_ts: datetime) -> dict[str, Any]:
+    """Build an operator-safe cadence metric without exposing score transforms."""
+    values = snapshot.get("values") if isinstance(snapshot.get("values"), Mapping) else {}
+    current = _number(values.get("BurdenRate_current_30_large_per_hour"))
+    previous = _number(values.get("BurdenRate_previous_30_large_per_hour"))
+    yesterday = _number(values.get("BurdenRate_yesterday_large_per_hour"))
+    rolling_24h = _number(values.get("BurdenRate_rolling_24h_large_per_hour"))
+    rolling_2h = _number(values.get("BurdenRate_rolling_2h_large_per_hour"))
+    current_small = _number(values.get("BurdenRate_current_30_small_per_hour"))
+    counts = snapshot.get("interval_counts") if isinstance(snapshot.get("interval_counts"), Mapping) else {}
+    latest_event = snapshot.get("latest_event_ts")
+    if isinstance(latest_event, datetime):
+        latest_event = _align_ts(latest_event, evaluation_ts)
+    delta = current - previous if current is not None and previous is not None else None
+    missing: list[str] = []
+    if current is None or previous is None:
+        missing.append("南北探尺前后30分钟有效提尺周期不足")
+    if not snapshot.get("fresh"):
+        missing.append("南北探尺最新数据超过允许新鲜度")
+    semantic = (
+        f"探尺识别：前30分钟{_fmt(previous)}大批/h，后30分钟{_fmt(current)}大批/h（{_fmt(current_small)}小批/h）"
+        + (f"，后段{'加快' if delta > 0 else '变慢' if delta < 0 else '持平'}{abs(delta):.2f}大批/h" if delta is not None else "")
+        + f"；昨日平均{_fmt(yesterday)}大批/h，滚动24小时平均{_fmt(rolling_24h)}大批/h，连续2小时平均{_fmt(rolling_2h)}大批/h。"
+    )
+    return {
+        "variable_name": "BurdenRate_large_per_hour",
+        "label": "探尺识别料速（完整大批）",
+        "unit": "大批/h",
+        "current_value": current,
+        "timestamp": latest_event,
+        "data_age_seconds": (evaluation_ts-latest_event).total_seconds() if isinstance(latest_event, datetime) else None,
+        "changes": {"15": None, "30": delta, "60": None},
+        "window_means": {"30_previous": previous, "30_current": current, "120": rolling_2h, "1440": rolling_24h},
+        "volatility": {},
+        "baseline": {"baseline_day": evaluation_ts.date()-timedelta(days=1), "median": yesterday, "iqr": None, "p25": None, "p75": None, "coverage_ratio": None, "sample_count": None},
+        "relative_to_baseline_iqr": None,
+        "series_60m": [],
+        "data_state": "needs_data" if missing else "available",
+        "missing_reasons": missing,
+        "semantic_summary": semantic,
+        "event_counts": {
+            "current_30_small_intervals": counts.get("current_30_small_events"),
+            "current_30_ore": counts.get("current_30_ore_events"),
+            "current_30_coke": counts.get("current_30_coke_events"),
+        },
+        "review_priority": 1000.0,
+    }
+
+
+def _group_metrics(metrics: Sequence[Mapping[str, Any]]) -> tuple[list[Mapping[str, Any]], ...]:
+    """Partition operator review metrics into disjoint, priority-ordered groups.
+
+    A metric promoted into ``main_metrics`` must not be repeated in a later
+    body, cooling or supporting-parameter table. The variable key remains the
+    stable identity even when metric dictionaries are reconstructed.
+    """
+    ranked = sorted(
+        metrics,
+        key=lambda item: float(item.get("review_priority") or 0),
+        reverse=True,
+    )
+    main = list(ranked[:8])
+    main_names = {str(item.get("variable_name") or "") for item in main}
+    remaining = [
+        item
+        for item in metrics
+        if str(item.get("variable_name") or "") not in main_names
+    ]
+    body = [
+        item
+        for item in remaining
+        if str(item.get("variable_name") or "").startswith("T_body_L")
+    ]
+    cooling = [
+        item for item in remaining if item.get("variable_name") in COOLING_NAMES
+    ]
+    body_names = {str(item.get("variable_name") or "") for item in body}
+    cooling_names = {str(item.get("variable_name") or "") for item in cooling}
+    other = [
+        item
+        for item in remaining
+        if str(item.get("variable_name") or "") not in body_names | cooling_names
+    ]
+    return main, body, cooling, other
+
+
 def build_public_review(conn: Any, rule_id: str, evaluation_ts: datetime) -> dict[str, Any]:
     variables = variables_for_rule(rule_id)
     rows = conn.execute(
@@ -214,11 +307,16 @@ def build_public_review(conn: Any, rule_id: str, evaluation_ts: datetime) -> dic
         }
         baselines[str(item["variable_name"])] = item
     metrics = [_metric(name, history.get(name, []), baselines.get(name), evaluation_ts) for name in variables]
-    ranked = sorted(metrics, key=lambda item: float(item.get("review_priority") or 0), reverse=True)
-    main = ranked[:8]
-    body = [item for item in metrics if str(item["variable_name"]).startswith("T_body_L")]
-    cooling = [item for item in metrics if item["variable_name"] in COOLING_NAMES]
-    other = [item for item in metrics if item not in body and item not in cooling]
+    if rule_id in {"A2", "B4", "B5"}:
+        try:
+            config = load_abc_config()
+            metrics.append(_burden_rate_metric(
+                fetch_burden_rate_snapshot(conn, evaluation_ts, (config.get("feature_thresholds") or {}).get("burden_rate")),
+                evaluation_ts,
+            ))
+        except Exception:
+            metrics.append(_burden_rate_metric({}, evaluation_ts))
+    main, body, cooling, other = _group_metrics(metrics)
     return {
         "schema_version": "furnace_rule_sensor_review.v2",
         "main_metrics": main,

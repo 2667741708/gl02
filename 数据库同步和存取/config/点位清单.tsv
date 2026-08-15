@@ -4,13 +4,13 @@ TFT	理论燃烧温度	BT	SIO_GL02_BT_T0104	\冀南钢铁\SIO\GL02\BT\SIO_GL02_B
 GasUtil	煤气利用率	CC/GF2	SIO_CC_GF2_T0115	\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0115	2号炉干法除尘_煤气利用率	跨子树明确可用
 CO2_top	二氧化碳	CC/GF2	SIO_CC_GF2_T0113	\冀南钢铁\SIO\CC\GF2\SIO_CC_GF2_T0113	2号炉干法除尘_二氧化碳	2号炉pSpace实测确认；跨子树明确可用；单位%
 P_top	顶压平均	LD	SIO_GL02_LD_T0034	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0034	2号炉炉顶_顶压平均	明确可用
-P_top_gas_A	顶压A/上升管煤气压力A	LD	SIO_GL02_LD_T0067	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0067	2号炉炉顶_上升管煤气压力A	明确可用
-P_top_gas_B	顶压B/上升管煤气压力B	LD	SIO_GL02_LD_T0068	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0068	2号炉炉顶_上升管煤气压力B	明确可用
-P_top_gas_C	顶压C/上升管煤气压力C	LD	SIO_GL02_LD_T0069	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0069	2号炉炉顶_上升管煤气压力C	明确可用
-P_top_gas_D	顶压D/上升管煤气压力D	LD	SIO_GL02_LD_T0070	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0070	2号炉炉顶_上升管煤气压力D	明确可用
+P_top_A	顶压A/上升管煤气压力A	LD	SIO_GL02_LD_T0067	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0067	2号炉炉顶_上升管煤气压力A	pSpace 实测确认；旧应用名 P_top_gas_A 仅作兼容别名
+P_top_B	顶压B/上升管煤气压力B	LD	SIO_GL02_LD_T0068	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0068	2号炉炉顶_上升管煤气压力B	pSpace 实测确认；旧应用名 P_top_gas_B 仅作兼容别名
+P_top_C	顶压C/上升管煤气压力C	LD	SIO_GL02_LD_T0069	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0069	2号炉炉顶_上升管煤气压力C	pSpace 实测确认；旧应用名 P_top_gas_C 仅作兼容别名
+P_top_D	顶压D/上升管煤气压力D	LD	SIO_GL02_LD_T0070	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0070	2号炉炉顶_上升管煤气压力D	pSpace 实测确认；旧应用名 P_top_gas_D 仅作兼容别名
 L	雷达探尺/主料线	LD	SIO_GL02_LD_T0046	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0046	2号炉炉顶_高炉炉体料位雷达探尺	明确可用
-L_south	南探尺/南尺	LD	SIO_GL02_LD_T0075	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0075	2号炉炉顶_下限位24米	高置信候选；建议现场对表确认
-L_north	北探尺/北尺	LD	SIO_GL02_LD_T0076	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0076	2号炉炉顶_下极限位6米	高置信候选；建议现场对表确认
+L_south	南探尺/南尺	LD	SIO_GL02_LD_T0075	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0075	2号炉炉顶_下限位24米	业务映射实测确认；PLC DB8.DD16；pSpace注释不准确；周期波形与现场南尺一致；单位m
+L_north	北探尺/北尺	LD	SIO_GL02_LD_T0076	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0076	2号炉炉顶_下极限位6米	业务映射实测确认；PLC DB8.DD4；pSpace注释不准确；周期波形与现场北尺一致；单位m
 T_top_A	顶温A/上升管煤气温度A	LD	SIO_GL02_LD_T0040	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0040	2号炉炉顶_上升管煤气温度	明确可用
 T_top_B	顶温B/上升管煤气温度B	LD	SIO_GL02_LD_T0064	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0064	2号炉炉顶_上升管煤气温度	明确可用
 T_top_C	顶温C/上升管煤气温度C	LD	SIO_GL02_LD_T0072	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0072	2号炉炉顶_上升管煤气温度	明确可用
@@ -145,6 +145,18 @@ P_high_pressure_water	高压水压力	BT	SIO_GL02_BT_T0148	\冀南钢铁\SIO\GL0
 P_medium_pressure_water	中压水压力	BT	SIO_GL02_BT_T0147	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0147	2号炉本体_中压供水压力	2号炉SIO实测确认；单位MPa
 ExpansionTankLevel	膨胀罐液位	BT	SIO_GL02_BT_T0097	\冀南钢铁\SIO\GL02\BT\SIO_GL02_BT_T0097	2号炉本体_膨胀罐液位	2号炉SIO实测确认；单位m
 Hopper_weight	罐重	LD	SIO_GL02_LD_T0059	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0059	2号炉炉顶_称量罐实际重量称重	2号炉SIO实测确认；单位t
+Hopper_weight_set_01	1号布料重量设定	LD	SIO_GL02_LD_T0115	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0115	2号炉炉顶_1号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_02	2号布料重量设定	LD	SIO_GL02_LD_T0116	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0116	2号炉炉顶_2号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_03	3号布料重量设定	LD	SIO_GL02_LD_T0117	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0117	2号炉炉顶_3号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_04	4号布料重量设定	LD	SIO_GL02_LD_T0119	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0119	2号炉炉顶_4号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_05	5号布料重量设定	LD	SIO_GL02_LD_T0120	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0120	2号炉炉顶_5号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_06	6号布料重量设定	LD	SIO_GL02_LD_T0121	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0121	2号炉炉顶_6号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_07	7号布料重量设定	LD	SIO_GL02_LD_T0122	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0122	2号炉炉顶_7号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_08	8号布料重量设定	LD	SIO_GL02_LD_T0123	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0123	2号炉炉顶_8号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_09	9号布料重量设定	LD	SIO_GL02_LD_T0124	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0124	2号炉炉顶_9号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_10	10号布料重量设定	LD	SIO_GL02_LD_T0125	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0125	2号炉炉顶_10号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set_11	11号布料重量设定	LD	SIO_GL02_LD_T0126	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0126	2号炉炉顶_11号布料重量设定	2号炉pSpace实测确认；罐重设定派生分量；单位t
+Hopper_weight_set	罐重设定	LD	派生	SUM(Hopper_weight_set_01..Hopper_weight_set_11)	1至11号布料重量设定按同一分钟状态求和	派生计算；单位t；任一分量缺失时不得把缺项当0
 Q_N2	氮气流量	LD	SIO_GL02_LD_T0045	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0045	2号炉炉顶_进下阀箱和进气密箱氮气流量	2号炉SIO实测确认；单位Nm3/h
 P_N2	氮气压力	LD	SIO_GL02_LD_T0073	\冀南钢铁\SIO\GL02\LD\SIO_GL02_LD_T0073	2号炉炉顶_氮气总管调压阀后压力	2号炉SIO实测确认；单位kPa
 P_O2_valve_in	阀前富氧压力	CX	SIO_GL02_CX_T0289	\冀南钢铁\SIO\GL02\CX\SIO_GL02_CX_T0289	2号炉槽下_富氧压力	2号炉SIO实测确认；单位MPa

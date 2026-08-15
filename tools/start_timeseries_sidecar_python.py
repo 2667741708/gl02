@@ -14,6 +14,7 @@ def main() -> int:
     parser.add_argument("--chronos-url", default="http://127.0.0.1:8777")
     parser.add_argument("--default-model", choices=["last_value", "linear_drift", "ridge_delta", "chronos2"], default="last_value")
     parser.add_argument("--model-dir", default=str(root / "PT" / "时间序列预测评测" / "models"))
+    parser.add_argument("--leaderboard-file", default=str(root / "PT" / "时间序列预测评测" / "results" / "timeseries_model_leaderboard_current.json"))
     parser.add_argument("--log-file", default=str(root / "logs" / "timeseries_sidecar_8778.log"))
     args = parser.parse_args()
     command = [
@@ -24,6 +25,7 @@ def main() -> int:
         "--chronos-url", args.chronos_url,
         "--default-model", args.default_model,
         "--model-dir", args.model_dir,
+        "--leaderboard-file", args.leaderboard_file,
         "--log-file", args.log_file,
     ]
     return subprocess.call(command, cwd=str(root))
@@ -31,4 +33,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

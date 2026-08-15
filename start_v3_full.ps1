@@ -26,7 +26,6 @@ $Logs = Join-Path $Root "logs"
 New-Item -ItemType Directory -Force -Path $Logs | Out-Null
 
 Write-Host "[V3] Root: $Root"
-Write-Host "[V3] PostgreSQL credentials are read from GL02_PGUSER/GL02_PGPASSWORD."
 
 $PythonExe = Join-Path $Root ".venv\Scripts\python.exe"
 if (-not (Test-Path -LiteralPath $PythonExe)) {
@@ -34,21 +33,55 @@ if (-not (Test-Path -LiteralPath $PythonExe)) {
 }
 
 $UseExistingPgEnv = $env:BF_USE_EXISTING_PG_ENV -and $env:BF_USE_EXISTING_PG_ENV.ToString().ToLowerInvariant() -in @("1", "true", "yes")
+if (-not $env:GL02_LOCAL_PGHOST) { $env:GL02_LOCAL_PGHOST = "127.0.0.1" }
+if (-not $env:GL02_LOCAL_PGPORT) { $env:GL02_LOCAL_PGPORT = "18000" }
+if (-not $env:GL02_LOCAL_PGDATABASE) { $env:GL02_LOCAL_PGDATABASE = "bf_trend" }
+if (-not $env:GL02_LOCAL_PGUSER) { $env:GL02_LOCAL_PGUSER = "postgres" }
+
 if (-not $UseExistingPgEnv) {
-    # Local full startup must use the local Docker PostgreSQL writer. The user-level
-    # environment may point at the 220.12 read-only account, which cannot persist QA/RAG.
-    $env:GL02_PGHOST = "127.0.0.1"
-    $env:GL02_PGPORT = "15432"
-    $env:GL02_PGDATABASE = "bf_trend"
-    $env:GL02_PGUSER = "gl02_sync"
-    $env:GL02_PGPASSWORD = "gl02_local_sync"
+    # The user-level GL02_PG* environment may point at 220.12. Local full startup uses
+    # the native PostgreSQL instance unless the operator explicitly opts into the
+    # existing environment. Secrets remain environment-only and are never embedded here.
+    $env:GL02_PGHOST = $env:GL02_LOCAL_PGHOST
+    $env:GL02_PGPORT = $env:GL02_LOCAL_PGPORT
+    $env:GL02_PGDATABASE = $env:GL02_LOCAL_PGDATABASE
+    $env:GL02_PGUSER = $env:GL02_LOCAL_PGUSER
+    $env:GL02_PGPASSWORD = $env:GL02_LOCAL_PGPASSWORD
 } else {
-    if (-not $env:GL02_PGHOST) { $env:GL02_PGHOST = "127.0.0.1" }
-    if (-not $env:GL02_PGPORT) { $env:GL02_PGPORT = "15432" }
-    if (-not $env:GL02_PGDATABASE) { $env:GL02_PGDATABASE = "bf_trend" }
-    if (-not $env:GL02_PGUSER) { $env:GL02_PGUSER = "gl02_sync" }
-    if (-not $env:GL02_PGPASSWORD) { $env:GL02_PGPASSWORD = "gl02_local_sync" }
+    if (-not $env:GL02_PGHOST) { $env:GL02_PGHOST = $env:GL02_LOCAL_PGHOST }
+    if (-not $env:GL02_PGPORT) { $env:GL02_PGPORT = $env:GL02_LOCAL_PGPORT }
+    if (-not $env:GL02_PGDATABASE) { $env:GL02_PGDATABASE = $env:GL02_LOCAL_PGDATABASE }
+    if (-not $env:GL02_PGUSER) { $env:GL02_PGUSER = $env:GL02_LOCAL_PGUSER }
+    if (-not $env:GL02_PGPASSWORD) { $env:GL02_PGPASSWORD = $env:GL02_LOCAL_PGPASSWORD }
 }
+
+$PgMode = if ($UseExistingPgEnv) { "existing-environment" } else { "local-native" }
+$PrimaryPgCredentialsReady = [bool]$env:GL02_PGUSER -and [bool]$env:GL02_PGPASSWORD
+$LocalPgCredentialsReady = [bool]$env:GL02_LOCAL_PGUSER -and [bool]$env:GL02_LOCAL_PGPASSWORD
+Write-Host "[V3] PostgreSQL mode=$PgMode target=$($env:GL02_PGHOST):$($env:GL02_PGPORT)/$($env:GL02_PGDATABASE) user=$($env:GL02_PGUSER) password_set=$([bool]$env:GL02_PGPASSWORD)"
+Write-Host "[V3] Local sync target=$($env:GL02_LOCAL_PGHOST):$($env:GL02_LOCAL_PGPORT)/$($env:GL02_LOCAL_PGDATABASE) user=$($env:GL02_LOCAL_PGUSER) password_set=$([bool]$env:GL02_LOCAL_PGPASSWORD)"
+
+$PrimaryPgConsumersRequested = (-not $SkipDiagnosis) -or (-not $SkipAssistant) -or (-not $SkipRealtimeBridge)
+if ($PrimaryPgConsumersRequested -and -not $PrimaryPgCredentialsReady) {
+    if ($DryRun) {
+        Write-Warning "Local PostgreSQL credentials are incomplete; skipping diagnosis, assistant, and realtime bridge during dry-run. Set GL02_LOCAL_PGUSER/GL02_LOCAL_PGPASSWORD."
+        $SkipDiagnosis = $true
+        $SkipAssistant = $true
+        $SkipRealtimeBridge = $true
+    } else {
+        throw "Local PostgreSQL credentials are incomplete. Set GL02_LOCAL_PGUSER/GL02_LOCAL_PGPASSWORD, or explicitly set BF_USE_EXISTING_PG_ENV=1 with complete GL02_PG* values."
+    }
+}
+
+if (-not $SkipLocalSyncLoop -and -not $LocalPgCredentialsReady) {
+    if ($DryRun) {
+        Write-Warning "GL02_LOCAL_PGUSER/GL02_LOCAL_PGPASSWORD not set; skipping the local sync loop during dry-run."
+        $SkipLocalSyncLoop = $true
+    } else {
+        throw "GL02_LOCAL_PGUSER/GL02_LOCAL_PGPASSWORD not set. Refusing to start the sync loop without native PostgreSQL credentials."
+    }
+}
+
 if (-not $env:OLLAMA_BASE_URL) { $env:OLLAMA_BASE_URL = "http://10.30.220.12:11434" }
 if (-not $env:BF_LLM_MODEL) { $env:BF_LLM_MODEL = "chiqiong-blast-furnace:latest" }
 if (-not $env:BF_SKIP_ZERO_AUDIT) { $env:BF_SKIP_ZERO_AUDIT = "1" }

@@ -1,0 +1,4 @@
+interface:
+  display_name: "智能体工具能力评估"
+  short_description: "系统评估点位解析、工具调用、组合计算、并发与安全可靠性"
+  default_prompt: "使用 $agent-tool-capability-evaluation 评估当前智能体的工具和 MCP 调用能力。"

@@ -1,7 +1,7 @@
 {
   "schema_version": "abc_furnace_rules.v1",
   "requirement_id": "REQ-ABC33-FURNACE-RULES-20260807",
-  "config_version": "20260810.2-score-preview-alerts-off",
+  "config_version": "20260810.3-burden-rate-online-preview",
   "enabled": true,
   "release_control": {
     "mode": "score_preview",
@@ -26,6 +26,29 @@
       "default": 5,
       "furnace_body": 15,
       "state": "preset_not_site_approved"
+    },
+    "burden_rate": {
+      "source_dataset": "bf_sensor.one_minute_values:L_south,L_north,Hopper_weight",
+      "small_batch_event": "南北探尺从工作下降段回到提尺零位，二尺同期动作合并为一次小批",
+      "large_batch_event": "两个小批组成一个完整大批；料罐重量重者识别为矿批、轻者识别为焦批",
+      "reference_large_per_hour": 7.5,
+      "normal_delta_large_per_hour": 0.25,
+      "hard_delta_large_per_hour": 0.5,
+      "normal_delta_small_per_hour": 0.5,
+      "hard_delta_small_per_hour": 1.0,
+      "two_hour_warn_excess_large_per_hour": 0.5,
+      "two_hour_full_risk_excess_large_per_hour": 1.0,
+      "maximum_source_age_minutes": 5,
+      "minimum_window_coverage_ratio": 0.75,
+      "probe_lifted_max_value": 0.0,
+      "probe_working_min_value": 0.3,
+      "probe_minimum_excursion_depth": 0.5,
+      "probe_merge_tolerance_minutes": 2.0,
+      "ore_weight_threshold_t": 20.0,
+      "hopper_weight_lookback_minutes": 2.0,
+      "required_comparison_windows": ["previous_30_minutes", "current_30_minutes"],
+      "optional_reference_windows": ["previous_calendar_day", "rolling_24h", "rolling_2h"],
+      "state": "site_confirmed_probe_semantics_preview_thresholds"
     },
     "top_temperature_range": {
       "warn": 10.0,

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>GL02软熔带上移综合趋势规则</title>
+  <link rel="stylesheet" href="assets/hcz-upward-rule.css?v=20260811-sensitivity-r1">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">GL02 · 高炉长经验规则</p>
+      <h1>软熔带上移综合趋势判断</h1>
+      <p>当前24小时均值对比之前连续5天均值，并要求综合条件连续满足至少12小时。</p>
+    </div>
+    <div class="top-actions">
+      <span id="serviceState" class="status waiting">读取中</span>
+      <button id="refreshButton" type="button">刷新判断</button>
+      <a href="/">返回8093</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="loadingState" class="state-panel">正在读取220.12实测历史并计算规则...</section>
+    <section id="errorState" class="state-panel error" hidden>
+      <strong>规则暂不可用</strong>
+      <span id="errorText"></span>
+      <button id="retryButton" type="button">重新读取</button>
+    </section>
+
+    <div id="content" hidden>
+      <section id="decisionCard" class="decision-card">
+        <div>
+          <span class="decision-label">当前判断</span>
+          <h2 id="conclusion">--</h2>
+          <p id="decisionDetail">--</p>
+        </div>
+        <div id="decisionBadge" class="decision-badge">--</div>
+      </section>
+
+      <section class="contract-row" aria-label="规则边界">
+        <span>规则编号：HCZ-UP-FOREMAN-001</span>
+        <span>证据类型：高炉长经验规则指示</span>
+        <span>不是软熔带直接测量</span>
+        <span>禁止自动控制</span>
+      </section>
+
+      <section class="panel sensitivity-panel" data-feature="REQ-HCZ-RULE-SENSITIVITY-20260811">
+        <div class="panel-head">
+          <div>
+            <h2>经验阈值历史试算</h2>
+            <p>手动调整阈值，比较默认规则与试算规则在真实历史中的上移、对称下移命中量。</p>
+          </div>
+          <span class="trial-badge">只读试算 · 不保存生产阈值</span>
+        </div>
+        <form id="sensitivityForm" class="threshold-form">
+          <label>平均顶温上升
+            <span><input id="trialTopTemperature" name="top_temperature_delta_c" type="number" min="0" max="40" step="0.5" value="15"> ℃</span>
+          </label>
+          <label>全压差上升
+            <span><input id="trialPressureDrop" name="total_pressure_drop_kpa" type="number" min="0" max="20" step="0.1" value="5"> kPa</span>
+          </label>
+          <label>透气性指数下降
+            <span><input id="trialPermeability" name="permeability_drop" type="number" min="0" max="5" step="0.1" value="0.5"></span>
+          </label>
+          <label>煤气利用率下降
+            <span><input id="trialGasUtilisation" name="gas_utilisation_drop_pp" type="number" min="0" max="10" step="0.1" value="1"> 个百分点</span>
+          </label>
+          <label>冷风风压上升
+            <span><input id="trialBlastPressure" name="cold_blast_pressure_rise_kpa" type="number" min="0" max="20" step="0.1" value="5"> kPa</span>
+          </label>
+          <label>炉壁体温度变化
+            <span><input id="trialBodyTemperature" name="body_temperature_delta_c" type="number" min="0" max="40" step="0.5" value="10"> ℃</span>
+          </label>
+          <label>同向变化最少层数
+            <span><input id="trialMinLayers" name="min_directional_layers" type="number" min="1" max="7" step="1" value="2"> 层</span>
+          </label>
+          <label>连续满足时间
+            <span><input id="trialConsecutiveHours" name="required_consecutive_hours" type="number" min="1" max="24" step="1" value="12"> 小时</span>
+          </label>
+          <label>历史回放范围
+            <span><select id="trialHistoryDays" name="days"><option value="7">近7天</option><option value="30">近30天</option><option value="90" selected>近90天</option></select></span>
+          </label>
+          <div class="trial-actions">
+            <button id="runSensitivityButton" type="submit">运行历史试算</button>
+            <button id="resetSensitivityButton" type="button" class="secondary">恢复生产默认值</button>
+          </div>
+        </form>
+        <div id="sensitivityState" class="trial-state">修改阈值后点击“运行历史试算”。例如把平均顶温从15℃改为10℃，即可查看命中量是否变化。</div>
+        <div id="sensitivityResult" hidden>
+          <p id="sensitivitySummary" class="trial-summary">--</p>
+          <div class="comparison-grid">
+            <article class="comparison-card"><span>默认上移</span><strong id="baselineUpEpisodes">--</strong><small id="baselineUpHours">--</small></article>
+            <article class="comparison-card adjusted"><span>试算上移</span><strong id="scenarioUpEpisodes">--</strong><small id="scenarioUpHours">--</small></article>
+            <article class="comparison-card"><span>默认对称下移</span><strong id="baselineDownEpisodes">--</strong><small id="baselineDownHours">--</small></article>
+            <article class="comparison-card adjusted"><span>试算对称下移</span><strong id="scenarioDownEpisodes">--</strong><small id="scenarioDownHours">--</small></article>
+          </div>
+          <div class="table-wrap change-table-wrap">
+            <table class="change-table">
+              <thead><tr><th>方向</th><th>新增命中小时</th><th>减少命中小时</th><th>新增时刻样例</th></tr></thead>
+              <tbody id="sensitivityChangeBody"></tbody>
+            </table>
+          </div>
+          <p id="sensitivitySource" class="trial-source">--</p>
+        </div>
+      </section>
+
+      <div class="summary-grid">
+        <section class="panel">
+          <div class="panel-head"><h2>三个判定门</h2><span id="evaluationTime">--</span></div>
+          <div id="gateGrid" class="gate-grid"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>持续时间</h2><span>要求连续≥12小时</span></div>
+          <div class="duration-body">
+            <strong id="durationValue">--</strong>
+            <div class="progress"><i id="durationProgress"></i></div>
+            <p id="durationText">--</p>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>核心综合趋势</h2><p>所有指标必须同时达到阈值。</p></div>
+          <span id="windowText">--</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>指标</th><th>当前24小时均值</th><th>前5天均值</th><th>变化</th><th>经验阈值</th><th>结果</th></tr></thead>
+            <tbody id="metricBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>7～13层炉壁体温度</h2><p>至少2层上升≥10℃；3层且存在≥20℃时记为强证据。</p></div>
+          <span id="layerSummary">--</span>
+        </div>
+        <div class="layer-grid" id="layerGrid"></div>
+      </section>
+
+      <section class="panel formula-panel">
+        <div class="panel-head"><h2>高炉长经验公式</h2><span>严格AND组合</span></div>
+        <ol>
+          <li>平均顶温上升≥15℃；</li>
+          <li>全压差上升≥5kPa，透气性指数下降≥0.5；</li>
+          <li>煤气利用率下降≥1个百分点，冷风风压上升≥5kPa；</li>
+          <li>7～13层炉壁体温度至少2层上升≥10℃；</li>
+          <li>上述24小时对前5天的综合趋势全部成立，并连续满足至少12小时，才输出“软熔带上移规则已触发”。</li>
+        </ol>
+      </section>
+
+      <footer>
+        <span id="sourceText">--</span>
+        <span>页面每5分钟自动刷新</span>
+      </footer>
+    </div>
+  </main>
+  <script src="assets/hcz-upward-rule.js?v=20260811-sensitivity-r1" defer></script>
+</body>
+</html>

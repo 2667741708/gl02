@@ -78,6 +78,7 @@ class FakeStore:
                 "absolute_error": None,
                 "hit_abs_le_005": None,
                 "history_status": "actual_only",
+                "feature_snapshot": {"history_mean__Si_lag_1": 0.27},
             }
         ]
 
@@ -179,6 +180,20 @@ class SiV20ShadowWorkbenchTests(unittest.TestCase):
         self.assertEqual(result["metrics"]["actual_count"], 1)
         self.assertEqual(result["metrics"]["prediction_count"], 0)
         self.assertEqual(result["metrics"]["evaluated_count"], 0)
+
+    def test_compact_history_omits_feature_snapshot_but_keeps_metrics(self):
+        service = si_v20_shadow.SiV20ShadowService(store=FakeStore())
+        result = service.history(
+            date_from=None,
+            date_to=None,
+            meltno=None,
+            limit=100,
+            latest_per_heat=True,
+            compact=True,
+        )
+        self.assertTrue(result["compact"])
+        self.assertNotIn("feature_snapshot", result["items"][0])
+        self.assertEqual(result["metrics"]["actual_count"], 1)
         self.assertEqual(result["items"][0]["actual_si_mean"], 0.28)
 
     def test_readiness_and_prediction_detail_contracts_are_available(self):
@@ -347,6 +362,25 @@ class SiV20ShadowWorkbenchTests(unittest.TestCase):
         self.assertIn("downloadActualBtn", page)
         self.assertIn("meltWithinRange", asset)
         self.assertIn("\\ufeff", asset)
+
+    def test_overview_embeds_read_only_24_hour_si_curve_on_a_real_time_axis(self):
+        page = (ROOT / "高炉前端数据" / "frontend_dashboard_v3.server.html").read_text(encoding="utf-8")
+        self.assertIn("REQ-8093-OVERVIEW-SI24H-20260811", page)
+        self.assertIn("/api/si-v20/hourly-table?limit=24", page)
+        self.assertIn("<OverviewSiHourly24hV15 />", page)
+        self.assertIn("xAxis: { type: 'time'", page)
+        self.assertIn("timeValue(item.matched_actual_open_ts)", page)
+        self.assertIn("actualByHeat", page)
+        self.assertIn("type: 'scatter'", page)
+        self.assertIn("param.data?.meltno", page)
+        self.assertIn("`${Number(short)}炉`", page)
+        self.assertIn("interval: 3600000", page)
+        self.assertIn("hideOverlap: false", page)
+        self.assertIn("window.setInterval(load, 60000)", page)
+        self.assertIn("/si_v20_workbench.html", page)
+        component = page.split("function OverviewSiHourly24hV15()", 1)[1].split("OverviewRight = function", 1)[0]
+        self.assertNotIn("method: 'POST'", component)
+        self.assertNotIn("|| 0", component)
 
     def test_server_and_frontend_contracts_are_mounted_for_both_ports(self):
         server = (BACKEND / "ollama_proxy_server.py").read_text(encoding="utf-8")

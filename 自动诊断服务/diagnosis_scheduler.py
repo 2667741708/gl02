@@ -14,6 +14,7 @@ import pandas as pd
 
 from baseline_maintainer import build_day
 from baseline_service import build_baseline_meta, write_runtime_baseline
+from abc_burden_rate import fetch_burden_rate_snapshot
 from abc_feature_builder import build_feature_snapshot
 from abc_rule_engine import evaluate as evaluate_abc, load_config as load_abc_config
 from service_config import PROJECT_ROOT, load_config, project_path
@@ -291,6 +292,12 @@ class AutoDiagnosisScheduler:
         current = self.store.fetch_wide_frame(window_start, window_end, diagnosis_variables)
         abc_frame = self.store.fetch_wide_frame(ts - timedelta(minutes=89), ts, None)
         abc_current_values, abc_history_values = build_abc_runtime_inputs(abc_frame, ts)
+        try:
+            with self.store.connection_scope() as burden_conn:
+                burden_snapshot = fetch_burden_rate_snapshot(burden_conn, ts, abc_thresholds.get("burden_rate"))
+            abc_current_values.update(burden_snapshot.get("values") or {})
+        except Exception as exc:
+            print(f"ABC burden-rate source unavailable: {type(exc).__name__}", file=sys.stderr)
         latest_ts = self.store.latest_data_ts()
         lag = int((datetime.now().replace(tzinfo=None) - latest_ts).total_seconds()) if latest_ts else None
         coverage = self.store.data_coverage(current, window_start, window_end, self.required_variables)

@@ -1,0 +1,173 @@
+param(
+    [string]$RemoteRoot = 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW',
+    [string]$RequirementId = '__REQUIREMENT_ID__',
+    [Parameter(Mandatory)]
+    [string]$PreparedManifest,
+    [Parameter(Mandatory)]
+    [string]$RemoteStateJson
+)
+
+$ErrorActionPreference = 'Stop'
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'This deployment requires PowerShell 7 Core or later.'
+}
+$Utf8NoBom = [Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $Utf8NoBom
+[Console]::OutputEncoding = $Utf8NoBom
+$OutputEncoding = $Utf8NoBom
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
+
+$Root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
+$RemoteSession = Join-Path $Root 'tools\remote_22012_session.py'
+$RemoteDeploy = Join-Path $Root 'tools\remote_guarded_deploy___FEATURE___8093.ps1'
+$MemoryScript = 'C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\scripts\deployment_memory.py'
+$ReleaseManifestScript = 'C:\Users\hmw20\.codex\skills\deploy-8093-guarded-update\scripts\release_manifest.py'
+$PythonLibs = Join-Path $Root '.tmp_pylibs'
+$Stage = 'C:\Users\Administrator\AppData\Local\Temp\__FEATURE___YYYYMMDD'
+$DeltaPlanPath = Join-Path $Root ".tmp\$RequirementId-delta-plan.json"
+$RemoteDeltaPlan = Join-Path $Stage 'delta-plan.json'
+
+foreach ($Path in @($RemoteSession, $RemoteDeploy, $MemoryScript, $ReleaseManifestScript, $PreparedManifest, $RemoteStateJson)) {
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        throw "Required local file missing: $Path"
+    }
+}
+if (($RemoteDeploy + $RequirementId + $Stage).Contains('__')) {
+    throw 'Deployment template still contains unresolved placeholders.'
+}
+
+$Python = (Get-Command -Name python -ErrorAction Stop).Source
+$TotalTimer = [Diagnostics.Stopwatch]::StartNew()
+$Phase = 'preflight'
+$PhaseTimings = [ordered]@{}
+
+function Write-DeploymentMemory {
+    param(
+        [string]$Status,
+        [string]$CurrentPhase,
+        [long]$DurationMs,
+        [string]$ErrorType = '',
+        [string]$ErrorMessage = ''
+    )
+    try {
+        & $Python $MemoryScript record --status $Status --phase $CurrentPhase --duration-ms $DurationMs --requirement-id $RequirementId --connection-mode reused --error-type $ErrorType --error-message $ErrorMessage | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning 'Deployment telemetry was not recorded.'
+        }
+    } catch {
+        Write-Warning "Deployment telemetry failed without blocking deployment: $($_.Exception.Message)"
+    }
+}
+
+function Start-Phase {
+    param([string]$Name)
+    $script:Phase = $Name
+    return [Diagnostics.Stopwatch]::StartNew()
+}
+
+function Complete-Phase {
+    param([string]$Name, [Diagnostics.Stopwatch]$Timer)
+    $Timer.Stop()
+    $script:PhaseTimings[$Name] = $Timer.ElapsedMilliseconds
+}
+
+$PreviousPythonPath = $env:PYTHONPATH
+if (Test-Path -LiteralPath $PythonLibs -PathType Container) {
+    $env:PYTHONPATH = $PythonLibs
+}
+$EnsureArguments = @(
+    $RemoteSession,
+    'ensure',
+    '--allow-agents-password',
+    '--workdir', $RemoteRoot
+)
+$UploadArguments = @(
+    $RemoteSession,
+    'run',
+    '--',
+    '--no-profile',
+    '--timeout', '60',
+    '--workdir', $RemoteRoot,
+    '--upload-only'
+)
+try {
+    & $Python $MemoryScript summary --window 50 | Write-Verbose
+    $Timer = Start-Phase -Name 'prepared_manifest_verify'
+    & $Python $ReleaseManifestScript verify --manifest $PreparedManifest | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Prepared release verification failed; return to Phase A.'
+    }
+    & $Python $ReleaseManifestScript plan-delta --manifest $PreparedManifest --remote-state $RemoteStateJson --output $DeltaPlanPath | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Delta planning failed; production was not changed.'
+    }
+    $Plan = Get-Content -LiteralPath $DeltaPlanPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($Plan.requirement_id -ne $RequirementId) {
+        throw 'Delta plan requirement does not match the deployment wrapper.'
+    }
+    $Changes = @($Plan.changes)
+    Complete-Phase -Name 'prepared_manifest_verify' -Timer $Timer
+    if ($Changes.Count -eq 0) {
+        $TotalTimer.Stop()
+        Write-DeploymentMemory -Status success -CurrentPhase verified_noop -DurationMs $TotalTimer.ElapsedMilliseconds
+        [pscustomobject]@{
+            requirement_id = $RequirementId
+            deployment_state = 'verified_noop'
+            production_changed = $false
+            total_duration_ms = $TotalTimer.ElapsedMilliseconds
+            phase_duration_ms = $PhaseTimings
+        } | ConvertTo-Json -Depth 4
+        return
+    }
+    $Uploads = @("$DeltaPlanPath=$RemoteDeltaPlan")
+    foreach ($Change in $Changes) {
+        if (-not (Test-Path -LiteralPath $Change.local_path -PathType Leaf)) {
+            throw "Delta artifact missing: $($Change.local_path)"
+        }
+        $Uploads += "$($Change.local_path)=$($Change.stage)"
+    }
+    $Timer = Start-Phase -Name 'session_ensure'
+    & $Python @EnsureArguments
+    Complete-Phase -Name 'session_ensure' -Timer $Timer
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Persistent 220.12 SSH session could not be ensured.'
+    }
+    foreach ($Upload in $Uploads) {
+        $UploadArguments += @('--upload', $Upload)
+    }
+    $Timer = Start-Phase -Name 'staging_upload'
+    & $Python @UploadArguments
+    Complete-Phase -Name 'staging_upload' -Timer $Timer
+    if ($LASTEXITCODE -ne 0) {
+        throw '8093 staging failed; production was not changed.'
+    }
+    $Timer = Start-Phase -Name 'guarded_deployment'
+    & $Python $RemoteSession run -- --no-profile --timeout 240 --workdir $RemoteRoot --script $RemoteDeploy
+    Complete-Phase -Name 'guarded_deployment' -Timer $Timer
+    if ($LASTEXITCODE -ne 0) {
+        throw '8093 guarded deployment failed; inspect structured rollback evidence.'
+    }
+    $Timer = Start-Phase -Name 'session_postcheck'
+    & $Python $RemoteSession status
+    Complete-Phase -Name 'session_postcheck' -Timer $Timer
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Deployment completed but persistent SSH session health could not be proven.'
+    }
+    $TotalTimer.Stop()
+    Write-DeploymentMemory -Status success -CurrentPhase total -DurationMs $TotalTimer.ElapsedMilliseconds
+    [pscustomobject]@{
+        requirement_id = $RequirementId
+        deployment_state = 'deployed'
+        notify_immediately = $true
+        artifact_count_delta = $Changes.Count
+        connection_mode = 'reused'
+        total_duration_ms = $TotalTimer.ElapsedMilliseconds
+        phase_duration_ms = $PhaseTimings
+    } | ConvertTo-Json -Depth 4
+} catch {
+    $TotalTimer.Stop()
+    Write-DeploymentMemory -Status failure -CurrentPhase $Phase -DurationMs $TotalTimer.ElapsedMilliseconds -ErrorType $_.Exception.GetType().Name -ErrorMessage $_.Exception.Message
+    throw
+} finally {
+    $env:PYTHONPATH = $PreviousPythonPath
+}

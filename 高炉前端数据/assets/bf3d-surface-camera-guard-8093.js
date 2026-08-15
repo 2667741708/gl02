@@ -182,7 +182,15 @@ function mount(viewer) {
   host.addEventListener("wheel", onWheel, { capture: true, passive: false });
   host.addEventListener("click", onHostClickCapture, true);
   viewer.controls.addEventListener?.("change", clampOutsideModel);
-  const guardTimer = window.setInterval(clampOutsideModel, 100);
+  const scheduler = window.__BF_SHARED_SCHEDULER__;
+  const stopGuard = scheduler?.subscribe
+    ? scheduler.subscribe("bf3d-surface-camera-guard", 100, clampOutsideModel)
+    : (() => {
+        const timer = window.setInterval(() => {
+          if (!document.hidden) clampOutsideModel();
+        }, 100);
+        return () => window.clearInterval(timer);
+      })();
 
   viewer[VIEWER_PROPERTY] = {
     schema: SCHEMA,
@@ -219,7 +227,7 @@ function mount(viewer) {
   fitOverview("mount");
 
   disposeMounted = () => {
-    window.clearInterval(guardTimer);
+    stopGuard();
     host.removeEventListener("wheel", onWheel, true);
     host.removeEventListener("click", onHostClickCapture, true);
     viewer.controls.removeEventListener?.("change", clampOutsideModel);
@@ -229,18 +237,27 @@ function mount(viewer) {
   return true;
 }
 
-const mountTimer = window.setInterval(() => {
+const pollMount = () => {
   const viewer = window.__BF_CAD_FURNACE_VIEWER;
   if (viewer === mountedViewer) return;
   if (!viewer?.__BF3D_PHYSICAL_POINT_FILTER_8093__) return;
   disposeMounted();
   if (mount(viewer)) mountedViewer = viewer;
-}, 120);
+};
+const scheduler = window.__BF_SHARED_SCHEDULER__;
+const stopMountPolling = scheduler?.subscribe
+  ? scheduler.subscribe("bf3d-surface-camera-mount", 120, pollMount)
+  : (() => {
+      const timer = window.setInterval(() => {
+        if (!document.hidden) pollMount();
+      }, 120);
+      return () => window.clearInterval(timer);
+    })();
 
 window.addEventListener(
   "beforeunload",
   () => {
-    window.clearInterval(mountTimer);
+    stopMountPolling();
     disposeMounted();
   },
   { once: true },

@@ -614,3 +614,136 @@ CO、CO2、H2最近一小时趋势图
 - 含“画/曲线/走势图”时调用历史绘图工具并返回 `/data/mcp_charts/...` PNG 地址。
 - 2026-07-26 精确验收：`最近半小时炉顶压力如何？` 在 8093、8094 均成功
   调用 `P_top` 的 30 分钟 `statistics` 查询并返回实际历史趋势。
+
+## 16. 传感器推断、统计计算与多工具编排测评模板（2026-08-13）
+
+> 追踪编号：`Q-MCP-SENSOR-REASONING-20260813`
+>
+> 适用：评估“语义解析 → 传感器读取 → 确定性计算 → 多 MCP 编排 → 模型证据回答”的完整链路。
+>
+> 禁止口径：只看到工具调用成功就宣称最终回答通过；必须把工具层和答案层分别评分。
+
+### 16.1 这类测评叫什么
+
+用户提出的三种测法属于**智能体工具使用能力评估（agentic tool-use evaluation）**，其中分别是：
+
+1. **传感器证据落地推断**（sensor-grounded reasoning）：模型必须使用实时工具证据，并说明证据能支持什么、不能支持什么。
+2. **确定性工具增强计算**（tool-augmented deterministic computation）：统计值由程序/数据库计算，模型负责解释；关键结果必须独立复算。
+3. **多工具组合编排**（multi-tool orchestration）：覆盖同服务批量工具、跨 MCP 并行 DAG、依赖顺序、进一步的相关性/特征计算及最终证据综合。
+
+它同时落入“智能体工具能力评估”十类指标中的语义对象解析、工具选择、参数构造、可执行性、
+多轮/组合、答案落地、失败安全、性能成本、并发稳定和安全审计。单次现场验收未覆盖的维度必须
+写 `not_tested`，不得按满分处理。
+
+### 16.2 固定三题
+
+T1 — 调用传感器并让模型推断：
+
+```text
+[MCP评估T1] 请调用工具读取顶压和全炉压差两个传感器（不是凭知识回答），列出工具返回的数据时间和数值，然后由模型判断这些证据是否足以推测压力状态；若不足，明确还需要哪种时间序列，禁止编造。
+```
+
+T2 — 时间窗统计和独立复算：
+
+```text
+[MCP评估T2] 请调用传感器统计工具查询顶压 P_top 最近1小时数据，返回起止时间、样本数、均值、总体标准差、极差、首末值、变化量和斜率；再计算变异系数 CV=标准差÷均值×100%，不要省略公式。
+```
+
+T3 — 跨 MCP、多工具并行和额外计算工具：
+
+```text
+[MCP评估T3] 请先查询上一炉铁水Si平均值，再调用相关性计算工具分析最近1小时顶压 P_top 与全炉压差 DP_total 的 Pearson 相关系数和对齐样本数；最后让模型结合两个MCP工具的结果说明相关性强弱。必须列出工具来源、原始值和计算证据，禁止把相关性说成因果。
+```
+
+### 16.3 每题验收合同
+
+| 检查层 | T1 | T2 | T3 |
+| --- | --- | --- | --- |
+| 语义/参数 | `P_top + DP_total`，明确时间窗 | `P_top`、最近 1 小时、`agg=all` | IMES 上一炉 Si + GL02 `P_top/DP_total` 最近 1 小时 |
+| 工具 | `query_gl02_sensors` | `query_gl02_sensors` | `imes__get_current_previous_heat_si_summary` + `plot_gl02_analysis` |
+| 工具结果 | 两点均有值/样本/时间/来源 | count/avg/stddev/min/max/first/last/delta/slope 齐全 | Si、Pearson r、aligned_count 齐全 |
+| 独立复算 | 对趋势结论检查时间窗而非单点猜测 | `range=max-min`；`CV=stddev/avg×100%` | 按 r 的绝对值描述强弱，不宣称因果 |
+| 最终答案 | 引用数据时间并给出证据边界 | 列公式、输入和结果 | 列两个来源、r、样本数、相关强弱及非因果提示 |
+
+### 16.4 固定执行入口
+
+查看题目但不发送请求：
+
+```powershell
+python -X utf8 tools\evaluate_8093_mcp_sensor_reasoning.py --dry-run
+```
+
+执行单题（每题恰好一次 SSE，不自动重试）：
+
+```powershell
+python -X utf8 tools\evaluate_8093_mcp_sensor_reasoning.py --case T1 --output logs\mcp_sensor_reasoning_t1.json
+python -X utf8 tools\evaluate_8093_mcp_sensor_reasoning.py --case T2 --output logs\mcp_sensor_reasoning_t2.json
+python -X utf8 tools\evaluate_8093_mcp_sensor_reasoning.py --case T3 --output logs\mcp_sensor_reasoning_t3.json
+```
+
+全套会发送三次模型请求，只能在明确授权的验收窗口运行：
+
+```powershell
+python -X utf8 tools\evaluate_8093_mcp_sensor_reasoning.py --case all --output logs\mcp_sensor_reasoning.json
+```
+
+退出码 `0` 表示工具合同与最终答案合同全部通过；退出码 `2` 表示请求已执行但至少一个答案合同失败。
+网络或 SSE 失败只记录该次结果，脚本不得自动重发。
+
+### 16.5 2026-08-13 8093 实测结论
+
+- 三次 SSE 均完成，MCP 执行 `3/3` 成功。
+- T1/T2 均命中 `query_gl02_sensors`；T2 的 MCP 返回了 59 个样本的完整统计，独立复算
+  `range=3.6837902222221715`、`CV=0.36898366819258316%`。
+- T3 同时调用 `imes-readonly` 和 `gl02-data`；两个 `tool_start` 都在两个 `tool_result` 前出现，
+  证明同一 DAG 层并行。相关性工具返回 `r=-0.13431331121165607`、对齐样本 `60`，属于很弱负相关，
+  不能解释为因果。
+- 最终答案合同为 `0/3`：T1/T2 被确定性简版格式化器过早截断；T3 的跨源事实抽取未把
+  `derived.correlation` 注入分析上下文，导致模型错误地说工具没有返回 r 和样本数。
+- 因此当前状态应写成：**传感器读取、统计计算和多工具并行可用；复杂最终答案拼装仍需修复**。
+  机器证据见 `logs/mcp_sensor_reasoning_20260813/report.json`，实施记录见
+  `docs/handoffs/2026-08-13-mcp-sensor-reasoning-evaluation.md`。
+
+### 16.6 全模板逐行实测（2026-08-14）
+
+全量入口：
+
+```powershell
+python -X utf8 tools\evaluate_mcp_template_lines.py --list-only
+python -X utf8 tools\evaluate_mcp_template_lines.py --execute --checkpoint logs\mcp_template_line_eval\checkpoint.jsonl --output logs\mcp_template_line_eval\report.json --markdown logs\mcp_template_line_eval\report.md
+python -X utf8 tools\evaluate_mcp_template_lines.py --execute --resume --checkpoint logs\mcp_template_line_eval\checkpoint.jsonl --output logs\mcp_template_line_eval\report.json --markdown logs\mcp_template_line_eval\report.md
+```
+
+固定行为：
+
+- 代码块内每一行保留源行号和稳定 `case_id`；占位符、助手示例和裸 ID 标记 `skipped`。
+- 相同问题只执行首次出现，重复行标记 `duplicate_reused`，不得再次调用模型。
+- 唯一问题严格串行，每行最多一次 SSE；错误只落盘，不自动重发。
+- 每行同时比较预期对象/能力/工具族与实际工具、参数、事件、答案和证据字段。
+- `--case-id` 可只执行指定行；`--limit` 限制本轮唯一请求数；`--resume` 从 JSONL 检查点续跑。
+
+2026-08-14 对当前模板完整清点 160 行：125 个唯一可执行问题、11 个重复问题、24 个跳过项。
+125 个唯一问题各执行一次，最终严格结果为：
+
+| 合同 | 通过 | 比例 |
+| --- | ---: | ---: |
+| 工具合同 | 103/125 | 82.4% |
+| 最终答案证据忠实度 | 28/123 | 22.8%（另 2 条执行错误） |
+| 工具与答案综合 | 24/125 | 19.2% |
+
+四类核心能力：
+
+| 核心能力 | 通过/适用 | 结论 |
+| --- | ---: | --- |
+| 传感器证据落地推断 | 14/58 | 主要缺来源、时间和推断边界 |
+| 确定性工具增强计算 | 2/22 | 工具常返回统计，但答案漏标准差、公式、CV等字段 |
+| 多工具跨 MCP 编排 | 12/15 | 当前四类中最成熟；仍有3条工具合同失败 |
+| 最终答案证据忠实度 | 28/123 | 当前主要发布阻断；不能用工具成功率覆盖 |
+
+最高频差异为：答案未列来源 89 条、未列数据时间 48 条、工具合同失败 20 条、
+工具族不匹配 15 条、工具声明单位未进入答案 13 条。两条真实 SSE 执行错误均为静压力题：
+20.35 米 A-F 六点和 28.98 米 B 点返回 `TaskGroup` 子异常；按合同未重试。
+
+逐行完整结果：`logs/mcp_template_line_eval/report_full_20260813.md`；完整原始 SSE、工具结果、
+预期/实际对比和评分在同目录 JSON；实施解释见
+`docs/handoffs/2026-08-14-mcp-template-line-evaluation.md`。

@@ -102,13 +102,15 @@ CORE_HELPERS = r'''    /* REQ-8093-CORE-PSPACE-REALTIME-20260804 */
     function coreQualityText8093(quality, valid) { const text = String(quality ?? '').trim(); if (!valid) return '异常'; if (!text) return '未传'; if (/good|ok|normal|正常|良好/i.test(text)) return '良好'; return text.length > 6 ? text.slice(0, 6) : text }
     function coreClockText8093(timestamp, mode = 'hms') { return timestamp ? fmtTime(timestamp, mode) : '--' }
     function coreLiveRecord8093(live, id, now) { const record = live?.values?.[id]; if (live?.schema !== CORE_PSPACE_SCHEMA_8093 || !record) return null; const ageMs = Number.isFinite(Number(record.sourceAgeMs ?? record.ageMs)) ? Number(record.sourceAgeMs ?? record.ageMs) : coreAgeMs8093(record.timestamp, record.receivedAt, now), transportAgeMs = Number.isFinite(Number(record.transportAgeMs)) ? Number(record.transportAgeMs) : coreAgeMs8093('', record.receivedAt, now), valid = live?.status === 'connected' && record.valid === true && Number.isFinite(Number(record.value)) && transportAgeMs <= Number(live?.staleAfterMs || CORE_PSPACE_STALE_MS_8093); return { ...record, ageMs, transportAgeMs, valid } }
-    function coreMetricCurrent8093(buf, item, live, now = Date.now()) { const ids = metricItemIds(item), records = ids.map(id => coreLiveRecord8093(live, id, now)), digits = ids[0] === 'PI' || ids[0] === 'L' || ids.includes('L_south') ? 2 : 1, useLive = records.length > 0 && records.every(record => record?.valid); if (useLive) { const timestamp = records.map(record => record.timestamp).filter(Boolean).sort((a, b) => new Date(b) - new Date(a))[0] || live?.lastFrameAt || '', ageMs = Math.max(...records.map(record => record.ageMs)), quality = records.map(record => coreQualityText8093(record.quality, record.valid)).join('/'), value = ids.map((id, index) => displayNum(id, records[index].value, digits)).join('/'); return { source: 'pspace_realtime', degraded: false, value, timestamp, ageMs, ageSeconds: Math.round(ageMs / 1000), quality, metaText: `${coreClockText8093(timestamp, 'hms')}｜${coreAgeText8093(ageMs)}｜${quality}`, title: `pSpace秒级实时；数据时间 ${coreClockText8093(timestamp, 'full')}；年龄 ${coreAgeText8093(ageMs)}；质量 ${quality}` } } const timestamp = buf.timestamps?.[buf.timestamps.length - 1] || '', ageMs = coreAgeMs8093(timestamp, 0, now), badLive = records.some(record => record && !record.valid), quality = badLive ? '实时质量异常' : '质量未传', value = metricItemValue(buf, item); return { source: 'postgres_minute', degraded: true, value, timestamp, ageMs, ageSeconds: Number.isFinite(ageMs) ? Math.round(ageMs / 1000) : null, quality, metaText: `镜像 ${coreClockText8093(timestamp, 'hm')}｜${coreAgeText8093(ageMs)}｜${badLive ? '异常' : '未传'}`, title: `已降级为分钟镜像；数据时间 ${coreClockText8093(timestamp, 'full')}；年龄 ${coreAgeText8093(ageMs)}；${quality}` } }
+    function coreMetricCurrent8093(buf, item, live, now = Date.now()) { const ids = metricItemIds(item), records = ids.map(id => coreLiveRecord8093(live, id, now)), digits = ids[0] === 'PI' || ids[0] === 'L' || ids.includes('L_south') ? 2 : 1, useLive = records.length > 0 && records.every(record => record?.valid); if (useLive) { const rawValues = records.map(record => Number(record.value)), timestamp = records.map(record => record.timestamp).filter(Boolean).sort((a, b) => new Date(b) - new Date(a))[0] || live?.lastFrameAt || '', ageMs = Math.max(...records.map(record => record.ageMs)), quality = records.map(record => coreQualityText8093(record.quality, record.valid)).join('/'), value = ids.map((id, index) => displayNum(id, rawValues[index], digits)).join('/'); return { source: 'pspace_realtime', degraded: false, rawValues, value, timestamp, ageMs, ageSeconds: Math.round(ageMs / 1000), quality, metaText: `${coreClockText8093(timestamp, 'hms')}｜${coreAgeText8093(ageMs)}｜${quality}`, title: `pSpace秒级实时；数据时间 ${coreClockText8093(timestamp, 'full')}；年龄 ${coreAgeText8093(ageMs)}；质量 ${quality}` } } const rawValues = ids.map(id => latest(buf, id)), timestamp = buf.timestamps?.[buf.timestamps.length - 1] || '', ageMs = coreAgeMs8093(timestamp, 0, now), badLive = records.some(record => record && !record.valid), quality = badLive ? '实时质量异常' : '质量未传', value = ids.map((id, index) => displayNum(id, rawValues[index], digits)).join('/'); return { source: 'postgres_minute', degraded: true, rawValues, value, timestamp, ageMs, ageSeconds: Number.isFinite(ageMs) ? Math.round(ageMs / 1000) : null, quality, metaText: `镜像 ${coreClockText8093(timestamp, 'hm')}｜${coreAgeText8093(ageMs)}｜${badLive ? '异常' : '未传'}`, title: `已降级为分钟镜像；数据时间 ${coreClockText8093(timestamp, 'full')}；年龄 ${coreAgeText8093(ageMs)}；${quality}` } }
+    function coreMetricBaselineEvidence8093(buf, item, current) { return metricItemIds(item).map((id, index) => { const raw = current?.rawValues?.[index], baseline = rollingIqrBaseline(buf, id), deviation = rollingIqrDeviation(buf, id, raw), status = iqrStatus(deviation); return { id, raw, baselineSource: baseline?.source || '', median: baseline?.median ?? null, iqr: baseline?.iqr ?? null, deviation, status: status.level, statusLabel: status.label, statusTone: status.tone } }) }
+    function coreMetricPrimaryEvidence8093(evidence) { const valid = (evidence || []).filter(row => Number.isFinite(row?.deviation)); return valid.length ? valid.reduce((a, b) => Math.abs(b.deviation) > Math.abs(a.deviation) ? b : a) : ((evidence || [])[0] || { deviation: null, status: 'unknown', statusLabel: '--', statusTone: '' }) }
     function coreRealtimeSummary8093(live, now) { const valid = CORE_PSPACE_IDS_8093.filter(id => coreLiveRecord8093(live, id, now)?.valid).length, total = CORE_PSPACE_IDS_8093.length, degraded = total - valid, frame = live?.lastFrameAt || ''; if (live?.status === 'connected' && valid === total) return { tone: 'is-live', text: `pSpace秒级实时 ${valid}/${total}｜最新 ${coreClockText8093(frame, 'hms')}` }; if (live?.status === 'connected' && valid > 0) return { tone: 'is-degraded', text: `pSpace实时 ${valid}/${total}；${degraded}项已降级为分钟镜像` }; if (live?.status === 'connecting' || !live) return { tone: 'is-connecting', text: '正在连接pSpace秒级实时流；当前使用分钟镜像' }; return { tone: 'is-degraded', text: '实时流异常，已降级为分钟镜像' } }
     function useCoreMetricRealtime8093() { const initial = window.__BF_CORE_PSPACE_LIVE__?.snapshot?.() || window.__BF_CORE_PSPACE_LIVE__ || null, [live, setLive] = useState(initial), [now, setNow] = useState(Date.now()); useEffect(() => { const update = event => setLive(event?.detail || window.__BF_CORE_PSPACE_LIVE__?.snapshot?.() || window.__BF_CORE_PSPACE_LIVE__ || null); window.addEventListener(CORE_PSPACE_EVENT_8093, update); update(); const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => { window.removeEventListener(CORE_PSPACE_EVENT_8093, update); window.clearInterval(timer) } }, []); return { live, now } }
 '''
 
 
-CORE_ROW = r'''    CoreMetricRow = function BFCoreMetricRowPspaceLive8093({ buf, item, index, onOpen, coreLive, coreNow }) { const ids = metricItemIds(item), key = ids.join('|'), z = metricItemDeviation(buf, item), st = iqrStatus(z), current = coreMetricCurrent8093(buf, item, coreLive, coreNow), transportAgeSeconds = current.source === 'pspace_realtime' ? Math.round(Math.max(...ids.map(id => coreLiveRecord8093(coreLive, id, coreNow)?.transportAgeMs || 0)) / 1000) : ''; return <div className={`metric-row core-group-row core-live-row ${current.degraded ? 'is-degraded' : 'is-live'}`} key={key} data-core-metric-id={ids[0]} data-value-source={current.source} data-value-timestamp={current.timestamp} data-value-age-seconds={current.ageSeconds ?? ''} data-transport-age-seconds={transportAgeSeconds} data-value-quality={current.quality}><div className="metric-no mono">{String(index + 1).padStart(2, '0')}</div><div className="metric-name" title={metricItemName(item)}>{metricItemName(item)}</div><div className="metric-value core-live-value" title={current.title} aria-label={current.title}><span className="core-live-number">{current.value}</span><span className="core-live-meta">{current.metaText}</span></div><div className="metric-status"><span className={`metric-dot ${st.tone}`}></span>{st.label}</div><CoreMetricSparkButtonV1 buf={buf} item={item} onOpen={onOpen} /></div> }
+CORE_ROW = r'''    CoreMetricRow = function BFCoreMetricRowPspaceLive8093({ buf, item, index, onOpen, coreLive, coreNow }) { const ids = metricItemIds(item), key = ids.join('|'), current = coreMetricCurrent8093(buf, item, coreLive, coreNow), evidence = coreMetricBaselineEvidence8093(buf, item, current), primary = coreMetricPrimaryEvidence8093(evidence), z = primary.deviation, st = { level: primary.status, label: primary.statusLabel, tone: primary.statusTone }, transportAgeSeconds = current.source === 'pspace_realtime' ? Math.round(Math.max(...ids.map(id => coreLiveRecord8093(coreLive, id, coreNow)?.transportAgeMs || 0)) / 1000) : '', statusTitle = evidence.every(row => row.median !== null && row.iqr !== null && row.deviation !== null) ? evidence.map(row => `${ROW_BY_ID[row.id]?.name || row.id}独立30日基线：中位数 ${fmtNum(displayValue(row.id, row.median), 2)}，IQR ${fmtNum(displayValue(row.id, row.iqr), 2)}，当前偏离 ${row.deviation >= 0 ? '+' : ''}${fmtNum(row.deviation, 2)} IQR，状态 ${row.statusLabel}`).join('；') : `${metricItemName(item)}：独立30日基线暂不可用`; return <div className={`metric-row core-group-row core-live-row ${current.degraded ? 'is-degraded' : 'is-live'}`} key={key} data-core-metric-id={ids[0]} data-value-source={current.source} data-value-raw={primary.raw ?? ''} data-value-timestamp={current.timestamp} data-value-age-seconds={current.ageSeconds ?? ''} data-transport-age-seconds={transportAgeSeconds} data-value-quality={current.quality} data-baseline-source={primary.baselineSource} data-baseline-median={primary.median ?? ''} data-baseline-iqr={primary.iqr ?? ''} data-baseline-deviation={z ?? ''} data-baseline-status={st.level} data-baseline-evidence={JSON.stringify(evidence)}><div className="metric-no mono">{String(index + 1).padStart(2, '0')}</div><div className="metric-name" title={metricItemName(item)}>{metricItemName(item)}</div><div className="metric-value core-live-value" title={current.title} aria-label={current.title}><span className="core-live-number">{current.value}</span><span className="core-live-meta">{current.metaText}</span></div><div className="metric-status" title={statusTitle} aria-label={statusTitle}><span className={`metric-dot ${st.tone}`}></span>{st.label}</div><CoreMetricSparkButtonV1 buf={buf} item={item} onOpen={onOpen} /></div> }
 '''
 
 
@@ -171,6 +173,9 @@ STYLE_AND_ASSET = f'''  <!-- {MARKER}: pSpace current values + PostgreSQL minute
     @media(max-width:760px) {{
       .overview-cad-grid .core-page-v7.core-pspace-live-8093 .core-group-row {{grid-template-columns:20px minmax(78px,1fr) minmax(112px,128px) minmax(60px,1fr)!important}}
     }}
+    @media(min-width:761px) and (max-width:1279px) {{
+      .overview-cad-grid .core-page-v7.core-pspace-live-8093 .core-group-row {{grid-template-columns:21px minmax(100px,1fr) minmax(112px,126px) 56px minmax(120px,1fr)!important}}
+    }}
   </style>
   <script type="module" src="assets/{ASSET_NAME}?v={ASSET_VERSION}"></script>
 '''
@@ -204,6 +209,19 @@ def patch_core_components(text: str) -> str:
         live_record_line = next(
             line for line in CORE_HELPERS.splitlines() if "function coreLiveRecord8093" in line
         )
+        current_line = next(
+            line for line in CORE_HELPERS.splitlines() if "function coreMetricCurrent8093" in line
+        )
+        evidence_line = next(
+            line
+            for line in CORE_HELPERS.splitlines()
+            if "function coreMetricBaselineEvidence8093" in line
+        )
+        primary_line = next(
+            line
+            for line in CORE_HELPERS.splitlines()
+            if "function coreMetricPrimaryEvidence8093" in line
+        )
         text, live_record_count = re.subn(
             r"^    function coreLiveRecord8093\(.*$",
             live_record_line,
@@ -211,6 +229,33 @@ def patch_core_components(text: str) -> str:
             count=1,
             flags=re.MULTILINE,
         )
+        text, current_count = re.subn(
+            r"^    function coreMetricCurrent8093\(.*$",
+            current_line,
+            text,
+            count=1,
+            flags=re.MULTILINE,
+        )
+        text, evidence_count = re.subn(
+            r"^    function (?:coreMetricDeviationForCurrent8093|coreMetricBaselineEvidence8093)\(.*$",
+            evidence_line,
+            text,
+            count=1,
+            flags=re.MULTILINE,
+        )
+        if evidence_count == 0:
+            text = text.replace(current_line, current_line + "\n" + evidence_line, 1)
+            evidence_count = 1
+        text, primary_count = re.subn(
+            r"^    function coreMetricPrimaryEvidence8093\(.*$",
+            primary_line,
+            text,
+            count=1,
+            flags=re.MULTILINE,
+        )
+        if primary_count == 0:
+            text = text.replace(evidence_line, evidence_line + "\n" + primary_line, 1)
+            primary_count = 1
         text, live_row_count = re.subn(
             r"^    CoreMetricRow = function BFCoreMetricRowPspaceLive8093\(.*$",
             CORE_ROW.rstrip("\n"),
@@ -218,10 +263,17 @@ def patch_core_components(text: str) -> str:
             count=1,
             flags=re.MULTILINE,
         )
-        if live_record_count != 1 or live_row_count != 1:
+        if (
+            live_record_count != 1
+            or current_count != 1
+            or evidence_count != 1
+            or primary_count != 1
+            or live_row_count != 1
+        ):
             raise ValueError(
                 "existing realtime component could not be upgraded "
-                f"(record={live_record_count}, row={live_row_count})"
+                f"(record={live_record_count}, current={current_count}, "
+                f"evidence={evidence_count}, primary={primary_count}, row={live_row_count})"
             )
         return text
 

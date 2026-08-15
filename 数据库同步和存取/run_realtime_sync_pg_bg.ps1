@@ -7,9 +7,18 @@ param(
     [int]$SourceIntervalSeconds = 5,
     [ValidateSet("sample", "last", "first", "average", "median")]
     [string]$SourceAggregate = "average",
-    [int]$RawMaxValues = 20000
+    [int]$RawMaxValues = 20000,
+    [switch]$ValidateOnly
 )
 $ErrorActionPreference = "Continue"
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'This realtime synchronization runner requires PowerShell 7 Core or later.'
+}
+$Utf8NoBom = [Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $Utf8NoBom
+[Console]::OutputEncoding = $Utf8NoBom
+$OutputEncoding = $Utf8NoBom
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptRoot
 $ConfigPath = Join-Path $ScriptRoot "config\sync_config.json"
@@ -63,6 +72,22 @@ if (-not $Python) {
 if (-not (Test-Path -LiteralPath $Python)) {
     $Python = "python"
 }
+$SyncEntry = Join-Path $ScriptRoot "src\sync_from_243_pg.py"
+if ($ValidateOnly) {
+    if (-not (Test-Path -LiteralPath $SyncEntry -PathType Leaf)) {
+        throw "Realtime synchronization entry is unavailable: $SyncEntry"
+    }
+    [ordered]@{
+        schema = 'ops.realtime-sync-runner.validate-only.v1'
+        ok = $true
+        ps_edition = $PSVersionTable.PSEdition
+        ps_version = $PSVersionTable.PSVersion.ToString()
+        python = $Python
+        entry = $SyncEntry
+        config = $ConfigPath
+    } | ConvertTo-Json -Depth 4
+    exit 0
+}
 $LogPath = Join-Path $LogDir ("continuous_sync_pg_{0}.log" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
 
 try {
@@ -75,7 +100,7 @@ while ($true) {
     $line = "{0} sync_once start={1} end={2}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $Start, $End
     $line | Tee-Object -FilePath $LogPath -Append
 
-    & $Python (Join-Path $ScriptRoot "src\sync_from_243_pg.py") `
+    & $Python $SyncEntry `
         --config $ConfigPath `
         --start-time $Start `
         --end-time $End `

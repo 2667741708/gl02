@@ -467,6 +467,63 @@ class TestBuildCrossSourcePlans:
         assert all("query_gl02_history" not in s.tool for s in plan.steps)
         assert any(s.tool == "query_gl02_sensors" and "P_top" in s.produces_fact_ids for s in plan.steps)
 
+    def test_spoken_heat_dependency_uses_dag_even_with_only_imes_selected(self):
+        ops = _import_plan_builder()
+        plan = ops.build_cross_source_plans(
+            "先确认口语炉次072对应的正式炉号，再查询该炉次铁水Si，禁止猜测炉号。",
+            _selection("imes-readonly"),
+        )
+        assert plan is not None
+        assert [step.tool for step in plan.steps] == [
+            "imes__resolve_spoken_heat_reference",
+            "imes__query_hot_metal_chemistry_by_heat",
+        ]
+        assert plan.steps[1].depends_on == (plan.steps[0].step_id,)
+
+    def test_gold003_exact_prompt_selects_both_services_and_builds_both_steps(self):
+        """Regression for BUG-MCP-GOLD003-MISSING-PTOP-20260814."""
+        from pathlib import Path
+
+        from mcp_host.domain_router import select_mcp_servers
+        from mcp_host.server_registry import McpServerConfig, McpServerRegistry
+
+        registry = McpServerRegistry(
+            version=1,
+            servers=(
+                McpServerConfig(
+                    server_id="imes-readonly",
+                    display_name="IMES",
+                    domains=("heat", "hot_metal", "imes"),
+                    script_path=Path("imes.py"),
+                    namespace="imes",
+                    default=True,
+                ),
+                McpServerConfig(
+                    server_id="gl02-data",
+                    display_name="GL02",
+                    domains=("sensor", "chart", "report", "catalog"),
+                    script_path=Path("gl02.py"),
+                    default=False,
+                ),
+            ),
+        )
+        prompt = (
+            "请并行查询当前 P_top 和上一炉铁水 Si，分别列出数据时间和来源，"
+            "不要混用两个数据源。"
+        )
+        selection = select_mcp_servers(prompt, registry)
+        assert selection.server_ids == ("imes-readonly", "gl02-data")
+
+        ops = _import_plan_builder()
+        plan = ops.build_cross_source_plans(prompt, selection)
+        assert plan is not None
+        assert {step.server_id for step in plan.steps} == {"imes-readonly", "gl02-data"}
+        assert any(step.tool == "imes__get_current_previous_heat_si_summary" for step in plan.steps)
+        assert any(
+            step.tool == "query_gl02_sensors" and step.produces_fact_ids == ("P_top",)
+            for step in plan.steps
+        )
+
     def test_no_find_gl02_variables_in_cross_source_path(self):
         """find_gl02_variables must not appear in cross-source plans."""
         ops = _import_plan_builder()
@@ -485,6 +542,17 @@ class TestBuildCrossSourcePlans:
         assert plan is not None
         assert any(s.tool == "plot_gl02_trends" for s in plan.steps)
         assert not any(s.tool == "query_gl02_sensors" for s in plan.steps)
+
+    def test_correlation_chart_numeric_facts_are_required_for_analysis(self):
+        ops = _import_plan_builder()
+        plan = ops.build_cross_source_plans(
+            "上一炉Si，并分析最近一小时顶压与全炉压差相关性",
+            _selection("imes-readonly", "gl02-data"),
+        )
+        assert plan is not None
+        chart = next(step for step in plan.steps if step.tool == "plot_gl02_analysis")
+        assert chart.required_for_analysis is True
+        assert {"pearson_r", "aligned_count"}.issubset(chart.produces_fact_ids)
 
 
 # ==========================================================================
@@ -603,6 +671,68 @@ class TestDagExecution:
         assert "P_blast" in snapshot.missing_fact_ids
         assert any(f.fact_id == "P_top" and not f.missing for f in snapshot.facts)
 
+    def test_cross_source_sensor_fact_uses_authoritative_unit_when_payload_omits_it(self):
+        session = _FakeSession(payloads={
+            "query_gl02_sensors": {
+                "ok": True,
+                "items": [{
+                    "requested_variable": "P_top",
+                    "ok": True,
+                    "variable": {"unit": ""},
+                    "latest": {
+                        "value": 257.5,
+                        "ts": "2026-08-14T11:12:00",
+                        "quality": "Good",
+                    },
+                }],
+            }
+        })
+        plan = CrossSourcePlan(steps=(CrossSourceStep(
+            "s", "gl02-data", "gl02", "query_gl02_sensors",
+            {"variables": ["P_top"], "query_type": "latest"},
+            produces_fact_ids=("P_top",),
+        ),))
+        snapshot = self._run(plan, session, ("query_gl02_sensors",))
+        fact = next(fact for fact in snapshot.facts if fact.fact_id == "P_top")
+        assert fact.unit == "kPa"
+        assert fact.quality == "Good"
+
+    def test_failed_spoken_heat_resolution_skips_dependent_chemistry_call(self):
+        session = _FakeSession(payloads={
+            "imes__resolve_spoken_heat_reference": {
+                "requested_heat_reference": "072",
+                "resolved_heat_no": None,
+                "error_code": "HEAT_REFERENCE_NOT_FOUND",
+                "heat_context_missing": True,
+            },
+            "imes__query_hot_metal_chemistry_by_heat": {
+                "ok": True,
+                "rows": [{"si": 0.42}],
+            },
+        })
+        plan = CrossSourcePlan(steps=(
+            CrossSourceStep(
+                "resolve", "imes-readonly", "imes",
+                "imes__resolve_spoken_heat_reference", {"heat_reference": "072"},
+            ),
+            CrossSourceStep(
+                "chemistry", "imes-readonly", "imes",
+                "imes__query_hot_metal_chemistry_by_heat", {"heat_no": "072"},
+                depends_on=("resolve",),
+                argument_bindings={"heat_no": "steps.resolve.resolved_heat_no"},
+                produces_fact_ids=("hot_metal_chemistry",),
+            ),
+        ))
+        snapshot = self._run(
+            plan,
+            session,
+            ("imes__resolve_spoken_heat_reference", "imes__query_hot_metal_chemistry_by_heat"),
+        )
+        assert session.calls == [("imes__resolve_spoken_heat_reference", {"heat_reference": "072"})]
+        chemistry = next(item for item in snapshot.source_status if item["step_id"] == "chemistry")
+        assert chemistry["ok"] is False
+        assert chemistry["error_code"] == "DEPENDENCY_FAILED"
+
     def test_empty_sensor_items_are_not_success(self):
         session = _FakeSession(payloads={"query_gl02_sensors": {"ok": True, "items": []}})
         plan = CrossSourcePlan(steps=(CrossSourceStep(
@@ -611,6 +741,38 @@ class TestDagExecution:
         ),))
         snapshot = self._run(plan, session, ("query_gl02_sensors",))
         assert snapshot.ok is False
+
+    def test_correlation_tool_projects_numeric_facts_not_only_chart_url(self):
+        session = _FakeSession(payloads={
+            "plot_gl02_analysis": {
+                "ok": True,
+                "image_url": "/data/mcp_charts/correlation.png",
+                "start_time": "2026-08-14T00:00:00+08:00",
+                "end_time": "2026-08-14T01:00:00+08:00",
+                "derived": {"correlation": {
+                    "left": "P_top", "right": "DP_total",
+                    "pearson_r": -0.42, "aligned_count": 57,
+                }},
+            }
+        })
+        fact_ids = (
+            "chart", "pearson_r", "aligned_count", "correlation_left",
+            "correlation_right", "correlation_window",
+        )
+        plan = CrossSourcePlan(steps=(CrossSourceStep(
+            "s", "gl02-data", "gl02", "plot_gl02_analysis",
+            {"variables": ["P_top", "DP_total"]},
+            produces_fact_ids=fact_ids,
+            required_for_analysis=True,
+        ),))
+        snapshot = self._run(plan, session, ("plot_gl02_analysis",))
+        by_id = {fact.fact_id: fact for fact in snapshot.facts}
+        assert snapshot.complete is True
+        assert by_id["pearson_r"].value == -0.42
+        assert by_id["aligned_count"].value == 57
+        assert by_id["correlation_left"].value == "P_top"
+        assert by_id["correlation_right"].value == "DP_total"
+        assert "2026-08-14T00:00:00" in by_id["correlation_window"].value
 
 
 # ==========================================================================
@@ -758,6 +920,31 @@ class TestFormatCrossSourceAnswer:
         snapshot = success_snapshot((CrossSourceFact("x", "X", 1),), ())
         answer = ops.format_cross_source_answer(snapshot, "分析文本")
         assert answer.index("查询项") < answer.index("分析文本")
+
+    def test_deterministic_pearson_answer_always_states_non_causality(self):
+        ops = _import_plan_builder()
+        snapshot = success_snapshot((
+            CrossSourceFact("pearson_r", "Pearson相关系数", -0.24, source_service="gl02-data"),
+            CrossSourceFact("aligned_count", "对齐样本数", 59, "个", source_service="gl02-data"),
+        ), ())
+        answer = ops.format_cross_source_answer(snapshot)
+        assert "相关不等于因果" in answer
+
+    def test_unknown_spoken_heat_is_explicitly_not_guessed(self):
+        ops = _import_plan_builder()
+        snapshot = failed_snapshot(
+            "HEAT_REFERENCE_NOT_FOUND",
+            heat_reference={
+                "requested_heat_reference": "072",
+                "resolved_heat_no": None,
+                "resolution_policy": "spoken_72h_lookup",
+                "error_code": "HEAT_REFERENCE_NOT_FOUND",
+            },
+        )
+        answer = ops.format_cross_source_answer(snapshot)
+        assert "未找到口语炉次 `072`" in answer
+        assert "禁止猜测或替换炉号" in answer
+        assert "未执行下游铁水 Si 查询" in answer
 
 
 # ==========================================================================

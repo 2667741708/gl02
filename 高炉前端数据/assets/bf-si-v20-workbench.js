@@ -267,7 +267,7 @@
   async function loadHistory() {
     $('#historyError').textContent='';
     state.historyMode='heat';
-    try { const q=new URLSearchParams({date_from:$('#from').value,date_to:$('#to').value,latest_per_heat:'1',limit:'1200',_ts:String(Date.now())});renderHistory(await api(`/api/si-v20/history?${q}`)); }
+    try { const q=new URLSearchParams({date_from:$('#from').value,date_to:$('#to').value,latest_per_heat:'1',compact:'1',limit:'1200',_ts:String(Date.now())});renderHistory(await api(`/api/si-v20/history?${q}`)); }
     catch(error){setError($('#historyError'),error)}
   }
   async function loadHourlyHistory() {

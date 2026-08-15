@@ -149,9 +149,11 @@ GET /api/diagnosis-ai-analysis?label=<key> 的 analysis.recommendation_basis 当
 
 ## REQ-ABC33-FURNACE-RULES-20260807
 
-- `GET /api/furnace-rules/latest`：生产安全合同，只返回33项规则的中文名、类别、分数、四态状态、置信度、证据摘要、复核参数、处置顺序、观察窗口、审批和手册章节；不返回公式、权重、精确阈值、归一化值、贡献或内部特征名。
-- `GET /api/furnace-rules/{rule_id}/detail`：返回指定规则的生产详情，字段白名单由 `abc_rule_engine.public_rule` 固定。
-- `GET /api/furnace-rules/{rule_id}/trends`：返回指定规则最近72个评分趋势点。
+- `GET /api/furnace-rules/latest`：生产安全合同，只返回33项规则的中文名、类别、分数、四态状态、置信度、证据摘要、复核参数、处置顺序、观察窗口、审批和手册章节；不返回公式、权重、精确阈值、归一化值、贡献或内部特征名。当前批次同时返回`batch_state/evaluation_age_seconds`；评价时间缺失、未来超过1分钟或距墙钟超过20分钟时，规则分强制`null`。
+- `GET /api/furnace-rules/{rule_id}/detail`：返回指定规则的生产详情，字段白名单由 `abc_rule_engine.public_rule` 固定。`principle`为该规则专属的炉况形成原理，`intervention_order`严格返回五步干预处置流程，`source_refs`返回其对应的见习高炉长手册章节；三类字段均为工艺层说明，不含评分公式、权重、精确阈值、归一化值或贡献。`sensor_review`中的`main_metrics/body_metrics/cooling_metrics/other_metrics`以`variable_name`为身份严格互斥；某指标进入`main_metrics`后不得再次出现在后续三组，四组合并仍覆盖该规则全部唯一复核指标。
+- `GET /api/furnace-rules/{rule_id}/trends`：返回指定规则最近72个评分趋势点，并固定`series_scope=historical`，不得将历史点当作当前权威值。
+
+`GET /api/diagnosis-review-context`的`context`追加`display_scores/display_main_score/score_sources/legacy_score_archive/score_contract_version`。`hot`展示源固定ABC33 B4；`raw_scores.hot`仍为legacy审计值。B4不可用时`display_scores.hot=null`，不得回退legacy。
 - `GET /api/admin/furnace-rules/evaluations/{evaluation_id}/{rule_id}`：管理员权限接口，返回内部计算快照；普通会话固定403，响应 `Cache-Control: no-store`。
 - `GET /api/admin/furnace-rules/config` / `POST /api/admin/furnace-rules/config/publish`：管理员读取和校验发布数值草稿；发布使用临时文件、fsync和原子替换，必须提交变更原因，普通会话固定403。
 - 8768 WebSocket字段 `abc_rule_bundle` 与上述生产安全合同一致，服务端从 `abc_rule_bundle_internal` 重建，禁止把内部JSON直接透传。
@@ -208,3 +210,78 @@ POST 只写预测审计，不写生产控制；非整点记录保持追加，整
 - `POST /api/si-v20/strict-hourly/dispatch`：后台一分钟任务补齐/重试到期槽。失败槽保留，下一整点仍可独立创建。
 
 旧`/hourly-history`和`/hourly-predict`仅作`hourly_schedule`兼容口径，不能作为严格整点统计来源。
+
+## HCZ专家弱标签API（8892，2026-08-10）
+
+- `GET /api/hcz-label-config`：返回固定标签版本、枚举、盲标合同和服务器控制的提交身份。
+- `GET /api/hcz-label-context?observed_at=<时间>&start=<时间>&end=<时间>`：服务器读取实测窗口，返回知识时间模式、变量覆盖、实测快照和SHA-256；不返回HCZ模型结果。
+
+- `GET /api/hcz-labels?start=&end=&limit=200`：按观察时间倒序读取GL02追加式弱标签，最大2000条。
+- `POST /api/hcz-labels`：提交位置高低、移动方向、可选几何、可信等级、依据、备注和实际标注人。请求同源、最大64KB、幂等；模型字段、越界窗口和证据哈希变化均返回400。
+- `GET /api/hcz-label-export?start=&end=&limit=`：导出UTF-8 BOM CSV。
+
+标签响应版本为`hcz-expert-weak-label.v1`，证据版本为`gl02.hcz-label-source.v1`。POST只向`bf_assistant.hcz_expert_label_events`追加事件，不更新生产控制或传感器数据；修订通过新事件的`supersedes_label_id`表达。
+
+## HCZ上移综合趋势经验规则API（8093，2026-08-10）
+
+- `GET /api/hcz-upward-rule`：只读220.12本地`bf_sensor`分钟实测，返回`HCZ-UP-FOREMAN-001`在最新完整小时的判断。
+- 状态为`triggered | not_triggered | insufficient_data`；响应包含`metrics`五项24小时/5天均值和差值、`body_temperature.layers`七层覆盖/升温、`sustained_trend.hours`逐小时门禁、结论和数据时间。
+- 安全字段固定为`evidence_type=expert_rule_indication`、`direct_measurement_truth=false`、`calibrated_model=false`、`automatic_control=prohibited`。
+- 端点无参数、无数据库写入，进程内缓存120秒。缺数不会被补0；`not_triggered`只表示未达到完整上移组合。
+- 同源页面为`/hcz_upward_rule.html`。完整合同见[规则文档](./GL02软熔带上移综合趋势经验规则_20260810.md)。
+
+### `GET /api/hcz-rule-sensitivity`（2026-08-11）
+
+- 对最近`7 | 30 | 90`天的真实小时数据进行只读规则回放；默认90天。允许查询参数：`top_temperature_delta_c`、`total_pressure_drop_kpa`、`permeability_drop`、`gas_utilisation_drop_pp`、`cold_blast_pressure_rise_kpa`、`body_temperature_delta_c`、`min_directional_layers`、`required_consecutive_hours`。
+- 返回生产默认阈值`baseline`、本次输入`scenario`、上移事件/命中小时、符号对称的下移候选以及新增/移除命中时刻。未知参数或越界参数返回HTTP 400，数据不可用返回503。
+- 固定安全合同：`read_only_trial=true`、`production_defaults_changed=false`、`automatic_control=prohibited`；参数不会写入配置或数据库。下移仅为`symmetric_mirror_candidate_only`，不是已确认生产规则。
+- `GasUtil`数据库值按0～1比例读取，在API入口只转换一次为0～100百分数；当前值/基线显示`%`，差值与阈值单位为“个百分点”。
+
+## 时间序列排行榜接口（2026-08-11）
+
+### `GET /api/timeseries/leaderboard`
+
+- 服务：多模型旁路8778。
+- 实现：[timeseries_sidecar_service.py](../tools/timeseries_sidecar_service.py)。
+- 数据文件：`PT/时间序列预测评测/results/timeseries_model_leaderboard_current.json`。
+- 成功：HTTP 200，`schema=bf.timeseries.leaderboard.v1`，返回公共切点、固定权重、分维度冠军和模型条目。
+- 不可用：HTTP 503，返回`status=unavailable`和脱敏错误；不回退到旧排行榜或伪造空榜。
+- 该接口只读，不改变8778默认模型，也不授权生产趋势页切换预测来源。
+
+## ABC33 上下文助手
+
+- `GET /api/furnace-rules/{rule_id}/explanation-context?evaluation_id=<id>`：公共只读、`no-store`；返回 `operator_explanation/context_hash/context_summary/stale`，不创建会话或调用模型。错误码为 `invalid_rule_id`、`evaluation_not_found`、`evaluation_rule_mismatch`、`context_incomplete`、`database_unavailable`。
+- `POST /api/qa/contextual-conversations`：只接受 `source_type=abc_rule`、`source_page`、`rule_id`、`evaluation_id`、`reuse_policy`；同操作者、同规则、同8小时班次复用活动会话，`force_new`可强制新建。
+- `GET /api/qa/conversations`：新增 `source_type/source_ref_id/evaluation_id/status/date_from/date_to/q/limit` 过滤。
+- `POST /api/qa/chat`：上下文会话由服务端注入绑定快照；首轮设置 `analysis_mode=initial_context_explanation`，SSE POST不自动重放。
+
+## QA 共享访客与登录合同（8093/8094）
+
+- `POST /api/auth/login`：同源 JSON `{username,password}`，成功设置 HttpOnly 会话 Cookie；前端不得持久化密码。
+- `GET /api/qa/bootstrap`：启用访客模式时，未登录返回 `access_mode=guest_shared`、固定共享会话及其带时间戳消息；同一 Host:Port 的客户端共享该会话。关闭访客模式且无有效 operator/admin 会话时才返回 HTTP 403、`error=qa_session_required`。
+- `POST /api/qa/chat`：访客可提交 `conversation_id/message/current_snapshot`；服务端忽略缺失、过期或来自旧登录状态的 `conversation_id`，并重新绑定当前 Host:Port 的固定共享访客会话，避免返回 `conversation_not_found`。登录用户仍对提交的会话执行严格 owner 校验。项目、附件、手工上下文或 ABC `analysis_mode` 返回 `guest_context_not_allowed`。
+- 工具失败：MCP 无法完成或达到轮数/调用上限时，服务端执行一次不带 tools 的最终模型回合；成功响应附带 `answer_route=model_without_tools_after_mcp_failure` 与 `termination_reason`，答案必须声明实时数据未核实。
+- `GET/POST /api/qa/projects`、`POST /api/qa/project-assets`、`POST /api/qa/open-path`、`POST /api/qa/contextual-conversations` 和会话管理动作仍要求 operator/admin。
+
+## MCP 炉体温度分层统计合同（8093）
+
+- 工具：`gl02ext__query_body_temperature_statistics`，只读；QA 对匹配问题只允许一次调用。
+- 输入：`start_layer/end_layer` 为 7–16，`positions` 为 A–H 子集，显式
+  `start_time/end_time`，`rolling_window_minutes`，以及默认开启的 `require_all_positions`；
+  单次最多覆盖 80 个点，时间窗不超过 24 小时。
+- 逐层输出：对齐分钟数/期望分钟数/覆盖率、AVG、STDDEV_POP、min、max、range、first、last、
+  delta、每分钟 slope、CV；滚动标准差与滚动极差分别返回首末、变化、最小、最大和趋势。
+- 单点输出：同一统计口径，同时返回 raw/expected/missing/nonfinite/zero 数量及质量分布。
+- 统计语义：默认只有同一分钟所选方位全部有效才形成层平均；不插值、不静默删零或删除离群点。
+  单位来自权威点位目录或工具数据，来源仅返回脱敏服务/profile/schema/read_policy。
+- 时间语义：总查询时间窗与滚动窗口独立；例如“最近一小时，并比较 15 分钟滚动标准差”必须
+  查询完整 60 分钟，`rolling_window_minutes` 才取 15。
+- SSE 可观测合同：匹配复合炉体温度统计时，`POST /api/qa/chat` 依次发送两条 `trace`
+  （中文对象解析、复合工具选择）、`tool_start`、`tool_result`、`analysis_start`、
+  `analysis_result`，随后继续 `delta/final/done`。每条新事件只要求前端消费 `public_trace`；
+  其中固定包含 `trace_id/stage/status/title/detail`，可选包含
+  `server/tool/source/elapsed_ms/cache_hit/call_count/row_count/point_count`。
+- `public_trace` 是脱敏执行摘要而非思维链。浏览器不得展示同一事件中的原始 `arguments/result`；
+  后端不得把 SQL、DSN、密码、Cookie、Token、内部路径或未裁剪工具文本放入 `public_trace`。
+- `final.mcp_model_explanation` 返回模型解释状态与耗时；状态可能为 `succeeded/failed/empty/
+  rejected_ungrounded_numbers`。非 `succeeded` 不影响确定性统计答案成功返回。

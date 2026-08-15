@@ -148,6 +148,54 @@ python .\tools\deploy_diag_rules.py --apply --verify full
 
 入口固定使用本机 `reliable_ssh` 配置中的目标、主机指纹、密码文件和审计日志；不会在命令行或报告中输出密码。默认执行47项快速合同测试，只有已经单独跑过同一批测试时才可追加 `--skip-tests`。快速包只更新诊断解释、评分弹窗和相关后端/静态资产，不更新8768诊断调度器。
 
+## 220.12 SSH复用、计时与MCP连接池（2026-08-10）
+
+独立UTF-8 PowerShell双次验收与可选冷连接基线：
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -File .\tools\verify_22012_persistent_ssh_reuse.ps1 -IncludeColdBaseline
+```
+
+仅查看持久会话：
+
+```powershell
+python .\tools\remote_22012_session.py status
+```
+
+验证Reliable SSH MCP在同一Plink进程复用请求：
+
+```powershell
+node .\tools\reliable_ssh_22012_cli.mjs pool-probe
+```
+
+查看最近50次部署计时与失败候选：
+
+```powershell
+python .\.codex\skills\deploy-8093-guarded-update\scripts\deployment_memory.py summary --window 50
+```
+
+项目内Skill是版本源；首次导入、修改后发布和只读一致性验证分别使用：
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -File .\tools\sync_deploy_8093_guarded_update_skill.ps1 -Action ImportGlobalToProject
+pwsh.exe -NoLogo -NoProfile -File .\tools\sync_deploy_8093_guarded_update_skill.ps1 -Action PublishProjectToGlobal
+pwsh.exe -NoLogo -NoProfile -File .\tools\sync_deploy_8093_guarded_update_skill.ps1 -Action Verify
+```
+
+日常不得先执行`ImportGlobalToProject`覆盖项目版本；应先验证`.codex\skills\deploy-8093-guarded-update`，再执行`PublishProjectToGlobal`和`Verify`。脚本只操作本机两个Skill目录，不连接220.12。
+
+8093两阶段快路径先封存已通过验证的产物，再用最新只读远端哈希生成差量：
+
+```powershell
+python .\.codex\skills\deploy-8093-guarded-update\scripts\release_manifest.py prepare --spec .\release-spec.json --output .\prepared-release.json
+python .\.codex\skills\deploy-8093-guarded-update\scripts\release_manifest.py verify --manifest .\prepared-release.json
+python .\.codex\skills\deploy-8093-guarded-update\scripts\release_manifest.py plan-delta --manifest .\prepared-release.json --remote-state .\remote-state.json --output .\delta-plan.json
+```
+
+`release-spec.json`必须记录源文件、产物、精确stage/target、允许的生产基线SHA-256、标记、验证等级和已通过证据。任一源/产物字节变化会使清单失效；差量为空时不上传、不暂停8093。语义diff的Luna low审查与只读远端预检并行完成，机械哈希/清单不调用模型。
+
+复用验收只创建远端临时payload并清理，不改生产目标、不停服务。`pool-probe`只调用身份探针。正式部署时间比较至少交错运行5组冷/热样本，并保证文件、测试、重启和网络条件一致。
+
 ## 8093 每5分钟八炉况智能分析验证
 
 合同测试：
@@ -495,8 +543,15 @@ python .\tools\export_si_v20_strict_context_model.py
 
 ```powershell
 pwsh.exe -NoLogo -NoProfile -File .\tools\verify_pwsh7_utf8.ps1
+$env:GL02_LOCAL_PGUSER = 'postgres'
+$env:GL02_LOCAL_PGPASSWORD = '<从受控配置输入>'
 pwsh.exe -NoLogo -NoProfile -File .\start_v3_full.ps1
 ```
+
+`start_v3_full.ps1` 默认使用 `127.0.0.1:18000/bf_trend` 本机原生 PostgreSQL，
+并用 `GL02_LOCAL_PG*` 覆盖可能指向220.12的用户级 `GL02_PG*`。只有显式设置
+`BF_USE_EXISTING_PG_ENV=1` 时才保留既有主连接；本地同步目标始终使用
+`GL02_LOCAL_PG*`。脚本不再包含 Docker `15432` 或数据库密码默认值。
 
 升级稳定版并复验：
 
@@ -516,3 +571,141 @@ python -B .\tools\remote_22012_exec.py --allow-agents-password --no-profile --sc
 ```
 
 成功信号包括`ps_version=7.6.4`、`ps_edition=Core`和中文`冀南钢铁：远端中文执行正常`。只有安装/回滚PowerShell 7本身时才允许显式追加`--remote-shell windows-powershell`；日常查询、部署和验证不得使用该旧运行时选项。
+
+## 软熔带移动特征融合诊断
+
+入口：[run_cohesive_zone_intelligent_diagnosis.py:L24-L88](../tools/run_cohesive_zone_intelligent_diagnosis.py#L24-L88)。输入必须是带时间列的一分钟CSV；默认时间列名为`timestamp`。命令只读输入文件，默认把UTF-8 JSON打印到标准输出。
+
+```powershell
+python .\tools\run_cohesive_zone_intelligent_diagnosis.py --help
+
+python .\tools\run_cohesive_zone_intelligent_diagnosis.py `
+  --input .\data\cohesive_zone_minutes.csv
+
+python .\tools\run_cohesive_zone_intelligent_diagnosis.py `
+  --input .\data\cohesive_zone_minutes.csv `
+  --evaluation-time '2026-08-10 10:00:00' `
+  --include-geometry `
+  --output .\output\cohesive_zone_diagnosis.json
+```
+
+参数：
+
+- `--input`：必填CSV路径。
+- `--timestamp-column`：时间列名，默认`timestamp`。
+- `--evaluation-time`：可选历史截止；程序丢弃其后的所有行，防未来数据泄漏。
+- `--config`：可选诊断YAML。
+- `--estimator-config`：可选既有C2几何估算器YAML，仅在`--include-geometry`时使用。
+- `--include-geometry`：同时输出现有根部高度、厚度、偏心和15分钟常速外推，并给出方向一致性。
+- `--output`：可选JSON文件；省略时写标准输出。
+
+退出码：`0`表示诊断可用；`2`表示输入成功解析但覆盖不足；`1`表示文件、时间列、配置或运行异常。完整验证使用：
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -File `
+  .\tools\verify_cohesive_zone_intelligent_diagnosis.ps1 `
+  -PythonExecutable python
+```
+
+## 220.12持久SSH与8093料速规则部署
+
+本会话和后续8093受控部署均使用PowerShell 7；不允许用`powershell.exe`、内联多行`-Command`或每条命令重新建立SSH认证连接。
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -NonInteractive -File `
+  .\tools\start_remote_22012_session.ps1
+
+pwsh.exe -NoLogo -NoProfile -NonInteractive -File `
+  .\tools\verify_remote_22012_session_reuse.ps1
+
+pwsh.exe -NoLogo -NoProfile -NonInteractive -File `
+  .\tools\deploy_abc33_burden_rate_22012.ps1
+```
+
+部署入口会依次执行本地119项门禁、持久连接`ensure`、upload-only暂存、8093守卫停—改—启、A2/B4/B5详情检查和8768独立重启。正常完成后保留SSH代理；只有用户明确要求、凭据轮换或主机/用户/工作目录需要改变时才运行：
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -NonInteractive -File `
+  .\tools\stop_remote_22012_session.ps1
+```
+
+### SSH耗时基准、原生编译和B4分数部署
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -File `
+  .\tools\benchmark_22012_ssh_command_latency.ps1 -SampleCount 5
+
+pwsh.exe -NoLogo -NoProfile -File `
+  .\tools\build_python_native_artifact.ps1 -Spec .\path\artifact-spec.json -PlanOnly
+
+pwsh.exe -NoLogo -NoProfile -File `
+  .\tools\build_python_native_artifact.ps1 -Spec .\path\artifact-spec.json -Build -BootstrapPython311 -InstallBuildDeps -Manifest .\path\artifact-manifest.json
+
+pwsh.exe -NoLogo -NoProfile -File `
+  .\tools\deploy_abc33_b4_score_source_22012.ps1
+```
+
+原生构建默认只生成计划；创建Python 3.11 x64环境、安装Nuitka/Cython依赖及真实编译均要求显式开关。产物提高逆向成本但不保证不可查看。B4部署只更新8093五个文件，不重启8768或修改数据库。
+
+## 8093浏览器验收分级
+
+```powershell
+python .\tools\verify_diagnosis_review_local.py --profile quick
+python .\tools\verify_diagnosis_review_local.py --profile standard
+python .\tools\verify_diagnosis_review_local.py --profile full
+```
+
+默认`quick`只验证受影响的诊断路由，跨内核共4项；`standard`为单路由17项；`full`为五路由85项。生产环境只做受影响路由定向冒烟，完整矩阵在本机或预览环境运行。需要同时复核手动评分弹窗时增加`--check-manual-score`。
+
+## Codex CLI经济型委派
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -File `
+  'C:\Users\hmw20\.codex\skills\codex-economical-delegation\scripts\invoke_codex_delegate.ps1' -ListModels
+
+pwsh.exe -NoLogo -NoProfile -File `
+  'C:\Users\hmw20\.codex\skills\codex-economical-delegation\scripts\invoke_codex_delegate.ps1' `
+  -PromptFile .\delegate-task.txt -Model gpt-5.6-luna -ReasoningEffort low -Workdir .
+```
+
+默认是只读、ephemeral和最小工具面。需要本地写入时必须同时指定`-Sandbox workspace-write -AllowWorkspaceWrite`并给出精确文件所有权；不得用该入口操作220.12或8093生产。运行结果输出模型、reasoning、sandbox、耗时、exit code、tokens和最终消息。
+
+## 8093前端生产构建与核心冒烟
+
+```powershell
+Set-Location -LiteralPath '.\高炉前端数据\dashboard_build'
+npm run check
+npm run build
+Set-Location -LiteralPath '..\..'
+python .\tools\verify_8093_frontend_production_build.py
+```
+
+默认只运行Chromium 1366x768核心组合。最终兼容阶段才显式追加`--full-matrix`；小功能开发阶段禁止默认运行85项。
+
+生产部署使用独立UTF-8 PowerShell 7脚本：
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -File .\tools\deploy_8093_frontend_perf_22012.ps1
+```
+
+该入口复用`tools/remote_22012_session.py`维护的已认证连接，先上传暂存，再由远端脚本完成互斥、备份、8093守卫停—改—启和失败回滚；成功输出必须同时包含`guard_restored=true`、`rollback_applied=false`、HTTP 200、压缩/缓存结果以及受保护PID前后一致。
+
+## 构建220.12:8093维护交接包
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -File .\tools\build_8093_handoff_package.ps1
+```
+
+默认输出到被Git忽略的`handoff_packages/`。入口只读取本机白名单文件，不连接220.12；构建成功时输出ZIP绝对路径、大小、SHA-256、文件数、敏感扫描状态和`productionMutation=not_started`。
+
+## MCP 扩展生产回归
+
+先只读校验扩展问题集：
+
+```powershell
+D:\ProgramData\anaconda3\python.exe -X utf8 .\tools\evaluate_mcp_extended_production.py --validate
+```
+
+生产执行必须显式给出 8093 SSE URL、输出路径和并发数；工具不自动重试。故障夹具不得指向 8093，
+只允许由 `tools/mcp_fault_preview_acceptance.py` 在独立回环预览中运行。完整复现命令和请求账本见
+[扩展生产回归交接](handoffs/2026-08-14-mcp-extended-production-regression.md)。

@@ -5,6 +5,7 @@ import copy
 import json
 import html
 import hmac
+import hashlib
 import importlib.util
 import math
 import mimetypes
@@ -17,6 +18,7 @@ import time
 import threading
 import uuid
 import zipfile
+from contextlib import nullcontext
 from dataclasses import asdict, replace
 from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -33,6 +35,11 @@ import diagnosis_model_review
 import diagnosis_ai_analysis_api
 import diagnosis_review
 import diag_ai_evidence
+import hcz_upward_rule_api
+import abc_rule_assistant_analysis
+# REQ-8093-BC-SCORE-CONTRIBUTION-20260814: public A/B/C score explanation adapter.
+from abc_score_explanation import build_score_explanation
+from http_static_compression import compress_static_payload
 from heat_performance_quality import HeatPerformanceQualityStore
 import si_v20_shadow
 from mcp_conversation_context import (
@@ -102,7 +109,10 @@ from abc_rule_engine import load_config as load_abc_config  # noqa: E402
 from abc_public_review import build_public_review  # noqa: E402
 from abc_rule_config_store import publish_atomic as publish_abc_config  # noqa: E402
 from abc_term_semantics import term_semantics as abc_term_semantics  # noqa: E402
+import thermal_trend_rule  # noqa: E402
 ABC_CONFIG_PATH = ABC_SERVICE_DIR / "config" / "abc_furnace_rules.v1.json"
+THERMAL_TREND_CONFIG_PATH = ASSISTANT_BACKEND_DIR / "config" / "thermal_trend_rule.v1.json"
+THERMAL_TREND_CONDITION_PATH = BASE_DIR / "data" / "thermal_trend_condition.v1.json"
 INDEX_FILE = os.environ.get("BF_INDEX_FILE", "frontend_dashboard_v3.server.html")
 OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://10.30.220.12:11434").rstrip("/")
 PUBLIC_MODEL_NAME = os.environ.get("BF_PUBLIC_MODEL_NAME", "高炉大模型服务")
@@ -118,6 +128,10 @@ ALLOWED_LOADED_MODELS = tuple(
     if name.strip()
 )
 QA_INACTIVITY_HOURS = float(os.environ.get("BF_QA_INACTIVITY_HOURS", "5"))
+QA_GUEST_ENABLED = os.environ.get("BF_QA_GUEST_ENABLED", "1").strip().lower() not in {
+    "0", "false", "no", "off",
+}
+QA_GUEST_ROOM_KEY = os.environ.get("BF_QA_GUEST_ROOM_KEY", "").strip()
 PROJECTS_DIR = Path(os.environ.get("BF_QA_PROJECTS_DIR", str(BASE_DIR / "data" / "projects")))
 REPORTS_DIR = Path(os.environ.get("BF_REPORTS_DIR", str(BASE_DIR / "data" / "reports")))
 LOCAL_TZ = ZoneInfo(os.environ.get("BF_LOCAL_TZ", "Asia/Shanghai"))
@@ -195,6 +209,42 @@ _QA_PG_TREND_CACHE_LOCK = threading.Lock()
 _QA_PG_TREND_CACHE: dict[str, Any] = {"key": None, "snapshots": None, "meta": None}
 _QA_MCP_TOOL_CACHE_LOCK = threading.Lock()
 _QA_MCP_TOOL_CACHE: dict[str, tuple[float, str]] = {}
+_QA_GUEST_ROOM_LOCKS_GUARD = threading.Lock()
+_QA_GUEST_ROOM_LOCKS: dict[str, threading.Lock] = {}
+
+
+def _env_enabled(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+ABC_RULE_ASSISTANT_ENABLED = _env_enabled(
+    "BF_ABC_RULE_ASSISTANT_ENABLED", default=(PORT == 8094)
+)
+from mcp_host.client_manager import lifecycle_error
+ABC_RULE_ASSISTANT_AUTO_ANALYSIS = _env_enabled(
+    "BF_ABC_RULE_ASSISTANT_AUTO_ANALYSIS", default=(PORT == 8094)
+)
+ABC_RULE_ASSISTANT_RETRY_SECONDS = max(
+    1.0, float(os.environ.get("BF_ABC_RULE_ASSISTANT_RETRY_SECONDS", "60"))
+)
+ABC_RULE_INITIAL_QUESTION = "请解释当前炉况规则的判断依据、形成过程与处置顺序。"
+ABC_RULE_ASSISTANT_PROMPT_VERSION = os.environ.get(
+    "BF_ABC_RULE_ASSISTANT_PROMPT_VERSION", "abc_rule_explanation.v1"
+).strip() or "abc_rule_explanation.v1"
+ABC_RULE_ASSISTANT_WAIT_SECONDS = max(
+    30.0, float(os.environ.get("BF_ABC_RULE_ASSISTANT_WAIT_SECONDS", "300"))
+)
+ABC_RULE_ASSISTANT_CONTEXT_MAX_BYTES = max(
+    32768, int(os.environ.get("BF_ABC_RULE_ASSISTANT_CONTEXT_MAX_BYTES", str(256 * 1024)))
+)
+ABC_RULE_ASSISTANT_PROMPT_CONTEXT_MAX_BYTES = max(
+    8192, int(os.environ.get("BF_ABC_RULE_ASSISTANT_PROMPT_CONTEXT_MAX_BYTES", str(24 * 1024)))
+)
+_ABC_RULE_ANALYSIS_GUARD = threading.Lock()
+_ABC_RULE_ANALYSIS_INFLIGHT: dict[tuple[int, str, str], threading.Event] = {}
 QA_MCP_PREFETCH_ENABLED = os.environ.get("BF_QA_MCP_PREFETCH", "1").strip().lower() not in {"0", "false", "no"}
 MCP_DATA_SERVER_PATH = Path(
     os.environ.get(
@@ -211,8 +261,14 @@ MCP_SERVER_REGISTRY_PATH = Path(
 _MCP_DATA_MODULE: Any | None = None
 QA_MCP_TOOLS_ENABLED = os.environ.get("BF_QA_MCP_TOOLS", "1").strip().lower() not in {"0", "false", "no"}
 QA_MCP_TOOL_MODE = os.environ.get("BF_QA_MCP_TOOL_MODE", "auto").strip().lower()
-QA_MCP_MAX_TOOL_ROUNDS = int(os.environ.get("BF_QA_MCP_MAX_TOOL_ROUNDS", "2"))
-QA_MCP_MAX_TOOL_CALLS = int(os.environ.get("BF_QA_MCP_MAX_TOOL_CALLS", "4"))
+QA_MCP_MAX_TOOL_ROUNDS = int(os.environ.get("BF_QA_MCP_MAX_TOOL_ROUNDS", "5"))
+QA_MCP_MAX_TOOL_CALLS = int(os.environ.get("BF_QA_MCP_MAX_TOOL_CALLS", "5"))
+QA_MCP_PARALLEL_TOOL_CALLS = os.environ.get("BF_QA_MCP_PARALLEL_TOOL_CALLS", "1").strip().lower() not in {
+    "0",
+    "false",
+    "no",
+}
+QA_MCP_MAX_PARALLEL_TOOL_CALLS = int(os.environ.get("BF_QA_MCP_MAX_PARALLEL_TOOL_CALLS", "5"))
 QA_MCP_MAX_ARGUMENT_CHARS = int(os.environ.get("BF_QA_MCP_MAX_ARGUMENT_CHARS", "12000"))
 QA_MCP_MAX_ARRAY_ITEMS = int(os.environ.get("BF_QA_MCP_MAX_ARRAY_ITEMS", "80"))
 QA_MCP_MAX_RESULT_CHARS = int(os.environ.get("BF_QA_MCP_MAX_RESULT_CHARS", "20000"))
@@ -237,7 +293,8 @@ QA_KNOWLEDGE_SEARCH_MODE = os.environ.get("BF_QA_KNOWLEDGE_SEARCH_MODE", "hybrid
 DIAGNOSIS_ADVICE_SOURCE = "foreman_knowledge_only"
 QA_MCP_BRIDGE_SYSTEM_PROMPT = (
     "你可以使用冀南钢铁GL02传感器/图表和MES/IMES业务数据库查询能力。"
-    "你要结合当前问题与最近对话自主决定是否调用工具，并可以在限定轮数内按“查目录→查数据→做计算/绘图→总结”的顺序连续调用。"
+    "你要结合当前问题与最近对话自主决定是否调用工具，并可以在最多5轮规划内按“查目录→查数据→做计算/绘图→总结”的顺序连续调用。"
+    "同一轮中相互独立的只读查询应一次返回多个tool_calls并行执行；存在依赖关系的调用必须放到后续轮次。"
     "追问省略了变量或时间范围时，优先继承最近对话中已经明确的对象；仍有多个可能对象时先查目录，不能唯一确定时再向用户追问。"
     "跨传感器、报表、历史问答、计算或图表能力的对象发现，优先调用search_business_objects；"
     "MES炉次、铁水/炉渣化验和进料成分不明确时调用imes__resolve_imes_natural_language；"
@@ -263,7 +320,7 @@ QA_MCP_BRIDGE_SYSTEM_PROMPT = (
     "你只能从本轮提供的已注册工具Schema中选择工具并构造参数，不得发明工具名、不得生成SQL。"
     "工具调用会经过服务端白名单和 JSON Schema 校验；收到 TOOL_POLICY_REJECTED 时应修正工具名或参数，不得绕过校验。"
     "不得生成 SQL、数据库连接参数或生产写操作。"
-    "如果查询返回无数据或变量缺失，必须明确说明。最终回答要引用查询结果中的变量、时间窗、数值、图片路径或报表路径。"
+    "如果查询返回无数据或变量缺失，必须明确说明。最终回答只挑取与用户问题有关的有效数值，并同时引用变量、单位、时间戳/时间窗、来源、图片路径或报表路径；不得堆砌无关字段。"
 )
 QA_SYSTEM_PROMPT_TEMPLATE = """
 你的名字叫“炽穹·高炉炼铁大模型”，你是高炉智能问答与工艺解释助手，面向高炉现场操作人员回答问题。
@@ -777,10 +834,10 @@ def inject_trend_history_loader(data: bytes, target: Path) -> bytes:
         injections.append(automation_monitor_injection())
     if diagnosis_review.review_enabled() and "__BF_DIAGNOSIS_REVIEW_LOCAL__" not in text:
         injections.append(
-            '<link rel="stylesheet" href="/assets/bf-diagnosis-review-local.css?v=20260806-core19-r10-foreman-knowledge">\n'
-            '<link rel="stylesheet" href="/assets/bf-diagnosis-manual-score-local.css?v=20260806-core19-r10-foreman-knowledge">\n'
-            '<script src="/assets/bf-diagnosis-review-local.js?v=20260806-core19-r10-foreman-knowledge"></script>\n'
-            '<script src="/assets/bf-diagnosis-manual-score-local.js?v=20260806-core19-r10-foreman-knowledge"></script>'
+            '<link rel="stylesheet" href="/assets/bf-diagnosis-review-local.css?v=20260810-abc33-b4-score-r1">\n'
+            '<link rel="stylesheet" href="/assets/bf-diagnosis-manual-score-local.css?v=20260810-abc33-b4-score-r1">\n'
+            '<script src="/assets/bf-diagnosis-review-local.js?v=20260814-evidence-cn-r2"></script>\n'
+            '<script src="/assets/bf-diagnosis-manual-score-local.js?v=20260810-abc33-b4-score-r1"></script>'
         )
     if not injections:
         return data
@@ -1069,10 +1126,17 @@ def title_from_question(question: str) -> str:
     return (cleaned[:22] or "新对话")
 
 
-def create_conversation(conn: Any, title: str = "新对话") -> dict[str, Any]:
+def create_conversation(
+    conn: Any,
+    title: str = "新对话",
+    *,
+    owner_subject: str | None = None,
+    owner_role: str | None = None,
+    conversation_id: str | None = None,
+) -> dict[str, Any]:
     ts = iso_now()
     conv = {
-        "id": f"qa_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}",
+        "id": conversation_id or f"qa_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}",
         "title": title,
         "created_at": ts,
         "updated_at": ts,
@@ -1081,16 +1145,68 @@ def create_conversation(conn: Any, title: str = "新对话") -> dict[str, Any]:
         "is_pinned": False,
         "is_unread": False,
         "archived_at": None,
+        "owner_subject": owner_subject,
+        "owner_role": owner_role,
     }
     conn.execute(
         """
-        INSERT INTO qa_conversations(id, title, created_at, updated_at, last_user_at)
-        VALUES(:id, :title, :created_at, :updated_at, :last_user_at)
+        INSERT INTO qa_conversations(
+            id, title, created_at, updated_at, last_user_at, owner_subject, owner_role
+        ) VALUES(
+            :id, :title, :created_at, :updated_at, :last_user_at, :owner_subject, :owner_role
+        )
         """,
         conv,
     )
     conn.commit()
     return conv
+
+
+def shared_guest_identity(room_key: str) -> dict[str, Any]:
+    """Build the stable, non-secret owner identity for one shared LAN guest room."""
+    normalized = str(room_key or "default").strip().lower() or "default"
+    room_id = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:24]
+    return {
+        "sub": f"guest:{room_id}",
+        "role": "anonymous_guest",
+        "access_mode": "guest_shared",
+        "shared_room_id": room_id,
+    }
+
+
+def ensure_shared_guest_conversation(conn: Any, identity: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the single durable conversation shared by every client of one address."""
+    room_id = str(identity.get("shared_room_id") or "")
+    owner_subject = str(identity.get("sub") or "")
+    conversation_id = f"qa_guest_{room_id}"
+    row = conn.execute("SELECT * FROM qa_conversations WHERE id = ?", (conversation_id,)).fetchone()
+    if row is None:
+        try:
+            return create_conversation(
+                conn,
+                title="局域网共享访客会话",
+                owner_subject=owner_subject,
+                owner_role="anonymous_guest",
+                conversation_id=conversation_id,
+            )
+        except Exception:
+            conn.rollback()
+            row = conn.execute("SELECT * FROM qa_conversations WHERE id = ?", (conversation_id,)).fetchone()
+            if row is None:
+                raise
+    if str(row["owner_subject"] or "") != owner_subject:
+        raise PermissionError("shared guest room identity collision")
+    return conversation_from_row(row)
+
+
+def guest_room_generation_lock(owner_subject: str) -> threading.Lock:
+    """Serialize model generation inside one process for a shared guest room."""
+    with _QA_GUEST_ROOM_LOCKS_GUARD:
+        lock = _QA_GUEST_ROOM_LOCKS.get(owner_subject)
+        if lock is None:
+            lock = threading.Lock()
+            _QA_GUEST_ROOM_LOCKS[owner_subject] = lock
+        return lock
 
 
 def conversation_from_row(row: dict[str, Any]) -> dict[str, Any]:
@@ -1111,6 +1227,31 @@ def conversation_from_row(row: dict[str, Any]) -> dict[str, Any]:
         item["is_unread"] = bool(row["is_unread"])
     if "archived_at" in row.keys():
         item["archived_at"] = row["archived_at"]
+    if "owner_role" in row.keys() and row["owner_role"] == "anonymous_guest":
+        item["access_mode"] = "guest_shared"
+        item["shared"] = True
+    origin_source_type = row["origin_source_type"] if "origin_source_type" in row.keys() else None
+    item["source_type"] = origin_source_type or "direct_qa"
+    item["source_title"] = (
+        row["origin_source_title"] if "origin_source_title" in row.keys() and row["origin_source_title"]
+        else "历史会话" if not origin_source_type else row["title"]
+    )
+    if origin_source_type:
+        item["source_ref_id"] = row["origin_source_ref_id"]
+        item["rule_id"] = row["origin_source_ref_id"] if origin_source_type == "abc_rule" else None
+        item["evaluation_id"] = row["origin_evaluation_id"]
+        item["return_route"] = row["origin_return_route"]
+        item["origin"] = {
+            "source_type": origin_source_type,
+            "source_page": row["origin_source_page"],
+            "source_id": row["origin_source_id"],
+            "source_ref_id": row["origin_source_ref_id"],
+            "source_title": row["origin_source_title"],
+            "evaluation_id": row["origin_evaluation_id"],
+            "context_snapshot_id": row["origin_context_snapshot_id"],
+            "reuse_policy": row["origin_reuse_policy"],
+            "return_route": row["origin_return_route"],
+        }
     return item
 
 
@@ -1118,19 +1259,67 @@ def list_conversations(
     conn: Any,
     limit: int = 40,
     project_id: int | None = None,
+    owner_subject: str | None = None,
+    origin_source_type: str | None = None,
+    origin_source_id: str | None = None,
+    origin_evaluation_id: int | None = None,
+    status_filter: str = "active",
+    date_from: str | None = None,
+    date_to: str | None = None,
+    query_text: str | None = None,
 ) -> list[dict[str, Any]]:
-    where_parts = ["COALESCE(c.status, 'active') = 'active'"]
+    where_parts: list[str] = []
     args: list[Any] = []
+    if owner_subject is not None:
+        where_parts.append("c.owner_subject = ?")
+        args.append(owner_subject)
+    if status_filter != "all":
+        where_parts.append("COALESCE(c.status, 'active') = ?")
+        args.append(status_filter)
     if project_id is not None:
         where_parts.append("c.project_id = ?")
         args.append(project_id)
+    if origin_source_type == "direct_qa":
+        where_parts.append("(o.source_type IS NULL OR o.source_type = 'direct_qa')")
+    elif origin_source_type:
+        where_parts.append("o.source_type = ?")
+        args.append(origin_source_type)
+    if origin_source_id:
+        where_parts.append("o.source_id = ?")
+        args.append(origin_source_id)
+    if origin_evaluation_id is not None:
+        where_parts.append("o.evaluation_id = ?")
+        args.append(origin_evaluation_id)
+    if date_from:
+        where_parts.append("c.updated_at >= ?")
+        args.append(date_from)
+    if date_to:
+        where_parts.append("c.updated_at <= ?")
+        args.append(date_to)
+    if query_text:
+        pattern = f"%{query_text}%"
+        where_parts.append(
+            "(c.title ILIKE ? OR COALESCE(o.source_title, '') ILIKE ? "
+            "OR EXISTS (SELECT 1 FROM qa_messages qm WHERE qm.conversation_id=c.id AND qm.content ILIKE ?))"
+        )
+        args.extend((pattern, pattern, pattern))
     args.append(limit)
-    where = "WHERE " + " AND ".join(where_parts)
+    where = "WHERE " + " AND ".join(where_parts) if where_parts else ""
     rows = conn.execute(
         f"""
         SELECT c.*,
+               o.source_type AS origin_source_type,
+               o.source_id AS origin_source_id,
+               o.evaluation_id AS origin_evaluation_id,
+               o.context_snapshot_id AS origin_context_snapshot_id,
+               o.reuse_policy AS origin_reuse_policy,
+               o.source_page AS origin_source_page,
+               o.source_ref_id AS origin_source_ref_id,
+               o.source_title AS origin_source_title,
+               o.return_route AS origin_return_route,
                (SELECT COUNT(*) FROM qa_messages m WHERE m.conversation_id = c.id) AS message_count
         FROM qa_conversations c
+        LEFT JOIN qa_conversation_origins o ON o.conversation_id = c.id
         {where}
         ORDER BY COALESCE(c.is_pinned, 0) DESC, c.updated_at DESC
         LIMIT ?
@@ -1143,6 +1332,366 @@ def list_conversations(
         item["message_count"] = int(row["message_count"] or 0)
         out.append(item)
     return out
+
+
+def load_conversation_with_origin(conn: Any, conversation_id: str) -> dict[str, Any] | None:
+    """Load one conversation and its optional immutable origin metadata."""
+    row = conn.execute(
+        """
+        SELECT c.*,
+               o.source_type AS origin_source_type,
+               o.source_id AS origin_source_id,
+               o.evaluation_id AS origin_evaluation_id,
+               o.context_snapshot_id AS origin_context_snapshot_id,
+               o.reuse_policy AS origin_reuse_policy,
+               o.source_page AS origin_source_page,
+               o.source_ref_id AS origin_source_ref_id,
+               o.source_title AS origin_source_title,
+               o.return_route AS origin_return_route
+        FROM qa_conversations c
+        LEFT JOIN qa_conversation_origins o ON o.conversation_id = c.id
+        WHERE c.id = ?
+        """,
+        (conversation_id,),
+    ).fetchone()
+    return conversation_from_row(row) if row else None
+
+
+def persist_non_abc_conversation_origin(
+    conn: Any,
+    *,
+    conversation_id: str,
+    source_type: str,
+    source_ref_id: str,
+    source_title: str,
+    payload: Mapping[str, Any],
+    source_page: str,
+    return_route: str = "",
+) -> int:
+    """Persist an immutable short-window/report origin through the shared snapshot tables."""
+    if source_type not in {"short_window", "period_report", "diagnosis"}:
+        raise ValueError("unsupported conversation origin")
+    ts = iso_now()
+    payload_json = abc_rule_assistant_analysis.canonical_json(payload)
+    context_hash = hashlib.sha256(payload_json.encode("utf-8")).hexdigest()
+    context_key = f"{source_type}:{source_ref_id}:{context_hash[:12]}"
+    conn.execute(
+        """INSERT INTO qa_context_snapshots(
+               context_hash, source_type, source_id, source_version,
+               context_json, context_summary_json, context_type, context_key,
+               schema_version, furnace_id, source_ref_id, source_ts,
+               payload_json, payload_size_bytes, created_at
+           ) VALUES (?, ?, ?, 'v1', ?, ?, ?, ?, 'qa_origin_context.v1',
+                     'GL02', ?, ?, ?, ?, ?)
+           ON CONFLICT(context_hash) DO NOTHING""",
+        (
+            context_hash, source_type, source_ref_id, payload_json,
+            json.dumps({"title": source_title}, ensure_ascii=False), source_type,
+            context_key, source_ref_id, payload.get("source_time") or payload.get("created_at"),
+            payload_json, len(payload_json.encode("utf-8")), ts,
+        ),
+    )
+    snapshot = conn.execute("SELECT id FROM qa_context_snapshots WHERE context_hash=?", (context_hash,)).fetchone()
+    if not snapshot:
+        raise RuntimeError("origin context snapshot persistence failed")
+    snapshot_id = int(snapshot["id"])
+    conn.execute(
+        """INSERT INTO qa_conversation_origins(
+               conversation_id, source_type, source_id, context_snapshot_id,
+               reuse_policy, source_page, source_ref_id, source_title,
+               initial_context_snapshot_id, return_route, created_at, updated_at
+           ) VALUES (?, ?, ?, ?, 'force_new', ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(conversation_id) DO NOTHING""",
+        (
+            conversation_id, source_type, source_ref_id, snapshot_id, source_page,
+            source_ref_id, source_title, snapshot_id, return_route, ts, ts,
+        ),
+    )
+    return snapshot_id
+
+
+def cache_abc_rule_analysis(
+    conn: Any,
+    context_snapshot_id: int | None,
+    analysis_text: str,
+    *,
+    model_name: str,
+    analysis_payload: Mapping[str, Any] | None = None,
+    claim_token: str | None = None,
+) -> None:
+    """Cache a completed initial explanation after model generation has ended."""
+    if context_snapshot_id is None:
+        return
+    source = conn.execute(
+        """
+        SELECT rule_id, evaluation_id, context_hash,
+               operator_explanation_json, assistant_context_json
+        FROM abc_rule_ai_explanations
+        WHERE context_snapshot_id = ?
+        ORDER BY id ASC LIMIT 1
+        """,
+        (context_snapshot_id,),
+    ).fetchone()
+    if not source:
+        return
+    ts = iso_now()
+    conn.execute(
+        """
+        INSERT INTO abc_rule_ai_explanations(
+            context_snapshot_id, rule_id, evaluation_id, context_hash,
+            operator_explanation_json, assistant_context_json, analysis_json,
+            analysis_text, prompt_version, model_name, state, generation_state,
+            attempt_count, generation_completed_at, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                  'completed', 'completed', 1, ?, ?, ?)
+        ON CONFLICT(context_snapshot_id, prompt_version, model_name) DO UPDATE SET
+            analysis_json = EXCLUDED.analysis_json,
+            analysis_text = EXCLUDED.analysis_text,
+            state = 'completed', generation_state = 'completed',
+            attempt_count = GREATEST(abc_rule_ai_explanations.attempt_count, 1),
+            last_error_code = NULL,
+            generation_completed_at = EXCLUDED.generation_completed_at,
+            claim_token = NULL, lease_expires_at = NULL,
+            updated_at = EXCLUDED.updated_at
+        WHERE abc_rule_ai_explanations.claim_token = ?
+        """,
+        (
+            context_snapshot_id, source["rule_id"], source["evaluation_id"], source["context_hash"],
+            source["operator_explanation_json"], source["assistant_context_json"],
+            json.dumps(analysis_payload or {"answer": analysis_text}, ensure_ascii=False), analysis_text,
+            ABC_RULE_ASSISTANT_PROMPT_VERSION, model_name, ts, ts, ts, claim_token,
+        ),
+    )
+    conn.commit()
+
+
+def validated_abc_initial_answer(raw_answer: str, assistant_context: Mapping[str, Any]) -> tuple[str, dict[str, Any]]:
+    """Validate strict model JSON and return its operator-facing rendering."""
+    payload = abc_rule_assistant_analysis.validate_initial_analysis(raw_answer, assistant_context)
+    return abc_rule_assistant_analysis.render_initial_analysis(payload), payload
+
+
+def validated_abc_initial_answer_with_repair(
+    raw_answer: str,
+    messages: list[dict[str, str]],
+    assistant_context: Mapping[str, Any],
+) -> tuple[str, dict[str, Any]]:
+    """Validate once, then permit exactly one schema-constrained repair generation."""
+    try:
+        return validated_abc_initial_answer(raw_answer, assistant_context)
+    except abc_rule_assistant_analysis.InitialAnalysisValidationError as exc:
+        repair_messages = abc_rule_assistant_analysis.initial_analysis_repair_messages(
+            messages,
+            raw_answer,
+            exc,
+        )
+        repaired = call_ollama_chat_strict_json(repair_messages, assistant_context)
+        return validated_abc_initial_answer(repaired, assistant_context)
+
+
+def set_abc_rule_analysis_state(
+    context_snapshot_id: int | None,
+    state: str,
+    *,
+    error_code: str | None = None,
+    claim_token: str | None = None,
+) -> None:
+    """Persist one short state transition without retaining the DB connection."""
+    if context_snapshot_id is None:
+        return
+    model_name = _abc_rule_analysis_model_name()
+    ts = iso_now()
+    started_at = ts if state == "generating" else None
+    completed_at = ts if state in {"completed", "failed_retryable", "stopped"} else None
+    with db_connect() as conn:
+        conn.execute(
+            """
+            UPDATE abc_rule_ai_explanations
+            SET state=?, generation_state=?, last_error_code=?,
+                generation_started_at=COALESCE(?, generation_started_at),
+                generation_completed_at=?, updated_at=?,
+                claim_token=CASE WHEN ?='generating' THEN claim_token ELSE NULL END,
+                lease_expires_at=CASE WHEN ?='generating' THEN lease_expires_at ELSE NULL END
+            WHERE context_snapshot_id=? AND prompt_version=? AND model_name=?
+              AND (?='' OR claim_token=?)
+            """,
+            (
+                state, state, error_code, started_at, completed_at, ts, state, state,
+                context_snapshot_id, ABC_RULE_ASSISTANT_PROMPT_VERSION, model_name,
+                str(claim_token or ""), str(claim_token or ""),
+            ),
+        )
+        conn.commit()
+
+
+def _abc_rule_analysis_model_name() -> str:
+    return normalize_model(None)
+
+
+def _abc_rule_cached_analysis(
+    conn: Any,
+    context_snapshot_id: int,
+    model_name: str,
+) -> dict[str, Any] | None:
+    row = conn.execute(
+        """
+        SELECT analysis_text, analysis_json, context_hash, generation_state,
+               context_snapshot_id, prompt_version, model_name
+        FROM abc_rule_ai_explanations
+        WHERE context_snapshot_id = ? AND prompt_version = ? AND model_name = ?
+        LIMIT 1
+        """,
+        (context_snapshot_id, ABC_RULE_ASSISTANT_PROMPT_VERSION, model_name),
+    ).fetchone()
+    if not row or str(row["generation_state"] or "") != "completed":
+        return None
+    answer = str(row["analysis_text"] or "").strip()
+    if not answer:
+        return None
+    return {
+        "answer": answer,
+        "context_hash": row["context_hash"],
+        "context_snapshot_id": int(row["context_snapshot_id"]),
+        "prompt_version": row["prompt_version"],
+        "model_name": row["model_name"],
+        "cache_hit": True,
+    }
+
+
+def _abc_rule_retry_after(conn: Any, context_snapshot_id: int, model_name: str) -> float:
+    row = conn.execute(
+        """SELECT generation_state, updated_at FROM abc_rule_ai_explanations
+           WHERE context_snapshot_id=? AND prompt_version=? AND model_name=? LIMIT 1""",
+        (context_snapshot_id, ABC_RULE_ASSISTANT_PROMPT_VERSION, model_name),
+    ).fetchone()
+    if not row or str(row["generation_state"] or "") not in {"failed_retryable", "stopped"}:
+        return 0.0
+    updated = parse_iso(str(row["updated_at"] or ""))
+    if updated is None:
+        return 0.0
+    elapsed = (now_utc() - updated.astimezone(timezone.utc)).total_seconds()
+    return max(0.0, ABC_RULE_ASSISTANT_RETRY_SECONDS - elapsed)
+
+
+def claim_abc_rule_initial_analysis(conversation_id: str, owner_subject: str) -> dict[str, Any]:
+    """Return owner/waiter/cached without holding a database lease while waiting."""
+    if not conversation_id:
+        return {"state": "unbound"}
+    model_name = _abc_rule_analysis_model_name()
+    with db_connect() as conn:
+        origin = conn.execute(
+            """SELECT o.context_snapshot_id FROM qa_conversation_origins o
+               JOIN qa_conversations c ON c.id=o.conversation_id
+               WHERE o.conversation_id=? AND c.owner_subject=? AND o.source_type='abc_rule'""",
+            (conversation_id, owner_subject),
+        ).fetchone()
+    if not origin:
+        return {"state": "unbound"}
+    context_snapshot_id = int(origin["context_snapshot_id"])
+    key = (context_snapshot_id, ABC_RULE_ASSISTANT_PROMPT_VERSION, model_name)
+    claim_token = uuid.uuid4().hex
+    claimed = False
+    with _ABC_RULE_ANALYSIS_GUARD:
+        with db_connect() as conn:
+            cached = _abc_rule_cached_analysis(conn, context_snapshot_id, model_name)
+            retry_after = _abc_rule_retry_after(conn, context_snapshot_id, model_name)
+        if cached:
+            return {"state": "cached", **cached}
+        if retry_after > 0:
+            return {"state": "retry_wait", "retry_after_seconds": round(retry_after, 1)}
+        ts = iso_now()
+        lease_expires = (now_utc() + timedelta(seconds=ABC_RULE_ASSISTANT_WAIT_SECONDS)).isoformat()
+        retry_cutoff = (now_utc() - timedelta(seconds=ABC_RULE_ASSISTANT_RETRY_SECONDS)).isoformat()
+        with db_connect() as conn:
+            inserted = conn.execute(
+                """
+                INSERT INTO abc_rule_ai_explanations(
+                    context_snapshot_id, rule_id, evaluation_id, context_hash,
+                    operator_explanation_json, assistant_context_json,
+                    prompt_version, model_name, state, generation_state,
+                    attempt_count, claim_token, lease_expires_at,
+                    generation_started_at, created_at, updated_at
+                )
+                SELECT context_snapshot_id, rule_id, evaluation_id, context_hash,
+                       operator_explanation_json, assistant_context_json,
+                       ?, ?, 'generating', 'generating', 1, ?, ?, ?, ?, ?
+                FROM abc_rule_ai_explanations
+                WHERE context_snapshot_id=?
+                ORDER BY id ASC LIMIT 1
+                ON CONFLICT(context_snapshot_id, prompt_version, model_name) DO NOTHING
+                RETURNING id
+                """,
+                (
+                    ABC_RULE_ASSISTANT_PROMPT_VERSION, model_name, claim_token,
+                    lease_expires, ts, ts, ts, context_snapshot_id,
+                ),
+            ).fetchone()
+            if inserted:
+                claimed = True
+            else:
+                reclaimed = conn.execute(
+                    """
+                    UPDATE abc_rule_ai_explanations
+                    SET state='generating', generation_state='generating',
+                        attempt_count=attempt_count+1, claim_token=?, lease_expires_at=?,
+                        generation_started_at=?, generation_completed_at=NULL,
+                        last_error_code=NULL, updated_at=?
+                    WHERE context_snapshot_id=? AND prompt_version=? AND model_name=?
+                      AND generation_state <> 'completed'
+                      AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
+                      AND (generation_state NOT IN ('failed_retryable','stopped') OR updated_at <= ?)
+                    RETURNING id
+                    """,
+                    (
+                        claim_token, lease_expires, ts, ts, context_snapshot_id,
+                        ABC_RULE_ASSISTANT_PROMPT_VERSION, model_name, ts, retry_cutoff,
+                    ),
+                ).fetchone()
+                claimed = bool(reclaimed)
+            conn.commit()
+        event = _ABC_RULE_ANALYSIS_INFLIGHT.get(key)
+        if not claimed:
+            if event is None:
+                event = threading.Event()
+            return {"state": "waiter", "key": key, "event": event}
+        event = threading.Event()
+        _ABC_RULE_ANALYSIS_INFLIGHT[key] = event
+        return {
+            "state": "owner",
+            "key": key,
+            "event": event,
+            "context_snapshot_id": context_snapshot_id,
+            "claim_token": claim_token,
+        }
+
+
+def wait_for_abc_rule_initial_analysis(ticket: Mapping[str, Any]) -> dict[str, Any] | None:
+    event = ticket.get("event")
+    key = ticket.get("key")
+    if not isinstance(event, threading.Event) or not isinstance(key, tuple):
+        return None
+    deadline = time.monotonic() + ABC_RULE_ASSISTANT_WAIT_SECONDS
+    context_snapshot_id, _, model_name = key
+    while time.monotonic() < deadline:
+        if isinstance(event, threading.Event):
+            event.wait(min(0.5, max(0.0, deadline - time.monotonic())))
+        with db_connect() as conn:
+            cached = _abc_rule_cached_analysis(conn, int(context_snapshot_id), str(model_name))
+        if cached:
+            return cached
+    return None
+
+
+def finish_abc_rule_initial_analysis(ticket: Mapping[str, Any] | None) -> None:
+    if not ticket or ticket.get("state") != "owner":
+        return
+    key = ticket.get("key")
+    event = ticket.get("event")
+    with _ABC_RULE_ANALYSIS_GUARD:
+        if isinstance(key, tuple):
+            _ABC_RULE_ANALYSIS_INFLIGHT.pop(key, None)
+        if isinstance(event, threading.Event):
+            event.set()
 
 
 def load_messages(conn: Any, conversation_id: str) -> list[dict[str, Any]]:
@@ -2313,17 +2862,24 @@ def add_project_asset(conn: Any, payload: dict[str, Any]) -> dict[str, Any]:
     return project_asset_from_row(row)
 
 
-def select_bootstrap_conversation(conn: Any, force_new: bool = False) -> tuple[dict[str, Any], bool]:
+def select_bootstrap_conversation(
+    conn: Any,
+    *,
+    owner_subject: str,
+    owner_role: str,
+    force_new: bool = False,
+) -> tuple[dict[str, Any], bool]:
     row = conn.execute(
-        "SELECT * FROM qa_conversations ORDER BY updated_at DESC LIMIT 1"
+        "SELECT * FROM qa_conversations WHERE owner_subject=? ORDER BY updated_at DESC LIMIT 1",
+        (owner_subject,),
     ).fetchone()
     if force_new or row is None:
-        return create_conversation(conn), True
+        return create_conversation(conn, owner_subject=owner_subject, owner_role=owner_role), True
 
     conv = conversation_from_row(row)
     last_user_at = parse_iso(conv.get("last_user_at"))
     if last_user_at is not None and now_utc() - last_user_at > timedelta(hours=QA_INACTIVITY_HOURS):
-        return create_conversation(conn), True
+        return create_conversation(conn, owner_subject=owner_subject, owner_role=owner_role), True
     return conv, False
 
 
@@ -2916,20 +3472,22 @@ PROMPT_METRIC_ALIASES = {
     "L": "料线",
     "L_south": "南料线",
     "L_north": "北料线",
-    "P_top_gas_A": "A上升管煤气压力",
-    "P_top_gas_B": "B上升管煤气压力",
-    "P_top_gas_C": "C上升管煤气压力",
-    "P_top_gas_D": "D上升管煤气压力",
+    "P_top_A": "A点顶压",
+    "P_top_B": "B点顶压",
+    "P_top_C": "C点顶压",
+    "P_top_D": "D点顶压",
     "T_taphole_1": "一号出铁口温度",
     "T_taphole_2": "二号出铁口温度",
 }
 PROMPT_METRIC_UNIT_FALLBACKS = {
+    "P_top": "kPa",
+    "DP_total": "kPa",
     "L_south": "m",
     "L_north": "m",
-    "P_top_gas_A": "kPa",
-    "P_top_gas_B": "kPa",
-    "P_top_gas_C": "kPa",
-    "P_top_gas_D": "kPa",
+    "P_top_A": "kPa",
+    "P_top_B": "kPa",
+    "P_top_C": "kPa",
+    "P_top_D": "kPa",
     "P_blast_cold": "kPa",
     "Q_O2": "Nm³/h",
     "O2_rate": "%",
@@ -3376,7 +3934,20 @@ def chinese_int(text: str) -> int | None:
         "九": 9,
         "十": 10,
     }
-    return table.get(text)
+    value = table.get(text)
+    if value is not None:
+        return value
+    normalized = str(text or "").strip()
+    if "十" not in normalized:
+        return None
+    left, right = normalized.split("十", 1)
+    if left and left not in table:
+        return None
+    if right and right not in table:
+        return None
+    tens = table.get(left, 1)
+    ones = table.get(right, 0)
+    return tens * 10 + ones
 
 
 SPOKEN_MCP_FILLER_TERMS = (
@@ -3414,14 +3985,14 @@ SPOKEN_MCP_FILLER_TERMS = (
 
 
 SPOKEN_MCP_VARIABLE_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("P_top_gas_A", ("a点上升管煤气压力", "a上升管煤气压力", "上升管煤气压力a", "a管煤气压力")),
-    ("P_top_gas_B", ("b点上升管煤气压力", "b上升管煤气压力", "上升管煤气压力b", "b管煤气压力")),
-    ("P_top_gas_C", ("c点上升管煤气压力", "c上升管煤气压力", "上升管煤气压力c", "c管煤气压力")),
-    ("P_top_gas_D", ("d点上升管煤气压力", "d上升管煤气压力", "上升管煤气压力d", "d管煤气压力")),
-    ("T_top_A", ("a点上升管煤气温度", "a上升管煤气温度", "上升管煤气温度a", "炉顶a点温度", "a点顶温")),
-    ("T_top_B", ("b点上升管煤气温度", "b上升管煤气温度", "上升管煤气温度b", "炉顶b点温度", "b点顶温")),
-    ("T_top_C", ("c点上升管煤气温度", "c上升管煤气温度", "上升管煤气温度c", "炉顶c点温度", "c点顶温")),
-    ("T_top_D", ("d点上升管煤气温度", "d上升管煤气温度", "上升管煤气温度d", "炉顶d点温度", "d点顶温")),
+    ("P_top_A", ("顶压a", "a点顶压", "顶压a点", "a点上升管煤气压力", "a上升管煤气压力", "上升管煤气压力a", "a管煤气压力", "p_top_gas_a")),
+    ("P_top_B", ("顶压b", "b点顶压", "顶压b点", "b点上升管煤气压力", "b上升管煤气压力", "上升管煤气压力b", "b管煤气压力", "p_top_gas_b")),
+    ("P_top_C", ("顶压c", "c点顶压", "顶压c点", "c点上升管煤气压力", "c上升管煤气压力", "上升管煤气压力c", "c管煤气压力", "p_top_gas_c")),
+    ("P_top_D", ("顶压d", "d点顶压", "顶压d点", "d点上升管煤气压力", "d上升管煤气压力", "上升管煤气压力d", "d管煤气压力", "p_top_gas_d")),
+    ("T_top_A", ("顶温a", "顶温a点", "a点上升管煤气温度", "a上升管煤气温度", "上升管煤气温度a", "炉顶a点温度", "a点顶温")),
+    ("T_top_B", ("顶温b", "顶温b点", "b点上升管煤气温度", "b上升管煤气温度", "上升管煤气温度b", "炉顶b点温度", "b点顶温")),
+    ("T_top_C", ("顶温c", "顶温c点", "c点上升管煤气温度", "c上升管煤气温度", "上升管煤气温度c", "炉顶c点温度", "c点顶温")),
+    ("T_top_D", ("顶温d", "顶温d点", "d点上升管煤气温度", "d上升管煤气温度", "上升管煤气温度d", "炉顶d点温度", "d点顶温")),
     ("T_throat_A", ("a点炉喉温度", "炉喉温度a", "a炉喉温度")),
     ("T_throat_B", ("b点炉喉温度", "炉喉温度b", "b炉喉温度")),
     ("T_throat_C", ("c点炉喉温度", "炉喉温度c", "c炉喉温度")),
@@ -3611,6 +4182,18 @@ def qa_mcp_duration_minutes(question: str) -> int | None:
 def qa_mcp_body_temperature_variables(question: str) -> list[str]:
     """Expand body-temperature colloquialisms into concrete 7-16 layer/A-H sensor IDs."""
     text = str(question or "")
+
+    def normalize_chinese_layer(match: re.Match[str]) -> str:
+        value = chinese_int(match.group(1))
+        if value is None or not 7 <= value <= 16:
+            return match.group(0)
+        return f"第{value}层"
+
+    text = re.sub(
+        r"第?\s*([一二两三四五六七八九十]{1,3})\s*层",
+        normalize_chinese_layer,
+        text,
+    )
     symbolic = re.findall(r"(?i)(?<![a-z0-9_])t_body_l(7|8|9|10|11|12|13|14|15|16)_([a-h])(?![a-z0-9_])", text)
     if symbolic:
         return list(dict.fromkeys(f"T_body_L{int(layer)}_{position.upper()}" for layer, position in symbolic))
@@ -3620,15 +4203,36 @@ def qa_mcp_body_temperature_variables(question: str) -> list[str]:
         text,
         flags=re.IGNORECASE,
     )
-    if not any(term in text for term in body_terms) and not point_temperature:
+    layer_temperature_scope = re.search(
+        r"第?\s*(?:[7-9]|1[0-6])\s*层?.{0,20}[A-H].{0,20}(?:温度|炉温)",
+        text,
+        flags=re.IGNORECASE,
+    )
+    layer_statistics_scope = (
+        re.search(
+            r"第?\s*(?:[7-9]|1[0-6])\s*层\s*(?:到|至|-|—|－)\s*第?\s*(?:[7-9]|1[0-6])\s*层",
+            text,
+        )
+        and "温度" in text
+        and any(term in text for term in ("平均", "标准差", "波动", "极差", "变化", "斜率", "变异系数"))
+    )
+    if (
+        not any(term in text for term in body_terms)
+        and not point_temperature
+        and not layer_temperature_scope
+        and not layer_statistics_scope
+    ):
         return []
 
     layers: list[int] = []
-    for match in re.finditer(r"(?<!\d)([7-9]|1[0-6])\s*(?:到|至|-|—|－)\s*([7-9]|1[0-6])\s*层", text):
+    for match in re.finditer(
+        r"(?<!\d)第?\s*([7-9]|1[0-6])\s*层?\s*(?:到|至|-|—|－)\s*第?\s*([7-9]|1[0-6])\s*层",
+        text,
+    ):
         first, last = int(match.group(1)), int(match.group(2))
         step = 1 if first <= last else -1
         layers.extend(range(first, last + step, step))
-    layers.extend(int(value) for value in re.findall(r"(?<!\d)([7-9]|1[0-6])\s*层", text))
+    layers.extend(int(value) for value in re.findall(r"(?<!\d)第?\s*([7-9]|1[0-6])\s*层", text))
     layers = list(dict.fromkeys(layer for layer in layers if 7 <= layer <= 16))
     if not layers:
         return []
@@ -3645,6 +4249,132 @@ def qa_mcp_body_temperature_variables(question: str) -> list[str]:
     if not positions:
         positions = list("ABCDEFGH")
     return [f"T_body_L{layer}_{position}" for layer in layers for position in positions]
+
+
+def qa_mcp_explicit_time_range(
+    question: str,
+    now: datetime | None = None,
+) -> tuple[datetime, datetime] | None:
+    """Parse a bounded Chinese clock range used by deterministic MCP routes."""
+    text = str(question or "").split("\n[服务端对话状态：", 1)[0]
+    anchor = (now or datetime.now(LOCAL_TZ)).astimezone(LOCAL_TZ)
+    date_value = anchor.date()
+    if any(term in text for term in ("昨天", "昨日")):
+        date_value -= timedelta(days=1)
+    elif "前天" in text:
+        date_value -= timedelta(days=2)
+    else:
+        date_match = re.search(
+            r"(?:(\d{4})\s*[年/.-]\s*)?(\d{1,2})\s*[月/.-]\s*(\d{1,2})\s*日?",
+            text,
+        )
+        if date_match:
+            year = int(date_match.group(1) or anchor.year)
+            try:
+                date_value = date(year, int(date_match.group(2)), int(date_match.group(3)))
+            except ValueError:
+                return None
+
+    clock_match = re.search(
+        r"(?:(上午|下午|中午|晚上|夜里|凌晨)\s*)?"
+        r"(\d{1,2})\s*(?:点|时|:)\s*(\d{1,2})?\s*分?\s*"
+        r"(?:到|至|-|—|－|~|～)\s*"
+        r"(?:(上午|下午|中午|晚上|夜里|凌晨)\s*)?"
+        r"(\d{1,2})\s*(?:点|时|:)\s*(\d{1,2})?\s*分?",
+        text,
+    )
+    if not clock_match:
+        return None
+
+    def clock_hour(raw_hour: str, period: str) -> int:
+        hour = int(raw_hour)
+        if hour > 23:
+            raise ValueError("hour out of range")
+        if period in {"下午", "中午", "晚上", "夜里"} and hour < 12:
+            hour += 12
+        if period == "凌晨" and hour == 12:
+            hour = 0
+        return hour
+
+    first_period = str(clock_match.group(1) or "")
+    second_period = str(clock_match.group(4) or first_period)
+    try:
+        start = datetime.combine(
+            date_value,
+            datetime.min.time(),
+            tzinfo=LOCAL_TZ,
+        ).replace(
+            hour=clock_hour(clock_match.group(2), first_period),
+            minute=int(clock_match.group(3) or 0),
+        )
+        end = datetime.combine(
+            date_value,
+            datetime.min.time(),
+            tzinfo=LOCAL_TZ,
+        ).replace(
+            hour=clock_hour(clock_match.group(5), second_period),
+            minute=int(clock_match.group(6) or 0),
+        )
+    except ValueError:
+        return None
+    if end <= start:
+        end += timedelta(days=1)
+    return start, end
+
+
+def qa_mcp_body_temperature_statistics_plan(question: str) -> dict[str, Any] | None:
+    """Build one composite call for per-layer or exact-point temperature statistics."""
+    text = str(question or "")
+    body_variables = qa_mcp_body_temperature_variables(text)
+    if not body_variables:
+        return None
+    all_variables = qa_mcp_variables(text)
+    if any(variable not in body_variables for variable in all_variables):
+        return None
+    statistic_terms = (
+        "平均", "均值", "标准差", "波动", "幅值", "极差", "最高", "最低",
+        "首末", "变化量", "斜率", "变异系数", "逐层", "每一层", "每层", "统计",
+    )
+    if not any(term in text for term in statistic_terms):
+        return None
+    parsed = [
+        re.fullmatch(r"T_body_L(7|8|9|1[0-6])_([A-H])", variable)
+        for variable in body_variables
+    ]
+    matches = [match for match in parsed if match]
+    if not matches:
+        return None
+    layers = list(dict.fromkeys(int(match.group(1)) for match in matches))
+    positions = list(dict.fromkeys(match.group(2) for match in matches))
+    explicit_range = qa_mcp_explicit_time_range(text)
+    if explicit_range:
+        start_dt, end_dt = explicit_range
+    else:
+        duration_text = re.sub(r"(?<!\d)\d{1,3}\s*分钟\s*滚动", "", text)
+        duration_text = re.sub(r"滚动\s*(?<!\d)\d{1,3}\s*分钟", "", duration_text)
+        duration_minutes = qa_mcp_duration_minutes(duration_text) or 60
+        end_dt = datetime.now(LOCAL_TZ).replace(second=0, microsecond=0)
+        start_dt = end_dt - timedelta(minutes=duration_minutes)
+    rolling_match = re.search(r"(?<!\d)(\d{1,3})\s*分钟\s*滚动", text)
+    rolling_minutes = int(rolling_match.group(1)) if rolling_match else 15
+    point_detail_intent = any(
+        term in text
+        for term in ("各方位", "每个方位", "各点", "每个点", "逐点", "分别列出")
+    )
+    include_point_statistics = len(layers) == 1 and (len(positions) == 1 or point_detail_intent)
+    return {
+        "tool": "gl02ext__query_body_temperature_statistics",
+        "arguments": {
+            "start_layer": min(layers),
+            "end_layer": max(layers),
+            "start_time": start_dt.isoformat(timespec="seconds"),
+            "end_time": end_dt.isoformat(timespec="seconds"),
+            "positions": positions,
+            "rolling_window_minutes": max(2, min(rolling_minutes, 120)),
+            "require_all_positions": True,
+            "include_point_statistics": include_point_statistics,
+        },
+    }
 
 
 def qa_mcp_body_temperature_variable(question: str) -> str | None:
@@ -3679,6 +4409,8 @@ def qa_mcp_catalog_variables(question: str) -> list[str]:
             item.get("point_id"),
             item.get("tag_long_name"),
             item.get("description"),
+            *list(item.get("legacy_variable_names") or []),
+            *list(item.get("aliases") or []),
         )
         for field in fields:
             term = normalize_spoken_question(str(field or ""))
@@ -3721,10 +4453,23 @@ def qa_mcp_group_variables(question: str) -> list[str]:
                 variables.append(item)
 
     has_abcd = all(re.search(rf"(?<![a-z0-9_]){letter}(?![a-z0-9_])", original) for letter in "abcd")
-    if "上升管煤气压力" in normalized and (has_abcd or "四个" in normalized or "各上升管" in normalized):
-        add_group(("P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"))
-    if "上升管煤气温度" in normalized and (has_abcd or "四个" in normalized or "各上升管" in normalized):
-        add_group(("T_top_A", "T_top_B", "T_top_C", "T_top_D"))
+    shared_top_temperature_pressure = any(term in normalized for term in (
+        "上升管煤气温度和压力", "上升管煤气温度与压力", "上升管煤气温度及压力",
+    ))
+    top_pressure_group = "顶压" in normalized or "上升管煤气压力" in normalized or shared_top_temperature_pressure
+    top_temperature_group = "顶温" in normalized or "上升管煤气温度" in normalized
+    expand_top_groups = has_abcd or "四个" in normalized or "各上升管" in normalized
+    ordered_top_groups: list[tuple[int, tuple[str, ...]]] = []
+    if top_pressure_group and expand_top_groups:
+        pressure_positions = [position for term in ("顶压", "上升管煤气压力") if (position := normalized.find(term)) >= 0]
+        if not pressure_positions and shared_top_temperature_pressure:
+            pressure_positions = [normalized.find("压力")]
+        ordered_top_groups.append((min(pressure_positions), ("P_top_A", "P_top_B", "P_top_C", "P_top_D")))
+    if top_temperature_group and expand_top_groups:
+        temperature_positions = [position for term in ("顶温", "上升管煤气温度") if (position := normalized.find(term)) >= 0]
+        ordered_top_groups.append((min(temperature_positions), ("T_top_A", "T_top_B", "T_top_C", "T_top_D")))
+    for _, group in sorted(ordered_top_groups, key=lambda item: item[0]):
+        add_group(group)
     if "炉喉温度" in normalized and (has_abcd or "四个" in normalized or "各炉喉" in normalized):
         add_group(("T_throat_A", "T_throat_B", "T_throat_C", "T_throat_D"))
     if "出铁口温度" in normalized:
@@ -3779,11 +4524,23 @@ def qa_mcp_variables(question: str) -> list[str]:
         if variable not in variables:
             variables.append(variable)
     for variable, terms in SPOKEN_MCP_VARIABLE_ALIASES:
-        if any(normalize_spoken_question(term) in q for term in terms) and variable not in variables:
+        matched_alias = False
+        for term in terms:
+            normalized_term = normalize_spoken_question(term)
+            if re.fullmatch(r"[a-z0-9_]+", normalized_term):
+                matched_alias = bool(re.search(
+                    rf"(?<![a-z0-9_]){re.escape(normalized_term)}(?![a-z0-9_])",
+                    q,
+                ))
+            else:
+                matched_alias = normalized_term in q
+            if matched_alias:
+                break
+        if matched_alias and variable not in variables:
             variables.append(variable)
     aggregate_suppressions = {
         "T_top": (("T_top_A", "T_top_B", "T_top_C", "T_top_D"), ("综合顶温", "平均顶温", "炉顶平均温度", "综合炉顶温度")),
-        "P_top": (("P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"), ("综合顶压", "顶压平均", "炉顶平均压力")),
+        "P_top": (("P_top_A", "P_top_B", "P_top_C", "P_top_D"), ("综合顶压", "顶压平均", "炉顶平均压力")),
         "P_blast": (("P_blast_cold",), ("热风压力", "送风压力", "鼓风压力")),
         "L": (("L_south", "L_north"), ("平均料线", "总料线", "雷达料线", "雷达探尺")),
     }
@@ -3800,6 +4557,24 @@ def qa_mcp_variables(question: str) -> list[str]:
         total_specific_terms = ("全炉压差", "总压差", "炉内压差", "总体压差")
         if not any(normalize_spoken_question(term) in q for term in total_specific_terms):
             variables.remove("DP_total")
+    physical_static_pressure = {
+        "P_static_20m35": "P_static_lower_mean",
+        "P_static_23m49": "P_static_middle_mean",
+        "P_static_28m98": "P_static_upper_mean",
+    }
+    for physical_id, legacy_mean_id in physical_static_pressure.items():
+        if physical_id in variables and legacy_mean_id in variables:
+            variables.remove(legacy_mean_id)
+    previous_hour_pci_terms = ("上小时喷煤量", "上一小时喷煤量", "前一小时喷煤量")
+    current_hour_pci_terms = ("本小时喷煤量", "当前小时喷煤量", "这小时喷煤量")
+    if any(normalize_spoken_question(term) in q for term in previous_hour_pci_terms):
+        variables = [item for item in variables if item not in {"PCI_current_hour", "PCI_rate"}]
+    elif any(normalize_spoken_question(term) in q for term in current_hour_pci_terms):
+        variables = [item for item in variables if item not in {"PCI_previous_hour", "PCI_rate"}]
+    if "阀前" in q and "阀后" not in q:
+        variables = [item for item in variables if item != "P_O2_valve_out"]
+    elif "阀后" in q and "阀前" not in q:
+        variables = [item for item in variables if item != "P_O2_valve_in"]
     return variables
 
 
@@ -3894,9 +4669,23 @@ def qa_mcp_chart_plan(question: str) -> dict[str, Any] | None:
     end_dt = datetime.now().astimezone().replace(second=0, microsecond=0)
     start_dt = end_dt - timedelta(minutes=duration_minutes)
     body_terms = ("炉体温度", "炉身", "炉腹", "炉缸", "炉刚", "炉墙温度", "炉壳温度")
-    matrix_terms = ("热力矩阵", "温度矩阵", "矩阵图", "大矩阵", "每个小格", "每格")
+    matrix_terms = (
+        "热力矩阵",
+        "温度矩阵",
+        "矩阵图",
+        "矩阵热度图",
+        "矩阵热力图",
+        "热度图",
+        "热力图",
+        "大矩阵",
+        "每个小格",
+        "每格",
+    )
     if any(term in text for term in body_terms) and any(term in text for term in matrix_terms):
-        layer_match = re.search(r"(\d{1,2})\s*(?:到|至|-|—|－)\s*(\d{1,2})\s*层", text)
+        layer_match = re.search(
+            r"第?\s*(\d{1,2})\s*层?\s*(?:到|至|-|—|－)\s*第?\s*(\d{1,2})\s*层",
+            text,
+        )
         start_layer = int(layer_match.group(1)) if layer_match else 7
         end_layer = int(layer_match.group(2)) if layer_match else 16
         if start_layer > end_layer:
@@ -4019,6 +4808,9 @@ def qa_mcp_sensor_query_plan(question: str) -> dict[str, Any] | None:
     """Batch clear sensor requests without an extra LLM planning round."""
 
     text = str(question or "")
+    body_statistics_plan = qa_mcp_body_temperature_statistics_plan(text)
+    if body_statistics_plan:
+        return body_statistics_plan
     user_text = text.split("\n[服务端对话状态：", 1)[0]
     variables = qa_mcp_variables(text)
     if not variables:
@@ -4115,14 +4907,14 @@ def build_cross_source_plans(
     question: str,
     service_selection: "DomainSelection",
 ) -> CrossSourcePlan | None:
-    """Build a CrossSourcePlan when a question requires 2+ data sources.
+    """Build a deterministic DAG for cross-source or dependent IMES queries.
 
     Returns None for single-source questions (let the existing fast path
     handle them).  Returns a CrossSourcePlan with 2+ steps and distinct
     server_ids when the question genuinely spans MES + GL02.
 
     Rules:
-    - Only activates when 2+ different server_ids are needed.
+    - Activates for 2+ different server_ids or a spoken-heat dependency chain.
     - GL02 internal priority: chart > correlation > sensor query.
     - P_top stays in query_gl02_sensors, never enters history tools.
     - Heat reference detected from question text; exact formats resolved
@@ -4133,16 +4925,7 @@ def build_cross_source_plans(
     if not cross_source_enabled:
         return None
 
-    if len(set(service_selection.server_ids)) < 2:
-        return None  # Single source → existing fast path
-
     text = str(question or "").split("\n[服务端对话状态：", 1)[0]
-
-    # --- Build candidate plans from all four planners ---
-    imes_plan = qa_mcp_imes_plan(question)
-    chart_plan = qa_mcp_chart_plan(question)
-    standard_plan = qa_mcp_standard_analysis_plan(question)
-    sensor_plan = qa_mcp_sensor_query_plan(question)
 
     # --- Detect explicit heat chemistry request ---
     heat_ref = _detect_heat_reference(question)
@@ -4151,6 +4934,17 @@ def build_cross_source_plans(
         for term in ("硅", "si", "锰", "mn", "磷", "p", "硫", "s", "碳", "c",
                      "化验", "成分", "含量", "铁水")
     )
+    single_service_dependency = bool(
+        has_chemistry_request and heat_ref and re.fullmatch(r"\d{2,4}", heat_ref)
+    )
+    if len(set(service_selection.server_ids)) < 2 and not single_service_dependency:
+        return None  # Single independent source → existing fast path
+
+    # --- Build candidate plans from all four planners ---
+    imes_plan = qa_mcp_imes_plan(question)
+    chart_plan = qa_mcp_chart_plan(question)
+    standard_plan = qa_mcp_standard_analysis_plan(question)
+    sensor_plan = qa_mcp_sensor_query_plan(question)
 
     steps: list[CrossSourceStep] = []
     requested_fact_ids: list[str] = []
@@ -4243,6 +5037,13 @@ def build_cross_source_plans(
     if chart_plan:
         step_counter += 1
         sid = f"s{step_counter}_gl02_chart"
+        correlation_chart = (
+            chart_plan["tool"] == "plot_gl02_analysis"
+            and str(chart_plan["arguments"].get("analysis_type") or "").startswith("correlation")
+        )
+        chart_fact_ids = ["chart"]
+        if correlation_chart:
+            chart_fact_ids.extend(("pearson_r", "aligned_count", "correlation_left", "correlation_right", "correlation_window"))
         steps.append(CrossSourceStep(
             step_id=sid,
             server_id=gl02_server,
@@ -4250,14 +5051,18 @@ def build_cross_source_plans(
             tool=chart_plan["tool"],
             arguments=chart_plan["arguments"],
             depends_on=(),
-            produces_fact_ids=("chart",),
-            required_for_answer=False,     # display step
-            required_for_analysis=False,
+            produces_fact_ids=tuple(chart_fact_ids),
+            required_for_answer=correlation_chart,
+            required_for_analysis=correlation_chart,
         ))
-        requested_fact_ids.append("chart")
+        requested_fact_ids.extend(chart_fact_ids)
     elif standard_plan:
         step_counter += 1
         sid = f"s{step_counter}_gl02_analysis"
+        correlation_fact_ids = (
+            "pearson_r", "aligned_count", "correlation_left",
+            "correlation_right", "correlation_window",
+        )
         steps.append(CrossSourceStep(
             step_id=sid,
             server_id=gl02_server,
@@ -4265,16 +5070,34 @@ def build_cross_source_plans(
             tool=standard_plan["tool"],
             arguments=standard_plan["arguments"],
             depends_on=(),
-            produces_fact_ids=("correlation_analysis",),
+            produces_fact_ids=correlation_fact_ids,
             required_for_answer=True,
             required_for_analysis=True,
         ))
-        requested_fact_ids.append("correlation_analysis")
+        requested_fact_ids.extend(correlation_fact_ids)
     elif sensor_plan:
         # Split body-temperature capability calls from ordinary GL02 sensor
         # calls. This keeps T_body_L13_C on the extended service while P_top
         # remains a sensor fact, even when both are requested together.
         args = dict(sensor_plan["arguments"])
+        if (
+            sensor_plan.get("tool") == "gl02ext__query_body_temperature_statistics"
+            and "gl02-extended" in service_selection.server_ids
+        ):
+            step_counter += 1
+            steps.append(CrossSourceStep(
+                step_id=f"s{step_counter}_gl02_body_temperature_statistics",
+                server_id="gl02-extended",
+                source_domain="gl02",
+                tool="gl02ext__query_body_temperature_statistics",
+                arguments=args,
+                depends_on=(),
+                produces_fact_ids=("body_temperature_statistics",),
+                required_for_answer=True,
+                required_for_analysis=False,
+            ))
+            requested_fact_ids.append("body_temperature_statistics")
+            args = {}
         all_variables = list(args.get("variables") or [])
         body_variables = [
             str(v) for v in all_variables
@@ -4306,7 +5129,7 @@ def build_cross_source_plans(
                     required_for_analysis=analysis_required,
                 ))
                 requested_fact_ids.append(body_variable)
-        if sensor_variables or not body_variables:
+        if args and (sensor_variables or not body_variables):
             step_counter += 1
             sid = f"s{step_counter}_gl02_sensor"
             tool_name = "query_gl02_sensors"
@@ -4331,7 +5154,8 @@ def build_cross_source_plans(
 
     # --- Require at least 2 distinct server_ids ---
     distinct_servers = {s.server_id for s in steps}
-    if len(distinct_servers) < 2:
+    has_dependency_edge = any(step.depends_on for step in steps)
+    if len(distinct_servers) < 2 and not (single_service_dependency and has_dependency_edge):
         return None  # Single source → fall through to fast path
 
     if not steps:
@@ -4372,6 +5196,13 @@ def format_cross_source_answer(
     if snapshot.facts:
         lines.append("| 查询项 | 数值 | 单位 | 数据时间 | 来源 | 状态 |")
         lines.append("|--------|------|------|----------|------|------|")
+        fact_labels = {
+            "pearson_r": "Pearson相关系数",
+            "aligned_count": "对齐样本数",
+            "correlation_left": "相关性左变量",
+            "correlation_right": "相关性右变量",
+            "correlation_window": "相关性时间窗",
+        }
         for fact in snapshot.facts:
             status = "缺失" if fact.missing else "正常"
             value_str = (
@@ -4383,7 +5214,7 @@ def format_cross_source_answer(
             time_str = fact.data_time or "—"
             source_str = fact.source_service or "—"
             lines.append(
-                f"| {fact.label} | {value_str} | {unit_str} | {time_str} | {source_str} | {status} |"
+                f"| {fact_labels.get(fact.fact_id, fact.label)} | {value_str} | {unit_str} | {time_str} | {source_str} | {status} |"
             )
         lines.append("")
 
@@ -4414,14 +5245,34 @@ def format_cross_source_answer(
             resolved = hr.get("resolved_heat_no") or "—"
             policy = hr.get("resolution_policy") or "—"
             lines.append(f"**炉次参考**：{resolved}（解析策略：{policy}）\n")
+            heat_error = str(hr.get("error_code") or "")
+            requested = hr.get("requested_heat_reference") or hr.get("requested_heat_no") or "该口语炉次"
+            if heat_error == "HEAT_REFERENCE_NOT_FOUND":
+                lines.append(
+                    f"> 未找到口语炉次 `{requested}` 对应的权威正式炉号；禁止猜测或替换炉号，"
+                    "因此未执行下游铁水 Si 查询。\n"
+                )
+            elif heat_error == "HEAT_REFERENCE_AMBIGUOUS":
+                lines.append(
+                    f"> 口语炉次 `{requested}` 匹配到多个候选；请补充日期或完整炉号。"
+                    "在消除歧义前不会执行下游铁水 Si 查询。\n"
+                )
 
     # --- Analysis (only when allowed) ---
     if analysis_text and snapshot.analysis_allowed:
         lines.append("## 分析\n")
         lines.append(analysis_text)
+        lines.append("\n> 相关性描述不代表因果关系。")
         lines.append("")
     elif analysis_text and not snapshot.analysis_allowed:
         lines.append("> ⚠️ 证据不完整，已跳过分析。以上为已有事实。\n")
+
+    has_pearson_fact = any(
+        fact.fact_id == "pearson_r" and not fact.missing and fact.value is not None
+        for fact in snapshot.facts
+    )
+    if has_pearson_fact and not analysis_text:
+        lines.append("> Pearson 相关系数只描述线性相关程度；相关不等于因果。\n")
 
     # --- Footer ---
     if snapshot.partial:
@@ -4926,15 +5777,17 @@ def truncate_tool_text(text: str, max_chars: int = QA_MCP_MAX_RESULT_CHARS) -> s
     return text[:max_chars] + f"\n...（工具结果过长，已截断；原始长度 {len(text)} 字符）"
 
 
-def mcp_result_to_text(result: Any) -> str:
+def mcp_result_to_text(result: Any, max_chars: int | None = QA_MCP_MAX_RESULT_CHARS) -> str:
     structured = getattr(result, "structuredContent", None)
     if structured:
-        return truncate_tool_text(json.dumps(structured, ensure_ascii=False, default=str))
+        text = json.dumps(structured, ensure_ascii=False, default=str)
+        return text if max_chars is None else truncate_tool_text(text, max_chars=max_chars)
     parts = []
     for content in getattr(result, "content", []) or []:
         text = getattr(content, "text", None)
         parts.append(text if text is not None else str(content))
-    return truncate_tool_text("\n".join(parts))
+    text = "\n".join(parts)
+    return text if max_chars is None else truncate_tool_text(text, max_chars=max_chars)
 
 
 def try_load_json(text: str) -> Any:
@@ -4961,6 +5814,163 @@ def compact_tool_result_for_event(result_text: str) -> dict[str, Any]:
     if image_match:
         fallback["image_url"] = bytes(image_match.group(1), "utf-8").decode("unicode_escape")
     return fallback
+
+
+def qa_mcp_public_trace(event_name: str, payload: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Build a bounded, credential-free UI trace for an MCP execution event.
+
+    The public trace is an execution summary, not model chain-of-thought.  It
+    deliberately excludes raw SQL, connection strings, local paths and full
+    tool output while retaining the selected scope, source, elapsed time and
+    evidence counts needed for operator audit.
+    """
+
+    tool_name = str(payload.get("tool") or "")
+    if tool_name != "gl02ext__query_body_temperature_statistics":
+        return None
+    arguments = payload.get("arguments") if isinstance(payload.get("arguments"), Mapping) else {}
+    result = payload.get("result") if isinstance(payload.get("result"), Mapping) else {}
+    if isinstance(result.get("result"), Mapping):
+        result = result["result"]
+    result_layers = result.get("layers") if isinstance(result.get("layers"), list) else []
+    start_layer = arguments.get("start_layer") or (result_layers[0] if result_layers else None)
+    end_layer = arguments.get("end_layer") or (result_layers[-1] if result_layers else None)
+    positions = arguments.get("positions") or result.get("positions") or []
+    position_labels = [
+        str(value) for value in positions
+        if len(str(value)) == 1 and str(value) in "ABCDEFGH"
+    ]
+    try:
+        layer_count = abs(int(end_layer) - int(start_layer)) + 1
+    except (TypeError, ValueError):
+        layer_count = len(result.get("layers") or [])
+    point_count = layer_count * len(position_labels) if layer_count and position_labels else None
+    scope = (
+        f"第{start_layer}层至第{end_layer}层，{position_labels[0]}至{position_labels[-1]}方位"
+        if start_layer is not None and end_layer is not None and position_labels
+        else "炉体温度矩阵"
+    )
+    trace_id = f"tool:{payload.get('round', 0)}:{tool_name}"
+    if event_name == "tool_start":
+        start_time = arguments.get("start_time") or "未指定"
+        end_time = arguments.get("end_time") or "未指定"
+        return {
+            "trace_id": trace_id,
+            "stage": "tool",
+            "status": "running",
+            "title": "正在执行炉体温度矩阵统计",
+            "detail": f"{scope}，共{point_count or '待确认'}个点位；时间窗 {start_time} 至 {end_time}。",
+            "server": "GL02炉体温度只读MCP",
+            "tool": "炉体温度矩阵批量统计",
+            "call_count": 1,
+        }
+    if event_name != "tool_result":
+        return None
+    ok = result.get("ok") is not False
+    quality = result.get("data_quality") if isinstance(result.get("data_quality"), Mapping) else {}
+    source = result.get("source") if isinstance(result.get("source"), Mapping) else {}
+    raw_rows = quality.get("raw_row_count")
+    expected_rows = quality.get("expected_rows")
+    missing_rows = quality.get("missing_row_count")
+    if ok:
+        detail = (
+            f"{scope}批量计算完成；读取{raw_rows or 0}行，预期{expected_rows or 0}行，"
+            f"缺失{missing_rows or 0}行。"
+        )
+    else:
+        detail = "炉体温度矩阵查询失败；系统将保留确定性失败边界，不会编造实时数值。"
+    return {
+        "trace_id": trace_id,
+        "stage": "tool",
+        "status": "succeeded" if ok else "failed",
+        "title": "炉体温度矩阵统计完成" if ok else "炉体温度矩阵统计失败",
+        "detail": detail,
+        "server": "GL02炉体温度只读MCP",
+        "tool": "炉体温度矩阵批量统计",
+        "source": (
+            f"{source.get('schema')}.{source.get('object')}"
+            if source.get("schema") and source.get("object")
+            else "bf_sensor.one_minute_values"
+        ),
+        "elapsed_ms": payload.get("elapsed_ms"),
+        "cache_hit": bool(payload.get("cache_hit")),
+        "call_count": 1,
+        "row_count": raw_rows,
+        "point_count": quality.get("queried_point_count") or point_count,
+    }
+
+
+def qa_mcp_body_route_trace(plan: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Describe deterministic semantic resolution and composite routing."""
+
+    arguments = plan.get("arguments") if isinstance(plan.get("arguments"), Mapping) else {}
+    first = arguments.get("start_layer")
+    last = arguments.get("end_layer")
+    positions = [str(value) for value in (arguments.get("positions") or [])]
+    layer_count = abs(int(last) - int(first)) + 1 if first is not None and last is not None else 0
+    point_count = layer_count * len(positions)
+    position_scope = f"{positions[0]}至{positions[-1]}" if positions else "未指定"
+    return [
+        {
+            "public_trace": {
+                "trace_id": "route:semantic-resolution",
+                "stage": "routing",
+                "status": "succeeded",
+                "title": "已完成中文对象解析",
+                "detail": f"识别为第{first}层至第{last}层炉体温度、{position_scope}方位，共{point_count}个物理点位。",
+            }
+        },
+        {
+            "public_trace": {
+                "trace_id": "route:composite-selection",
+                "stage": "routing",
+                "status": "succeeded",
+                "title": "已选择一次复合MCP调用",
+                "detail": "使用炉体温度矩阵批量统计工具完成读取、分钟对齐和确定性统计，不展开为逐点循环查询。",
+                "server": "GL02炉体温度只读MCP",
+                "tool": "炉体温度矩阵批量统计",
+                "call_count": 1,
+            }
+        },
+    ]
+
+
+def qa_body_temperature_model_explanation(question: str, factual_answer: str) -> tuple[str, str]:
+    """Generate one bounded qualitative explanation after deterministic facts.
+
+    The factual answer remains authoritative.  A missing, failed or numerically
+    ungrounded model response is discarded so the operator still receives the
+    complete database-derived result.
+    """
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "你是高炉工艺数据解释助手。只能解释下面已经确认的统计事实，不能新增或修改任何数值、"
+                "时间、层位、方位、来源或结论；不得把相关或伴随变化写成因果。"
+                "只写一段简短的定性解释，区分数据事实、可能含义和证据边界，不给自动调控指令。"
+            ),
+        },
+        {
+            "role": "user",
+            "content": f"用户问题：{question}\n\n已确认事实：\n{factual_answer}\n\n请解释这些事实。",
+        },
+    ]
+    try:
+        response = call_ollama_chat_obj(messages, tools=None, temperature=0.1, max_tokens=420)
+        explanation = clean_llm_output(
+            (response.get("message") or {}).get("content") or response.get("response") or ""
+        ).strip()
+    except Exception:
+        return "", "failed"
+    if not explanation:
+        return "", "empty"
+    factual_numbers = {float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", factual_answer)}
+    explanation_numbers = {float(value) for value in re.findall(r"-?\d+(?:\.\d+)?", explanation)}
+    if any(value not in factual_numbers for value in explanation_numbers):
+        return "", "rejected_ungrounded_numbers"
+    return explanation, "succeeded"
 
 
 def append_mcp_chart_links(answer: str, tool_trace: list[dict[str, Any]]) -> str:
@@ -4991,6 +6001,8 @@ def deterministic_mcp_answer(tool_name: str, result_text: str) -> str:
     """Create a concise factual result for deterministic routes without another LLM round."""
 
     payload = try_load_json(result_text)
+    if isinstance(payload, dict) and isinstance(payload.get("result"), dict):
+        payload = payload["result"]
     if not isinstance(payload, dict):
         return ""
     if payload.get("ok") is False:
@@ -5005,6 +6017,96 @@ def deterministic_mcp_answer(tool_name: str, result_text: str) -> str:
             return f"{float(value):.3f}".rstrip("0").rstrip(".")
         except (TypeError, ValueError):
             return str(value if value is not None else "无")
+
+    if tool_name == "gl02ext__query_body_temperature_statistics":
+        start_time = payload.get("start_time") or "未知"
+        end_time = payload.get("end_time") or "未知"
+        unit = payload.get("unit") or "℃"
+        positions = "、".join(str(item) for item in (payload.get("positions") or [])) or "未指定"
+        lines = [f"统计时间：{start_time} 至 {end_time}；方位：{positions}；单位：{unit}。"]
+        point_rows = payload.get("point_statistics") or []
+        if len(point_rows) == 1:
+            point = point_rows[0]
+            stats = point.get("statistics") or {}
+            first = stats.get("first") or {}
+            last = stats.get("last") or {}
+            lines.append(
+                f"第{point.get('layer')}层{point.get('position')}点：样本 {stats.get('count') or 0}，"
+                f"平均 {number(stats.get('avg'))}{unit}，总体标准差 {number(stats.get('stddev_pop'))}{unit}，"
+                f"最低 {number(stats.get('min'))}{unit}，最高 {number(stats.get('max'))}{unit}，"
+                f"极差 {number(stats.get('range'))}{unit}。"
+            )
+            lines.append(
+                f"首值 {number(first.get('value'))}{unit}（{first.get('ts') or '未知'}），"
+                f"末值 {number(last.get('value'))}{unit}（{last.get('ts') or '未知'}），"
+                f"首末变化量 {number(stats.get('delta'))}{unit}，"
+                f"每分钟斜率 {number(stats.get('slope_per_min'))}{unit}/min，"
+                f"CV {number(stats.get('cv_percent'))}%。"
+            )
+        elif point_rows:
+            for point in point_rows:
+                stats = point.get("statistics") or {}
+                lines.append(
+                    f"第{point.get('layer')}层{point.get('position')}方位：样本 {stats.get('count') or 0}/"
+                    f"{point.get('expected_minute_count') or 0}，覆盖率 "
+                    f"{number(float(point.get('coverage_ratio') or 0) * 100)}%，"
+                    f"平均 {number(stats.get('avg'))}{unit}，总体标准差 {number(stats.get('stddev_pop'))}{unit}，"
+                    f"最低 {number(stats.get('min'))}{unit}，最高 {number(stats.get('max'))}{unit}，"
+                    f"极差 {number(stats.get('range'))}{unit}。"
+                )
+            for item in payload.get("layer_statistics") or []:
+                stats = item.get("statistics") or {}
+                lines.append(
+                    f"第{item.get('layer')}层空间平均：完整对齐样本 {stats.get('count') or 0}/"
+                    f"{item.get('expected_minute_count') or 0}，平均 {number(stats.get('avg'))}{unit}，"
+                    f"方位完整对齐后的时序极差 {number(stats.get('range'))}{unit}。"
+                )
+        else:
+            for item in payload.get("layer_statistics") or []:
+                stats = item.get("statistics") or {}
+                rolling = item.get("rolling_variation") or {}
+                rolling_start = rolling.get("start") or {}
+                rolling_end = rolling.get("end") or {}
+                stddev_delta = rolling.get("stddev_delta")
+                if stddev_delta is None:
+                    rolling_direction = "无法判断"
+                elif float(stddev_delta) > 0:
+                    rolling_direction = "增大"
+                elif float(stddev_delta) < 0:
+                    rolling_direction = "减小"
+                else:
+                    rolling_direction = "不变"
+                lines.append(
+                    f"第{item.get('layer')}层：完整对齐样本 {stats.get('count') or 0}/"
+                    f"{item.get('expected_minute_count') or 0}，覆盖率 "
+                    f"{number(float(item.get('coverage_ratio') or 0) * 100)}%，"
+                    f"层平均 {number(stats.get('avg'))}{unit}，总体标准差 {number(stats.get('stddev_pop'))}{unit}，"
+                    f"最低 {number(stats.get('min'))}{unit}，最高 {number(stats.get('max'))}{unit}，"
+                    f"极差 {number(stats.get('range'))}{unit}，CV {number(stats.get('cv_percent'))}%，"
+                    f"首末变化量 {number(stats.get('delta'))}{unit}，"
+                    f"每分钟斜率 {number(stats.get('slope_per_min'))}{unit}/min。"
+                )
+                if rolling:
+                    lines.append(
+                        f"- {rolling.get('window_minutes') or 15}分钟滚动标准差："
+                        f"{number(rolling_start.get('stddev_pop'))} → {number(rolling_end.get('stddev_pop'))}{unit}，"
+                        f"变化 {number(stddev_delta)}{unit}（{rolling_direction}）；滚动极差："
+                        f"{number(rolling_start.get('range'))} → {number(rolling_end.get('range'))}{unit}，"
+                        f"变化 {number(rolling.get('range_delta'))}{unit}。"
+                    )
+        quality = payload.get("data_quality") or {}
+        lines.append(
+            f"数据质量：读取 {quality.get('raw_row_count') or 0} 行，预期 {quality.get('expected_rows') or 0} 行，"
+            f"缺失 {quality.get('missing_row_count') or 0} 行，非有限值 {quality.get('nonfinite_count') or 0}，"
+            f"零值 {quality.get('zero_count') or 0}；未插值、未静默过滤。"
+        )
+        source = payload.get("source") or {}
+        lines.append(
+            f"来源：{source.get('service') or 'GL02只读MCP'} / "
+            f"{source.get('schema') or 'bf_sensor'}.{source.get('object') or 'one_minute_values'}；"
+            f"统计口径：层均值为同一分钟所选方位完整对齐后的算术平均，标准差为总体标准差。"
+        )
+        return "\n".join(lines)
 
     if tool_name == "imes__get_current_heat_context":
         current = payload.get("current_heat_no") or "未查到"
@@ -5189,19 +6291,58 @@ def deterministic_mcp_answer(tool_name: str, result_text: str) -> str:
                 continue
             variable = item.get("variable") or {}
             unit = str(variable.get("unit") or PROMPT_METRIC_UNIT_FALLBACKS.get(str(requested)) or "").strip()
+            unit_text = unit or "单位未登记"
+            source = item.get("source") or {}
+            source_parts = [
+                str(source.get("profile") or source.get("engine") or "gl02-data"),
+                str(source.get("read_policy") or "readonly"),
+            ]
+            source_text = " / ".join(part for part in dict.fromkeys(source_parts) if part)
             latest = item.get("latest") or {}
             statistics = item.get("statistics") or {}
             if isinstance(latest, dict) and latest.get("value") is not None:
                 lines.append(
-                    f"{label(requested)}：{number(latest.get('value'))}{unit}，"
-                    f"数据时间 {latest.get('ts') or '未知'}"
+                    f"{label(requested)}（{requested}）：{number(latest.get('value'))}{unit_text}；"
+                    f"数据时间 {latest.get('ts') or '未知'}；"
+                    f"质量 {latest.get('quality') or item.get('quality') or '未知'}；"
+                    f"采集时间 {latest.get('collected_at') or '未知'}；来源：{source_text}。"
                 )
             elif isinstance(statistics, dict) and statistics:
+                avg = statistics.get("avg")
+                stddev = statistics.get("stddev")
+                minimum = statistics.get("min")
+                maximum = statistics.get("max")
+                value_range = (
+                    float(maximum) - float(minimum)
+                    if isinstance(minimum, (int, float)) and isinstance(maximum, (int, float))
+                    else None
+                )
+                cv = (
+                    float(stddev) / float(avg) * 100.0
+                    if isinstance(avg, (int, float)) and isinstance(stddev, (int, float)) and float(avg) != 0
+                    else None
+                )
+                first = statistics.get("first") or {}
+                last = statistics.get("last") or {}
                 lines.append(
-                    f"{label(requested)}：均值 {number(statistics.get('avg'))}{unit}，"
-                    f"最低 {number(statistics.get('min'))}{unit}，"
-                    f"最高 {number(statistics.get('max'))}{unit}，"
-                    f"趋势 {statistics.get('trend') or '未知'}"
+                    f"{label(requested)}（{requested}）：时间范围 "
+                    f"{item.get('start_time') or payload.get('start_time') or '未知'} 至 "
+                    f"{item.get('end_time') or payload.get('end_time') or '未知'}；"
+                    f"样本数 {statistics.get('count') or 0}；均值 {number(avg)}{unit_text}；"
+                    f"总体标准差 STDDEV_POP {number(stddev)}{unit_text}；"
+                    f"最低 {number(minimum)}{unit_text}；最高 {number(maximum)}{unit_text}；"
+                    f"极差 {number(value_range)}{unit_text}；"
+                    f"首值 {number(first.get('value'))}{unit_text}（{first.get('ts') or '未知'}）；"
+                    f"末值 {number(last.get('value'))}{unit_text}（{last.get('ts') or '未知'}）；"
+                    f"变化量 {number(statistics.get('delta'))}{unit_text}；"
+                    f"每分钟斜率 {number(statistics.get('slope_per_min'))}{unit_text}/min；"
+                    f"趋势 {statistics.get('trend') or '未知'}；"
+                    + (
+                        f"CV = STDDEV_POP ÷ 均值 × 100% = {number(cv)}%；"
+                        if cv is not None else
+                        "CV = STDDEV_POP ÷ 均值 × 100%，均值为0或数据缺失，无法计算；"
+                    )
+                    + f"来源：{source_text}。"
                 )
         return "\n".join(lines)
     return ""
@@ -5231,12 +6372,277 @@ def call_ollama_chat_obj(
         return json.loads(resp.read().decode("utf-8", errors="replace"))
 
 
+def qa_mcp_fallback_messages(
+    messages: list[dict[str, Any]],
+    *,
+    reason_code: str,
+    reason_message: str,
+) -> list[dict[str, Any]]:
+    """Force one final no-tool answer when MCP planning cannot complete."""
+    boundary = (
+        "工具查询未能完成。你现在必须直接回答，不能再请求或假装调用任何工具。"
+        "可以使用对话中已经提供的最近炉况、知识库证据和通用高炉工艺知识；"
+        "如果缺少足以判断当前状态的实时数据，必须明确写出‘实时数据库未核实’，"
+        "区分已知事实、条件性判断和建议复核项。不得编造当前数值、趋势、时间戳、炉次或数据库结果。"
+        f"工具终止原因：{reason_code}；{reason_message}"
+    )
+    return [*messages, {"role": "system", "content": boundary}]
+
+
+def qa_mcp_final_fallback(
+    messages: list[dict[str, Any]],
+    *,
+    reason_code: str,
+    reason_message: str,
+) -> dict[str, Any]:
+    """Run exactly one model-only completion after a tool failure or step limit."""
+    fallback_messages = qa_mcp_fallback_messages(
+        messages,
+        reason_code=reason_code,
+        reason_message=reason_message,
+    )
+    try:
+        response = call_ollama_chat_obj(
+            fallback_messages,
+            tools=None,
+            temperature=0.1,
+            max_tokens=700,
+        )
+        answer = clean_llm_output(
+            (response.get("message") or {}).get("content") or response.get("response") or ""
+        )
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "ok": False,
+            "answer": "",
+            "fallback_used": True,
+            "fallback_error": f"{type(exc).__name__}: {exc}",
+            "termination_reason": reason_code,
+        }
+    return {
+        "ok": bool(answer),
+        "answer": answer,
+        "fallback_used": True,
+        "answer_route": "model_without_tools_after_mcp_failure",
+        "termination_reason": reason_code,
+    }
+
+
+def qa_mcp_result_with_fallback(
+    result: Mapping[str, Any] | None,
+    messages: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Preserve successful tool answers; turn an empty tool failure into one model answer."""
+    normalized = dict(result or {})
+    if str(normalized.get("answer") or "").strip():
+        return normalized
+    reason_code = str(normalized.get("termination_reason") or "MCP_TOOL_UNAVAILABLE")
+    reason_message = str(normalized.get("error") or "数据库或工具没有返回可用结果。")
+    fallback = qa_mcp_final_fallback(
+        normalized.get("messages") or messages,
+        reason_code=reason_code,
+        reason_message=reason_message,
+    )
+    return {**normalized, **fallback}
+
+
+async def qa_mcp_execute_parallel_batch(
+    tool_calls: list[dict[str, Any]],
+    *,
+    session: Any,
+    tool_schemas: dict[str, dict[str, Any]],
+    tool_servers: dict[str, str],
+    policy_limits: ToolPolicyLimits,
+    server_locks: dict[str, asyncio.Lock],
+    tool_timeout_seconds: Any,
+    round_number: int,
+    planner_catalog_size: int,
+    emit: Any | None = None,
+) -> list[dict[str, Any]]:
+    """Run one model-planned batch concurrently across independent MCP servers.
+
+    MCP stdio sessions are request scoped. Calls routed to the same server stay
+    serial, while calls routed to different servers may overlap. Results are
+    returned in planner order so the following model turn sees a stable tool
+    transcript regardless of completion order.
+    """
+
+    semaphore = asyncio.Semaphore(max(1, QA_MCP_MAX_PARALLEL_TOOL_CALLS))
+
+    async def execute_one(tool_call: dict[str, Any]) -> dict[str, Any]:
+        name = tool_call["name"]
+        args = tool_call["arguments"]
+        server_id = tool_servers.get(name)
+        start_payload = {
+            "tool": name,
+            "arguments": args,
+            "round": round_number,
+            "route": "model_planner_parallel",
+            "server_id": server_id,
+            "planner_call": {"name": name, "arguments": args},
+            "planner_catalog_size": planner_catalog_size,
+        }
+        if emit:
+            emit("tool_start", start_payload)
+
+        policy = validate_tool_call(name, args, tool_schemas, policy_limits)
+        cache_hit = False
+        if not policy["ok"]:
+            result_text = json.dumps(
+                {
+                    "ok": False,
+                    "error": "TOOL_POLICY_REJECTED",
+                    "tool": name,
+                    "policy_errors": policy["errors"],
+                    "message": "请根据当前工具 JSON Schema 修正工具名或参数后重试。",
+                },
+                ensure_ascii=False,
+            )
+        else:
+            result_text = qa_mcp_tool_cache_get(name, args)
+            cache_hit = result_text is not None
+            if result_text is None:
+                lock_key = server_id or f"unattached:{name}"
+                lock = server_locks.setdefault(lock_key, asyncio.Lock())
+                try:
+                    async with semaphore:
+                        async with lock:
+                            result = await asyncio.wait_for(
+                                session.call_tool(name, args),
+                                timeout=tool_timeout_seconds(),
+                            )
+                    result_text = mcp_result_to_text(result)
+                    qa_mcp_tool_cache_put(name, args, result_text)
+                except Exception as exc:  # noqa: BLE001
+                    result_text = json.dumps(
+                        {"ok": False, "error": type(exc).__name__, "message": str(exc), "tool": name},
+                        ensure_ascii=False,
+                    )
+
+        trace_item = {
+            "round": round_number,
+            "route": "model_planner_parallel",
+            "tool": name,
+            "server_id": server_id,
+            "arguments": args,
+            "cache_hit": cache_hit,
+            "policy": {
+                "ok": policy["ok"],
+                "policy": policy.get("policy"),
+                "errors": policy.get("errors") or [],
+            },
+            "result": compact_tool_result_for_event(result_text),
+        }
+        return {"name": name, "result_text": result_text, "trace": trace_item}
+
+    if QA_MCP_PARALLEL_TOOL_CALLS and len(tool_calls) > 1:
+        batch = await asyncio.gather(*(execute_one(tool_call) for tool_call in tool_calls))
+    else:
+        batch = []
+        for tool_call in tool_calls:
+            batch.append(await execute_one(tool_call))
+    for item in batch:
+        if emit:
+            emit("tool_result", item["trace"])
+    return batch
+
+
+def qa_mcp_current_user_text(question: str) -> str:
+    return str(question or "").split("\n[服务端对话状态：", 1)[0].strip()
+
+
+def qa_mcp_planning_question(question: str) -> str:
+    """Use prior context only for genuinely referential follow-up questions."""
+
+    raw = str(question or "")
+    current = qa_mcp_current_user_text(raw)
+    has_reference = any(term in current for term in (
+        "它", "该变量", "这个变量", "上述变量", "刚才的", "前面的",
+    ))
+    has_explicit_object = bool(
+        qa_mcp_variables(current)
+        or qa_mcp_imes_plan(current)
+        or _detect_heat_reference(current)
+    )
+    return raw if has_reference and not has_explicit_object else current
+
+
+def qa_mcp_preflight_answer(question: str) -> str | None:
+    """Enforce zero-tool safety, ambiguity and unknown-object gates."""
+
+    current = qa_mcp_current_user_text(question)
+    normalized = normalize_spoken_question(current)
+    lower = normalized.lower()
+    write_terms = ("删除", "删掉", "修改", "写入", "更新数据库", "清空", "drop", "delete", "update")
+    secret_terms = ("密码", "口令", "凭据", "token", "密钥", "连接串", "dsn")
+    if any(term in lower for term in write_terms) or any(term in lower for term in secret_terms):
+        return (
+            "拒绝执行：智能助手只允许只读查询，不能删除、修改或写入生产数据，"
+            "也不会提供数据库密码、连接串或其他凭据。本次未调用任何数据工具。"
+        )
+
+    ambiguous_pressure = any(term in normalized for term in ("中部压力", "上部压力", "下部压力"))
+    disambiguated = any(term in normalized for term in (
+        "静压力", "静压", "压差", "20.35", "20米35", "23.49", "23米49", "28.98", "28米98",
+    ))
+    if ambiguous_pressure and not disambiguated:
+        return (
+            "“中部/上部/下部压力”存在歧义。请明确是静压力还是压差，并补充层位高度或方位；"
+            "在对象唯一确定前不会查询，也不会猜成 23.49 米静压力或其他相似点位。"
+        )
+
+    explicit_ids = re.findall(r"(?i)(?<![a-z0-9_])([a-z][a-z0-9]*(?:_[a-z0-9]+)+)(?![a-z0-9_])", current)
+    known_ids = {item.lower() for item in QA_MCP_STANDARD_VARIABLES}
+    for explicit_id in explicit_ids:
+        lowered_id = explicit_id.lower()
+        looks_like_sensor = lowered_id.startswith(("p_", "t_", "dp_", "q_", "pci_", "o2_", "l_", "co_"))
+        catalog_match = bool(qa_mcp_catalog_variables(explicit_id))
+        if looks_like_sensor and lowered_id not in known_ids and not catalog_match:
+            return (
+                f"不存在/未知点位 `{explicit_id}`：权威语义目录中没有该对象。"
+                "不会把它替换成 P_top、A–D 点或其他相似变量；请核对标准变量名。"
+            )
+    return None
+
+
+def qa_mcp_no_realtime_requested(question: str) -> bool:
+    current = qa_mcp_current_user_text(question)
+    return any(term in current for term in ("不要查询实时", "不查询实时", "无需查询实时", "不要查实时"))
+
+
 async def qa_mcp_tool_loop_async(
     messages: list[dict[str, Any]],
     emit: Any | None = None,
     stop_after_tool_round: bool = False,
     routing_question: str = "",
 ) -> dict[str, Any]:
+    raw_question = routing_question or last_user_question(messages)
+    preflight_answer = qa_mcp_preflight_answer(raw_question)
+    if preflight_answer:
+        return {
+            "ok": True,
+            "tool_used": False,
+            "answer": preflight_answer,
+            "messages": messages,
+            "tool_trace": [],
+            "answer_route": "deterministic_preflight_gate",
+        }
+    working_messages = qa_messages_with_mcp_prompt(messages)
+    if qa_mcp_no_realtime_requested(raw_question):
+        response = call_ollama_chat_obj(working_messages, tools=None)
+        answer = clean_llm_output((response.get("message") or {}).get("content") or response.get("response") or "")
+        boundary = "本次未查询实时数据库，以上为一般工艺知识；用于当前炉况前请结合现场数据复核。"
+        if boundary not in answer:
+            answer = f"{answer.rstrip()}\n\n{boundary}".strip()
+        return {
+            "ok": True,
+            "tool_used": False,
+            "answer": answer,
+            "messages": working_messages,
+            "tool_trace": [],
+            "answer_route": "explicit_no_realtime_model_answer",
+        }
+    question = qa_mcp_planning_question(raw_question)
     try:
         registry = qa_mcp_server_registry()
     except Exception as exc:  # noqa: BLE001
@@ -5247,11 +6653,15 @@ async def qa_mcp_tool_loop_async(
             "error": f"MCP服务注册表不可用：{type(exc).__name__}: {exc}",
         }
 
-    working_messages = qa_messages_with_mcp_prompt(messages)
     trace: list[dict[str, Any]] = []
     execution_started = time.monotonic()
-    question = routing_question or last_user_question(working_messages)
     service_selection = select_mcp_servers(question, registry)
+    # Resolve the Chinese layer/position scope before MCP discovery so the UI
+    # can show a useful execution stage immediately instead of a generic wait.
+    body_statistics_plan = qa_mcp_body_temperature_statistics_plan(question)
+    if body_statistics_plan is not None and emit:
+        for public_event in qa_mcp_body_route_trace(body_statistics_plan):
+            emit("trace", public_event)
 
     def tool_timeout_seconds() -> float:
         remaining = QA_MCP_EXECUTION_BUDGET_SECONDS - (time.monotonic() - execution_started)
@@ -5289,10 +6699,21 @@ async def qa_mcp_tool_loop_async(
                 max_array_items=max(1, QA_MCP_MAX_ARRAY_ITEMS),
             )
             tool_call_count = 0
+            planner_server_locks: dict[str, asyncio.Lock] = {}
 
+            # A composite body-temperature query must win before the generic
+            # DAG builder expands it into many individual point calls.
             # --- Cross-source plan path (REQ-8093-CROSS-SOURCE-MCP-20260805) ---
-            cross_source_plan = build_cross_source_plans(question, service_selection)
-            if cross_source_plan is not None and len(set(s.step_id for s in cross_source_plan.steps)) >= 2:
+            cross_source_plan = (
+                None
+                if body_statistics_plan is not None
+                else build_cross_source_plans(question, service_selection)
+            )
+            if (
+                cross_source_plan is not None
+                and len(set(s.step_id for s in cross_source_plan.steps)) >= 2
+                and len(cross_source_plan.steps) <= max(1, QA_MCP_MAX_TOOL_CALLS)
+            ):
                 # Execute via cross-source DAG executor
                 child_timeout = float(
                     os.environ.get(
@@ -5340,6 +6761,35 @@ async def qa_mcp_tool_loop_async(
                 cross_snapshot_payload = cross_source_snapshot_payload(snapshot)
 
                 if not snapshot.ok:
+                    heat_resolution_error = next(
+                        (
+                            str(item.get("error_code") or "")
+                            for item in snapshot.source_status
+                            if str(item.get("tool") or "") == "imes__resolve_spoken_heat_reference"
+                            and item.get("error_code")
+                        ),
+                        "",
+                    )
+                    if heat_resolution_error in {"HEAT_REFERENCE_NOT_FOUND", "HEAT_REFERENCE_AMBIGUOUS"}:
+                        answer = format_cross_source_answer(snapshot)
+                        return {
+                            "ok": True,
+                            "tool_used": True,
+                            "answer": answer,
+                            "tool_trace": trace,
+                            "answer_route": "deterministic_heat_dependency_failure",
+                            "mcp_cross_source": {
+                                "orchestration_id": snapshot.orchestration_id,
+                                "complete": snapshot.complete,
+                                "partial": snapshot.partial,
+                                "analysis_allowed": False,
+                                "error_code": heat_resolution_error,
+                                "step_count": len(cross_source_plan.steps),
+                                "success_count": 0,
+                                "total_elapsed_ms": snapshot.total_elapsed_ms,
+                            },
+                            "cross_source_snapshot": cross_snapshot_payload,
+                        }
                     return {
                         "ok": False,
                         "tool_used": True,
@@ -5390,7 +6840,8 @@ async def qa_mcp_tool_loop_async(
                     {"role": "system", "content": (
                         "你是高炉工艺助手。以下为已确认的跨数据源查询事实。"
                         "你只能基于这些事实进行解释，不得编造、猜测或建议操作。"
-                        "输出应简洁，只解释用户问到的数据之间的关系。"
+                        "输出应简洁，只解释用户问到的数据之间的关系；"
+                        "凡涉及Pearson相关性，必须明确‘相关不等于因果’，不得使用导致、造成等因果措辞。"
                     )},
                     {"role": "user", "content": (
                         f"用户问题：{question}\n\n"
@@ -5437,7 +6888,7 @@ async def qa_mcp_tool_loop_async(
             imes_plan = qa_mcp_imes_plan(question)
             chart_plan = qa_mcp_chart_plan(question)
             standard_plan = qa_mcp_standard_analysis_plan(question)
-            sensor_plan = qa_mcp_sensor_query_plan(question)
+            sensor_plan = body_statistics_plan or qa_mcp_sensor_query_plan(question)
             # Body-temperature-only questions may attach the extended server
             # whose exposed tool is namespaced and layer/position based.
             if (
@@ -5497,8 +6948,13 @@ async def qa_mcp_tool_loop_async(
                         "tool_calls": [{"function": {"name": name, "arguments": args}}],
                     }
                 )
+                start_payload = {"tool": name, "arguments": args, "round": 0, "route": route}
+                public_start = qa_mcp_public_trace("tool_start", start_payload)
+                if public_start:
+                    start_payload["public_trace"] = public_start
                 if emit:
-                    emit("tool_start", {"tool": name, "arguments": args, "round": 0, "route": route})
+                    emit("tool_start", start_payload)
+                call_started = time.monotonic()
                 result_text = qa_mcp_tool_cache_get(name, args)
                 cache_hit = result_text is not None
                 if result_text is None:
@@ -5507,13 +6963,19 @@ async def qa_mcp_tool_loop_async(
                             session.call_tool(name, args),
                             timeout=tool_timeout_seconds(),
                         )
-                        result_text = mcp_result_to_text(result)
+                        result_text = mcp_result_to_text(
+                            result,
+                            max_chars=None
+                            if name == "gl02ext__query_body_temperature_statistics"
+                            else QA_MCP_MAX_RESULT_CHARS,
+                        )
                         qa_mcp_tool_cache_put(name, args, result_text)
                     except Exception as exc:  # noqa: BLE001
                         result_text = json.dumps(
                             {"ok": False, "error": type(exc).__name__, "message": str(exc), "tool": name},
                             ensure_ascii=False,
                         )
+                elapsed_ms = round((time.monotonic() - call_started) * 1000, 1)
                 working_messages.append({"role": "tool", "name": name, "content": result_text})
                 trace_item = {
                     "round": 0,
@@ -5522,9 +6984,17 @@ async def qa_mcp_tool_loop_async(
                     "server_id": tool_servers.get(name),
                     "arguments": args,
                     "cache_hit": cache_hit,
+                    "elapsed_ms": elapsed_ms,
                     "policy": {"ok": True, "policy": policy["policy"]},
                     "result": compact_tool_result_for_event(result_text),
                 }
+                public_result_payload = {
+                    **trace_item,
+                    "result": try_load_json(result_text) or trace_item["result"],
+                }
+                public_result = qa_mcp_public_trace("tool_result", public_result_payload)
+                if public_result:
+                    trace_item["public_trace"] = public_result
                 trace.append(trace_item)
                 if emit:
                     emit("tool_result", trace_item)
@@ -5538,13 +7008,72 @@ async def qa_mcp_tool_loop_async(
                     }
                 direct_answer = deterministic_mcp_answer(name, result_text)
                 if direct_answer:
+                    model_explanation = {"status": "not_applicable"}
+                    if name == "gl02ext__query_body_temperature_statistics":
+                        analysis_start = {
+                            "public_trace": {
+                                "trace_id": "analysis:body-temperature",
+                                "stage": "analysis",
+                                "status": "running",
+                                "title": "正在生成模型解释",
+                                "detail": "模型只解释已确认的统计事实；新增数值或越过证据边界的内容将被丢弃。",
+                            }
+                        }
+                        if emit:
+                            emit("analysis_start", analysis_start)
+                        analysis_started = time.monotonic()
+                        explanation, explanation_status = qa_body_temperature_model_explanation(
+                            question,
+                            direct_answer,
+                        )
+                        analysis_elapsed_ms = round((time.monotonic() - analysis_started) * 1000, 1)
+                        model_explanation = {
+                            "status": explanation_status,
+                            "elapsed_ms": analysis_elapsed_ms,
+                        }
+                        if explanation:
+                            direct_answer = f"{direct_answer}\n\n模型解释（基于上述已确认事实）：\n{explanation}"
+                        analysis_result = {
+                            "public_trace": {
+                                "trace_id": "analysis:body-temperature",
+                                "stage": "analysis",
+                                "status": "succeeded" if explanation else "failed",
+                                "title": "模型解释完成" if explanation else "模型解释未采用",
+                                "detail": (
+                                    "解释已通过数值证据边界校验。"
+                                    if explanation
+                                    else "模型解释为空、调用失败或含未核实数字；最终答案保留完整确定性统计。"
+                                ),
+                                "elapsed_ms": analysis_elapsed_ms,
+                            }
+                        }
+                        if emit:
+                            emit("analysis_result", analysis_result)
                     return {
                         "ok": True,
                         "tool_used": True,
                         "answer": direct_answer,
                         "messages": working_messages,
                         "tool_trace": trace,
-                        "answer_route": "deterministic_formatter",
+                        "answer_route": (
+                            "deterministic_formatter_with_grounded_model_explanation"
+                            if name == "gl02ext__query_body_temperature_statistics"
+                            else "deterministic_formatter"
+                        ),
+                        "model_explanation": model_explanation,
+                        "model_request_count": (
+                            1 if name == "gl02ext__query_body_temperature_statistics" else 0
+                        ),
+                    }
+                if name == "gl02ext__query_body_temperature_statistics":
+                    return {
+                        "ok": False,
+                        "tool_used": True,
+                        "answer": "炉体温度统计结果无法完整解析；本次没有交给模型重新计算，也没有编造数值。",
+                        "error": "body_temperature_statistics_result_invalid",
+                        "messages": working_messages,
+                        "tool_trace": trace,
+                        "answer_route": "deterministic_formatter_failed_closed",
                     }
                 response = call_ollama_chat_obj(working_messages, tools=None)
                 answer = clean_llm_output((response.get("message") or {}).get("content") or response.get("response") or "")
@@ -5578,95 +7107,37 @@ async def qa_mcp_tool_loop_async(
                         "tool_trace": trace,
                     }
 
+                remaining_calls = max(1, QA_MCP_MAX_TOOL_CALLS) - tool_call_count
+                selected_calls = tool_calls[:remaining_calls]
+                if not selected_calls:
+                    break
+                message["tool_calls"] = [
+                    {"function": {"name": item["name"], "arguments": item["arguments"]}}
+                    for item in selected_calls
+                ]
                 working_messages.append(message)
-                for tool_call in tool_calls:
-                    name = tool_call["name"]
-                    args = tool_call["arguments"]
-                    tool_call_count += 1
-                    if emit:
-                        emit(
-                            "tool_start",
-                            {
-                                "tool": name,
-                                "arguments": args,
-                                "round": round_index + 1,
-                                "route": "model_planner",
-                                "server_id": tool_servers.get(name),
-                                "planner_call": {
-                                    "name": name,
-                                    "arguments": args,
-                                },
-                                "planner_catalog_size": len(planner_tools),
-                            },
-                        )
-                    if tool_call_count > max(1, QA_MCP_MAX_TOOL_CALLS):
-                        policy = {
-                            "ok": False,
-                            "error": "TOOL_CALL_LIMIT_EXCEEDED",
-                            "tool": name,
-                            "errors": [
-                                {
-                                    "code": "TOOL_CALL_LIMIT_EXCEEDED",
-                                    "path": "tool_calls",
-                                    "message": f"单次问答最多调用 {QA_MCP_MAX_TOOL_CALLS} 次工具",
-                                }
-                            ],
-                        }
-                    else:
-                        policy = validate_tool_call(name, args, tool_schemas, policy_limits)
-                    if not policy["ok"]:
-                        result_text = json.dumps(
-                            {
-                                "ok": False,
-                                "error": "TOOL_POLICY_REJECTED",
-                                "tool": name,
-                                "policy_errors": policy["errors"],
-                                "message": "请根据当前工具 JSON Schema 修正工具名或参数后重试。",
-                            },
-                            ensure_ascii=False,
-                        )
-                    else:
-                        result_text = qa_mcp_tool_cache_get(name, args)
-                        cache_hit = result_text is not None
-                        if result_text is None:
-                            try:
-                                result = await asyncio.wait_for(
-                                    session.call_tool(name, args),
-                                    timeout=tool_timeout_seconds(),
-                                )
-                                result_text = mcp_result_to_text(result)
-                                qa_mcp_tool_cache_put(name, args, result_text)
-                            except Exception as exc:  # noqa: BLE001
-                                result_text = json.dumps(
-                                    {"ok": False, "error": type(exc).__name__, "message": str(exc), "tool": name},
-                                    ensure_ascii=False,
-                                )
-                    if not policy["ok"]:
-                        cache_hit = False
-                    working_messages.append({"role": "tool", "name": name, "content": result_text})
-                    event_result = compact_tool_result_for_event(result_text)
-                    trace_item = {
-                        "round": round_index + 1,
-                        "route": "model_planner",
-                        "tool": name,
-                        "server_id": tool_servers.get(name),
-                        "arguments": args,
-                        "cache_hit": cache_hit,
-                        "policy": {
-                            "ok": policy["ok"],
-                            "policy": policy.get("policy"),
-                            "errors": policy.get("errors") or [],
-                        },
-                        "result": event_result,
-                    }
-                    trace.append(trace_item)
-                    if emit:
-                        emit("tool_result", trace_item)
-                    if tool_call_count >= max(1, QA_MCP_MAX_TOOL_CALLS):
-                        break
+                tool_call_count += len(selected_calls)
+                batch = await qa_mcp_execute_parallel_batch(
+                    selected_calls,
+                    session=session,
+                    tool_schemas=tool_schemas,
+                    tool_servers=tool_servers,
+                    policy_limits=policy_limits,
+                    server_locks=planner_server_locks,
+                    tool_timeout_seconds=tool_timeout_seconds,
+                    round_number=round_index + 1,
+                    planner_catalog_size=len(planner_tools),
+                    emit=emit,
+                )
+                for item in batch:
+                    working_messages.append(
+                        {"role": "tool", "name": item["name"], "content": item["result_text"]}
+                    )
+                    trace.append(item["trace"])
+                result_text = batch[-1]["result_text"] if batch else ""
 
                 if (
-                    len(tool_calls) == 1
+                    len(selected_calls) == 1
                     and trace
                     and trace[-1].get("tool") == "imes__query_heat_chemistry"
                     and trace[-1].get("policy", {}).get("ok")
@@ -5694,10 +7165,17 @@ async def qa_mcp_tool_loop_async(
                         "tool_trace": trace,
                     }
 
+    fallback = qa_mcp_final_fallback(
+        working_messages,
+        reason_code="MCP_PLAN_LIMIT_REACHED",
+        reason_message=(
+            f"规划已达到 {max(1, QA_MCP_MAX_TOOL_ROUNDS)} 轮或 "
+            f"{max(1, QA_MCP_MAX_TOOL_CALLS)} 次工具调用上限。"
+        ),
+    )
     return {
-        "ok": False,
+        **fallback,
         "tool_used": bool(trace),
-        "answer": "数据库查询轮数超过上限，请缩小问题范围或明确变量名。",
         "messages": working_messages,
         "tool_trace": trace,
     }
@@ -5709,14 +7187,26 @@ def run_qa_mcp_tool_loop(
     stop_after_tool_round: bool = False,
     routing_question: str = "",
 ) -> dict[str, Any]:
-    return asyncio.run(
-        qa_mcp_tool_loop_async(
-            messages,
-            emit=emit,
-            stop_after_tool_round=stop_after_tool_round,
-            routing_question=routing_question,
+    try:
+        return asyncio.run(
+            qa_mcp_tool_loop_async(
+                messages,
+                emit=emit,
+                stop_after_tool_round=stop_after_tool_round,
+                routing_question=routing_question,
+            )
         )
-    )
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except BaseException as exc:
+        diagnostic = lifecycle_error("request_handler", exc)
+        return {
+            "ok": False,
+            "tool_used": False,
+            "answer": "",
+            "error": "MCP请求生命周期异常",
+            "error_detail": diagnostic,
+        }
 
 
 def qa_should_search_knowledge(question: str, mcp_prefetch: dict[str, Any] | None = None) -> tuple[bool, str]:
@@ -5841,6 +7331,8 @@ def build_hidden_qa_messages(
     mcp_context: str = "",
     context_meta: dict[str, Any] | None = None,
     knowledge_context: str = "",
+    assistant_rule_context: str = "",
+    analysis_mode: str = "",
 ) -> list[dict[str, str]]:
     recent_history = [
         {"role": item["role"], "content": str(item["content"])[:700]}
@@ -5880,6 +7372,15 @@ def build_hidden_qa_messages(
         "只吸收其中结论和现场可核查证据，不要向用户说明资料组织方式，也不要输出原始状态文本。\n"
         f"{hidden}"
     )
+    if assistant_rule_context:
+        hidden_block += (
+            "\n【本对话绑定的ABC规则权威上下文】\n"
+            "该上下文由服务端按会话来源加载，回答规则形成过程时必须以它为准；"
+            "不得用浏览器自带数值覆盖。"
+            "对于本ABC规则上下文，可展示合同已公开的公式项、权重、归一化分和加权得分；"
+            "这是对通用“不解释内部算法公式”边界的唯一例外，仍不得暴露程序实现或未公开字段。\n"
+            f"{assistant_rule_context}"
+        )
     system_prompt = QA_SYSTEM_PROMPT_TEMPLATE.format(
         hidden=hidden_block,
         project_rules=QA_PROJECT_RULES_BLOCK,
@@ -5887,6 +7388,9 @@ def build_hidden_qa_messages(
         mcp_context=mcp_context or "本轮未执行数据库预查询。",
         knowledge_context=knowledge_context or "本轮未检索到可用知识库证据。",
     )
+    if analysis_mode == "initial_context_explanation" and assistant_rule_context:
+        context_value = load_json(assistant_rule_context, {})
+        system_prompt += "\n\n" + abc_rule_assistant_analysis.initial_analysis_prompt(context_value)
     return [
         {"role": "system", "content": system_prompt},
         *recent_history,
@@ -5909,6 +7413,28 @@ def call_ollama_chat(messages: list[dict[str, str]], temperature: float = 0.1, m
     with urlopen(req, timeout=300) as resp:
         obj = json.loads(resp.read().decode("utf-8", errors="replace"))
     return clean_llm_output(((obj.get("message") or {}).get("content") or obj.get("response") or ""))
+
+
+def call_ollama_chat_strict_json(
+    messages: list[dict[str, str]],
+    assistant_context: Mapping[str, Any],
+    max_tokens: int = 1200,
+) -> str:
+    """Call the model without public-text rewriting; strict validation follows immediately."""
+    payload = build_api_chat_payload(
+        {
+            "model": normalize_model(None),
+            "temperature": 0.0,
+            "max_tokens": max_tokens,
+            "messages": messages,
+            "stream": False,
+            "format": abc_rule_assistant_analysis.initial_analysis_json_schema(assistant_context),
+        }
+    )
+    req = build_ollama_request("/api/chat", body=json_bytes(payload), stream=False)
+    with urlopen(req, timeout=300) as resp:
+        obj = json.loads(resp.read().decode("utf-8", errors="replace"))
+    return str(((obj.get("message") or {}).get("content") or obj.get("response") or "")).strip()
 
 
 def build_ollama_request(path: str, body: bytes | None = None, stream: bool = False) -> Request:
@@ -5940,6 +7466,8 @@ def build_api_chat_payload(payload: dict) -> dict:
     }
     if payload.get("tools"):
         out["tools"] = payload.get("tools")
+    if payload.get("format") is not None:
+        out["format"] = payload.get("format")
     return out
 
 
@@ -5992,6 +7520,71 @@ def qa_sse_event(event: str, payload: object) -> bytes:
     return f"event: {event}\n".encode("utf-8") + b"data: " + json_bytes(payload) + b"\n\n"
 
 
+def load_latest_abc33_review_score(
+    diagnosis_ts: Any, snapshot_id: Any, rule_id: str = "B4"
+) -> dict[str, Any]:
+    """Read the production-safe ABC33 rule aligned to one diagnosis snapshot."""
+
+    try:
+        with _assistant_raw_pg_connect() as conn:
+            batch = conn.execute(
+                """
+                SELECT id, evaluation_ts, catalog_version, config_version,
+                       source_snapshot_id, public_bundle
+                FROM bf_sensor.abc_rule_evaluation_batches
+                WHERE evaluation_ts <= %s::timestamptz
+                ORDER BY CASE WHEN source_snapshot_id::text = %s THEN 0 ELSE 1 END,
+                         evaluation_ts DESC, id DESC
+                LIMIT 1
+                """,
+                (diagnosis_ts, str(snapshot_id)),
+            ).fetchone()
+        if not batch:
+            return {"rule_id": rule_id, "state": "needs_data"}
+        data = (
+            dict(batch)
+            if isinstance(batch, Mapping)
+            else {
+                "id": batch[0],
+                "evaluation_ts": batch[1],
+                "catalog_version": batch[2],
+                "config_version": batch[3],
+                "source_snapshot_id": batch[4],
+                "public_bundle": batch[5],
+            }
+        )
+        bundle = data.get("public_bundle") or {}
+        if isinstance(bundle, str):
+            bundle = json.loads(bundle)
+        rules = bundle.get("rules") if isinstance(bundle, Mapping) else []
+        rule = next(
+            (
+                dict(item)
+                for item in rules or []
+                if isinstance(item, Mapping) and item.get("rule_id") == rule_id
+            ),
+            None,
+        )
+        return {
+            "evaluation_id": data.get("id"),
+            "evaluation_ts": data.get("evaluation_ts"),
+            "catalog_version": data.get("catalog_version"),
+            "config_version": data.get("config_version"),
+            "source_snapshot_id": data.get("source_snapshot_id"),
+            "source_snapshot_match": str(data.get("source_snapshot_id"))
+            == str(snapshot_id),
+            "rule_id": rule_id,
+            "rule": rule,
+            "state": "current" if rule else "needs_data",
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "rule_id": rule_id,
+            "state": "unavailable",
+            "error_type": type(exc).__name__,
+        }
+
+
 def load_five_minute_diagnosis_context(
     target_label: str | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
@@ -6004,6 +7597,12 @@ def load_five_minute_diagnosis_context(
         normalized_rows, furnace_id="BF"
     )
     if canonical.get("available"):
+        canonical = diagnosis_review.apply_abc33_display_score(
+            canonical,
+            load_latest_abc33_review_score(
+                canonical.get("diagnosis_ts"), canonical.get("snapshot_id"), "B4"
+            ),
+        )
         evidence_rows = review_store.read_diagnosis_evidence_rows(
             diagnosis_ts=canonical["diagnosis_ts"],
             variables=diag_ai_evidence.SENSOR_VARIABLES,
@@ -6036,10 +7635,10 @@ def load_five_minute_diagnosis_context(
         diagnosis_payload = {
             "timestamp": canonical.get("diagnosis_ts"),
             "main_label": canonical.get("main_label"),
-            "main_score": canonical.get("main_score"),
+            "main_score": canonical.get("display_main_score"),
             "secondary_label": secondary_label,
             "target_label": selected_label,
-            "raw_scores": canonical.get("raw_scores") or {},
+            "raw_scores": canonical.get("display_scores") or {},
             "feature_snapshot": feature_snapshot,
         }
         evidence_terms = "、".join(
@@ -6399,6 +7998,15 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/heat-performance-quality":
             self.handle_heat_performance_quality(parsed.query)
             return
+        if parsed.path == "/api/hcz-upward-rule":
+            self.handle_hcz_upward_rule()
+            return
+        if parsed.path == "/api/hcz-rule-sensitivity":
+            self.handle_hcz_rule_sensitivity(parsed.query)
+            return
+        if parsed.path == "/api/thermal-trend":
+            self.handle_thermal_trend()
+            return
         if parsed.path == "/api/si-v20/status":
             self.handle_si_v20_status(parsed.query)
             return
@@ -6450,6 +8058,9 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/furnace-rules/latest":
             self.handle_furnace_rules_latest()
             return
+        if parsed.path.startswith("/api/furnace-rules/") and parsed.path.endswith("/explanation-context"):
+            self.handle_furnace_rule_explanation_context(unquote(parsed.path).split("/")[3], parsed.query)
+            return
         if parsed.path.startswith("/api/furnace-rules/") and parsed.path.endswith("/detail"):
             self.handle_furnace_rule_detail(unquote(parsed.path).split("/")[3])
             return
@@ -6460,16 +8071,25 @@ class Handler(BaseHTTPRequestHandler):
             self.handle_admin_furnace_rule_detail(unquote(parsed.path))
             return
         if parsed.path == "/api/admin/furnace-rules/latest-full":
-            self.handle_admin_furnace_rules_latest_full()
+            self.handle_admin_furnace_rules_latest_full(parsed.query)
+            return
+        if parsed.path == "/api/admin/furnace-rules/history":
+            self.handle_admin_furnace_rules_history(parsed.query)
             return
         if parsed.path == "/api/admin/furnace-rules/config":
             self.handle_admin_abc_config_get()
+            return
+        if parsed.path == "/api/admin/thermal-trend/config":
+            self.handle_admin_thermal_trend_config_get()
             return
         if parsed.path == "/api/qa/bootstrap":
             self.handle_qa_bootstrap(parsed.query)
             return
         if parsed.path == "/api/qa/conversation":
             self.handle_qa_conversation(parsed.query)
+            return
+        if parsed.path == "/api/qa/conversations":
+            self.handle_qa_conversations_get(parsed.query)
             return
         if parsed.path == "/api/qa/projects":
             self.handle_qa_projects_get(parsed.query)
@@ -6520,6 +8140,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/qa/") and not self.qa_write_request_allowed():
+            return
         if parsed.path == "/v1/chat/completions":
             self.handle_chat_completions()
             return
@@ -6571,8 +8193,17 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/admin/furnace-rules/config/publish":
             self.handle_admin_abc_config_publish()
             return
+        if parsed.path == "/api/admin/thermal-trend/config/publish":
+            self.handle_admin_thermal_trend_config_publish()
+            return
+        if parsed.path == "/api/thermal-trend/condition":
+            self.handle_thermal_trend_condition_publish()
+            return
         if parsed.path == "/api/qa/conversations":
             self.handle_qa_new_conversation()
+            return
+        if parsed.path == "/api/qa/contextual-conversations":
+            self.handle_qa_contextual_conversation()
             return
         if parsed.path == "/api/qa/conversation-actions":
             self.handle_qa_conversation_action()
@@ -6609,6 +8240,28 @@ class Handler(BaseHTTPRequestHandler):
         if not raw:
             return {}
         return json.loads(raw.decode("utf-8"))
+
+    def qa_write_request_allowed(self) -> bool:
+        """Enforce JSON and same-origin CSRF boundaries for every QA mutation."""
+        content_type = str(self.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+        if content_type != "application/json":
+            self.send_json({"ok": False, "error": "qa_application_json_required"}, status=415)
+            return False
+        origin = str(self.headers.get("Origin") or "").strip()
+        host = str(self.headers.get("Host") or "").strip().lower()
+        if origin:
+            parsed_origin = urlparse(origin)
+            if parsed_origin.scheme not in {"http", "https"} or parsed_origin.netloc.lower() != host:
+                self.send_json({"ok": False, "error": "qa_same_origin_required"}, status=403)
+                return False
+            return True
+        client_ip = str((getattr(self, "client_address", None) or ("",))[0])
+        controlled = str(self.headers.get("X-BF-Controlled-Client") or "") == "1"
+        allow_loopback = _env_enabled("BF_QA_ALLOW_ORIGINLESS_LOOPBACK_CONTROLLED", default=True)
+        if allow_loopback and controlled and client_ip in {"127.0.0.1", "::1"}:
+            return True
+        self.send_json({"ok": False, "error": "qa_origin_required"}, status=403)
+        return False
 
     def handle_diagnosis_model_review_post(self) -> None:
         """Generate or return a cached, read-only model review for one diagnosis score.
@@ -6733,6 +8386,69 @@ class Handler(BaseHTTPRequestHandler):
     def current_review_session(self) -> dict[str, Any] | None:
         return diagnosis_review.session_from_cookie(self.headers.get("Cookie", ""))
 
+    def qa_guest_room_key(self) -> str:
+        """Resolve a stable room key; configured value wins over the current Host."""
+        configured = QA_GUEST_ROOM_KEY.strip()
+        if configured:
+            return configured
+        host = str(self.headers.get("Host") or "default").strip().lower()
+        return host or "default"
+
+    def qa_access_identity(self) -> dict[str, Any] | None:
+        """Use a private operator identity when logged in, else the shared guest room."""
+        session = self.current_review_session()
+        role = str((session or {}).get("role") or "").lower()
+        subject = str((session or {}).get("sub") or "").strip()
+        if subject and any(token in role for token in ("operator", "admin", "操作", "管理", "炉长")):
+            return {**session, "access_mode": "authenticated"}
+        if not QA_GUEST_ENABLED:
+            return None
+        return shared_guest_identity(self.qa_guest_room_key())
+
+    def qa_session_required(self) -> dict[str, Any] | None:
+        session = self.qa_access_identity()
+        if session is None:
+            self.send_json({"ok": False, "error": "qa_session_required"}, status=403)
+            return None
+        return session
+
+    def qa_operator_session_required(self) -> dict[str, Any] | None:
+        """Keep projects, reports and contextual assistants operator-only."""
+        session = self.current_review_session()
+        role = str((session or {}).get("role") or "").lower()
+        subject = str((session or {}).get("sub") or "").strip()
+        if not subject or not any(token in role for token in ("operator", "admin", "操作", "管理", "炉长")):
+            self.send_json({"ok": False, "error": "qa_operator_session_required"}, status=403)
+            return None
+        return {**session, "access_mode": "authenticated"}
+
+    def qa_conversation_owned(self, conn: Any, conversation_id: str, session: Mapping[str, Any]) -> bool:
+        row = conn.execute(
+            "SELECT owner_subject FROM qa_conversations WHERE id=?",
+            (conversation_id,),
+        ).fetchone()
+        if not row or str(row["owner_subject"] or "") != str(session.get("sub") or ""):
+            self.send_json({"ok": False, "error": "conversation_not_found"}, status=404)
+            return False
+        return True
+
+    def qa_chat_conversation_id(
+        self,
+        conn: Any,
+        requested_id: str,
+        session: Mapping[str, Any],
+    ) -> str | None:
+        """Bind guests to the shared room while preserving private owner checks."""
+        if session.get("access_mode") == "guest_shared":
+            conversation = ensure_shared_guest_conversation(conn, session)
+            return str(conversation["id"])
+        if not requested_id:
+            self.send_json({"ok": False, "error": "conversation_id_required"}, status=400)
+            return None
+        if not self.qa_conversation_owned(conn, requested_id, session):
+            return None
+        return requested_id
+
     def _abc_connection(self):
         return _assistant_raw_pg_connect()
 
@@ -6744,19 +8460,30 @@ class Handler(BaseHTTPRequestHandler):
             return False
         return True
 
-    def _abc_admin_write_required(self) -> bool:
-        if not self._abc_admin_required():
-            return False
+    def _same_origin_action_required(self, action: str) -> bool:
         origin = str(self.headers.get("Origin") or "").strip()
         host = str(self.headers.get("Host") or "").strip()
         parsed_origin = urlparse(origin) if origin else None
         if not parsed_origin or parsed_origin.netloc != host or parsed_origin.scheme not in {"http", "https"}:
             self.send_json({"ok": False, "error": "same_origin_required"}, status=403)
             return False
-        if self.headers.get("X-BF-Admin-Action") != "publish-abc-rule-config":
+        if self.headers.get("X-BF-Admin-Action") != action:
             self.send_json({"ok": False, "error": "admin_action_header_required"}, status=403)
             return False
         return True
+
+    def _abc_admin_write_required(self, action: str = "publish-abc-rule-config") -> bool:
+        if not self._abc_admin_required():
+            return False
+        return self._same_origin_action_required(action)
+
+    def _abc_operator_write_required(self, action: str) -> bool:
+        session = self.current_review_session()
+        role = str((session or {}).get("role") or "").lower()
+        if not session or not any(token in role for token in ("operator", "admin", "操作", "管理", "炉长")):
+            self.send_json({"ok": False, "error": "operator_required"}, status=403)
+            return False
+        return self._same_origin_action_required(action)
 
     def handle_furnace_rules_latest(self) -> None:
         try:
@@ -6769,9 +8496,172 @@ class Handler(BaseHTTPRequestHandler):
                 return
             data = dict(batch) if isinstance(batch, Mapping) else {"id": batch[0], "evaluation_ts": batch[1], "catalog_version": batch[2], "config_version": batch[3], "public_bundle": batch[4]}
             bundle = data.get("public_bundle") or {}
+            if isinstance(bundle, str):
+                bundle = json.loads(bundle)
+            bundle = diagnosis_review.abc_public_bundle_for_display(
+                bundle if isinstance(bundle, Mapping) else {}, data.get("evaluation_ts")
+            )
             self.send_json({"ok": True, "evaluation_id": data.get("id"), "evaluation_ts": data.get("evaluation_ts"), "catalog_version": data.get("catalog_version"), "config_version": data.get("config_version"), **bundle})
         except Exception as exc:
             self.send_json({"ok": False, "state": "needs_data", "error_type": type(exc).__name__}, status=503)
+
+    def _authoritative_abc_context(self, rule_id: str, evaluation_id: int) -> dict[str, Any] | None:
+        """Reload identifiers from ABC tables, then format after releasing the DB lease."""
+        with self._abc_connection() as conn:
+            evaluation = abc_rule_assistant_analysis.load_authoritative_evaluation(
+                conn,
+                rule_id=rule_id,
+                evaluation_id=evaluation_id,
+            )
+        if evaluation is None:
+            return None
+        artifacts = abc_rule_assistant_analysis.build_context_artifacts(
+            evaluation,
+            spec=RULE_BY_ID.get(rule_id),
+        )
+        artifacts["evaluation"] = evaluation
+        artifacts["context_summary"] = abc_rule_assistant_analysis.context_summary(
+            artifacts["operator_explanation"]
+        )
+        return artifacts
+
+    def _persist_abc_context(self, rule_id: str, evaluation_id: int, artifacts: Mapping[str, Any]) -> int:
+        """Persist deterministic context/cache records in a short assistant-DB transaction."""
+        ts = iso_now()
+        context_hash = str(artifacts["context_hash"])
+        assistant_context_json = abc_rule_assistant_analysis.canonical_json(artifacts["assistant_context"])
+        assistant_context_bytes = len(assistant_context_json.encode("utf-8"))
+        if assistant_context_bytes > ABC_RULE_ASSISTANT_CONTEXT_MAX_BYTES:
+            raise ValueError("ABC explanation context exceeds configured byte limit")
+        prompt_context = abc_rule_assistant_analysis.bounded_prompt_context(
+            artifacts["assistant_context"],
+            max_bytes=ABC_RULE_ASSISTANT_PROMPT_CONTEXT_MAX_BYTES,
+        )
+        prompt_context_json = abc_rule_assistant_analysis.canonical_json(prompt_context)
+        operator_json = abc_rule_assistant_analysis.canonical_json(artifacts["operator_explanation"])
+        summary_json = abc_rule_assistant_analysis.canonical_json(artifacts["context_summary"])
+        with db_connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO qa_context_snapshots(
+                    context_hash, source_type, source_id, source_version,
+                    context_json, context_summary_json, context_type, context_key,
+                    schema_version, furnace_id, source_ref_id, evaluation_id,
+                    source_ts, payload_json, payload_size_bytes, created_at
+                ) VALUES (?, 'abc_rule', ?, ?, ?, ?, 'abc_rule_explanation', ?,
+                          ?, 'GL02', ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(context_hash) DO NOTHING
+                """,
+                (
+                    context_hash,
+                    rule_id,
+                    str(evaluation_id),
+                    assistant_context_json,
+                    summary_json,
+                    f"abc_rule:{rule_id}:{evaluation_id}",
+                    str(artifacts["operator_explanation"].get("schema_version") or "abc_rule_explanation_context.v1"),
+                    rule_id,
+                    evaluation_id,
+                    artifacts["context_summary"].get("evaluation_ts"),
+                    prompt_context_json,
+                    len(prompt_context_json.encode("utf-8")),
+                    ts,
+                ),
+            )
+            snapshot = conn.execute(
+                "SELECT id FROM qa_context_snapshots WHERE context_hash = ?",
+                (context_hash,),
+            ).fetchone()
+            if not snapshot:
+                raise RuntimeError("context snapshot persistence failed")
+            snapshot_id = int(snapshot["id"])
+            conn.execute(
+                """
+                INSERT INTO abc_rule_ai_explanations(
+                    context_snapshot_id, rule_id, evaluation_id, context_hash,
+                    operator_explanation_json, assistant_context_json,
+                    prompt_version, model_name, state, generation_state,
+                    attempt_count, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, 'abc_rule_explanation.v1', '',
+                          'context_ready', 'context_ready', 0, ?, ?)
+                ON CONFLICT(context_snapshot_id, prompt_version, model_name) DO UPDATE SET
+                    operator_explanation_json = EXCLUDED.operator_explanation_json,
+                    assistant_context_json = EXCLUDED.assistant_context_json,
+                    updated_at = EXCLUDED.updated_at
+                """,
+                (snapshot_id, rule_id, evaluation_id, context_hash, operator_json, assistant_context_json, ts, ts),
+            )
+            conn.commit()
+        return snapshot_id
+
+    def handle_furnace_rule_explanation_context(self, rule_id: str, query: str) -> None:
+        """Return the deterministic operator explanation for an exact ABC evaluation."""
+        request_id = f"abc_ctx_{uuid.uuid4().hex}"
+        def fail(status: int, code: str, message: str, retryable: bool = False) -> None:
+            self.send_json(
+                {"ok": False, "error_code": code, "retryable": retryable, "request_id": request_id, "message": message},
+                status=status,
+                headers={"Cache-Control": "no-store"},
+            )
+
+        if rule_id not in RULE_BY_ID:
+            fail(400, "invalid_rule_id", "规则编号无效。")
+            return
+        # The deterministic explanation is the read-only expansion of the
+        # already public ABC33 latest/detail contract.  Keep model-backed
+        # conversation creation protected separately; otherwise the public
+        # optimization page cannot explain the same rule it is allowed to show.
+        raw_id = (parse_qs(query).get("evaluation_id") or [""])[0]
+        try:
+            evaluation_id = int(raw_id)
+        except (TypeError, ValueError):
+            fail(400, "invalid_evaluation_id", "evaluation_id 必须为正整数。")
+            return
+        try:
+            artifacts = self._authoritative_abc_context(rule_id, evaluation_id)
+            if artifacts is None:
+                with self._abc_connection() as conn:
+                    any_rule = conn.execute(
+                        "SELECT rule_id FROM bf_sensor.abc_rule_evaluation_items WHERE batch_id=%s LIMIT 1",
+                        (evaluation_id,),
+                    ).fetchone()
+                if any_rule:
+                    fail(409, "evaluation_rule_mismatch", "该评估批次不包含请求的规则。")
+                else:
+                    fail(404, "evaluation_not_found", "未找到指定评估批次。")
+                return
+            source_ts = artifacts["context_summary"].get("evaluation_ts")
+            parsed_ts = source_ts if isinstance(source_ts, datetime) else parse_iso(str(source_ts or ""))
+            age_seconds = (now_utc() - parsed_ts.astimezone(timezone.utc)).total_seconds() if parsed_ts else None
+            stale = age_seconds is None or age_seconds > 1200 or age_seconds < -60
+            self.send_json(
+                {
+                    "ok": True,
+                    "request_id": request_id,
+                    "rule_id": rule_id,
+                    "evaluation_id": evaluation_id,
+                    "context_hash": artifacts["context_hash"],
+                    "context_summary": artifacts["context_summary"],
+                    "operator_explanation": artifacts["operator_explanation"],
+                    "assistant_context_ref": {
+                        "id": artifacts["assistant_context"].get("context_id"),
+                        "hash": artifacts["context_hash"],
+                        "version": artifacts["assistant_context"].get("schema_version"),
+                    },
+                    "stale": stale,
+                    "evaluation_age_seconds": round(age_seconds, 1) if age_seconds is not None else None,
+                    "stale_reason": (
+                        "future_source_time" if age_seconds is not None and age_seconds < -60
+                        else "older_than_20_minutes" if age_seconds is None or age_seconds > 1200
+                        else None
+                    ),
+                },
+                headers={"Cache-Control": "no-store"},
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            fail(422, "context_incomplete", f"权威评估上下文不完整：{type(exc).__name__}")
+        except Exception as exc:
+            fail(503, "database_unavailable", f"规则上下文暂不可用：{type(exc).__name__}", retryable=True)
 
     def handle_furnace_rule_detail(self, rule_id: str) -> None:
         if rule_id not in RULE_BY_ID:
@@ -6781,7 +8671,8 @@ class Handler(BaseHTTPRequestHandler):
             with self._abc_connection() as conn:
                 row = conn.execute(
                     """
-                    SELECT i.batch_id, b.evaluation_ts, i.public_detail
+                    SELECT i.batch_id, b.evaluation_ts, i.public_detail,
+                           i.category, i.score, i.status, i.weights, i.contributions
                     FROM bf_sensor.abc_rule_evaluation_items i
                     JOIN bf_sensor.abc_rule_evaluation_batches b ON b.id=i.batch_id
                     WHERE i.rule_id=%s ORDER BY b.evaluation_ts DESC, b.id DESC LIMIT 1
@@ -6795,13 +8686,33 @@ class Handler(BaseHTTPRequestHandler):
             if not row:
                 self.send_json({"ok": True, "state": "needs_data", "rule_id": rule_id})
                 return
-            data = dict(row) if isinstance(row, Mapping) else {"batch_id": row[0], "evaluation_ts": row[1], "public_detail": row[2]}
+            data = dict(row) if isinstance(row, Mapping) else {
+                "batch_id": row[0], "evaluation_ts": row[1], "public_detail": row[2],
+                "category": row[3], "score": row[4], "status": row[5],
+                "weights": row[6], "contributions": row[7],
+            }
             detail = public_rule(data.get("public_detail") or {"rule_id": rule_id})
+            display_bundle = diagnosis_review.abc_public_bundle_for_display(
+                {"rules": [detail], "alerts": []}, data.get("evaluation_ts")
+            )
+            detail = (display_bundle.get("rules") or [{"rule_id": rule_id}])[0]
+            explanation = build_score_explanation(
+                category=data.get("category") or detail.get("category"),
+                score=data.get("score") if data.get("score") is not None else detail.get("score"),
+                status=data.get("status") or detail.get("status"),
+                weights=data.get("weights"),
+                contributions=data.get("contributions"),
+                label_for=lambda term: abc_term_semantics(term).get("label", ""),
+            )
+            if explanation is not None:
+                detail["score_explanation"] = explanation
             self.send_json({
                 "ok": True,
                 "schema_version": "furnace_rule_detail.v2",
                 "evaluation_id": data.get("batch_id"),
                 "evaluation_ts": data.get("evaluation_ts"),
+                "batch_state": display_bundle.get("batch_state"),
+                "evaluation_age_seconds": display_bundle.get("evaluation_age_seconds"),
                 "detail": detail,
                 "sensor_review": sensor_review,
             })
@@ -6822,7 +8733,7 @@ class Handler(BaseHTTPRequestHandler):
                     WHERE i.rule_id=%s ORDER BY b.evaluation_ts DESC, b.id DESC LIMIT 72
                     """, (rule_id,)
                 ).fetchall()
-            self.send_json({"ok": True, "schema_version": "furnace_rule_trends.v1", "rule_id": rule_id, "points": [dict(row) if isinstance(row, Mapping) else {"evaluation_ts": row[0], "score": row[1], "confidence": row[2], "status": row[3]} for row in reversed(rows)]})
+            self.send_json({"ok": True, "schema_version": "furnace_rule_trends.v1", "series_scope": "historical", "rule_id": rule_id, "points": [dict(row) if isinstance(row, Mapping) else {"evaluation_ts": row[0], "score": row[1], "confidence": row[2], "status": row[3]} for row in reversed(rows)]})
         except Exception as exc:
             self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
 
@@ -6850,14 +8761,54 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:
             self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
 
-    def handle_admin_furnace_rules_latest_full(self) -> None:
+    def handle_admin_furnace_rules_history(self, query: str) -> None:
         if not self._abc_admin_required():
             return
         try:
+            params = parse_qs(query)
+            start = (params.get("start") or [None])[0]
+            end = (params.get("end") or [None])[0]
+            limit = min(576, max(1, int((params.get("limit") or [288])[0])))
+            clauses = []
+            values: list[Any] = []
+            if start:
+                clauses.append("evaluation_ts >= %s::timestamptz")
+                values.append(start)
+            if end:
+                clauses.append("evaluation_ts <= %s::timestamptz")
+                values.append(end)
+            where = " WHERE " + " AND ".join(clauses) if clauses else ""
+            values.append(limit)
             with self._abc_connection() as conn:
-                batch = conn.execute(
-                    "SELECT id,evaluation_ts,catalog_version,config_version FROM bf_sensor.abc_rule_evaluation_batches ORDER BY evaluation_ts DESC,id DESC LIMIT 1"
-                ).fetchone()
+                rows = conn.execute(
+                    f"""SELECT id,evaluation_ts,catalog_version,config_version,
+                               (SELECT count(*) FROM bf_sensor.abc_rule_evaluation_items i WHERE i.batch_id=b.id) AS rule_count
+                        FROM bf_sensor.abc_rule_evaluation_batches b{where}
+                        ORDER BY evaluation_ts DESC,id DESC LIMIT %s""",
+                    tuple(values),
+                ).fetchall()
+            self.send_json({"ok": True, "schema_version": "abc_rule_admin_history.v1", "batches": [dict(row) for row in rows]}, headers={"Cache-Control": "no-store"})
+        except (TypeError, ValueError):
+            self.send_json({"ok": False, "error": "invalid_history_query"}, status=400)
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
+    def handle_admin_furnace_rules_latest_full(self, query: str = "") -> None:
+        if not self._abc_admin_required():
+            return
+        try:
+            params = parse_qs(query)
+            requested_id = (params.get("evaluation_id") or [None])[0]
+            with self._abc_connection() as conn:
+                if requested_id:
+                    batch = conn.execute(
+                        "SELECT id,evaluation_ts,catalog_version,config_version FROM bf_sensor.abc_rule_evaluation_batches WHERE id=%s",
+                        (int(requested_id),),
+                    ).fetchone()
+                else:
+                    batch = conn.execute(
+                        "SELECT id,evaluation_ts,catalog_version,config_version FROM bf_sensor.abc_rule_evaluation_batches ORDER BY evaluation_ts DESC,id DESC LIMIT 1"
+                    ).fetchone()
                 if not batch:
                     self.send_json({"ok": True, "schema_version": "abc_rule_admin_runtime.v1", "rules": [], "state": "needs_data"}, headers={"Cache-Control": "no-store"})
                     return
@@ -6935,6 +8886,77 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:
             self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
 
+    def handle_thermal_trend(self) -> None:
+        """Return the public, advisory-only two-half-hour trend assessment."""
+        try:
+            abc_config = load_abc_config(ABC_CONFIG_PATH)
+            burden_policy = ((abc_config.get("feature_thresholds") or {}).get("burden_rate") or {})
+            payload = thermal_trend_rule.evaluate_latest(
+                self.pg_connect,
+                config_path=THERMAL_TREND_CONFIG_PATH,
+                condition_path=THERMAL_TREND_CONDITION_PATH,
+                burden_policy=burden_policy,
+            )
+            self.send_json(payload, headers={"Cache-Control": "no-store"})
+        except (ValueError, json.JSONDecodeError) as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=503, headers={"Cache-Control": "no-store"})
+        except Exception as exc:
+            self.send_json({"ok": False, "error": "thermal_trend_unavailable", "error_type": type(exc).__name__}, status=503, headers={"Cache-Control": "no-store"})
+
+    def handle_admin_thermal_trend_config_get(self) -> None:
+        if not self._abc_admin_required():
+            return
+        try:
+            config = thermal_trend_rule.load_config(THERMAL_TREND_CONFIG_PATH)
+            for key in ("config_hash", "published_by", "change_reason", "published_at"):
+                config.pop(key, None)
+            self.send_json({"ok": True, "schema_version": "bf.thermal-trend.config.admin.v1", "config": config}, headers={"Cache-Control": "no-store"})
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
+    def handle_admin_thermal_trend_config_publish(self) -> None:
+        if not self._abc_admin_write_required("publish-thermal-trend-config"):
+            return
+        try:
+            body = self.read_json_body()
+            config = dict(body.get("config")) if isinstance(body.get("config"), Mapping) else None
+            reason = str(body.get("reason") or "").strip()
+            session = self.current_review_session() or {}
+            actor = str(session.get("sub") or "").strip()
+            if config is None or not reason or not actor:
+                self.send_json({"ok": False, "error": "config_reason_and_admin_are_required"}, status=400)
+                return
+            for key in ("config_hash", "published_by", "change_reason", "published_at"):
+                config.pop(key, None)
+            result = thermal_trend_rule.publish_config(config, THERMAL_TREND_CONFIG_PATH, reason=reason, actor=actor)
+            self.send_json({"ok": True, "schema_version": "bf.thermal-trend.config.publish.v1", "published": result}, headers={"Cache-Control": "no-store"})
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
+    def handle_thermal_trend_condition_publish(self) -> None:
+        if not self._abc_operator_write_required("confirm-thermal-trend-condition"):
+            return
+        try:
+            body = self.read_json_body()
+            session = self.current_review_session() or {}
+            config = thermal_trend_rule.load_config(THERMAL_TREND_CONFIG_PATH)
+            ttl = int((config.get("slag_iron_exception") or {}).get("confirmation_ttl_minutes") or 120)
+            condition = thermal_trend_rule.write_condition(
+                THERMAL_TREND_CONDITION_PATH,
+                state=str(body.get("state") or "unknown"),
+                actor=str(session.get("sub") or ""),
+                role=str(session.get("role") or ""),
+                ttl_minutes=ttl,
+                reason=str(body.get("reason") or ""),
+            )
+            self.send_json({"ok": True, "schema_version": "bf.thermal-trend.condition.publish.v1", "condition": condition}, headers={"Cache-Control": "no-store"})
+        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=400)
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
     def review_store(self) -> diagnosis_review.DiagnosisReviewStore:
         store = diagnosis_review.DiagnosisReviewStore()
         store.ensure_schema()
@@ -6943,6 +8965,12 @@ class Handler(BaseHTTPRequestHandler):
     def latest_review_diagnosis_rows(self) -> list[dict[str, Any]]:
         return diagnosis_review.DiagnosisReviewStore().read_latest_diagnosis_rows(limit=288)
 
+    def latest_abc33_review_score(
+        self, diagnosis_ts: Any, snapshot_id: Any, rule_id: str = "B4"
+    ) -> dict[str, Any]:
+        """Return the latest production-safe ABC33 rule aligned to a diagnosis snapshot."""
+        return load_latest_abc33_review_score(diagnosis_ts, snapshot_id, rule_id)
+
     def canonical_review_context(self, params: dict[str, list[str]]) -> dict[str, Any]:
         fixture_label = (params.get("fixture") or [""])[0]
         fixture_case_id = (params.get("case_id") or ["default"])[0]
@@ -6950,7 +8978,13 @@ class Handler(BaseHTTPRequestHandler):
             if not diagnosis_review.review_test_mode_enabled() or not diagnosis_review.client_is_loopback(self.client_address):
                 raise PermissionError("测试场景只允许在本机测试模式使用")
             return diagnosis_review.build_fixture_context(fixture_label, fixture_case_id)
-        return diagnosis_review.derive_current_episode(self.latest_review_diagnosis_rows(), furnace_id="BF")
+        context = diagnosis_review.derive_current_episode(self.latest_review_diagnosis_rows(), furnace_id="BF")
+        if not context.get("available"):
+            return context
+        abc_snapshot = self.latest_abc33_review_score(
+            context.get("diagnosis_ts"), context.get("snapshot_id"), "B4"
+        )
+        return diagnosis_review.apply_abc33_display_score(context, abc_snapshot)
 
     def handle_diagnosis_review_context(self, query: str) -> None:
         if not diagnosis_review.review_enabled():
@@ -8061,46 +10095,106 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "error": str(exc)}, status=200)
 
     def handle_qa_bootstrap(self, query: str) -> None:
+        session = self.qa_session_required()
+        if session is None:
+            return
         params = parse_qs(query)
         force_new = params.get("new", ["0"])[0] in {"1", "true", "yes"}
         with db_connect() as conn:
-            conversation, auto_new = select_bootstrap_conversation(conn, force_new=force_new)
+            guest_mode = session.get("access_mode") == "guest_shared"
+            if guest_mode:
+                conversation = ensure_shared_guest_conversation(conn, session)
+                auto_new = False
+            else:
+                conversation, auto_new = select_bootstrap_conversation(
+                    conn,
+                    owner_subject=str(session["sub"]),
+                    owner_role=str(session.get("role") or "operator"),
+                    force_new=force_new,
+                )
             self.send_json(
                 {
                     "ok": True,
+                    "access_mode": session.get("access_mode"),
+                    "shared_guest": guest_mode,
+                    "shared_room_id": session.get("shared_room_id") if guest_mode else None,
                     "auto_new": auto_new,
                     "inactivity_hours": QA_INACTIVITY_HOURS,
                     "server_time": iso_now(),
                     "conversation": conversation,
-                    "conversations": list_conversations(conn),
+                    "conversations": list_conversations(conn, owner_subject=str(session["sub"])),
                     "messages": load_messages(conn, conversation["id"]),
                     "latest_snapshot": latest_snapshot(conn),
-                    "projects": list_projects(conn),
-                    "report_assets": scan_report_assets(conn),
+                    "projects": [] if guest_mode else list_projects(conn),
+                    "report_assets": [] if guest_mode else scan_report_assets(conn),
                 }
             )
 
+    def handle_qa_conversations_get(self, query: str) -> None:
+        """List conversations with optional immutable-origin filters."""
+        session = self.qa_session_required()
+        if session is None:
+            return
+        params = parse_qs(query)
+        try:
+            limit = min(100, max(1, int((params.get("limit") or [40])[0])))
+            evaluation_raw = (params.get("evaluation_id") or [""])[0]
+            evaluation_id = int(evaluation_raw) if evaluation_raw else None
+        except (TypeError, ValueError):
+            self.send_json({"ok": False, "error": "invalid_conversation_filter"}, status=400)
+            return
+        source_type = str((params.get("source_type") or [""])[0]).strip() or None
+        source_id = str((params.get("source_id") or params.get("source_ref_id") or params.get("rule_id") or [""])[0]).strip() or None
+        status_filter = str((params.get("status") or ["active"])[0]).strip() or "active"
+        if status_filter not in {"active", "archived", "all"}:
+            self.send_json({"ok": False, "error": "invalid_conversation_status"}, status=400)
+            return
+        date_from = str((params.get("date_from") or [""])[0]).strip() or None
+        date_to = str((params.get("date_to") or [""])[0]).strip() or None
+        query_text = str((params.get("q") or [""])[0]).strip()[:80] or None
+        with db_connect() as conn:
+            items = list_conversations(
+                conn,
+                limit=limit,
+                owner_subject=str(session["sub"]),
+                origin_source_type=source_type,
+                origin_source_id=source_id,
+                origin_evaluation_id=evaluation_id,
+                status_filter=status_filter,
+                date_from=date_from,
+                date_to=date_to,
+                query_text=query_text,
+            )
+        self.send_json({"ok": True, "conversations": items, "items": items})
+
     def handle_qa_conversation(self, query: str) -> None:
+        session = self.qa_session_required()
+        if session is None:
+            return
         params = parse_qs(query)
         conversation_id = params.get("id", [""])[0]
         if not conversation_id:
             self.send_json({"ok": False, "error": "missing conversation id"}, status=400)
             return
         with db_connect() as conn:
-            row = conn.execute("SELECT * FROM qa_conversations WHERE id = ?", (conversation_id,)).fetchone()
-            if row is None:
+            if not self.qa_conversation_owned(conn, conversation_id, session):
+                return
+            conversation = load_conversation_with_origin(conn, conversation_id)
+            if conversation is None:
                 self.send_json({"ok": False, "error": "conversation not found"}, status=404)
                 return
             self.send_json(
                 {
                     "ok": True,
-                    "conversation": conversation_from_row(row),
-                    "conversations": list_conversations(conn),
+                    "conversation": conversation,
+                    "conversations": list_conversations(conn, owner_subject=str(session["sub"])),
                     "messages": load_messages(conn, conversation_id),
                 }
             )
 
     def handle_qa_projects_get(self, query: str) -> None:
+        if self.qa_operator_session_required() is None:
+            return
         params = parse_qs(query)
         project_id = params.get("id", [""])[0]
         with db_connect() as conn:
@@ -8195,6 +10289,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "error": f"knowledge chunk unavailable: {exc}"}, status=503)
 
     def handle_qa_knowledge_pgvector_rebuild(self) -> None:
+        if self.qa_operator_session_required() is None:
+            return
         try:
             payload = self.read_json_body()
         except Exception as exc:  # noqa: BLE001
@@ -8211,6 +10307,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json(result, status=200 if result.get("ok") else 500)
 
     def handle_qa_projects_post(self) -> None:
+        if self.qa_operator_session_required() is None:
+            return
         try:
             payload = self.read_json_body()
         except json.JSONDecodeError as exc:
@@ -8284,6 +10382,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "error": str(exc)}, status=400)
 
     def handle_qa_project_assets(self) -> None:
+        if self.qa_operator_session_required() is None:
+            return
         try:
             payload = self.read_json_body()
         except json.JSONDecodeError as exc:
@@ -8319,6 +10419,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "error": str(exc)}, status=400)
 
     def handle_qa_open_path(self) -> None:
+        if self.qa_operator_session_required() is None:
+            return
         try:
             payload = self.read_json_body()
         except json.JSONDecodeError as exc:
@@ -8331,6 +10433,9 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "error": str(exc)}, status=400)
 
     def handle_qa_conversation_action(self) -> None:
+        session = self.qa_operator_session_required()
+        if session is None:
+            return
         try:
             payload = self.read_json_body()
         except json.JSONDecodeError as exc:
@@ -8351,8 +10456,8 @@ class Handler(BaseHTTPRequestHandler):
                 conversation_id = conversation_ids[0]
                 placeholders = ",".join("?" for _ in conversation_ids)
                 rows = conn.execute(
-                    f"SELECT * FROM qa_conversations WHERE id IN ({placeholders})",
-                    conversation_ids,
+                    f"SELECT * FROM qa_conversations WHERE id IN ({placeholders}) AND owner_subject = ?",
+                    [*conversation_ids, str(session["sub"])],
                 ).fetchall()
                 found_ids = {row["id"] for row in rows}
                 missing_ids = [item for item in conversation_ids if item not in found_ids]
@@ -8423,13 +10528,29 @@ class Handler(BaseHTTPRequestHandler):
                         "ok": True,
                         "conversation": conversation_from_row(new_row) if new_row else None,
                         "affected_ids": conversation_ids,
-                        "conversations": list_conversations(conn),
+                        "conversations": list_conversations(conn, owner_subject=str(session["sub"])),
                     }
                 )
         except Exception as exc:  # noqa: BLE001
             self.send_json({"ok": False, "error": str(exc)}, status=400)
 
     def handle_qa_new_conversation(self) -> None:
+        session = self.qa_session_required()
+        if session is None:
+            return
+        if session.get("access_mode") == "guest_shared":
+            with db_connect() as conn:
+                conversation = ensure_shared_guest_conversation(conn, session)
+                self.send_json(
+                    {
+                        "ok": True,
+                        "access_mode": "guest_shared",
+                        "conversation": conversation,
+                        "conversations": [conversation],
+                        "messages": load_messages(conn, conversation["id"]),
+                    }
+                )
+            return
         try:
             payload = self.read_json_body()
         except json.JSONDecodeError as exc:
@@ -8448,7 +10569,46 @@ class Handler(BaseHTTPRequestHandler):
                         payload.get("title")
                         or f"短时队列 {queue.get('queue_end_ts') or queue.get('queue_start_ts') or queue.get('queue_id')}"
                     )
-            conversation = create_conversation(conn, title=title)
+            conversation = create_conversation(
+                conn,
+                title=title,
+                owner_subject=str(session["sub"]),
+                owner_role=str(session.get("role") or "operator"),
+            )
+            if short_seed:
+                queue = short_seed.get("queue") or {}
+                source_ref_id = str(
+                    short_seed.get("conversation_id") or queue.get("queue_id") or short_conversation_id or short_queue_id
+                )
+                persist_non_abc_conversation_origin(
+                    conn,
+                    conversation_id=conversation["id"],
+                    source_type="short_window",
+                    source_ref_id=source_ref_id,
+                    source_title=title,
+                    payload=short_seed,
+                    source_page="short-window",
+                    return_route=str(payload.get("return_route") or ""),
+                )
+            period_report_id = payload.get("period_report_id")
+            if period_report_id and not short_seed:
+                report = conn.execute("SELECT * FROM period_reports WHERE id=?", (int(period_report_id),)).fetchone()
+                if not report:
+                    conn.execute("DELETE FROM qa_conversations WHERE id=?", (conversation["id"],))
+                    conn.commit()
+                    self.send_json({"ok": False, "error": "period_report_not_found"}, status=404)
+                    return
+                persist_non_abc_conversation_origin(
+                    conn,
+                    conversation_id=conversation["id"],
+                    source_type="period_report",
+                    source_ref_id=str(period_report_id),
+                    source_title=str(report.get("title") or title),
+                    payload=dict(report),
+                    source_page="period-report",
+                    return_route=str(payload.get("return_route") or ""),
+                )
+            conn.commit()
             project_id = payload.get("project_id")
             if project_id:
                 conn.execute("UPDATE qa_conversations SET project_id = ? WHERE id = ?", (int(project_id), conversation["id"]))
@@ -8479,12 +10639,136 @@ class Handler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "conversation": conversation,
-                    "conversations": list_conversations(conn),
+                    "conversations": list_conversations(conn, owner_subject=str(session["sub"])),
                     "messages": messages,
                 }
             )
 
+    def handle_qa_contextual_conversation(self) -> None:
+        """Create/reuse an ABC-origin conversation from authoritative IDs only."""
+        session = self.current_review_session()
+        role = str((session or {}).get("role") or "").lower()
+        if not session or not any(token in role for token in ("operator", "admin", "操作", "管理", "炉长")):
+            self.send_json({"ok": False, "error": "explanation_permission_required"}, status=403)
+            return
+        try:
+            payload = self.read_json_body()
+        except json.JSONDecodeError as exc:
+            self.send_json({"ok": False, "error": f"bad json: {exc}"}, status=400)
+            return
+        allowed_fields = {"source_type", "source_page", "rule_id", "evaluation_id", "reuse_policy"}
+        rejected = sorted(set(payload).difference(allowed_fields))
+        if rejected:
+            self.send_json({"ok": False, "error": "contextual_conversation_unknown_fields", "rejected_fields": rejected}, status=400)
+            return
+        missing = sorted(allowed_fields.difference(payload))
+        if missing:
+            self.send_json({"ok": False, "error": "contextual_conversation_missing_fields", "missing_fields": missing}, status=400)
+            return
+        source_type = str(payload.get("source_type") or "").strip()
+        source_page = str(payload.get("source_page") or "").strip()
+        rule_id = str(payload.get("rule_id") or "").strip()
+        reuse_policy = str(payload.get("reuse_policy") or "").strip()
+        if source_type != "abc_rule":
+            self.send_json({"ok": False, "error": "unsupported_source_type"}, status=400)
+            return
+        if source_page != "optimization":
+            self.send_json({"ok": False, "error": "unsupported_source_page"}, status=400)
+            return
+        if rule_id not in RULE_BY_ID:
+            self.send_json({"ok": False, "error": "unknown_rule"}, status=404)
+            return
+        if reuse_policy not in {"same_rule_active", "force_new"}:
+            self.send_json({"ok": False, "error": "invalid_reuse_policy"}, status=400)
+            return
+        try:
+            evaluation_id = int(payload.get("evaluation_id"))
+        except (TypeError, ValueError):
+            self.send_json({"ok": False, "error": "invalid_evaluation_id"}, status=400)
+            return
+        try:
+            artifacts = self._authoritative_abc_context(rule_id, evaluation_id)
+            if artifacts is None:
+                self.send_json({"ok": False, "error": "evaluation_not_found"}, status=404)
+                return
+            context_snapshot_id = self._persist_abc_context(rule_id, evaluation_id, artifacts)
+            ts = iso_now()
+            operator_id = str((session or {}).get("sub") or "operator")
+            local_now = datetime.now(ZoneInfo("Asia/Shanghai"))
+            shift_key = f"{local_now.date().isoformat()}:{(local_now.hour // 8) * 8:02d}"
+            summary = artifacts["context_summary"]
+            title = str(summary.get("display_name") or rule_id)[:160]
+            with db_connect() as conn:
+                existing = None
+                if reuse_policy == "same_rule_active":
+                    existing = conn.execute(
+                        """
+                        SELECT c.id FROM qa_conversations c
+                        JOIN qa_conversation_origins o ON o.conversation_id = c.id
+                        WHERE COALESCE(c.status, 'active') = 'active'
+                          AND o.source_type = 'abc_rule' AND o.source_id = ?
+                          AND o.operator_id = ? AND o.shift_key = ?
+                          AND c.owner_subject = ?
+                        ORDER BY c.updated_at DESC LIMIT 1
+                        """,
+                        (rule_id, operator_id, shift_key, str(session["sub"])),
+                    ).fetchone()
+                if existing:
+                    conversation_id = str(existing["id"])
+                    conn.execute("UPDATE qa_conversations SET updated_at = ? WHERE id = ?", (ts, conversation_id))
+                    conn.execute(
+                        """UPDATE qa_conversation_origins
+                           SET evaluation_id = ?, context_snapshot_id = ?, reuse_policy = ?, updated_at = ?
+                           WHERE conversation_id = ?""",
+                        (evaluation_id, context_snapshot_id, reuse_policy, ts, conversation_id),
+                    )
+                else:
+                    conversation_id = create_conversation(
+                        conn,
+                        title=title,
+                        owner_subject=str(session["sub"]),
+                        owner_role=str(session.get("role") or "operator"),
+                    )["id"]
+                    conn.execute(
+                        """
+                        INSERT INTO qa_conversation_origins(
+                            conversation_id, source_type, source_id, evaluation_id,
+                            context_snapshot_id, reuse_policy, source_page, source_ref_id,
+                            source_title, initial_evaluation_id, initial_context_snapshot_id,
+                            return_route, operator_id, shift_key, created_at, updated_at
+                        ) VALUES (?, 'abc_rule', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            conversation_id, rule_id, evaluation_id, context_snapshot_id,
+                            reuse_policy, source_page,
+                            rule_id, title, evaluation_id, context_snapshot_id,
+                            "", operator_id, shift_key, ts, ts,
+                        ),
+                    )
+                conn.commit()
+                conversation_payload = load_conversation_with_origin(conn, conversation_id)
+                cached_analysis = _abc_rule_cached_analysis(
+                    conn,
+                    context_snapshot_id,
+                    _abc_rule_analysis_model_name(),
+                )
+            self.send_json({
+                "ok": True,
+                "conversation": conversation_payload,
+                "context_summary": summary,
+                "operator_explanation": artifacts["operator_explanation"],
+                "analysis_text": cached_analysis.get("answer") if cached_analysis else None,
+                "analysis_state": "completed" if cached_analysis else "context_ready",
+                "cache_hit": bool(cached_analysis),
+                "assistant_enabled": ABC_RULE_ASSISTANT_ENABLED,
+                "auto_analysis_enabled": ABC_RULE_ASSISTANT_AUTO_ANALYSIS,
+            })
+        except Exception as exc:
+            self.send_json({"ok": False, "error_type": type(exc).__name__}, status=503)
+
     def handle_qa_snapshot(self) -> None:
+        if self.qa_operator_session_required() is None:
+            return
         try:
             payload = self.read_json_body()
         except json.JSONDecodeError as exc:
@@ -8494,7 +10778,59 @@ class Handler(BaseHTTPRequestHandler):
             snapshot_id = insert_snapshot(conn, payload)
             self.send_json({"ok": True, "snapshot_id": snapshot_id})
 
+    def send_cached_abc_initial_analysis(
+        self,
+        conversation_id: str,
+        cached: Mapping[str, Any],
+        *,
+        stream: bool,
+        session: Mapping[str, Any],
+    ) -> None:
+        """Return one completed initial analysis without another model request."""
+        with db_connect() as conn:
+            if not self.qa_conversation_owned(conn, conversation_id, session):
+                return
+            conversation = load_conversation_with_origin(conn, conversation_id)
+            messages = load_messages(conn, conversation_id)
+        payload = {
+            "ok": True,
+            "answer": cached.get("answer"),
+            "conversation": conversation,
+            "messages": messages,
+            "context_snapshot_id": cached.get("context_snapshot_id"),
+            "context_hash": cached.get("context_hash"),
+            "prompt_version": cached.get("prompt_version"),
+            "cache_hit": True,
+        }
+        if not stream:
+            self.send_json(payload)
+            return
+        self.send_response(200)
+        self.add_cors()
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-cache, no-transform")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.write_qa_event("start", {"ok": True, "stage": "preparing", "cache_hit": True})
+        self.write_qa_event(
+            "start",
+            {
+                "ok": True,
+                "stage": "prepared",
+                "conversation": conversation,
+                "context_snapshot_id": cached.get("context_snapshot_id"),
+                "context_hash": cached.get("context_hash"),
+                "cache_hit": True,
+            },
+        )
+        self.write_qa_event("delta", {"delta": cached.get("answer"), "content": cached.get("answer")})
+        self.write_qa_event("final", payload)
+        self.write_qa_event("done", {"ok": True, "cache_hit": True})
+
     def handle_qa_chat(self) -> None:
+        session = self.qa_session_required()
+        if session is None:
+            return
         try:
             payload = self.read_json_body()
         except json.JSONDecodeError as exc:
@@ -8506,12 +10842,91 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "error": "message is required"}, status=400)
             return
 
-        wants_stream = bool(payload.get("stream")) or "text/event-stream" in self.headers.get("Accept", "")
-        if wants_stream:
-            self.handle_qa_chat_stream(payload, question)
+        guest_mode = session.get("access_mode") == "guest_shared"
+        if guest_mode:
+            forbidden = {
+                "analysis_mode", "project_id", "context_assets", "attachments",
+                "manual_context_text", "context_mode",
+            }.intersection(payload)
+            if forbidden:
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error": "guest_context_not_allowed",
+                        "rejected_fields": sorted(forbidden),
+                    },
+                    status=403,
+                )
+                return
+        requested_conversation_id = str(payload.get("conversation_id") or "").strip()
+        with db_connect() as conn:
+            conversation_id = self.qa_chat_conversation_id(conn, requested_conversation_id, session)
+        if conversation_id is None:
             return
+        payload["conversation_id"] = conversation_id
 
-        self.handle_qa_chat_json(payload, question)
+        wants_stream = bool(payload.get("stream")) or "text/event-stream" in self.headers.get("Accept", "")
+        initial_ticket: dict[str, Any] | None = None
+        if str(payload.get("analysis_mode") or "") == "initial_context_explanation":
+            if not ABC_RULE_ASSISTANT_ENABLED:
+                self.send_json(
+                    {"ok": False, "error": "abc_rule_assistant_disabled", "retryable": False},
+                    status=503,
+                )
+                return
+            if not ABC_RULE_ASSISTANT_AUTO_ANALYSIS:
+                self.send_json(
+                    {"ok": False, "error": "abc_rule_auto_analysis_disabled", "retryable": False},
+                    status=409,
+                )
+                return
+            if question != ABC_RULE_INITIAL_QUESTION:
+                self.send_json({"ok": False, "error": "invalid_initial_analysis_question"}, status=400)
+                return
+            initial_ticket = claim_abc_rule_initial_analysis(conversation_id, str(session["sub"]))
+            if initial_ticket.get("state") == "unbound":
+                self.send_json({"ok": False, "error": "abc_context_binding_required"}, status=409)
+                return
+            if initial_ticket.get("state") == "waiter":
+                cached = wait_for_abc_rule_initial_analysis(initial_ticket)
+                if cached:
+                    self.send_cached_abc_initial_analysis(conversation_id, cached, stream=wants_stream, session=session)
+                else:
+                    self.send_json(
+                        {"ok": False, "error": "initial_analysis_wait_timeout", "retryable": True},
+                        status=503,
+                    )
+                return
+            if initial_ticket.get("state") == "cached":
+                self.send_cached_abc_initial_analysis(conversation_id, initial_ticket, stream=wants_stream, session=session)
+                return
+            if initial_ticket.get("state") == "retry_wait":
+                self.send_json(
+                    {
+                        "ok": False,
+                        "error": "initial_analysis_retry_delayed",
+                        "retryable": True,
+                        "retry_after_seconds": initial_ticket.get("retry_after_seconds"),
+                    },
+                    status=503,
+                )
+                return
+            if initial_ticket.get("state") == "owner":
+                payload["_abc_initial_analysis_ticket"] = initial_ticket
+
+        payload["_qa_owner_subject"] = str(session["sub"])
+        payload["_qa_owner_role"] = str(session.get("role") or "operator")
+        payload["_qa_access_mode"] = str(session.get("access_mode") or "authenticated")
+
+        try:
+            lock = guest_room_generation_lock(str(session["sub"])) if guest_mode else nullcontext()
+            with lock:
+                if wants_stream:
+                    self.handle_qa_chat_stream(payload, question)
+                    return
+                self.handle_qa_chat_json(payload, question)
+        finally:
+            finish_abc_rule_initial_analysis(initial_ticket)
 
     def prepare_qa_chat(
         self,
@@ -8524,11 +10939,30 @@ class Handler(BaseHTTPRequestHandler):
         with db_connect() as conn:
             db_started = time.perf_counter()
             conversation_id = str(payload.get("conversation_id") or "")
-            row = conn.execute("SELECT * FROM qa_conversations WHERE id = ?", (conversation_id,)).fetchone()
+            owner_subject = str(payload.get("_qa_owner_subject") or "")
+            guest_mode = str(payload.get("_qa_access_mode") or "") == "guest_shared"
+            row = conn.execute(
+                "SELECT * FROM qa_conversations WHERE id = ? AND owner_subject = ?",
+                (conversation_id, owner_subject),
+            ).fetchone()
             if row is None:
-                conversation = create_conversation(conn)
-                conversation_id = conversation["id"]
-            project_id = payload.get("project_id")
+                raise PermissionError("conversation ownership check failed")
+            bound_context_row = conn.execute(
+                """
+                SELECT o.context_snapshot_id, o.source_type, s.context_hash, s.payload_json
+                FROM qa_conversation_origins o
+                JOIN qa_context_snapshots s ON s.id = o.context_snapshot_id
+                WHERE o.conversation_id = ?
+                """,
+                (conversation_id,),
+            ).fetchone()
+            bound_assistant_context = ""
+            bound_context_snapshot_id = None
+            if bound_context_row:
+                bound_context_snapshot_id = int(bound_context_row["context_snapshot_id"])
+                if str(bound_context_row["source_type"] or "") == "abc_rule":
+                    bound_assistant_context = str(bound_context_row["payload_json"] or "")
+            project_id = None if guest_mode else payload.get("project_id")
             project_id_int = int(project_id) if str(project_id or "").strip() else None
             if project_id_int is not None:
                 conn.execute(
@@ -8616,14 +11050,38 @@ class Handler(BaseHTTPRequestHandler):
                 except (TypeError, ValueError):
                     snapshot_id = None
             history = load_messages(conn, conversation_id)
-            context_assets = payload.get("context_assets") if isinstance(payload.get("context_assets"), list) else []
-            report_attachments = payload.get("attachments") if isinstance(payload.get("attachments"), list) else []
+            context_assets = [] if guest_mode else (
+                payload.get("context_assets") if isinstance(payload.get("context_assets"), list) else []
+            )
+            report_attachments = [] if guest_mode else (
+                payload.get("attachments") if isinstance(payload.get("attachments"), list) else []
+            )
             context_assets = [*context_assets, *report_attachments_to_context_assets(conn, report_attachments)]
             project_context, context_refs = build_project_context(
                 conn,
                 context_assets,
-                manual_context_text=str(payload.get("manual_context_text") or ""),
+                manual_context_text="" if guest_mode else str(payload.get("manual_context_text") or ""),
             )
+            report_ref = next(
+                (item for item in context_refs if str(item.get("ref_type") or "") == "period_report"),
+                None,
+            )
+            if report_ref:
+                existing_origin = conn.execute(
+                    "SELECT conversation_id FROM qa_conversation_origins WHERE conversation_id=?",
+                    (conversation_id,),
+                ).fetchone()
+                if not existing_origin:
+                    persist_non_abc_conversation_origin(
+                        conn,
+                        conversation_id=conversation_id,
+                        source_type="period_report",
+                        source_ref_id=str(report_ref.get("ref_id") or ""),
+                        source_title=str(report_ref.get("inserted_title") or "报表问答"),
+                        payload=report_ref,
+                        source_page="qa-report-insert",
+                    )
+                    conn.commit()
             timing_ms["db_context"] = round((time.perf_counter() - db_started) * 1000, 1)
             timing_ms["assistant_after_pg"] = round(
                 timing_ms["db_context"] - timing_ms["assistant_before_pg"] - timing_ms["pg_context"],
@@ -8678,6 +11136,8 @@ class Handler(BaseHTTPRequestHandler):
                 "knowledge_enabled": bool(knowledge_pack.get("enabled")),
                 "knowledge_intent": (knowledge_pack.get("intent") or {}).get("intent_type"),
                 "knowledge_chunk_ids": [item.get("chunk_id") for item in knowledge_pack.get("evidence", [])],
+                "bound_context_snapshot_id": bound_context_snapshot_id,
+                "bound_context_hash": bound_context_row["context_hash"] if bound_context_row else None,
             }
             hidden_context["qa_prepare_timing_ms"] = {
                 **timing_ms,
@@ -8694,10 +11154,27 @@ class Handler(BaseHTTPRequestHandler):
             if context_refs:
                 insert_context_refs(conn, conversation_id, user_message_id, project_id_int, context_refs)
                 conn.commit()
+            if bound_context_snapshot_id is not None:
+                conn.execute(
+                    """
+                    INSERT INTO qa_message_context_snapshots(
+                        conversation_id, message_id, context_snapshot_id, usage_kind, created_at
+                    ) VALUES (?, ?, ?, 'assistant_prompt', ?)
+                    ON CONFLICT(message_id, context_snapshot_id, usage_kind) DO NOTHING
+                    """,
+                    (conversation_id, user_message_id, bound_context_snapshot_id, iso_now()),
+                )
+                conn.commit()
 
-            conv_row = conn.execute("SELECT * FROM qa_conversations WHERE id = ?", (conversation_id,)).fetchone()
+            conversation_payload = load_conversation_with_origin(conn, conversation_id)
             return {
                 "conversation_id": conversation_id,
+                "owner_subject": owner_subject,
+                "access_mode": "guest_shared" if guest_mode else "authenticated",
+                "analysis_mode": str(payload.get("analysis_mode") or ""),
+                "analysis_claim_token": str((payload.get("_abc_initial_analysis_ticket") or {}).get("claim_token") or ""),
+                "bound_context_snapshot_id": bound_context_snapshot_id,
+                "bound_context_hash": bound_context_row["context_hash"] if bound_context_row else None,
                 "snapshot_id": snapshot_id,
                 "hidden_context": hidden_context,
                 "routing_question": routing_question,
@@ -8709,9 +11186,12 @@ class Handler(BaseHTTPRequestHandler):
                     mcp_context=str(mcp_prefetch.get("context_text") or ""),
                     context_meta=context_meta,
                     knowledge_context=evidence_pack_text(knowledge_pack),
+                    assistant_rule_context=bound_assistant_context,
+                    analysis_mode=str(payload.get("analysis_mode") or ""),
                 ),
-                "conversation": conversation_from_row(conv_row),
-                "conversations": list_conversations(conn) if include_conversations else None,
+                "bound_assistant_context": load_json(bound_assistant_context, {}),
+                "conversation": conversation_payload,
+                "conversations": list_conversations(conn, owner_subject=owner_subject) if include_conversations else None,
                 "context_refs": context_refs,
                 "mcp_prefetch": mcp_prefetch,
                 "knowledge_evidence": knowledge_pack.get("evidence", []),
@@ -8725,6 +11205,7 @@ class Handler(BaseHTTPRequestHandler):
             }
 
     def handle_qa_chat_json(self, payload: dict[str, Any], question: str) -> None:
+        prepared: dict[str, Any] | None = None
         try:
             prepared = self.prepare_qa_chat(payload, question)
             mcp_tool_trace: list[dict[str, Any]] = []
@@ -8734,6 +11215,7 @@ class Handler(BaseHTTPRequestHandler):
                     prepared["messages"],
                     routing_question=prepared.get("routing_question") or "",
                 )
+                tool_result = qa_mcp_result_with_fallback(tool_result, prepared["messages"])
                 mcp_tool_trace = tool_result.get("tool_trace") or []
                 prepared["hidden_context"]["mcp_tool_trace"] = mcp_tool_trace
                 prepared["hidden_context"]["mcp_conversation_context"] = context_with_tool_trace(
@@ -8751,7 +11233,21 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     answer = clean_llm_output(tool_result.get("answer") or "")
             else:
-                answer = call_ollama_chat(prepared["messages"])
+                answer = (
+                    call_ollama_chat_strict_json(
+                        prepared["messages"],
+                        prepared.get("bound_assistant_context") or {},
+                    )
+                    if prepared.get("analysis_mode") == "initial_context_explanation"
+                    else call_ollama_chat(prepared["messages"])
+                )
+            analysis_payload = None
+            if prepared.get("analysis_mode") == "initial_context_explanation":
+                answer, analysis_payload = validated_abc_initial_answer_with_repair(
+                    answer,
+                    prepared["messages"],
+                    prepared.get("bound_assistant_context") or {},
+                )
             answer = append_mcp_chart_links(answer, mcp_tool_trace)
             with db_connect() as conn:
                 add_message(
@@ -8762,6 +11258,15 @@ class Handler(BaseHTTPRequestHandler):
                     snapshot_id=prepared["snapshot_id"],
                     hidden_context=prepared["hidden_context"],
                 )
+                if prepared.get("analysis_mode") == "initial_context_explanation":
+                    cache_abc_rule_analysis(
+                        conn,
+                        prepared.get("bound_context_snapshot_id"),
+                        answer,
+                        model_name=_abc_rule_analysis_model_name(),
+                        analysis_payload=analysis_payload,
+                        claim_token=prepared.get("analysis_claim_token"),
+                    )
                 conv_row = conn.execute(
                     "SELECT * FROM qa_conversations WHERE id = ?",
                     (prepared["conversation_id"],),
@@ -8771,25 +11276,42 @@ class Handler(BaseHTTPRequestHandler):
                         "ok": True,
                         "answer": answer,
                         "conversation": conversation_from_row(conv_row),
-                        "conversations": list_conversations(conn),
+                        "conversations": list_conversations(conn, owner_subject=prepared.get("owner_subject")),
                         "messages": load_messages(conn, prepared["conversation_id"]),
                         "context_refs": prepared.get("context_refs", []),
                         "mcp_prefetch": {k: v for k, v in prepared.get("mcp_prefetch", {}).items() if k != "context_text"},
                         "mcp_tool_calling": bool(prepared.get("use_mcp_tools")),
                         "mcp_tool_trace": mcp_tool_trace,
+                        "mcp_model_explanation": tool_result.get("model_explanation"),
+                        "model_request_count": tool_result.get("model_request_count"),
                         "mcp_cross_source": tool_result.get("mcp_cross_source"),
                         "cross_source_snapshot": tool_result.get("cross_source_snapshot"),
                     }
                 )
         except HTTPError as exc:
+            if prepared and prepared.get("analysis_mode") == "initial_context_explanation":
+                set_abc_rule_analysis_state(prepared.get("bound_context_snapshot_id"), "failed_retryable", error_code="model_http_error", claim_token=prepared.get("analysis_claim_token"))
             detail = sanitize_model_exposure(exc.read().decode("utf-8", errors="replace"))
             self.send_json({"ok": False, "error": f"高炉大模型服务 HTTP {exc.code}", "detail": detail}, status=200)
         except URLError as exc:
+            if prepared and prepared.get("analysis_mode") == "initial_context_explanation":
+                set_abc_rule_analysis_state(prepared.get("bound_context_snapshot_id"), "failed_retryable", error_code="model_unavailable", claim_token=prepared.get("analysis_claim_token"))
             self.send_json(
                 {"ok": False, "error": f"高炉大模型服务不可达：{sanitize_model_exposure(exc.reason)}"},
                 status=200,
             )
         except Exception as exc:  # noqa: BLE001
+            if prepared and prepared.get("analysis_mode") == "initial_context_explanation":
+                set_abc_rule_analysis_state(
+                    prepared.get("bound_context_snapshot_id"),
+                    "failed_retryable",
+                    error_code=(
+                        "invalid_model_json"
+                        if isinstance(exc, abc_rule_assistant_analysis.InitialAnalysisValidationError)
+                        else type(exc).__name__
+                    ),
+                    claim_token=prepared.get("analysis_claim_token"),
+                )
             self.send_json({"ok": False, "error": f"问答服务失败：{exc}"}, status=500)
 
     def handle_qa_chat_stream(self, payload: dict[str, Any], question: str) -> None:
@@ -8812,12 +11334,17 @@ class Handler(BaseHTTPRequestHandler):
                 "ok": True,
                 "stage": "prepared",
                 "conversation": prepared["conversation"],
+                "conversation_id": prepared["conversation_id"],
+                "context_snapshot_id": prepared.get("bound_context_snapshot_id"),
+                "context_hash": prepared.get("bound_context_hash"),
                 "mcp_prefetch": {k: v for k, v in prepared.get("mcp_prefetch", {}).items() if k != "context_text"},
                 "mcp_tool_calling": bool(prepared.get("use_mcp_tools")),
                 "knowledge": prepared.get("knowledge"),
                 "qa_prepare_timing_ms": prepared.get("qa_prepare_timing_ms"),
             },
         )
+        if prepared.get("analysis_mode") == "initial_context_explanation":
+            set_abc_rule_analysis_state(prepared.get("bound_context_snapshot_id"), "generating", claim_token=prepared.get("analysis_claim_token"))
         if (prepared.get("mcp_prefetch") or {}).get("used"):
             prefetch_event = {k: v for k, v in prepared.get("mcp_prefetch", {}).items() if k != "context_text"}
             if "tool" not in prefetch_event:
@@ -8841,6 +11368,7 @@ class Handler(BaseHTTPRequestHandler):
                     stop_after_tool_round=False,
                     routing_question=prepared.get("routing_question") or "",
                 )
+                tool_result = qa_mcp_result_with_fallback(tool_result, prepared["messages"])
                 mcp_tool_trace = tool_result.get("tool_trace") or []
                 prepared["hidden_context"]["mcp_tool_trace"] = mcp_tool_trace
                 prepared["hidden_context"]["mcp_conversation_context"] = context_with_tool_trace(
@@ -8860,8 +11388,23 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     precomputed_answer = clean_llm_output(tool_result.get("answer") or "")
 
+            if prepared.get("analysis_mode") == "initial_context_explanation" and precomputed_answer is None:
+                # Buffer strict JSON and expose only the validated rendering to SSE clients.
+                precomputed_answer = call_ollama_chat_strict_json(
+                    stream_messages,
+                    prepared.get("bound_assistant_context") or {},
+                )
+
             if precomputed_answer is not None:
-                answer = append_mcp_chart_links(precomputed_answer, mcp_tool_trace)
+                analysis_payload = None
+                answer = precomputed_answer
+                if prepared.get("analysis_mode") == "initial_context_explanation":
+                    answer, analysis_payload = validated_abc_initial_answer_with_repair(
+                        answer,
+                        stream_messages,
+                        prepared.get("bound_assistant_context") or {},
+                    )
+                answer = append_mcp_chart_links(answer, mcp_tool_trace)
                 self.write_qa_event("delta", {"delta": answer, "content": answer})
                 with db_connect() as conn:
                     add_message(
@@ -8872,6 +11415,15 @@ class Handler(BaseHTTPRequestHandler):
                         snapshot_id=prepared["snapshot_id"],
                         hidden_context=prepared["hidden_context"],
                     )
+                    if prepared.get("analysis_mode") == "initial_context_explanation":
+                        cache_abc_rule_analysis(
+                            conn,
+                            prepared.get("bound_context_snapshot_id"),
+                            answer,
+                            model_name=_abc_rule_analysis_model_name(),
+                            analysis_payload=analysis_payload,
+                            claim_token=prepared.get("analysis_claim_token"),
+                        )
                     conv_row = conn.execute(
                         "SELECT * FROM qa_conversations WHERE id = ?",
                         (prepared["conversation_id"],),
@@ -8880,12 +11432,14 @@ class Handler(BaseHTTPRequestHandler):
                         "ok": True,
                         "answer": answer,
                         "conversation": conversation_from_row(conv_row),
-                        "conversations": list_conversations(conn),
+                        "conversations": list_conversations(conn, owner_subject=prepared.get("owner_subject")),
                         "messages": load_messages(conn, prepared["conversation_id"]),
                         "context_refs": prepared.get("context_refs", []),
                         "mcp_prefetch": {k: v for k, v in prepared.get("mcp_prefetch", {}).items() if k != "context_text"},
                         "mcp_tool_calling": bool(prepared.get("use_mcp_tools")),
                         "mcp_tool_trace": mcp_tool_trace,
+                        "mcp_model_explanation": tool_result.get("model_explanation"),
+                        "model_request_count": tool_result.get("model_request_count"),
                         "mcp_cross_source": tool_result.get("mcp_cross_source"),
                         "cross_source_snapshot": tool_result.get("cross_source_snapshot"),
                     }
@@ -8925,13 +11479,14 @@ class Handler(BaseHTTPRequestHandler):
                             else safe_full
                         )
                         last_safe_stream_content = safe_full
-                        self.write_qa_event(
+                        if not self.write_qa_event(
                             "delta",
                             {
                                 "delta": safe_delta,
                                 "content": safe_full,
                             },
-                        )
+                        ):
+                            raise ConnectionAbortedError("SSE client disconnected")
                     if obj.get("done"):
                         model_timing = ollama_response_timing(obj)
                         break
@@ -8946,6 +11501,14 @@ class Handler(BaseHTTPRequestHandler):
                     snapshot_id=prepared["snapshot_id"],
                     hidden_context=prepared["hidden_context"],
                 )
+                if prepared.get("analysis_mode") == "initial_context_explanation":
+                    cache_abc_rule_analysis(
+                        conn,
+                        prepared.get("bound_context_snapshot_id"),
+                        answer,
+                        model_name=_abc_rule_analysis_model_name(),
+                        claim_token=prepared.get("analysis_claim_token"),
+                    )
                 conv_row = conn.execute(
                     "SELECT * FROM qa_conversations WHERE id = ?",
                     (prepared["conversation_id"],),
@@ -8954,12 +11517,13 @@ class Handler(BaseHTTPRequestHandler):
                     "ok": True,
                     "answer": answer,
                     "conversation": conversation_from_row(conv_row),
-                    "conversations": list_conversations(conn),
+                    "conversations": list_conversations(conn, owner_subject=prepared.get("owner_subject")),
                     "messages": load_messages(conn, prepared["conversation_id"]),
                     "context_refs": prepared.get("context_refs", []),
                     "mcp_prefetch": {k: v for k, v in prepared.get("mcp_prefetch", {}).items() if k != "context_text"},
                     "mcp_tool_calling": bool(prepared.get("use_mcp_tools")),
                     "mcp_tool_trace": mcp_tool_trace,
+                    "mcp_model_explanation": tool_result.get("model_explanation"),
                     "model_timing": model_timing,
                     "mcp_cross_source": tool_result.get("mcp_cross_source"),
                     "cross_source_snapshot": tool_result.get("cross_source_snapshot"),
@@ -8967,22 +11531,32 @@ class Handler(BaseHTTPRequestHandler):
             self.write_qa_event("final", final_payload)
             self.write_qa_event("done", {"ok": True})
         except HTTPError as exc:
+            if prepared.get("analysis_mode") == "initial_context_explanation":
+                set_abc_rule_analysis_state(prepared.get("bound_context_snapshot_id"), "failed_retryable", error_code="model_http_error", claim_token=prepared.get("analysis_claim_token"))
             detail = sanitize_model_exposure(exc.read().decode("utf-8", errors="replace"))
             self.write_qa_event("error", {"ok": False, "error": f"高炉大模型服务 HTTP {exc.code}", "detail": detail})
         except URLError as exc:
+            if prepared.get("analysis_mode") == "initial_context_explanation":
+                set_abc_rule_analysis_state(prepared.get("bound_context_snapshot_id"), "failed_retryable", error_code="model_unavailable", claim_token=prepared.get("analysis_claim_token"))
             self.write_qa_event(
                 "error",
                 {"ok": False, "error": f"高炉大模型服务不可达：{sanitize_model_exposure(exc.reason)}"},
             )
+        except ConnectionAbortedError:
+            if prepared.get("analysis_mode") == "initial_context_explanation":
+                set_abc_rule_analysis_state(prepared.get("bound_context_snapshot_id"), "stopped", error_code="client_stopped", claim_token=prepared.get("analysis_claim_token"))
         except Exception as exc:  # noqa: BLE001
+            if prepared.get("analysis_mode") == "initial_context_explanation":
+                set_abc_rule_analysis_state(prepared.get("bound_context_snapshot_id"), "failed_retryable", error_code=type(exc).__name__, claim_token=prepared.get("analysis_claim_token"))
             self.write_qa_event("error", {"ok": False, "error": f"问答服务失败：{exc}"})
 
-    def write_qa_event(self, event: str, payload: object) -> None:
+    def write_qa_event(self, event: str, payload: object) -> bool:
         try:
             self.wfile.write(qa_sse_event(event, payload))
             self.wfile.flush()
+            return True
         except (BrokenPipeError, ConnectionResetError):
-            return
+            return False
 
     def handle_models(self) -> None:
         self.send_json(
@@ -9118,6 +11692,51 @@ class Handler(BaseHTTPRequestHandler):
             return
         self.send_json(payload, status=200 if payload.get("ok") else 503)
 
+    def handle_hcz_upward_rule(self) -> None:
+        """Return the current read-only foreman expert-rule evaluation."""
+        try:
+            payload = hcz_upward_rule_api.evaluate_latest(self.pg_connect)
+        except hcz_upward_rule_api.HczUpwardRuleDataError as exc:
+            self.send_json(
+                {
+                    "ok": False,
+                    "error": "hcz_upward_rule_data_unavailable",
+                    "message": str(exc),
+                    "requirement_id": hcz_upward_rule_api.REQUIREMENT_ID,
+                },
+                status=503,
+            )
+            return
+        self.send_json(payload, status=200)
+
+    def handle_hcz_rule_sensitivity(self, query_string: str) -> None:
+        """Compare editable HCZ thresholds against measured history, read-only."""
+        try:
+            payload = hcz_upward_rule_api.evaluate_sensitivity(self.pg_connect, query_string)
+        except hcz_upward_rule_api.HczRuleSensitivityValidationError as exc:
+            self.send_json(
+                {
+                    "ok": False,
+                    "error": "hcz_rule_sensitivity_invalid_request",
+                    "message": str(exc),
+                    "requirement_id": hcz_upward_rule_api.REQUIREMENT_ID,
+                },
+                status=400,
+            )
+            return
+        except hcz_upward_rule_api.HczUpwardRuleDataError as exc:
+            self.send_json(
+                {
+                    "ok": False,
+                    "error": "hcz_rule_sensitivity_data_unavailable",
+                    "message": str(exc),
+                    "requirement_id": hcz_upward_rule_api.REQUIREMENT_ID,
+                },
+                status=503,
+            )
+            return
+        self.send_json(payload, status=200)
+
     # REQ-SI-V20-8093-8094-SHADOW-WORKBENCH-20260808
     def _si_v20_operator_session(self) -> dict[str, Any] | None:
         session = self.current_review_session()
@@ -9174,6 +11793,9 @@ class Handler(BaseHTTPRequestHandler):
         latest_per_heat = str(params.get("latest_per_heat", ["1"])[0]).lower() in {
             "1", "true", "yes",
         }
+        compact = str(params.get("compact", ["0"])[0]).lower() in {
+            "1", "true", "yes",
+        }
         try:
             payload = si_v20_shadow.SiV20ShadowService().history(
                 date_from=parsed_dates["date_from"],
@@ -9181,6 +11803,7 @@ class Handler(BaseHTTPRequestHandler):
                 meltno=meltno,
                 limit=limit,
                 latest_per_heat=latest_per_heat,
+                compact=compact,
             )
         except Exception as exc:  # noqa: BLE001
             self.send_json(
@@ -9543,8 +12166,6 @@ class Handler(BaseHTTPRequestHandler):
 
         if not rel or rel in {"frontend_dashboard_v3.html", "frontend_dashboard_v3.server.html"}:
             rel = INDEX_FILE
-        if rel == "furnace-rule-admin.html" and not self._abc_admin_required():
-            return
         target = (BASE_DIR / rel).resolve()
         if BASE_DIR not in target.parents and target != BASE_DIR:
             self.send_json({"error": "path outside static root"}, status=403)
@@ -9557,15 +12178,30 @@ class Handler(BaseHTTPRequestHandler):
         if target.suffix.lower() in {".html", ".js", ".css"}:
             content_type += "; charset=utf-8"
         is_html = target.suffix.lower() == ".html"
+        response_data, content_encoding = compress_static_payload(
+            data,
+            content_type,
+            self.headers.get("Accept-Encoding", ""),
+        )
+        is_hashed_asset = bool(re.search(r"-[A-Za-z0-9_-]{8,}\.", target.name))
+        has_version_query = any(key in parse_qs(request_query) for key in ("v", "release"))
         etag = None
         if not is_html:
             stat = target.stat()
-            etag = f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
+            encoding_tag = content_encoding or "identity"
+            etag = f'"{stat.st_mtime_ns:x}-{stat.st_size:x}-{encoding_tag}"'
             if self.headers.get("If-None-Match") == etag:
                 self.send_response(304)
                 self.add_cors()
                 self.send_header("ETag", etag)
-                self.send_header("Cache-Control", "public, max-age=300")
+                if is_hashed_asset:
+                    self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+                else:
+                    self.send_header("Cache-Control", "public, max-age=300")
+                if content_encoding:
+                    self.send_header("Content-Encoding", content_encoding)
+                if content_type.startswith("text/") or content_type.startswith("application/"):
+                    self.send_header("Vary", "Accept-Encoding")
                 self.end_headers()
                 return
         self.send_response(200)
@@ -9573,15 +12209,19 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         if is_html:
             self.send_header("Cache-Control", "no-store")
-        elif any(key in parse_qs(request_query) for key in ("v", "release")):
+        elif is_hashed_asset or has_version_query:
             self.send_header("Cache-Control", "public, max-age=31536000, immutable")
         else:
             self.send_header("Cache-Control", "public, max-age=300")
         if etag:
             self.send_header("ETag", etag)
-        self.send_header("Content-Length", str(len(data)))
+        if content_encoding:
+            self.send_header("Content-Encoding", content_encoding)
+        if content_type.startswith("text/") or content_type.startswith("application/"):
+            self.send_header("Vary", "Accept-Encoding")
+        self.send_header("Content-Length", str(len(response_data)))
         self.end_headers()
-        self.wfile.write(data)
+        self.wfile.write(response_data)
 
     def send_html(self, document: str, status: int = 200) -> None:
         data = document.encode("utf-8")
@@ -9606,9 +12246,23 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def add_cors(self) -> None:
-        self.send_header("Access-Control-Allow-Origin", "*")
+        request_path = urlparse(getattr(self, "path", "")).path
+        origin = str(self.headers.get("Origin") or "").strip()
+        host = str(self.headers.get("Host") or "").strip().lower()
+        if request_path.startswith("/api/qa"):
+            parsed_origin = urlparse(origin) if origin else None
+            if (
+                parsed_origin
+                and parsed_origin.scheme in {"http", "https"}
+                and parsed_origin.netloc.lower() == host
+            ):
+                self.send_header("Access-Control-Allow-Origin", origin)
+                self.send_header("Access-Control-Allow-Credentials", "true")
+            self.send_header("Vary", "Origin")
+        else:
+            self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-BF-Controlled-Client")
 
 
 diagnosis_ai_analysis_api.install_handler(Handler, globals())

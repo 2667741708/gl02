@@ -89,7 +89,7 @@
       },
       {
         "name": "top_temperature_pressure_state",
-        "variables": ["T_top_A", "T_top_B", "T_top_C", "T_top_D", "P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"],
+        "variables": ["T_top_A", "T_top_B", "T_top_C", "T_top_D", "P_top_A", "P_top_B", "P_top_C", "P_top_D"],
         "maximum_hold_minutes": 10
       },
       {

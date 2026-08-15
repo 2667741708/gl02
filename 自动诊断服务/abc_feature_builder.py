@@ -312,6 +312,17 @@ def build_feature_snapshot(current: Mapping[str, Any], *, baseline: Mapping[str,
     for key, value in (history or {}).items():
         working_history[str(key)] = value if key == "evaluation_ts" else list(value)
     working_baseline = {str(k): dict(v) for k, v in (baseline or {}).items() if isinstance(v, Mapping)}
+    # New operator/MCP contracts use P_top_A-D. Keep the existing trained
+    # feature names during the compatibility window without duplicating data.
+    for position in "ABCD":
+        canonical = f"P_top_{position}"
+        legacy = f"P_top_gas_{position}"
+        if canonical in working_current and legacy not in working_current:
+            working_current[legacy] = working_current[canonical]
+        if canonical in working_history and legacy not in working_history:
+            working_history[legacy] = list(working_history[canonical])
+        if canonical in working_baseline and legacy not in working_baseline:
+            working_baseline[legacy] = dict(working_baseline[canonical])
     hold_cfg = dict((thresholds or {}).get("state_hold_minutes", {}))
     short_hold_minutes = int(hold_cfg.get("default", DEFAULT_STATE_HOLD_MINUTES))
     body_hold_minutes = int(hold_cfg.get("furnace_body", BODY_STATE_HOLD_MINUTES))
@@ -360,6 +371,24 @@ def build_feature_snapshot(current: Mapping[str, Any], *, baseline: Mapping[str,
     quality: dict[str, Any] = {"coverage_ratio": coverage_ratio, "data_age_seconds": data_age_seconds}
     for key, value in working_current.items():
         _put(features, quality, str(key), _number(value))
+    for factor in (
+        "BurdenRateHalfHourDev", "BurdenRateYesterdayDev", "BurdenRate2hDev",
+        "BurdenRateHalfHourSlow", "BurdenRateYesterdaySlow", "BurdenRate2hSlow",
+        "BurdenRateHalfHourFast", "BurdenRateYesterdayFast", "BurdenRate2hFast",
+    ):
+        if _number(working_current.get(factor)) is not None:
+            quality[factor] = {
+                "available": True,
+                "required": True,
+                "source": "pSpace south/north stockline probe cadence with hopper-weight classification",
+            }
+        else:
+            quality[factor] = {
+                "available": False,
+                "required": True,
+                "source": "pSpace south/north stockline probe cadence with hopper-weight classification",
+                "missing_reason": "南北探尺周期、料罐重量分型、历史比较窗口或新鲜度不足",
+            }
 
     if coverage_ratio < MIN_COVERAGE or (data_age_seconds is not None and data_age_seconds > 300):
         quality["window_features_available"] = False

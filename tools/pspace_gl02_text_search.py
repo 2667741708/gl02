@@ -73,16 +73,39 @@ def connect(args: argparse.Namespace):
 
 
 def value_by_tag(pspace, T, tags: list[str]) -> dict[str, dict[str, Any]]:
-    values, meta = read_realtime(pspace, T, {tag: tag for tag in tags})
-    return {
-        tag: {
-            "value": values.get(tag),
-            "timestamp": (meta.get("timestamps") or {}).get(tag, ""),
-            "quality": (meta.get("qualities") or {}).get(tag, ""),
-            "error": (meta.get("errors") or {}).get(tag, ""),
+    if not tags:
+        return {}
+
+    try:
+        values, meta = read_realtime(pspace, T, {tag: tag for tag in tags})
+        return {
+            tag: {
+                "value": values.get(tag),
+                "timestamp": (meta.get("timestamps") or {}).get(tag, ""),
+                "quality": (meta.get("qualities") or {}).get(tag, ""),
+                "error": (meta.get("errors") or {}).get(tag, ""),
+            }
+            for tag in tags
         }
-        for tag in tags
-    }
+    except Exception as batch_exc:
+        rows: dict[str, dict[str, Any]] = {}
+        for tag in tags:
+            try:
+                values, meta = read_realtime(pspace, T, {tag: tag})
+                rows[tag] = {
+                    "value": values.get(tag),
+                    "timestamp": (meta.get("timestamps") or {}).get(tag, ""),
+                    "quality": (meta.get("qualities") or {}).get(tag, ""),
+                    "error": (meta.get("errors") or {}).get(tag, ""),
+                }
+            except Exception as tag_exc:
+                rows[tag] = {
+                    "value": None,
+                    "timestamp": "",
+                    "quality": "",
+                    "error": f"batch={type(batch_exc).__name__}; tag={type(tag_exc).__name__}: {tag_exc}",
+                }
+        return rows
 
 
 def history_by_tag(pspace, T, tags: list[str], hours: int, max_values: int) -> dict[str, dict[str, Any]]:

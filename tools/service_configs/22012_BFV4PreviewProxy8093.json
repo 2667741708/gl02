@@ -1,0 +1,125 @@
+{
+  "schema": "ops.managed-nssm-service.v2",
+  "serviceName": "BFV4PreviewProxy8093",
+  "displayName": "Blast Furnace V4 Preview Proxy 8093",
+  "description": "V4 8093 preview HTTP/API proxy supervised by NSSM and launched through PowerShell 7 Core.",
+  "migrationPolicy": {
+    "liveConfigIsAuthoritative": true,
+    "doNotOverwriteProductionConfig": true,
+    "reason": "This repository snapshot documents the runner contract; production may contain newer environment and MCP settings and must be patched in place after a live hash preflight."
+  },
+  "root": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW",
+  "workDir": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW",
+  "runnerShell": "C:/Program Files/PowerShell/7/pwsh.exe",
+  "runnerScript": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/tools/run_managed_nssm_process.ps1",
+  "executable": "C:/Program Files/Python311/python.exe",
+  "python": "C:/Program Files/Python311/python.exe",
+  "arguments": [
+    "-X",
+    "utf8",
+    "-u",
+    "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/tools/start_v3_8092_python.py",
+    "--db-profile",
+    "inherit",
+    "--ollama-base-url",
+    "http://127.0.0.1:11434",
+    "--model",
+    "chiqiong-blast-furnace:latest",
+    "--public-model",
+    "炽穹·高炉炼铁大模型",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8093"
+  ],
+  "envMachine": [
+    "GL02_PGHOST",
+    "GL02_PGPORT",
+    "GL02_PGDATABASE",
+    "GL02_PGUSER",
+    "GL02_PGPASSWORD"
+  ],
+  "setPgPasswordFromGl02": true,
+  "env": {
+    "PYTHONIOENCODING": "utf-8",
+    "PYTHONUTF8": "1",
+    "BF_PROXY_HOST": "0.0.0.0",
+    "BF_PROXY_PORT": "8093",
+    "BF_FRONTEND_DIR": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据",
+    "BF_INDEX_FILE": "frontend_dashboard_v3.server.html",
+    "OLLAMA_BASE_URL": "http://127.0.0.1:11434",
+    "BF_LLM_MODEL": "chiqiong-blast-furnace:latest",
+    "BF_PUBLIC_MODEL_NAME": "炽穹·高炉炼铁大模型",
+    "BF_MCP_PYTHON": "C:/Program Files/Python311/python.exe",
+    "BF_TREND_HISTORY_SOURCE": "postgres",
+    "BF_MCP_DATA_SOURCE": "database",
+    "BF_MCP_AUTO_PSPACE_FALLBACK": "0",
+    "BF_QA_GUEST_ENABLED": "1",
+    "BF_QA_KNOWLEDGE_SEARCH_MODE": "keyword",
+    "BF_QA_MCP_MAX_TOOL_ROUNDS": "5",
+    "BF_QA_MCP_MAX_TOOL_CALLS": "5",
+    "BF_QA_MCP_PARALLEL_TOOL_CALLS": "1",
+    "BF_QA_MCP_MAX_PARALLEL_TOOL_CALLS": "5",
+    "BF_GL02_MAPPING_PATH": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/趋势分析/trend_backend/config/gl02_sio_mapping.json",
+    "BF_GL02_STORAGE_CONFIG": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/趋势分析/trend_backend/config/gl02_1min_storage.json",
+    "PSPACE_SDK_ROOT": "F:/高炉炼铁项目-real-sensor-v2_V3/pythonSDK(1)",
+    "PSPACE_CONFIG": "F:/高炉炼铁项目-real-sensor-v2_V3/ghsc/src/main/resources/application-prod.yml"
+  },
+  "logDir": "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/logs",
+  "logPrefix": "proxy_8093",
+  "legacyTasks": [
+    {
+      "path": "\\",
+      "name": "BlastFurnaceV3Proxy8093",
+      "expectedActionMarker": "run_proxy_8093.ps1",
+      "disable": true
+    },
+    {
+      "path": "\\",
+      "name": "BlastFurnace8093Proxy_NewProject",
+      "expectedActionMarker": "run_proxy_8093_db.ps1",
+      "disable": true
+    },
+    {
+      "path": "\\BlastFurnaceServices\\",
+      "name": "V4PreviewProxy8093",
+      "expectedState": "Disabled",
+      "disable": true
+    }
+  ],
+  "stopPorts": [
+    {
+      "port": 8093,
+      "patterns": [
+        "V4_8093_PREVIEW",
+        "ollama_proxy_server.py",
+        "start_v3_8092_python.py"
+      ]
+    }
+  ],
+  "healthTaskPath": "\\BlastFurnaceServices\\",
+  "healthTaskName": "BFV4PreviewProxy8093HealthCheck",
+  "health": {
+    "tcpTimeoutMilliseconds": 5000,
+    "failureThreshold": 3,
+    "serviceNotRunningFailureThreshold": 1,
+    "preRestartBackoffSeconds": 15,
+    "restartCooldownSeconds": 600,
+    "tcp": [
+      {
+        "host": "127.0.0.1",
+        "port": 8093
+      }
+    ],
+    "http": [
+      {
+        "url": "http://127.0.0.1:8093/api/ollama/status",
+        "timeoutSeconds": 20
+      },
+      {
+        "url": "http://127.0.0.1:8093/api/automation/status",
+        "timeoutSeconds": 20
+      }
+    ]
+  }
+}

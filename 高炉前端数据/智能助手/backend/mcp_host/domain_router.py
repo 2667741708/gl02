@@ -25,7 +25,10 @@ GL02_TERMS = (
     "顶压", "炉顶压力", "风量", "风温", "风压", "压差", "透气", "料线", "探尺",
     "炉温", "炉体温度", "静压力", "喷煤", "富氧", "传感器",
     "趋势", "走势", "曲线", "矩阵", "热力矩阵", "温度矩阵", "矩阵图",
-    "pspace", "gl02",
+    # Canonical point identifiers are valid user language too.  Keep the
+    # explicit P_top trigger here so a mixed IMES + GL02 request cannot attach
+    # only IMES merely because the user omitted the Chinese word “顶压”.
+    "p_top", "pspace", "gl02",
 )
 DIAGNOSIS_TERMS = (
     "管道分数", "炉况分数", "诊断分数", "炉况评分", "前几次炉况", "历史炉况分数",
@@ -54,7 +57,14 @@ def select_mcp_servers(question: str, registry: McpServerRegistry) -> DomainSele
     imes = _contains_any(text, IMES_TERMS) or spoken_heat
     gl02 = _contains_any(text, GL02_TERMS)
     diagnosis = _contains_any(text, DIAGNOSIS_TERMS)
-    body_temperature = _contains_any(text, BODY_TEMPERATURE_TERMS)
+    spoken_body_layer = bool(
+        "温度" in text
+        and re.search(
+            r"第?\s*(?:[7-9]|1[0-6])\s*层(?:\s*(?:到|至|-|—|－)\s*第?\s*(?:[7-9]|1[0-6])\s*层)?",
+            text,
+        )
+    )
+    body_temperature = _contains_any(text, BODY_TEMPERATURE_TERMS) or spoken_body_layer
     imes_web = _contains_any(text, IMES_WEB_TERMS)
     selected_domains: list[str] = []
     reasons: list[str] = []

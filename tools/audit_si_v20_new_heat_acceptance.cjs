@@ -10,6 +10,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
 const { spawnSync } = require('child_process');
 let playwright;
 try {
@@ -46,37 +47,133 @@ function writeCsv(filePath, rows) {
   fs.writeFileSync(filePath, `\uFEFF${lines.join('\r\n')}\r\n`, 'utf8');
 }
 
+function predictionMetrics(items) {
+  const evaluated = items.filter(item => hasNumber(item?.absolute_error));
+  const signed = evaluated.filter(item => hasNumber(item?.signed_error)).map(item => Number(item.signed_error));
+  const absolute = evaluated.map(item => Number(item.absolute_error));
+  return {
+    prediction_count: items.length,
+    matched_heat_count: items.filter(item => item?.matched_actual_meltno).length,
+    evaluated_count: evaluated.length,
+    mae: absolute.length ? absolute.reduce((sum, value) => sum + value, 0) / absolute.length : null,
+    rmse: signed.length ? Math.sqrt(signed.reduce((sum, value) => sum + value * value, 0) / signed.length) : null,
+    bias: signed.length ? signed.reduce((sum, value) => sum + value, 0) / signed.length : null,
+    hit_rate_abs_le_002: absolute.length ? absolute.filter(value => value <= 0.02).length / absolute.length : null,
+    hit_rate_abs_le_005: evaluated.length ? evaluated.filter(item => item.hit_abs_le_005 === true).length / evaluated.length : null,
+    pending_match_count: items.filter(item => !item?.matched_actual_meltno).length,
+    waiting_si_count: items.filter(item => item?.matched_actual_meltno && !item?.actual_ready).length,
+  };
+}
+
 function htmlEscape(value) {
   return String(value ?? '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 
-async function apiJson(request, baseUrl, endpoint) {
-  const response = await request.get(`${baseUrl}${endpoint}`, { timeout: 30000 });
-  const text = await response.text();
-  let body;
-  try { body = JSON.parse(text); } catch { body = { raw_text: text }; }
-  return { endpoint, http_status: response.status(), ok: response.ok(), body };
+function parseEmbeddedJson(value) {
+  const text = String(value || '');
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try { return JSON.parse(text.slice(start, end + 1)); } catch { return null; }
+}
+
+function apiJson(_request, baseUrl, endpoint) {
+  return new Promise(resolve => {
+    let settled = false;
+    let hardTimeout;
+    let responseStatus = null;
+    const finish = result => {
+      if (settled) return;
+      settled = true;
+      if (hardTimeout) clearTimeout(hardTimeout);
+      resolve(result);
+    };
+    const request = http.get(`${baseUrl}${endpoint}`, {
+      agent: false,
+      headers: { Connection: 'close' },
+    }, response => {
+      responseStatus = response.statusCode ?? null;
+      const chunks = [];
+      let byteCount = 0;
+      response.on('data', chunk => {
+        byteCount += chunk.length;
+        if (byteCount > 25 * 1024 * 1024) {
+          request.destroy(new Error(`${endpoint} response exceeds 25 MiB`));
+          return;
+        }
+        chunks.push(chunk);
+      });
+      response.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        let body;
+        try { body = JSON.parse(text); } catch { body = { raw_text: text }; }
+        finish({
+          endpoint,
+          http_status: responseStatus,
+          ok: responseStatus >= 200 && responseStatus < 300,
+          body,
+        });
+      });
+      response.on('error', error => finish({
+        endpoint,
+        http_status: responseStatus,
+        ok: false,
+        body: null,
+        error: error?.message || String(error),
+      }));
+    });
+    request.on('error', error => finish({
+      endpoint,
+      http_status: responseStatus,
+      ok: false,
+      body: null,
+      error: error?.message || String(error),
+    }));
+    request.setTimeout(6000, () => request.destroy(new Error(`${endpoint} socket timeout`)));
+    hardTimeout = setTimeout(() => request.destroy(new Error(`${endpoint} hard timeout`)), 8000);
+  });
+}
+
+async function withTimeout(promise, timeoutMs, label) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 async function savePageDownloads(page, exportDir, stamp) {
   const outputs = [];
+  const errors = [];
   for (const [selector, kind] of [
     ['#downloadPredictionBtn', 'prediction_curve'],
     ['#downloadActualBtn', 'actual_si_curve'],
     ['#downloadHourlyTableBtn', 'hourly_si_table'],
   ]) {
-    const [download] = await Promise.all([
-      page.waitForEvent('download', { timeout: 15000 }),
-      page.click(selector),
-    ]);
-    const suggested = download.suggestedFilename();
-    const target = path.join(exportDir, `${stamp}_${kind}_${suggested}`);
-    await download.saveAs(target);
-    outputs.push(target);
+    let download;
+    try {
+      [download] = await Promise.all([
+        page.waitForEvent('download', { timeout: 15000 }),
+        page.click(selector, { timeout: 15000 }),
+      ]);
+      const suggested = download.suggestedFilename();
+      const target = path.join(exportDir, `${stamp}_${kind}_${suggested}`);
+      await withTimeout(download.saveAs(target), 20000, `${kind} download.saveAs`);
+      outputs.push(target);
+    } catch (error) {
+      errors.push(`${kind}: ${error?.message || String(error)}`);
+      if (download) await withTimeout(download.cancel(), 5000, `${kind} download.cancel`).catch(() => {});
+    }
   }
-  return outputs;
+  return { outputs, errors };
 }
 
 async function run() {
@@ -105,33 +202,35 @@ async function run() {
   await page.waitForSelector('#strictHourlyStatus', { timeout: 30000 });
   await page.waitForTimeout(2500);
 
-  const endpoints = [
-    '/api/si-v20/status',
-    '/api/si-v20/strict-hourly/status',
-    '/api/si-v20/strict-hourly/history?limit=168',
-    '/api/si-v20/history?limit=300&latest_per_heat=1',
-    '/api/si-v20/schedule',
-    '/api/si-v20/scheduled-history?limit=300',
-    '/api/si-v20/hourly-table?limit=168',
-  ];
+  const statusEndpoint = '/api/si-v20/status?limit=50';
   const apiResults = {};
+  apiResults[statusEndpoint] = await apiJson(context.request, baseUrl, statusEndpoint);
+  const status = apiResults[statusEndpoint].body || {};
+  const targets = Array.isArray(status.targets) ? status.targets : [];
+  const actualTargets = targets.filter(item => Number.isFinite(Number(item.si_avg)));
+  actualTargets.sort((a, b) => heatKey(b.meltno) - heatKey(a.meltno));
+  const latestActual = actualTargets[0] || null;
+  const historyEndpoint = latestActual?.meltno
+    ? `/api/si-v20/history?limit=10&latest_per_heat=1&meltno=${encodeURIComponent(latestActual.meltno)}`
+    : '/api/si-v20/history?limit=10&latest_per_heat=1';
+  const endpoints = [
+    '/api/si-v20/strict-hourly/status',
+    '/api/si-v20/strict-hourly/history?limit=1',
+    historyEndpoint,
+    '/api/si-v20/schedule',
+    '/api/si-v20/hourly-table?limit=72',
+  ];
   for (const endpoint of endpoints) {
     apiResults[endpoint] = await apiJson(context.request, baseUrl, endpoint);
   }
   fs.writeFileSync(path.join(apiDir, `${stamp}_api_snapshot.json`), JSON.stringify(apiResults, null, 2), 'utf8');
 
-  const status = apiResults['/api/si-v20/status'].body || {};
   const strictStatus = apiResults['/api/si-v20/strict-hourly/status'].body || {};
-  const strictHistory = apiResults['/api/si-v20/strict-hourly/history?limit=168'].body || {};
-  const history = apiResults['/api/si-v20/history?limit=300&latest_per_heat=1'].body || {};
+  const strictHistoryProbe = apiResults['/api/si-v20/strict-hourly/history?limit=1'].body || {};
+  const history = apiResults[historyEndpoint].body || {};
   const schedule = apiResults['/api/si-v20/schedule'].body || {};
-  const scheduledHistory = apiResults['/api/si-v20/scheduled-history?limit=300'].body || {};
-  const hourlyTable = apiResults['/api/si-v20/hourly-table?limit=168'].body || {};
+  const hourlyTable = apiResults['/api/si-v20/hourly-table?limit=72'].body || {};
 
-  const targets = Array.isArray(status.targets) ? status.targets : [];
-  const actualTargets = targets.filter(item => Number.isFinite(Number(item.si_avg)));
-  actualTargets.sort((a, b) => heatKey(b.meltno) - heatKey(a.meltno));
-  const latestActual = actualTargets[0] || null;
   const baselinePath = path.join(outputDir, 'baseline.json');
   let baseline;
   if (fs.existsSync(baselinePath)) {
@@ -149,8 +248,13 @@ async function run() {
 
   const newerActual = actualTargets.find(item => heatKey(item.meltno) > heatKey(baseline.meltno));
   const historyItems = Array.isArray(history.items) ? history.items : [];
-  const strictItems = Array.isArray(strictHistory.items) ? strictHistory.items : [];
-  const scheduledItems = Array.isArray(scheduledHistory.items) ? scheduledHistory.items : [];
+  const hourlyItems = Array.isArray(hourlyTable.items) ? hourlyTable.items : [];
+  const strictItems = hourlyItems.filter(item =>
+    item?.request_mode === 'strict_hourly' || item?.prediction_source === 'strict_hourly'
+  );
+  const scheduledItems = hourlyItems.filter(item =>
+    item?.request_mode === 'scheduled_interval' || item?.prediction_source === 'scheduled_interval'
+  );
   const integrationRow = newerActual
     ? historyItems.find(item => item.target_meltno === newerActual.meltno && item.actual_ready !== false)
     : null;
@@ -164,6 +268,10 @@ async function run() {
       )
     : null;
 
+  await page.waitForFunction(() => {
+    const hourlyRows = document.querySelectorAll('#hourlyTableRows tr').length;
+    return hourlyRows > 0;
+  }, { timeout: 30000 });
   const uiState = await page.evaluate(() => ({
     title: document.querySelector('h1')?.textContent?.trim() || '',
     statusLine: document.querySelector('#statusLine')?.textContent?.trim() || '',
@@ -179,7 +287,8 @@ async function run() {
   await page.screenshot({ path: screenshotPath, fullPage: false, timeout: 30000 });
   const hourlyScreenshotPath = path.join(screenshotDir, `${stamp}_8093_hourly_table.png`);
   await page.locator('.hourly-panel').screenshot({ path: hourlyScreenshotPath, timeout: 30000 });
-  const downloadedFiles = await savePageDownloads(page, exportDir, stamp);
+  const downloadResult = await savePageDownloads(page, exportDir, stamp);
+  const downloadedFiles = downloadResult.outputs;
 
   writeCsv(path.join(exportDir, `${stamp}_history_union.csv`), historyItems);
   writeCsv(path.join(exportDir, `${stamp}_strict_hourly.csv`), strictItems);
@@ -188,13 +297,19 @@ async function run() {
 
   const python = process.env.PYTHON || 'python';
   const remoteProbe = spawnSync(python, [
-    '-B', path.join(process.cwd(), 'tools', 'remote_22012_exec.py'),
-    '--allow-agents-password', '--no-profile', '--timeout', '60',
+    '-B', path.join(process.cwd(), 'tools', 'remote_22012_session.py'), 'run', '--',
+    '--allow-agents-password', '--no-profile', '--timeout', '180',
     '--workdir', 'F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW',
     '--script', path.join(process.cwd(), 'tools', 'remote_probe_si_v20_acceptance.ps1'),
-  ], { cwd: process.cwd(), encoding: 'utf8', timeout: 70000 });
+  ], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    timeout: 120000,
+    env: { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' },
+  });
   const remoteProbePath = path.join(apiDir, `${stamp}_remote_runtime_probe.txt`);
   fs.writeFileSync(remoteProbePath, `${remoteProbe.stdout || ''}${remoteProbe.stderr || ''}`, 'utf8');
+  const remoteProbeResult = parseEmbeddedJson(remoteProbe.stdout);
   const databaseProbe = spawnSync(python, [
     '-B', path.join(process.cwd(), 'tools', 'verify_si_v20_strict_hourly_production.py'),
   ], { cwd: process.cwd(), encoding: 'utf8', timeout: 60000 });
@@ -204,8 +319,9 @@ async function run() {
   const apiHealthy = Object.values(apiResults).every(item => item.ok && item.body?.ok !== false);
   const strictSlot = strictStatus.current_slot || {};
   const strictSlotHealthy = ['succeeded', 'success', 'pending', 'running'].includes(String(strictSlot.slot_status || strictSlot.status || '').toLowerCase());
-  const uiHealthy = pageErrors.length === 0 && uiState.horizontalOverflow <= 1 && uiState.chartPresent && uiState.hourlyRows > 0;
-  const remoteRuntimeHealthy = remoteProbe.status === 0;
+  const uiHealthy = pageErrors.length === 0 && downloadResult.errors.length === 0 && downloadedFiles.length === 3 &&
+    uiState.horizontalOverflow <= 1 && uiState.chartPresent && uiState.hourlyRows > 0;
+  const remoteRuntimeHealthy = remoteProbe.status === 0 && remoteProbeResult?.ok === true;
   const strictDatabaseHealthy = databaseProbe.status === 0;
   const newHeatIntegrated = Boolean(newerActual && integrationRow && !unopenedCandidate);
   const predictionLinked = Boolean(associatedPrediction);
@@ -222,6 +338,7 @@ async function run() {
     api_healthy: apiHealthy,
     ui_healthy: uiHealthy,
     remote_runtime_healthy: remoteRuntimeHealthy,
+    remote_runtime_probe_result: remoteProbeResult,
     strict_database_healthy: strictDatabaseHealthy,
     strict_slot_healthy: strictSlotHealthy,
     strict_slot: strictSlot,
@@ -229,12 +346,18 @@ async function run() {
     prediction_linked: predictionLinked,
     prediction_association: associatedPrediction || null,
     page_errors: pageErrors,
+    download_errors: downloadResult.errors,
     ui_state: uiState,
     schedule_status: schedule,
     metrics: {
       history: history.metrics || null,
-      strict_hourly: strictHistory.metrics || null,
-      scheduled_interval: scheduledHistory.metrics || null,
+      strict_hourly: predictionMetrics(strictItems),
+      strict_hourly_api_probe: {
+        count: strictHistoryProbe.count ?? null,
+        limit: 1,
+        schema: strictHistoryProbe.schema || null,
+      },
+      scheduled_interval: predictionMetrics(scheduledItems),
       hourly_table: hourlyTable.metrics || null,
     },
     artifacts: {
@@ -298,5 +421,8 @@ async function run() {
 
 run().catch(error => {
   console.error(error?.stack || String(error));
-  process.exitCode = 1;
+  // Playwright may keep browser transports alive after a mid-run exception.
+  // This CLI is an hourly one-shot acceptance probe, so fail deterministically
+  // instead of leaving the scheduler blocked until an outer timeout kills it.
+  process.exit(1);
 });

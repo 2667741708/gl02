@@ -1,0 +1,35 @@
+{
+  "schema": "bf.deploy.reviewed-failure-playbook.v1",
+  "rules": [
+    {
+      "id": "pwsh-file-not-inline",
+      "match": "PowerShell parser, quoting, encoding, or parameter binding failure",
+      "preflight": "Write an independent UTF-8 .ps1 and invoke it with pwsh.exe -NoLogo -NoProfile -File.",
+      "automatic_mutation": false
+    },
+    {
+      "id": "persistent-session-no-replay",
+      "match": "SSH transport disconnect or timeout",
+      "preflight": "Check session status and remote actual state; never replay an uncertain deployment command.",
+      "automatic_mutation": false
+    },
+    {
+      "id": "baseline-hash-gate",
+      "match": "Production baseline SHA-256 mismatch",
+      "preflight": "Stop before service mutation and refresh the reviewed manifest against the live target.",
+      "automatic_mutation": false
+    },
+    {
+      "id": "deployment-mutex-busy",
+      "match": "Global deployment mutex is already owned",
+      "preflight": "Report the collision and do not retry or stop another deployment.",
+      "automatic_mutation": false
+    },
+    {
+      "id": "immutable-browser-cache",
+      "match": "New static file is installed but the browser still shows the old behavior",
+      "preflight": "Change the asset version query and verify through a cache-busted URL or new browser context.",
+      "automatic_mutation": false
+    }
+  ]
+}

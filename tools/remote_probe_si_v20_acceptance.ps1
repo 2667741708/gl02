@@ -2,6 +2,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$ApiTimeoutSeconds = 30
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
     throw 'PowerShell 7 Core is required'
 }
@@ -37,53 +38,111 @@ function Read-TaskState {
 }
 
 function Read-PortState {
-    param([int]$Port)
-    $listeners = @(Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue)
+    param([int]$Port, [array]$Listeners)
+    $portListeners = @($Listeners | Where-Object { $_.LocalPort -eq $Port })
     return [ordered]@{
         port = $Port
-        listening = $listeners.Count -gt 0
-        process_ids = @($listeners | Select-Object -ExpandProperty OwningProcess -Unique)
+        listening = $portListeners.Count -gt 0
+        process_ids = @($portListeners | Select-Object -ExpandProperty OwningProcess -Unique)
     }
 }
 
-function Read-Api {
-    param([string]$Name, [string]$Uri)
+function Convert-ApiSummary {
+    param([string]$Name, $Body)
+    if ($Name -like '*strict_status') {
+        $slot = $Body.current_slot
+        return [ordered]@{
+            schema = $Body.schema
+            status = $Body.status
+            current_slot = [ordered]@{
+                schedule_slot_ts = $slot.schedule_slot_ts
+                slot_status = $slot.slot_status
+                attempt_count = $slot.attempt_count
+                prediction_id = $slot.prediction_id
+                completed_at = $slot.completed_at
+                last_error = $slot.last_error
+            }
+            model = [ordered]@{
+                schema = $Body.model.schema
+                name = $Body.model.name
+                sha256 = $Body.model.sha256
+                feature_count = $Body.model.feature_count
+            }
+            contracts = $Body.contracts
+        }
+    }
+    if ($Name -like '*hourly_table') {
+        return [ordered]@{
+            schema = $Body.schema
+            status = $Body.status
+            count = $Body.count
+            metrics = $Body.metrics
+            items = @($Body.items | Select-Object -First 1)
+        }
+    }
+    $latestActual = @($Body.targets | Where-Object { $null -ne $_.si_avg } | Select-Object -First 1)
+    return [ordered]@{
+        schema = $Body.schema
+        status = $Body.status
+        latest_actual = @($latestActual)
+        candidate_targets = @($Body.candidate_targets | Select-Object -First 5)
+        model = $Body.model
+        audit_table_ready = $Body.audit_table_ready
+    }
+}
+
+function Read-ApiOnce {
+    param($Request, [int]$Attempt)
+    $client = [Net.Http.HttpClient]::new()
+    $client.Timeout = [TimeSpan]::FromSeconds($ApiTimeoutSeconds)
     try {
-        $body = Invoke-RestMethod -UseBasicParsing -Uri $Uri -TimeoutSec 30
-        if ($Name -like '*strict_status') {
-            $summary = [ordered]@{
-                schema = $body.schema
-                status = $body.status
-                current_slot = $body.current_slot
-                model = $body.model
-                contracts = $body.contracts
+        try {
+            $response = $client.GetAsync([string]$Request.uri).GetAwaiter().GetResult()
+            if (-not $response.IsSuccessStatusCode) {
+                throw "HTTP $([int]$response.StatusCode) $($response.ReasonPhrase)"
+            }
+            $content = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+            $body = $content | ConvertFrom-Json -Depth 20
+            return [ordered]@{
+                name = $Request.name
+                ok = $true
+                attempt_count = $Attempt
+                body = Convert-ApiSummary -Name $Request.name -Body $body
             }
         }
-        elseif ($Name -like '*hourly_table') {
-            $summary = [ordered]@{
-                schema = $body.schema
-                status = $body.status
-                count = $body.count
-                metrics = $body.metrics
-                items = @($body.items | Select-Object -First 24)
+        catch {
+            return [ordered]@{
+                name = $Request.name
+                ok = $false
+                attempt_count = $Attempt
+                error = $_.Exception.Message
             }
         }
-        else {
-            $latestActual = @($body.targets | Where-Object { $null -ne $_.si_avg } | Select-Object -First 1)
-            $summary = [ordered]@{
-                schema = $body.schema
-                status = $body.status
-                latest_actual = @($latestActual)
-                candidate_targets = @($body.candidate_targets | Select-Object -First 5)
-                model = $body.model
-                audit_table_ready = $body.audit_table_ready
-            }
-        }
-        return [ordered]@{ name = $Name; ok = $true; body = $summary }
     }
-    catch {
-        return [ordered]@{ name = $Name; ok = $false; error = $_.Exception.Message }
+    finally {
+        $client.Dispose()
     }
+}
+
+function Read-Apis {
+    param([array]$Specs)
+    $firstPass = @()
+    foreach ($request in $Specs) {
+        $firstPass += ,(Read-ApiOnce -Request $request -Attempt 1)
+    }
+
+    $results = @()
+    for ($index = 0; $index -lt $Specs.Count; $index++) {
+        $first = $firstPass[$index]
+        if ($first.ok) {
+            $results += ,$first
+            continue
+        }
+        $retry = Read-ApiOnce -Request $Specs[$index] -Attempt 2
+        $retry['initial_error'] = $first.error
+        $results += ,$retry
+    }
+    return @($results)
 }
 
 $tasks = @(
@@ -93,16 +152,20 @@ $tasks = @(
     Read-TaskState -TaskPath '\BlastFurnaceServices\' -TaskName 'SiV20ScheduledShadowPrediction'
 )
 
-$ports = @(8093, 8094, 8768, 8770, 5432 | ForEach-Object { Read-PortState -Port $_ })
+$allListeners = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue)
+$ports = @(8093, 8094, 8768, 8770, 5432 | ForEach-Object {
+    Read-PortState -Port $_ -Listeners $allListeners
+})
 
-$apis = @(
-    Read-Api -Name '8093_status' -Uri 'http://127.0.0.1:8093/api/si-v20/status'
-    Read-Api -Name '8093_strict_status' -Uri 'http://127.0.0.1:8093/api/si-v20/strict-hourly/status'
-    Read-Api -Name '8093_hourly_table' -Uri 'http://127.0.0.1:8093/api/si-v20/hourly-table'
-    Read-Api -Name '8094_status' -Uri 'http://127.0.0.1:8094/api/si-v20/status'
-    Read-Api -Name '8094_strict_status' -Uri 'http://127.0.0.1:8094/api/si-v20/strict-hourly/status'
-    Read-Api -Name '8094_hourly_table' -Uri 'http://127.0.0.1:8094/api/si-v20/hourly-table'
+$apiSpecs = @(
+    [pscustomobject]@{ name = '8093_status'; uri = 'http://127.0.0.1:8093/api/si-v20/status' }
+    [pscustomobject]@{ name = '8093_strict_status'; uri = 'http://127.0.0.1:8093/api/si-v20/strict-hourly/status' }
+    [pscustomobject]@{ name = '8093_hourly_table'; uri = 'http://127.0.0.1:8093/api/si-v20/hourly-table?limit=24' }
+    [pscustomobject]@{ name = '8094_status'; uri = 'http://127.0.0.1:8094/api/si-v20/status' }
+    [pscustomobject]@{ name = '8094_strict_status'; uri = 'http://127.0.0.1:8094/api/si-v20/strict-hourly/status' }
+    [pscustomobject]@{ name = '8094_hourly_table'; uri = 'http://127.0.0.1:8094/api/si-v20/hourly-table?limit=24' }
 )
+$apis = @(Read-Apis -Specs $apiSpecs)
 
 $missingTasks = @($tasks | Where-Object { $_.state -eq 'missing' })
 $legacyTaskActions = @($tasks | Where-Object {

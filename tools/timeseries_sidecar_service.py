@@ -16,6 +16,7 @@ from timeseries_model_contract import SCHEMA, extract_feature_vector, historical
 
 
 LOG = logging.getLogger("timeseries-sidecar")
+LEADERBOARD_SCHEMA = "bf.timeseries.leaderboard.v1"
 
 
 class ModelStore:
@@ -55,6 +56,38 @@ class ModelStore:
             except (OSError, ValueError, json.JSONDecodeError):
                 continue
         return output
+
+
+class LeaderboardStore:
+    def __init__(self, path: Path):
+        self.path = path
+        self.cache: tuple[float, dict[str, Any]] | None = None
+
+    def status(self) -> dict[str, Any]:
+        if not self.path.exists():
+            return {"available": False, "path": str(self.path), "error": "leaderboard_file_not_found"}
+        try:
+            data = self.load()
+            return {
+                "available": True,
+                "path": str(self.path),
+                "created_at": data.get("created_at"),
+                "common_cutoff_count": data.get("common_cutoff_count"),
+            }
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            return {"available": False, "path": str(self.path), "error": str(exc)}
+
+    def load(self) -> dict[str, Any]:
+        if not self.path.exists():
+            raise FileNotFoundError("leaderboard file is not available")
+        mtime = self.path.stat().st_mtime
+        if self.cache and self.cache[0] == mtime:
+            return self.cache[1]
+        data = json.loads(self.path.read_text(encoding="utf-8"))
+        if data.get("schema") != LEADERBOARD_SCHEMA:
+            raise ValueError(f"unsupported leaderboard schema: {data.get('schema')}")
+        self.cache = (mtime, data)
+        return data
 
 
 def post_json(url: str, payload: dict[str, Any], timeout: float) -> dict[str, Any]:
@@ -186,8 +219,9 @@ def predict_ridge(job: dict[str, Any], store: ModelStore) -> dict[str, Any]:
 
 
 class SidecarApplication:
-    def __init__(self, model_dir: Path, chronos_url: str, default_model: str, timeout: float):
+    def __init__(self, model_dir: Path, chronos_url: str, default_model: str, timeout: float, leaderboard_file: Path):
         self.store = ModelStore(model_dir)
+        self.leaderboard = LeaderboardStore(leaderboard_file)
         self.chronos_url = chronos_url.rstrip("/")
         self.default_model = default_model
         self.timeout = timeout
@@ -216,6 +250,7 @@ class SidecarApplication:
             "model_dir": str(self.store.model_dir),
             "trained_model_count": len(self.store.trained_models()),
             "chronos_upstream": {"url": self.chronos_url, **upstream_status(self.chronos_url)},
+            "leaderboard": self.leaderboard.status(),
             "uptime_seconds": round(time.time() - self.started, 1),
         }
 
@@ -274,6 +309,11 @@ def handler_factory(application: SidecarApplication):
                 self.send_json(200, application.status())
             elif self.path == "/api/timeseries/models":
                 self.send_json(200, {"models": application.model_catalog()})
+            elif self.path == "/api/timeseries/leaderboard":
+                try:
+                    self.send_json(200, application.leaderboard.load())
+                except (OSError, ValueError, json.JSONDecodeError) as exc:
+                    self.send_json(503, {"status": "unavailable", "error": str(exc)})
             else:
                 self.send_json(404, {"error": "not_found"})
 
@@ -304,6 +344,7 @@ def main() -> int:
     parser.add_argument("--chronos-url", default="http://127.0.0.1:8777")
     parser.add_argument("--default-model", choices=["last_value", "linear_drift", "ridge_delta", "chronos2"], default="last_value")
     parser.add_argument("--model-dir", default=str(root / "PT" / "时间序列预测评测" / "models"))
+    parser.add_argument("--leaderboard-file", default=str(root / "PT" / "时间序列预测评测" / "results" / "timeseries_model_leaderboard_current.json"))
     parser.add_argument("--timeout-seconds", type=float, default=1200.0)
     parser.add_argument("--log-file", default="")
     args = parser.parse_args()
@@ -314,7 +355,7 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", handlers=handlers)
     model_dir = Path(args.model_dir)
     model_dir.mkdir(parents=True, exist_ok=True)
-    application = SidecarApplication(model_dir, args.chronos_url, args.default_model, args.timeout_seconds)
+    application = SidecarApplication(model_dir, args.chronos_url, args.default_model, args.timeout_seconds, Path(args.leaderboard_file))
     server = ThreadingHTTPServer((args.host, args.port), handler_factory(application))
     LOG.info("timeseries sidecar listening on http://%s:%s", args.host, args.port)
     server.serve_forever()
@@ -323,4 +364,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

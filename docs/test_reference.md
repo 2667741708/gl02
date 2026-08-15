@@ -1,5 +1,32 @@
 # 测试参考
 
+## TEST-SENSOR-REGISTRY-HOPPER-WEIGHT-SET-20260814
+
+```powershell
+python .\tools\verify_foreman_local_point_catalog.py --root .\数据库同步和存取
+python .\tools\register_hopper_weight_set_points.py --root .\数据库同步和存取
+```
+
+- 本机成功信号：清单 165 行、162 个物理点、3 个派生点、19 个确认项，重复 tag 为 0；
+  登记器与 pSpace 搜索/映射脚本均通过 Python 语法检查。
+- 生产成功信号：`expected_rows=14`、`registered_rows=14`、`mismatches={}`；既有同步器
+  `tags_ok=11`、`tags_error=0`，写入 59 条分钟值和 71 条 raw 值。
+- 未通过项不得隐去：`Hopper_weight_set` 本身尚未物化分钟事实；当前验证只证明目录登记与
+  11 个物理分量采集成功。
+- 证据：[生产登记交接](handoffs/2026-08-14-hopper-weight-set-registry-production.md)。
+
+## TEST-FOREMAN-TREND-TWO-DECIMAL-PERCENT-20260814
+
+```powershell
+python -m unittest tests.test_foreman_trend_preview -v
+```
+
+- 覆盖：顶部指标固定两位小数、工长趋势原生提示固定两位、共享右键提示固定两位、
+  `GasUtil` 历史比例先乘100，以及页面缓存版本入口。
+- 成功信号：`7 tests` 全部通过；本机 Chromium/Edge `1280×1024` 冒烟通过，49项指标、
+  两张曲线、交互、无横向溢出、页面错误和控制台错误均为0。
+- 影响边界：静态前端合同，不连接生产数据库或220.12服务。
+
 ## TEST-DIAG-RULES-RELIABLE-DEPLOY-20260806
 
 ```powershell
@@ -2438,11 +2465,12 @@ pSpace 经 18889 使用现有 SDK/业务账号读取真实静压力点，质量 
 
 ## TEST-OPS-POWERSHELL7-UTF8-20260810
 
-- 需求：`REQ-OPS-POWERSHELL7-UTF8-20260810`。
+- 需求：`REQ-OPS-POWERSHELL7-UTF8-20260810`、`REQ-OPS-LOCAL-NATIVE-POSTGRES-START-20260811`。
 - 测试：[静态合同](../tests/test_pwsh7_runtime_contract.py)、[真实运行时验证器](../tools/verify_pwsh7_utf8.ps1)。
 - 命令：`python -m pytest -q tests\test_pwsh7_runtime_contract.py`。
 - 真实运行命令：`pwsh.exe -NoLogo -NoProfile -File .\tools\verify_pwsh7_utf8.ps1`。
-- 2026-08-10结果：`4 passed`；真实JSON返回`ok=true`、`PSEdition=Core`、`ps_version=7.6.4`，三项编码均为`utf-8`，中文读写回环无错误；Windows Terminal默认配置已切换且5.1配置仅隐藏。
+- 本机原生数据库dry-run：`pwsh.exe -NoLogo -NoProfile -File .\start_v3_full.ps1 -DryRun -SkipAssistant -SkipFrontend -SkipDiagnosis -SkipRealtimeBridge -SkipLocalSyncLoop`；成功信号为`mode=local-native target=127.0.0.1:18000/bf_trend user=postgres`且输出不包含密码值。
+- 2026-08-11结果：`5 passed`；真实JSON返回`ok=true`、`PSEdition=Core`、`ps_version=7.6.4`，三项编码均为`utf-8`，中文读写回环无错误；本机dry-run输出原生目标，脚本不含Docker `15432`或数据库密码默认值。
 - 失败排查：先确认`C:\Program Files\PowerShell\7\pwsh.exe`存在，再运行`winget list --id Microsoft.PowerShell --exact`；不得改为5.1回退。
 
 ## TEST-22012-POWERSHELL7-UTF8-20260810
@@ -2463,3 +2491,613 @@ pSpace 经 18889 使用现有 SDK/业务账号读取真实静压力点，质量 
 - 第0次结果：截图、两个页面下载CSV、三类审计CSV和API JSON均已生成；页面错误0、横向溢出0。严格03:00槽因时间时区类型不一致持续重试，故预期退出2并保持监控。
 - 08:37结果：132炉已进入status/history，实际平均Si=`0.400%`。首次检查因该炉`si_available_at`为空退出1；修复独立同步副本和upsert竞争条件后，数据库核验`ok=true`、缺失0，验收退出0。最新证据为`reports/acceptance/SI_V20_NEW_HEAT_20260810/20260810T003743Z_check.json`，自动化仍保持每小时运行。
 - 08:52结果：133炉开口/堵口/平均Si已自动回填；严格整点8槽全成功，其中6条完成评价、±0.05命中率50%。每小时汇总10行、评价8行、命中率37.5%；证据为`reports/acceptance/SI_V20_NEW_HEAT_20260810/20260810T005251Z_check.json`。
+# TEST-ABC33-HANDBOOK64-DOCX-20260810
+
+- 对应需求：`REQ-ABC33-HANDBOOK64-MECHANISM-INTERVENTION-20260810`。
+- 被测入口：[tools/build_abc33_handbook64_revision.py](../tools/build_abc33_handbook64_revision.py)。
+- 验证命令：
+
+```powershell
+python -m py_compile .\tools\build_abc33_handbook64_revision.py
+python .\tools\build_abc33_handbook64_revision.py --source <规则DOCX> --handbook <见习高炉长DOCX> --output <修订DOCX> --mapping-json <映射JSON> --audit-json <审计JSON> --audit-md <审计Markdown>
+python .\tools\inspect_docx_hierarchy.py <修订DOCX> --major-only --limit 120
+```
+
+- 预期结果：`rule_count=33`、`chapter_count=64`、`mapped_chapter_count=64`、`unmapped_chapters=[]`；修订DOCX重新打开成功，新增33个规则三级标题、33段形成原理和33套干预处置流程。
+
+### 前后30分钟料批速度加粗判据
+
+- 对应需求：`REQ-ABC33-HEAT-BATCH-RATE-CRITERION-20260810`。
+- 关键断言：A2/B4/B5原公式单元格和补充章节共6处全段加粗；公式单元格内排在Score公式之前；料速项权重为`20`，其余原有项按0.8比例压缩后合计`80`，三条公式总权重均为100；小批按煤、矿分别计数；正常范围、硬上限、示例、双基线和连续2小时强预警条件均存在。
+- 测试位置：[test_abc33_handbook64_revision.py:L56-L67](../tests/test_abc33_handbook64_revision.py#L56-L67)。
+- 实际文件验证器：[verify_abc33_heat_batch_rate_docx.py:L24-L104](../tools/verify_abc33_heat_batch_rate_docx.py#L24-L104)。
+
+```powershell
+pytest .\tests\test_abc33_handbook64_revision.py -q --basetemp .\.tmp_pytest_heat_batch_rate
+python .\tools\verify_abc33_heat_batch_rate_docx.py .\docs\炉况计算规则补充_ABC33形成原理与干预处置流程_料批速度判据加粗修订版_20260810.docx
+```
+
+- 预期结果：A2、B4、B5三处均包含同一完整判据，全部文本run为粗体；输出`criterion_paragraph_count=3`、`fully_bold=true`、参考值`7.5批/h`、容差`0.5批/h`。
+- 2026-08-10结果：实际DOCX重新打开成功，三处文本完整且全段粗体；专项测试`3 passed`。
+
+### 在线料批速度评分与8093/8768生产验收
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -NonInteractive -File .\tools\test_abc33_burden_rate_local.ps1
+pwsh.exe -NoLogo -NoProfile -NonInteractive -File .\tools\deploy_abc33_burden_rate_22012.ps1
+```
+
+- 本地结果：料速周期、规则、公共复核、公共因子、回放和持久SSH合同共`119 passed`；9个Python目标`py_compile`通过；ABC配置校验和8个PowerShell 7脚本AST解析通过。
+- 8093结果：`guard_paused=true`、`guard_restored=true`、`rollback_applied=false`、HTTP 200；PID由`19268`变为`2332`；A2/B4/B5首项料速均为`available`。
+- 8768结果：PID由`3684`变为`8680`；WebSocket返回33条规则、33条有效分数、33条数据完整、0条`needs_data`；受保护PID全部不变。
+- 浏览器结果：A2/B4/B5均显示料速、前后30分钟、昨日平均、滚动24小时、连续2小时和实际变化语义；详情与页面横向溢出均为0。控制台无运行时异常；存在1条既有Babel大内联脚本代码生成降级提示，不属于本次料速功能错误。
+
+### 建议页面运行时接入
+
+```powershell
+python -m py_compile .\自动诊断服务\abc_rule_guidance.py .\自动诊断服务\abc_rule_catalog.py .\自动诊断服务\abc_rule_engine.py .\tools\export_abc_rule_guidance.py
+node --check .\高炉前端数据\assets\abc-furnace-rules-production.js
+pytest .\tests\test_abc_runtime_store.py .\tests\test_abc_rule_engine.py .\tests\test_abc_production_ui.py -q
+```
+
+- 预期结果：33项形成原理逐条不同；每项严格返回5个处置步骤和至少1个手册章节；普通接口与前端不含公式、权重、阈值、归一化值和贡献。
+- 2026-08-10本机结果：Python与JavaScript语法通过；先执行定向合同测试`30 passed`，再执行ABC33规则、桥接、特征、公共因子、回放、页面和文档全套相关回归`128 passed`。浏览器夹具打开A1详情后可见“炉况形成原理”“五步干预处置流程”、5个有序步骤、手册章节、观察窗口和审批要求。Chromium九个规定视口均无横向溢出、窄屏单列正确、控制台错误/警告0。
+- 8093发布补充测试：`test_abc_runtime_store.py`断言同一分钟冲突批次同步刷新`catalog_version/config_version/coverage_ratio/data_age_seconds/public_bundle`；与规则和页面合同合并执行`31 passed`，ABC33全套相关回归`129 passed`。远端最终接口返回目录版本`abc33-catalog.v3.handbook64-guidance`、33条规则及A1严格5步流程。
+
+## TEST-COHESIVE-ZONE-INTELLIGENT-DIAGNOSIS-20260810
+
+| 项目 | 内容 |
+|---|---|
+| 对应需求 | `REQ-COHESIVE-ZONE-INTELLIGENT-DIAGNOSIS-20260810` |
+| 被测函数 | [diagnose_cohesive_zone_movement:L214-L432](../炉况规则引擎/features/cohesive_zone_intelligent_diagnosis.py#L214-L432) |
+| 组合函数 | [estimate_and_diagnose_cohesive_zone:L434-L469](../炉况规则引擎/features/cohesive_zone_intelligent_diagnosis.py#L434-L469) |
+| 测试 | [test_cohesive_zone_intelligent_diagnosis.py:L84-L161](../tests/test_cohesive_zone_intelligent_diagnosis.py#L84-L161) |
+| 验证入口 | [verify_cohesive_zone_intelligent_diagnosis.ps1:L1-L41](../tools/verify_cohesive_zone_intelligent_diagnosis.ps1#L1-L41) |
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -File `
+  .\tools\verify_cohesive_zone_intelligent_diagnosis.ps1 `
+  -PythonExecutable python
+```
+
+关键断言：
+
+- 文档中的“顶凉、压高、料慢、风紧”组合判为上移，“顶热、压松、炉凉”组合判为下移，无显著变化判稳定；
+- 归一化概率和为1，置信度不超过0.45，固定`uncalibrated/control_use=prohibited`；
+- 当前/参考窗口之间有隔离区，评价时间后的行不能改变历史结果；
+- 缺少压力/透气性或温度场必需分组时返回`unavailable`，不输出貌似可信的方向；
+- Si和铁水温度下降只形成热制度下行关联证据，不覆盖现有8类炉况规则；
+- CSV入口可以写出UTF-8 JSON，组合入口保留既有C2几何安全合同。
+
+2026-08-10结果：`30 passed`；`py_compile`、CLI帮助和PowerShell 7 UTF-8运行检查均通过。另行联跑既有8767桥接测试时有1项历史测试替身缺少`FakeConnection.execute`，该文件不在本次修改范围，详见交接记录。
+
+## HCZ专家弱标签验收（2026-08-10）
+
+- `python -m pytest tests/test_hcz_expert_label.py tests/test_soft_zone_replay_server.py -q`：12项，覆盖盲标字段拒绝、无法判断说明、稳定哈希、知识时间模式、服务器身份、追加DDL和原8892回归。
+- `ruff check tools/soft_zone_replay_server.py 高炉前端数据/智能助手/backend/hcz_expert_label.py tests/test_hcz_expert_label.py`：通过。
+- `node tools/verify_hcz_expert_label_ui.cjs`：Chromium 9个固定视口、Firefox/WebKit各4个代表视口，共17/17通过，包含真实表单提交夹具、无横向溢出和估计控件不可见断言。
+- `node tools/verify_hcz_expert_label_remote_ui.cjs`：220.12 Edge只读冒烟；不得在生产验收中写测试标签。
+- `python tools/audit_pspace_top4_hcz_aug9.py`（220.12临时执行）：pSpace四点直读成功，20:00四点均温`109.330℃`、22:00为`124.728℃`，`errors={}`，证据SHA-256=`14a3d5fc9bc90897a59ab2e8f570eec3e69cf8e1a5f7c752e37041632f8e2e85`。
+- `pwsh.exe -NoLogo -NoProfile -File tools/remote_submit_hcz_aug9_upward_label.ps1`（220.12临时执行）：写入前同日期0条，POST返回`created=true`；回读按观察时刻、方向和实测哈希精确命中1条，`blind_to_model=true`、`model_outputs_included=false`。
+- `pytest tests/test_hcz_expert_label.py tests/test_soft_zone_replay_server.py -q -p no:cacheprovider`：2026-08-11复跑`12 passed`。
+- `pwsh.exe -NoLogo -NoProfile -File tools/verify_pwsh7_utf8.ps1`：PowerShell 7.6.4 Core与UTF-8通过。
+
+证据见[生产交接](./handoffs/2026-08-10-hcz-expert-weak-label-production.md)和[首条上移标签交接](./handoffs/2026-08-11-hcz-aug9-upward-expert-label.md)。
+
+## HCZ上移综合趋势经验规则验收（2026-08-10，2026-08-11冷风口径与阈值试算更新）
+
+- `python -m pytest tests/test_hcz_upward_expert_rule.py tests/test_hcz_upward_rule_api.py -q -p no:cacheprovider`：15项通过；除原规则合同外，覆盖顶温15→10事件量变化、下移对称候选、参数拒绝、90天只读缓存与`GasUtil 0.456→45.6`单次换算。
+- `ruff check 炉况规则引擎/features/hcz_upward_expert_rule.py 高炉前端数据/智能助手/backend/hcz_upward_rule_api.py tests/test_hcz_upward_expert_rule.py tests/test_hcz_upward_rule_api.py`：通过。
+- `node tools/verify_hcz_upward_rule_ui.cjs`：Chromium 9个固定视口、Firefox/WebKit各4个代表视口，共17/17通过；验证表单试算、事件数刷新、`%`和“百分点”。
+- `node tools/verify_hcz_upward_rule_remote_ui.cjs`：生产Edge `1366×768`与`390×844`通过；5项指标、7层、3门、90天15→10试算齐全，横向溢出0，页面/控制台错误0。
+- `pwsh.exe -NoLogo -NoProfile -File tools/verify_pwsh7_utf8.ps1`：PowerShell 7.6.4 Core与UTF-8通过。
+
+生产API最新实测为`not_triggered`，不是测试造数；煤气利用率约`45.83%`，相对前五天变化约`-0.55个百分点`。近90天顶温阈值15→10时上移和下移候选均为`0→0`。部署过程保护8094/8768/8770/5432/8892/11434 PID不变。证据见[规则初始交接](./handoffs/2026-08-10-hcz-upward-expert-rule-8093.md)和[阈值试算交接](./handoffs/2026-08-11-hcz-rule-sensitivity-8093.md)。
+
+## 8093“严重事件交叉确认”提示移除验收（2026-08-10）
+
+- `node --check 高炉前端数据/assets/abc-furnace-rules-production.js`：通过。
+- `pytest tests/test_abc_production_ui.py -q`：6项通过，包含8093端口级不渲染合同。
+- 生产守卫闭环：`guard_paused=true`、`guard_restored=true`、8093 HTTP 200。
+- 受保护运行态：8094、8768、8770、11434 PID部署前后完全一致；8094页面文件SHA-256未改变。
+- 缓存版本：`abc33-20260810-hide-cross-confirmation-8093-r1`。
+
+完整证据见[上线记录](./handoffs/2026-08-10-8093-remove-cross-confirmation-banner.md)。
+
+## 8093处置首屏与工艺依据按钮验收（2026-08-10）
+
+- `node --check 高炉前端数据/assets/abc-furnace-rules-production.js`：通过。
+- `pytest tests/test_abc_production_ui.py -q`：7项通过；覆盖处置顺序先于按钮、按钮`aria-expanded=false`、隐藏内容、工艺依据、操作原理及8093分支不使用章节索引。
+- 生产B4详情：`rule_id=B4`、`intervention_order=5`，原有后端合同未丢失。
+- 生产守卫闭环：`guard_paused=true`、`guard_restored=true`、8093 HTTP 200。
+- 受保护运行态：8094、8768、8770、11434 PID部署前后完全一致；8094页面文件未修改。
+- 缓存版本：`abc33-20260810-action-first-basis-toggle-r1`。
+
+完整证据见[上线记录](./handoffs/2026-08-10-8093-action-first-basis-toggle.md)。
+
+## 8093 ABC33复核点中文名称验收（2026-08-10）
+
+- `node --check 高炉前端数据/assets/abc-furnace-rules-production.js`：通过。
+- `pytest tests/test_abc_production_ui.py tests/test_abc_public_review_labels.py -q`：`10 passed`。
+- 上线前全量扫描：33条规则详情全部可读，118个唯一复核指标中6个未中文化，影响7条规则。
+- 上线后全量扫描：`rule_count=33`、`detail_error_count=0`、`unique_metric_count=118`、`issue_metric_count=0`。
+- 生产守卫闭环：`guard_paused=true`、`guard_restored=true`、8093 HTTP 200；8093监听PID由13064更新为3648。
+- 受保护运行态：8094 PID 2988、8768 PID 18436、8770 PID 3732、11434 PID 5968均未变化；8094页面SHA-256未改变。
+- 缓存版本：`abc33-20260810-chinese-metric-labels-r1`。
+
+完整证据见[上线记录](./handoffs/2026-08-10-8093-abc33-chinese-metric-labels.md)。
+
+## 8093 ABC33复核分组去重验收（2026-08-10）
+
+- `node --check 高炉前端数据/assets/abc-furnace-rules-production.js`：通过。
+- Python语法检查：`abc_public_review.py`和`audit_abc33_review_group_duplicates.py`通过。
+- `pytest tests/test_abc_production_ui.py tests/test_abc_public_review_labels.py -q`：`12 passed`。
+- 上线前生产审计：33条详情无读取错误，`metric_occurrence_count=669`、`affected_rule_count=33`、`duplicate_variable_count=39`、`duplicate_occurrence_count=196`。
+- 上线后生产审计：33条详情无读取错误，`metric_occurrence_count=473`、`affected_rule_count=0`、`duplicate_variable_count=0`、`duplicate_occurrence_count=0`；中文标签问题仍为0。
+- 守卫闭环：`guard_paused=true`、`guard_restored=true`、8093 HTTP 200；8093 PID由3648更新为6432。
+- 受保护运行态：8094 PID 2988、8768 PID 18436、8770 PID 3732、11434 PID 5968均未变化；8094页面SHA-256未改变。
+- 缓存版本：`abc33-20260810-disjoint-review-groups-r1`。
+
+完整证据见[上线记录](./handoffs/2026-08-10-8093-abc33-disjoint-review-groups.md)。
+
+## 8093 ABC33复核表纵向语义布局验收（2026-08-10）
+
+- `node --check 高炉前端数据/assets/abc-furnace-rules-production.js`：通过。
+- `pytest tests/test_abc_production_ui.py tests/test_abc_public_review_labels.py -q`：`13 passed`。
+- 生产33项语义审计：`rule_count=33`、`metric_occurrence_count=473`、`semantic_count=473`、`missing_semantic_count=0`；最长语义为A5的`Q_O2`，128字。
+- 生产资源合同：包含`overflow-x:hidden`、`max-height:none`、`table-layout:fixed`、`abc33-metric-semantic-row`和`colspan="6"`；不包含`min-width:1120px`。
+- 守卫闭环：`guard_paused=true`、`guard_restored=true`、8093 HTTP 200；8093 PID由6432更新为19268。
+- 受保护运行态：8094 PID 2988、8768 PID 18436、8770 PID 3732、11434 PID 5968均未变化；8094页面SHA-256未改变。
+- 缓存版本：`abc33-20260810-vertical-metric-layout-r1`。
+- 浏览器导航：新缓存URL已打开；生产大屏主线程繁忙使深层DOM自动化超时，因此不能据此声称控制台0错误或完整跨视口通过。
+
+完整证据见[上线记录](./handoffs/2026-08-10-8093-abc33-vertical-metric-layout.md)。
+
+## TEST-8093-GUARDED-UPDATE-SKILL-20260810
+
+- 对应需求：`OPS-8093-GUARDED-UPDATE-SKILL-20260810`。
+- Skill合同验证：`pwsh.exe -NoLogo -NoProfile -File .\.codex\skills\deploy-8093-guarded-update\scripts\validate_skill.ps1`。
+- 结构验证：设置`PYTHONUTF8=1`后执行`python C:\Users\hmw20\.codex\skills\.system\skill-creator\scripts\quick_validate.py .\.codex\skills\deploy-8093-guarded-update`。
+- 清单脚本自测：`python -B .\.codex\skills\deploy-8093-guarded-update\scripts\release_manifest.py --self-test`。
+- 项目/全局同步验证：先执行`PublishProjectToGlobal`，再执行`pwsh.exe -NoLogo -NoProfile -File .\tools\sync_deploy_8093_guarded_update_skill.ps1 -Action Verify`；要求`schema=bf.codex.skill-sync.v1`、`file_count=14`、`identical=true`和`remote_write_performed=false`。
+- 覆盖：PowerShell 7/Core与UTF-8、两层模板语法、源/产物/验证证据完整性密封、篡改拒绝、实时基线差量、空差量不重启、upload-only先于远端payload、全局部署互斥、基线SHA-256、路径根约束、备份/回滚、`finally`恢复、8094/8768/8770/5432/11434保护和结构化结果字段。
+- 结果：合同验证`ok=true`、PowerShell=`7.6.4`、解析模板2份、确定性脚本2份、`remote_write_performed=false`；清单四个schema自测通过；Skill Creator返回`Skill is valid!`。项目/全局14文件bundle SHA-256均为`F75B6DA1C3FC1F410A5DF6FAC4C09D42E67459B9E5BCF20471B4A6EC9B6FA323`。未执行生产前向测试，因为那会暂停8093并产生生产写入，需要由具体部署需求单独授权。
+
+## TEST-22012-PERSISTENT-SSH-SESSION-20260810
+
+- 对应需求：`OPS-22012-PERSISTENT-SSH-AND-PYTHON-PROTECTION-20260810`。
+- 单元测试：`python -m pytest -q tests/test_remote_22012_persistent_session.py tests/test_remote_22012_pwsh7_runtime.py`。
+- 覆盖：会话状态位于仓库外的`LOCALAPPDATA`、同一已认证transport复用、30秒协议keepalive、调用者持有client不被`remote_22012_exec.py`关闭、远端传输异常只执行一次且`automatic_replay=false`、`run --`参数保持。
+- Skill覆盖：本机模板必须先`ensure`，upload-only与script通过同一会话运行，最后只做status并保留代理；保护参考必须明确`.pyb`非标准、`.pyc`不保密、Nuitka/Cython本机构建和不可承诺绝对防逆向。
+- 结果：专项与既有PowerShell 7运行时测试共`8 passed`；Skill合同验证和Skill Creator结构验证通过。只读生产双命令的同一`session_id/connection_id`、递增`request_count`另由运行证据确认。
+
+### TEST-22012-WINDOWS-CREDENTIAL-SSH-RECOVERY-20260814
+
+- 对应需求：`OPS-22012-WINDOWS-CREDENTIAL-SSH-RECOVERY-20260814`。
+- 静态合同：`python -m pytest -q tests/test_22012_credential_recovery.py`，验证固定凭据目标/用户、`CredReadW/CredFree`、Reliable SSH 受保护源回退、脱敏占位符拒绝、DACL 和零秘密输出合同。
+- 运行验收：先运行 `pwsh.exe -NoLogo -NoProfile -File .\tools\restore_22012_ssh_secret_from_windows_credential.ps1`；随后以两个独立进程连续运行两次 `pwsh.exe -NoLogo -NoProfile -File .\tools\configure_22012_reliable_ssh_secret.ps1`。
+- 新连接成功信号：停止旧 Paramiko broker 后重新 `ensure`，返回 `ssh_authenticated=true`、新 `connection_id`、`reconnect_count=0`；Reliable SSH `probe_identity` 返回 `WIN-54B94HVHKBA / 10.30.220.12 / administrator`，且 `automatic_replay=false`。
+- 2026-08-14 实际结果：静态组合 `13 passed`；恢复器 `ok=true` 且 `password_value_emitted=false`；两次配置均 `ok=true/migrated=false`。全新 Paramiko `session_id=72cd59fe...`、`connection_id=b3d3bc1b...`，双独立 `.ps1` 耗时 `1643/1589ms`、请求 `1→2`、重连 `0`。Reliable SSH 连接池请求 `56/56` 完成、重连 `0`、自动重放关闭。
+
+## TEST-8093-SKILL-REUSE-METRICS-AND-RSSH-MCP-20260810
+
+- 对应需求：`OPS-8093-SKILL-REUSE-METRICS-LEARNING-AND-RSSH-MCP-20260810`。
+- 项目测试：`python -m pytest -q --basetemp C:\Users\hmw20\AppData\Local\Codex\pytest\persistent_ssh tests/test_diag_rules_reliable_deployer.py tests/test_remote_22012_persistent_session.py tests/test_remote_22012_pwsh7_runtime.py tests/test_22012_persistent_ssh_reuse_ps1.py`，结果`16 passed`。
+- Skill测试：`validate_skill.ps1`通过并执行`deployment_memory.py --self-test`；Skill Creator `quick_validate.py`返回`Skill is valid!`；隐式调用策略为true。
+- MCP测试：在`D:\文件\网络登录服务器管理\reliable-ssh-mcp`执行`npm run check`和`npm test`，结果30项通过；覆盖Plink/Windows启动参数、OpenSSH keepalive、ZIP防穿越解压、UTF-8子进程、连接池配置和范围校验。
+- 现场MCP只读：`node tools/reliable_ssh_22012_cli.mjs pool-probe`在一个Plink PID上完成4个请求；握手`19732ms`，后续两次`299/323ms`，`reconnect_count=0`、`automatic_replay=false`。
+- 现场`.ps1`只读：`pwsh.exe -NoLogo -NoProfile -File .\tools\verify_22012_persistent_ssh_reuse.ps1 -IncludeColdBaseline`；相同会话/连接，请求`1→2`，远端PowerShell`7.6.4`，冷`22225ms`、复用`16943/17010ms`、初次单样本节约23.6%，生产写/服务重启均false。
+- 统计边界：一条冷/热样本只证明机制可测，不足以承诺长期部署收益。正式报告至少5组交错样本，输出总部署与SSH阶段的median/p90。
+
+## TEST-8093-ABC33-B4-CANONICAL-SCORE-20260810
+
+- 本机：`92 passed`覆盖复核、AI、ABC规则/页面/存储/8768桥接；另`24 passed`覆盖持久SSH、独立`.ps1`和原生构建器。两份JS `node --check`、三个Python后端`py_compile`及六份PowerShell AST解析通过。
+- 生产：守卫闭环`guard_paused=true/guard_restored=true/rollback_applied=false`，8093 HTTP 200，PID `2332→14436`。评价批次839中`latest_b4_score=context_display_hot=14.9623`，legacy归档28.12；8094/8768/8770/5432/8892/11434 PID前后相同。
+- 备份：`F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\abc33_b4_score_source_8093_20260810_195532`。
+- 浏览器边界：本机85组合的布局/控件断言均执行，但15项因fixture-only未启动WebSocket或诊断附加API返回503而按控制台错误失败；生产`--live`矩阵在7分钟上限内未完成，不能宣称完整跨浏览器通过。生产API、资源标记和轻量HTTP复核通过。
+
+## TEST-SI-V20-HOURLY-ACCEPTANCE-DOWNLOAD-TIMEOUT-20260810
+
+- 对应错误：`ERR-SI-V20-ACCEPTANCE-DOWNLOAD-SAVE-HANG-20260810`。
+- 语法：`node --check tools/audit_si_v20_new_heat_acceptance.cjs`通过。
+- 完整验收：`node tools/audit_si_v20_new_heat_acceptance.cjs --output-dir reports/acceptance/SI_V20_NEW_HEAT_20260810`在60.2秒内完成，退出码0。
+- 结果：139炉实际平均Si=`0.27%`；17:00严格整点槽`success`、重复0、逾期0、截止违规0；3个页面CSV、API快照、运行时探针、数据库探针和两张截图全部落盘。
+- 证据：[结构化结果](../reports/acceptance/SI_V20_NEW_HEAT_20260810/20260810T093559Z_check.json)与[持续验收报告](../reports/acceptance/SI_V20_NEW_HEAT_20260810/acceptance_report.md)。
+
+## TEST-SI-V20-ACCEPTANCE-PROBE-KEEPALIVE-20260810
+
+- 对应错误：`ERR-SI-V20-ACCEPTANCE-API-PROBE-KEEPALIVE-20260810`。
+- 8094受控恢复：旧PID2988、新PID18628；8093 PID2332、8768 PID9556、8770 PID3732、11434 PID5968在重启事务内未改变，8094 HTTP 200。
+- 远端探针：PowerShell 7.6.4 Core；8093/8094/8768/8770/5432监听；四项V20/IMES任务均为`pwsh.exe`；六个8093/8094 API检查通过；耗时8.6秒。
+- 数据库：01:00～19:00共19个严格整点槽全部成功，重复0、非整点0、可重试0、running/stale/逾期0、截止违规0，`missing_availability=0`。
+- 完整验收：`node tools/audit_si_v20_new_heat_acceptance.cjs --output-dir reports/acceptance/SI_V20_NEW_HEAT_20260810`耗时21.6秒、退出码0；140炉实际平均Si=`0.29%`，截图和三个页面CSV均已保存。
+- 证据：[结构化结果](../reports/acceptance/SI_V20_NEW_HEAT_20260810/20260810T114733Z_check.json)与[持续验收报告](../reports/acceptance/SI_V20_NEW_HEAT_20260810/acceptance_report.md)。
+
+## TEST-8093-RISK-TIERED-BROWSER-VALIDATION-20260810
+
+- `python -m pytest -q tests/test_diagnosis_review_browser_profiles.py`：3项通过，固定`quick=4`、`standard=17`、`full=85`以及受影响路由和1546×864合同。
+- `python -m ruff format --check ...`与`python -m ruff check ...`：两个文件通过。
+- `python tools/verify_diagnosis_review_local.py --base-url http://127.0.0.1:8096 --engines chromium,firefox,webkit --profile quick`：4/4通过，9.019秒；报告位于`logs/diagnosis_review_browser_20260810_202317/report.json`。
+- 本次不跑85项的原因是改动只涉及诊断弹窗及验收流程，不影响全局导航、共享CSS、三维运行时或五路由结构；若定向项失败必须升级。
+
+## TEST-UI-VIEWPORT-TWO-STAGE-20260814
+
+- 开发阶段固定入口：受影响路由 Chromium `1366×768` 单视口；检查核心交互、横向溢出、关键裁切、底栏遮挡、中文和页面/控制台错误，不启动跨浏览器矩阵。
+- 完成阶段入口：功能、自动化测试与评审完成并冻结发布候选后，按风险运行 `quick=4`、`standard=17` 或 `full=85`；生产部署与最终交付属于该阶段。
+- 本次证据：`node tools/verify_abc_contextual_assistant_viewports.cjs --base-url http://127.0.0.1:18093/frontend_dashboard_v3.server.html --route qa --engine all --output-dir logs/qa_composite_trace_local_standard_20260814_final --timeout-ms 20000`，最终 `17/17` 通过；此前后端未启动导致的404报告仅作为失败诊断，不作为功能缺陷或通过证据。
+
+## TEST-CODEX-ECONOMICAL-DELEGATION-20260810
+
+- `codex --version`：`codex-cli 0.144.3`。
+- `invoke_codex_delegate.ps1 -ListModels`：实时目录成功返回Sol/Terra/Luna等7个可见模型及各自reasoning levels。
+- PowerShell Parser：`invoke_codex_delegate.ps1`无语法错误；Skill `quick_validate.py`通过。
+- Luna low只读前向测试：两次都正确返回`validation_matrix; default=quick; quick=4, standard=17, full=85`，无文件修改、无生产连接。
+- 最小化前：89004ms，input 58097、cached 27392、output 184；最小化后：29197ms，input 38309、cached 17152、output 235。耗时下降67.2%、输入下降34.1%，但网络WebSocket失败回退HTTP仍产生约29秒总耗时。
+
+## REQ-8093-FRONTEND-PERF-R1 本地验收
+
+- `npm run check`：构建源提取合同通过。
+- `npm run build`：浏览器Babel和React开发版移除；GLB URL与Billboard绘制合同保持；生产HTML约221.8KB，gzip约40.5KB，Brotli约31.3KB。
+- `python -B -m pytest -q -p no:cacheprovider ...`：相关20项测试通过。
+- `python tools/verify_8093_frontend_production_build.py`：Chromium 1366x768核心冒烟通过；结构像素差0，广告牌/工艺标注合同一致，诊断页3D重资源为0。
+- `pwsh.exe -NoLogo -NoProfile -File .\tools\deploy_8093_frontend_perf_22012.ps1`：生产受控部署通过；8093守卫恢复、HTTP 200、gzip/Brotli、immutable缓存、安装哈希、受保护PID和同一SSH会话复用均通过，未回滚。
+- 未执行：本轮按用户要求停止85项全矩阵；最终兼容阶段可显式增加`--full-matrix`。
+
+## TEST-SI-V20-ACCEPTANCE-API-RETRY-20260811
+
+- 对应错误：`ERR-SI-V20-ACCEPTANCE-8094-STATUS-TRANSIENT-TIMEOUT-20260811`。
+- `pwsh.exe -NoLogo -NoProfile -File tools/remote_probe_si_v20_acceptance.ps1`：本机PowerShell 7脚本可解析并完整执行；本机无生产端口/任务，因此业务检查按预期失败但输出结构有效。
+- `python -B tools/remote_22012_exec.py ... --script tools/remote_probe_si_v20_acceptance.ps1`：220.12 PowerShell 7.6.4 Core、5个端口、4个任务及8093/8094六个API全部通过，正常接口`attempt_count=1`。
+- `python -B tools/verify_si_v20_strict_hourly_production.py`：01:00～次日01:00共25个槽全部成功；重复、非整点、running/stale、逾期和截止违规均为0。
+- 修复后完整验收：[结构化结果](../reports/acceptance/SI_V20_NEW_HEAT_20260810/20260810T172956Z_check.json)退出码0；页面截图、每小时表截图和三个页面CSV下载均正常。
+## TEST-TS-LEADERBOARD-20260811
+
+- 需求：`REQ-TS-LEADERBOARD-CORRECTION-20260811`。
+- 测试：[tests/test_timeseries_leaderboard.py](../tests/test_timeseries_leaderboard.py)。
+- 命令：`python -m pytest tests/test_timeseries_leaderboard.py -q --basetemp .tmp_pytest_timeseries_leaderboard`。
+- 通过信号：`3 passed`；覆盖共同完整切点过滤、综合/方向冠军、缺失指标拒绝和错误schema拒绝。
+- 接口冒烟：在本机临时端口18778启动8778后运行`python tools/check_timeseries_sidecar_python.py --url http://127.0.0.1:18778`，要求状态OK且排行榜schema正确。
+
+## TEST-8093-CORE-PORTAL-BASELINE-20260811
+
+- `python -B -m pytest -q tests/test_8093_core_metrics_pspace_live.py tests/test_8093_frontend_performance_build.py`：16项通过。
+- `python -B tools/verify_8093_core_spark_detail.py --profile standard --local-html 高炉前端数据/frontend_dashboard_v3.production.html`：总览页17/17组合通过，未运行5路由×17的85项。
+- `python -B tools/verify_8093_frontend_production_build.py`：Portal最上层、GLB/Billboard合同、诊断页不加载3D和视觉结构像素差0均通过。
+- 生产`verify_8093_core_metrics_pspace_live.py --matrix single`：28/28行存在数据库30日基线，逐行公式和阈值匹配；唯一失败项为部署前既有`bf-heat-performance-quality-8093-query-v2.js` 404。
+- `pwsh.exe -NoLogo -NoProfile -File tools/deploy_8093_core_modal_baseline_22012.ps1`：36.129秒成功，上传3.856秒、守卫闭环31.561秒，同一SSH连接请求号4→6。
+## 8093 ABC33炉况总览入口
+
+- `python -m pytest -q tests/test_abc_production_ui.py tests/test_abc_rule_engine.py tests/test_abc_public_review_labels.py`：39 passed。
+- `node tools/verify_abc33_overview_entry_standard.cjs`：Chromium/Firefox/WebKit共17个视口组合全部通过。
+- `node tools/verify_abc33_overview_entry_production.cjs`：8093生产入口嵌入、点击33张卡、关闭按钮、无横向溢出和无页面错误全部通过。
+## ABC33 pSpace探尺料速
+
+- 命令：`pwsh.exe -NoLogo -NoProfile -File .\tools\verify_abc33_probe_burden_rate.ps1`。
+- 覆盖：提尺零位、小批识别、南北同期去重、料罐重量矿/焦分型、前后30分钟速率、A2/B4/B5缺数门禁及真实8093数据回放。
+- 当前结果：36 passed；真实数据回放三个料速因子均为available。
+
+## 8093维护交接包
+
+- `pytest -q .\tests\test_8093_handoff_package.py`：验证清单schema、关键连接/守卫/服务/前端入口、所有源文件存在、无重复项、敏感路径排除和Git忽略规则。
+- `pwsh.exe -NoLogo -NoProfile -File .\tools\build_8093_handoff_package.ps1`：复制当前工作区白名单文件，执行高置信敏感信息扫描，生成逐文件SHA-256，并回读ZIP逐项校验。
+- `pwsh.exe -NoLogo -NoProfile -File .\tools\verify_pwsh7_utf8.ps1`：验证本机入口使用PowerShell 7 Core及无BOM UTF-8。
+- 该组测试和构建均为本机操作；远端部署状态固定为`not_started`。
+
+## TEST-8093-DIAGNOSIS-AI-JSON-DATETIME-20260811
+
+- 对应错误：`ERR-8093-DIAGNOSIS-AI-JSON-DATETIME-20260811`。
+- 红测：`test_abc33_score_source_is_json_serializable_for_ai_snapshot_store` 修复前精确失败为
+  `TypeError: Object of type datetime is not JSON serializable`。
+- 绿测：`python -B -m pytest -q -p no:cacheprovider tests/test_diagnosis_review_api.py tests/test_diagnosis_ai_analysis.py tests/test_diagnosis_review_contract.py --basetemp .tmp\pytest-diagnosis-json-boundary`，结果 `52 passed`。
+- 边界：测试覆盖 ABC33 `evaluation_ts`、嵌套 `datetime`、`Decimal`、tuple 和
+  `NaN`，并要求完整上下文可被 `json.dumps`。
+- 语法：`python -B -m py_compile` 检查 `diagnosis_review.py`、
+  `diagnosis_model_review.py`、`ollama_proxy_server.py`通过；
+  `pwsh.exe -NoLogo -NoProfile -File .\tools\verify_pwsh7_utf8.ps1` 通过。
+- 生产：诊断分析 `completed`、`attempt_count=1`；仅 8093 PID
+  `19076→436`，后续验收性回滚恢复后最终 PID `9152`；8094/8768/8770/5432/11434 PID 不变。唯一 SSE
+  `request_count=1`，keyword 证据 2 条，首 delta `5027.5ms`、总时长 `16885.6ms`，
+  守卫失败计数清零且验收期间无自动重启。
+- 回滚后运行态复核：正式版本经 120 秒冷却后自动恢复为
+  `completed/attempt_count=1/has_analysis=true`，最近失败日志为空；只读预检确认服务
+  Running、8093 HTTP 200、运行哈希匹配、keyword 证据 2 条及六个受控端口正常。
+
+## ABC33 上下文助手
+
+- `tests/test_abc_rule_explanation_context.py`：33项解释结构、语义、分数方向、门禁、JSON与哈希。
+- `tests/test_abc_contextual_conversations_backend.py`：权威PG行、四表、只读接口、Prompt绑定和缓存写入。
+- `tests/test_abc_contextual_assistant_concurrency.py`：六并发单航班与显式缓存提交。
+- `tests/test_abc33_contextual_assistant_ui.py`：每卡唯一按钮、IDs-only事件、弹窗状态、单次SSE和六类来源筛选。
+- 2026-08-11本机ABC33与既有助手相关结果：`62 passed`；完整85组合和生产真实SSE在上线阶段执行。
+
+## TEST-QA-SESSION-LOGIN-BRIDGE-20260812
+
+- `python -m pytest -q tests/test_qa_session_login_bridge.py tests/test_abc33_contextual_assistant_ui.py`：11 passed。
+- `node 高炉前端数据/dashboard_build/scripts/build-dashboard.mjs --check`：JSX 提取与生产构建检查通过。
+- `node tools/verify_qa_session_login_bridge.cjs <url> <report> 1366x768` 与 `390x844`：403→登录→bootstrap 通过，`login_posts=1`、`model_or_chat_posts=0`、登录框密码输入销毁。
+- 生产冒烟使用真实 8093 HTML 和浏览器内模拟鉴权响应，不发送真实问答；模型健康另由 `/api/ollama/status` 验证。
+## TEST-QA-SHARED-GUEST-MCP-FALLBACK-20260813
+
+- 覆盖：同地址稳定共享房间、8093/8094默认隔离、消息时间戳、访客私有上下文拒绝、成功工具不重复调用模型、MCP 空失败与轮数耗尽执行单次无工具模型回答。
+- 测试：[MCP降级](../tests/test_qa_mcp_model_fallback.py)、[共享访客](../tests/test_qa_shared_guest_mode.py)。
+- 命令：`python -m pytest tests/test_qa_mcp_model_fallback.py tests/test_qa_shared_guest_mode.py -q`。
+- 成功信号：8项以上全部通过，前端 Babel 检查通过，源码不再包含旧“数据库查询轮数超过上限”最终文案。
+- `tests/test_qa_mcp_parallel_planning.py`：验证 5 轮/5 次默认限制、不同 MCP 服务并发、同一 stdio 服务串行、结果顺序稳定以及相关数值挑选 Prompt 合同。
+
+## TEST-8093-GUEST-CONVERSATION-RECOVERY-20260814
+
+- 覆盖：访客携带旧私有会话 ID 时直接重绑定固定共享会话，且不进入私有 owner 校验；登录用户提交其他 owner 会话时仍拒绝。
+- 命令：`python -m pytest tests/test_qa_shared_guest_mode.py tests/test_qa_session_login_bridge.py -q`。
+- 成功信号：13 项通过，`ollama_proxy_server.py` 编译通过；生产验收仅发送一次匿名 SSE，返回的 `conversation_id` 必须等于匿名 bootstrap 的共享会话 ID，且不得出现 `conversation_not_found`。
+
+## TEST-8093-GUEST-UI-RECOVERY-20260814
+
+- 覆盖：bootstrap 已是 `guest_shared` 时前端默认显示共享访客导航，不显示强制登录卡片；可选私有登录可打开并能继续匿名使用；恢复过程不自动发送聊天 POST。
+- 聚焦命令：`python -m pytest tests/test_qa_shared_guest_mode.py tests/test_qa_session_login_bridge.py tests/test_8093_guest_ui_recovery_deploy_scripts.py -q -p no:cacheprovider`。
+- 浏览器命令：`node tools/verify_8093_guest_frontend_matrix.cjs .tmp/8093-guest-ui-recovery-20260814/frontend_dashboard_v3.server.html .tmp/8093-guest-ui-recovery-20260814/browser-standard.json`。
+- 生产冒烟：`node tools/probe_8093_guest_browser.cjs "http://10.30.220.12:8093/高炉前端数据/frontend_dashboard_v3.server.html#qa" .tmp/8093-guest-ui-recovery-20260814/production-browser-smoke.json`。
+- 成功信号：16 项聚焦回归通过；标准矩阵 17/17；生产页面访客徽标可见、初始登录框不可见、可选登录和继续匿名均成功，bootstrap 为 HTTP 200 / `guest_shared`，页面与控制台错误为空。
+
+## TEST-MCP-SEMANTIC-POINT-CATALOG-20260813
+
+- `py tools/generate_semantic_point_catalog.py --check`：权威TSV与语义目录字节一致，153条且无重复ID。
+- `pytest -q tests/test_semantic_point_catalog.py 高炉前端数据/智能助手/tests/test_business_object_catalog.py tests/test_qa_mcp_parallel_planning.py`：成功信号 `19 passed`。
+- `py .codex/skills/agent-tool-capability-evaluation/scripts/evaluate_semantic_point_catalog.py`：成功信号 `ok=true/failure_count=0`；153/153覆盖、1118/1118别称、153/153唯一口语、6/6严格多变量。
+- 边界：不访问生产数据或模型；可执行MCP、生产权限和实时数值必须另做受控抽样验收。
+
+## TEST-MCP-SENSOR-REASONING-20260813
+
+- `python -X utf8 tools/evaluate_8093_mcp_sensor_reasoning.py --dry-run`：只打印 T1/T2/T3，模型请求数为0。
+- `pytest -q tests/test_evaluate_8093_mcp_sensor_reasoning.py`：验证工具层/答案层分离评分、极差/CV复算、
+  跨源完整结果中的 Pearson r 与对齐样本读取。
+- 生产单题使用 `--case T1`、`--case T2` 或 `--case T3`；每题恰好一次 SSE，禁止自动重试。
+- 2026-08-13 实测：SSE 3/3、MCP 3/3、跨 MCP 并行 1/1、最终答案合同 0/3；原始摘要为
+  `logs/mcp_sensor_reasoning_20260813/report.json`。工具成功不能覆盖答案不完整。
+
+## TEST-MCP-TEMPLATE-LINES-20260814
+
+- `python -X utf8 tools/evaluate_mcp_template_lines.py --list-only`：不发送模型请求，当前稳定清点
+  160 行、125 unique ready、11 duplicate、24 skipped。
+- `pytest -q tests/test_evaluate_mcp_template_lines.py tests/test_agent_tool_capability_skill.py`：验证源行号、
+  占位符/重复、工具与答案分层、四类能力、检查点和同步清单；工作区 basetemp 结果 `7 passed`。
+- Skill 官方结构校验：`quick_validate.py .codex/skills/agent-tool-capability-evaluation`，成功信号
+  `Skill is valid!`。
+- `pwsh.exe -NoLogo -NoProfile -File tools/sync_agent_tool_capability_evaluation_skill.ps1 -Action Verify`：
+  要求 `file_count=7/identical=true/remote_write_performed=false`。
+- 生产逐行结果：125 个唯一 SSE、禁止重试；工具合同 103/125、答案忠实 28/123、综合 24/125、
+  静压力 `TaskGroup` 错误 2 条。完整报告见 `logs/mcp_template_line_eval/report_full_20260813.json`。
+
+## TEST-MCP-AGENT-GOLDEN-SUITE-20260814
+
+- 权威清单：`PT/智能体工具能力金标任务清单.v1.json`；14 项覆盖单工具、多工具、并行、多轮、
+  依赖、无关工具、歧义、未知对象、超时、部分失败、全失败、对抗输入、确定性计算和工具结果注入。
+- `python tools/evaluate_mcp_gold_tasks.py --validate --write-catalog-markdown`：成功信号
+  `ok=true/case_count=14`，Markdown 中记录当前 JSON SHA-256。
+- `python tools/evaluate_mcp_gold_tasks.py --execute --mode mocked --pass-k 5 --concurrency 6`：
+  成功信号 `runs=70/passed=70/failed=0/errors=0`。该模式只证明合同、故障夹具和 oracle，
+  不代表生产 MCP 或模型实测通过。
+- 聚焦回归：`python -m pytest -q --basetemp .pytest_tmp_mcp_gold tests/test_mcp_gold_tasks.py
+  tests/test_mcp_lifecycle_diagnostics.py tests/test_mcp_evidence_formatter.py tests/test_cross_source_mcp.py
+  tests/test_evaluate_mcp_template_lines.py tests/test_qa_mcp_parallel_planning.py tests/test_qa_mcp_model_fallback.py`；
+  加上部署合同、唯一 SSE 验收器和炉温同步回归，2026-08-14 成功信号 `87 passed`。
+- 生产单工具验收：执行 ID `mcp-gold-20260814-1035-r3`；恰好一次 SSE 调用
+  `gl02-data/query_gl02_sensors(latest, P_top)`，事件包含
+  `preparing/prepared/tool_start/tool_result/delta/final/done`，并返回值、单位、数据时间、质量、采集时间
+  和只读来源。`request_count=1`，无自动重试。该题命中确定性传感器路由，服务端未提供底层模型
+  调用计数，因此不得把 HTTP 200 或 SSE 成功等同为一次模型调用。
+- 生产逐条结果：9 项 `passed`、GOLD-005 为 `oracle_invalid` 但“不猜测/不启动下游”能力通过；
+  GOLD-009/010/011/014 因生产未开放故障注入而为 `not_supported`，对应 mocked 合同 4/4 通过。
+  不把 mocked 通过写成生产实测通过。汇总见
+  `logs/mcp_gold_live_20260814/final_summary.json` 与 `final_summary.md`。
+- GOLD-004 复用已经发出的两轮真实响应离线重评分，`network_request_count_during_rescore=0`；
+  结果见 `logs/mcp_gold_live_20260814/GOLD-004.rescored.json`。
+- 最终聚焦回归：
+  `pytest -q tests/test_mcp_gold_tasks.py tests/test_cross_source_mcp.py tests/test_mcp_gold_runtime_boundaries.py tests/test_mcp_gold_sse_once.py tests/test_mcp_gold_deploy_scripts.py`，
+  成功信号 `82 passed`；远端最终 HEAD `67d2434cbbb69591ff8e35d4027fd47acfa37850`、工作树 clean。
+
+## TEST-MCP-EXTENDED-PRODUCTION-REGRESSION-20260814
+
+- 关键稳定性：GOLD-001/002/003/004/005/013 各运行 5 次。零请求重评分后的结果为
+  `25 passed / 5 oracle_invalid / 0 failed`；5 个 `oracle_invalid` 全部是 GOLD-005 的不存在炉次
+  `072`，实际能力合同均满足“不猜炉号、不启动依赖下游”。
+- 点位覆盖：14 个标准变量 × 最新值/1小时统计/2小时趋势，共 42 个真实生产问法，42/42 通过；
+  p50 `1395.8ms`、p95 `1621.6ms`。变量覆盖 `P_top/T_top/DP_total/P_blast_cold/P_blast/
+  T_blast/PI/L/L_south/L_north/PCI_rate/PCI_set/O2_rate/Q_O2`。
+- 并发：6 个不同点位同批提交，6/6 通过、p95 `8221.2ms`；总单题耗时之和明显大于批次墙钟时间，
+  证明请求存在真实重叠；同一 GL02 stdio 服务仍按安全合同串行，没有死锁、PoolTimeout、重复调用
+  或答案串线。
+- 多轮与跨源：GOLD-004 连续两轮 5/5；GOLD-002/003 跨 GL02 与 IMES 共 10/10，实际调用两个服务。
+- 隔离：共享访客与已登录 owner 的会话哈希不同且模型请求为 0；由于生产仅一个认证身份，
+  “两个 authenticated owner”记为 `not_tested`。
+- 故障：在远端仅回环临时服务 `127.0.0.1:18094` 执行 GOLD-009/010/011/014，真实模型最终回合
+  4 次、4/4 通过、自动重试 0、生产故障请求 0；测试后端口关闭。MCP 故障输入是受控夹具，
+  没有使生产数据库或 8093 主服务进入失败状态。
+- 请求账本：生产真实 SSE `83`，真实 `tool_start` `90`，自动重试 `0`；故障预览另有真实模型请求
+  `4`。总报告为 `logs/mcp_extended_20260814/final_report.json` 与 `final_report.md`。
+- 聚焦回归：金标、扩展评测器、故障预览、跨源、运行边界、SSE 和部署合同共 `91 passed`；新增
+  Python 文件 `py_compile` 通过；项目与全局评估 skill `file_count=7/identical=true`。
+
+## TEST-MCP-SPOKEN-PRODUCTION-REGRESSION-20260814
+
+- 题集：`PT/智能体工具能力口语化生产回归.v1.json`；42 个 prompt 均不得出现完整 153 点位目录
+  中的任何标准 `object_id`，只使用“炉顶压力、四个顶温的平均值、风温、南尺、实际喷煤量、
+  鼓风富氧比例”等现场表达。独立 A-H 方位字母允许，英文/下划线组合技术名禁止。
+- 静态合同：`pytest -q tests/test_evaluate_mcp_extended_production.py tests/test_agent_tool_capability_skill.py`，
+  成功信号 `8 passed`；明确验证“顶温 A 点/7 层 A-H”允许，`P_top/T_top_A/DP_total/L/PI` 和
+  未知 `P_top_gas_X` 在发请求前拒绝。
+- 生产执行：42 次串行 SSE、自动重试 0；结果 `36 passed / 6 failed / 0 errors`，p50
+  `1139.9ms`、p95 `29513.7ms`。
+- 路由：39/42 走确定性传感器路由；3 个 `L/雷达探尺` 问题走模型规划，其中一小时统计耗时
+  `75943.7ms`。所有 42 题均收到 `final/done`，失败属于语义/证据合同，不是网络或执行错误。
+- 失败对象：`T_top` 0/3，原因是回答四个分点而非派生平均；`L` 0/3，原因是单位元数据和工具路径
+  合同不完整。其余 12 个对象 36/36。
+- 原始证据：`logs/mcp_spoken_20260814/report.json`、`report.md` 和逐题 `checkpoint.jsonl`。
+
+## TEST-MCP-BODY-LAYER-STATISTICS-20260814
+
+- 逐层生产探针：纯中文询问 2026-08-14 08:00–09:00 的 7–13 层 A–H 层平均、极差、变化量、
+  STDDEV_POP 和 15 分钟滚动标准差；一次 SSE、无重试，结果 5 个工具调用、`156890.7ms`，只完成
+  第 7 层 A–E，合同失败。
+- 单点生产探针：纯中文询问同一时段第 10 层 C 点统计；一次 SSE、无重试，重复调用同一工具 2 次、
+  `29957.2ms`。工具 count/min 与答案 count/min 冲突，最终答案忠实度失败。
+- 本机修复验证：相关 MCP/QA/部署合同累计先后 `78 passed`、`85 passed`；时间窗修复后聚焦
+  `77 passed`，最终部署与炉体统计合同 `12 passed`。Python 编译、PowerShell 7 UTF-8 和全部新增
+  部署脚本 AST 检查通过。
+- 生产验收：逐层题和单点题各 1 次真实 SSE，均恰好 1 个
+  `gl02ext__query_body_temperature_statistics`，事件包含
+  `start(preparing) → start(prepared) → tool_start → tool_result → delta → final → done`，
+  `request_count_total=2`、`model_request_count=0`。
+- 时间窗验收：`最近一小时 + 15 分钟滚动` 的实际总窗为 14:04–15:04，滚动窗保持 15 分钟；
+  7–13 层完整返回 7 行，每层 60/61 个对齐/期望分钟。
+- 运行边界：8093 PID `14380 → 9468`；8094/8768/8770/5432/11434 PID 均不变；守卫失败计数 0，
+  keyword 检索返回 2 条证据，仅驻留 `chiqiong-blast-furnace:latest`。
+- 当前状态：`passed_in_production`；生产 Git 为 `849d9554060f7c1252722e8394a9cb224ff13488`。
+- 人工回归暴露的答案完整性缺陷已加入本机测试：三个实际失败的纯中文逐层问法必须命中一次复合
+  工具；第 12 层 A–H 必须开启逐方位统计；八个权威 tag 必须唯一；超过通用结果上限的结构化统计
+  必须保持可解析；嵌套 `result` 载荷必须输出不同的方位值。最终相关 MCP/QA/领域路由/DAG 优先级/
+  部署合同共 `116 passed`。
+- 直接复合 MCP（不经过模型和 QA 路由）实测最近一小时 7–13 层 A–H：`3248` 行、7 层均
+  `58` 个完整对齐样本，耗时 `2520.9ms`，来源 `bf_sensor.one_minute_values`。
+- R4/R5 生产验收均失败并自动回滚，分别定位“中文层号未选择扩展 MCP”和“跨源 DAG 抢在复合
+  计划前展开 56 点”；生产答案完整性状态仍为待部署，不复用此前 `passed_in_production` 结论。
+
+### 本机执行轨迹与受控模型解释增量
+
+- `tests/test_body_temperature_layer_statistics.py` 新增中文数字层号、数据库批量函数只调用一次、
+  `public_trace` 脱敏字段、模型新增数字拒绝，以及从自然语言到单次复合 MCP、六段执行事件和最终
+  解释的端到端模拟。
+- `tests/test_qa_tool_execution_trace_ui.py` 验证前端分发 `trace/tool_start/tool_result/
+  analysis_start/analysis_result`，当前 `QaTab` 接线完整，并且渲染器只读取 `public_trace`。
+- 聚焦命令：
+
+  ```powershell
+  $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
+  python -m pytest tests/test_body_temperature_layer_statistics.py tests/test_semantic_point_catalog.py tests/test_qa_tool_execution_trace_ui.py -q
+  ```
+
+  成功信号：`23 passed`。
+- 扩展回归命令覆盖并行规划、工具失败降级、证据格式、金标运行边界和共享访客；成功信号：
+  `62 passed`。`python tools/verify_8093_frontend_production_build.py` 必须返回 `ok=true` 和
+  `contractMatch=true`。
+- 本机真实只读探针：
+
+  ```powershell
+  python tools/probe_body_temperature_statistics_mcp.py --server "高炉前端数据/智能助手/mcp/bf_data_extended_mcp_server.py" --minutes 60 --include-points
+  ```
+
+  2026-08-14 18:11 的成功信号为：恰好一次复合 MCP 调用、`layer_count=7`、`point_count=56`、
+  `raw_row_count=3304`、7 层各 `59` 个对齐样本、`elapsed_ms=3327.2`，且
+  `production_write_performed=false`。该探针失败时不得自动重发。
+- 生产验收：先审查并保留远端 `32130a5` 匿名访客 UI 更新，再执行密封增量部署
+  `body-temperature-trace-20260814-2046-r3`。唯一一次真实 SSE 的事件为
+  `start(preparing) → start(prepared) → trace ×2 → tool_start → tool_result → analysis_start →
+  analysis_result → delta → final → done`；`request_count_total=1`、`model_request_count=1`、
+  工具调用数为 1，返回 56 点、3304 行、7 层各 59/61 个对齐/期望分钟，答案非空。
+- 部署边界：8093 PID `9616 → 4928`；8094=`5912`、8768=`18648`、8770=`3732`、
+  5432=`12372`、11434=`18704`、8892=`404` 均保持不变；守卫失败计数为 0。
+- 浏览器生产冒烟：共享访客标识可见、无需登录、控制台/页面错误均为 0；未追加模型请求。
+- 生产版本：Git `5d23c0e5e2456c597ad9ba5a9a8c03627c2c5ae9`，标签
+  `prod-8093/20260814-body_trace-5d23c0e5e245`。
+
+## REQ-QA-MCP-VISUAL-RECOMMENDATIONS-20260814
+
+- 聚焦合同：
+
+  ```powershell
+  $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
+  python -m pytest tests/test_qa_mcp_visual_recommendations.py tests/test_qa_tool_execution_trace_ui.py tests/test_body_temperature_layer_statistics.py -q
+  ```
+
+  成功信号：`24 passed`。覆盖“矩阵热度图”单工具路由、7–13 层/A–H 参数、同源 PNG 安全边界、
+  12 条常用 MCP 模板、滚动列表、本浏览器固定/自定义持久化、final 后相关问题以及单次 chat POST。
+- 前端发布构建：`python tools/verify_8093_frontend_production_build.py` 返回 `ok=true`、
+  `contractMatch=true`、`changedPixelRatioOver4=0.0`。
+- 开发阶段单视口：Chromium `1366×768` QA 路由 `1/1 passed`；验证模板可见、列表可滚动、添加
+  自定义问题后同时写入 custom/pinned、相关问题事件可见、无横向溢出和底栏遮挡，
+  同源 PNG 在答案内可见，`real_sent=0`。报告：
+  `logs/qa_mcp_visual_recommendations_1366x768_final2/report.json`。
+- 本轮没有运行 quick/standard/full 矩阵，符合 `OPS-UI-VIEWPORT-TWO-STAGE-20260814`；发布候选冻结后
+  再按风险选择完成阶段矩阵。
+
+## ERR-QA-HTTP400-FURNACE-ANALYSIS-20260814
+
+- 静态/后端合同：`tests/test_abc33_contextual_assistant_ui.py` 与
+  `tests/test_abc_contextual_conversations_backend.py` 共 `32 passed`；新增测试从 Python 后端常量
+  提取固定首问，并验证 JavaScript 初始 `streamQuestion` 使用完全相同的文字。
+- JavaScript：`node --check 高炉前端数据/assets/bf-abc33-assistant-dialog.js` 通过。
+- 本机浏览器：参数优化页 `quick` 共 4 个组合通过——Chromium `1366×768`、`390×844`，
+  Firefox/WebKit `1366×768`；控制台/页面错误为 0，真实模型请求为 0。
+- 生产状态：2026-08-14 已通过受控部署与一次真实首问验收。请求数 `1`，不再返回 HTTP 400，
+  SSE 为 `preparing → prepared → delta → final → done`，答案 `679` 字；8093 PID
+  `240 → 15392`，8094/8768/8770/5432/11434 PID 均保持不变。Git 提交 `d24543a`，标签
+  `prod-8093-abc33-http400-20260814-r2`。
+- 当前复核：生产 HEAD 已前进到 `d153ed5`，但 `d24543a` 仍是其祖先且标签未漂移；HTTP 实际 JS
+  SHA-256 仍为 `CEAEA43D…E39C`。第二次真实固定首问仍只发送 `1` 次，SSE 完整、答案 `720` 字，
+  8093 PID `15392` 与五个保护 PID 在复核前后均不变；因此判定为已修复的生产 no-op，无需重复部署。
+
+## REQ-QA-MESSAGE-COPY-20260814
+
+- 聚焦合同：
+
+  ```powershell
+  $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
+  python -m pytest tests/test_qa_message_copy_ui.py tests/test_qa_mcp_visual_recommendations.py tests/test_qa_tool_execution_trace_ui.py -q
+  ```
+
+  成功信号：`14 passed`。覆盖用户/助手双角色标签、可访问名称、可见正文提取、时间与隐藏内容排除、
+  同源 MCP 图表地址、Clipboard API/旧浏览器回退、成功/失败反馈和复制路径零 QA 请求。
+- 开发阶段单视口：
+
+  ```powershell
+  node tools/verify_abc_contextual_assistant_viewports.cjs --base-url http://127.0.0.1:18093/frontend_dashboard_v3.server.html --output-dir logs/qa_message_copy_1366x768 --engine chromium --route qa --viewport 1366x768 --timeout-ms 30000
+  ```
+
+  成功信号：`1/1 passed`，`copyQuestionVisible=true`、`copyAnswerVisible=true`、
+  `copiedQuestionBody=true`、`copiedAnswerBodyAndChart=true`、`real_sent=0`，且控制台/页面错误为 0。
+- 发布构建：`python tools/verify_8093_frontend_production_build.py` 返回 `ok=true`、
+  `contractMatch=true`、`changedPixelRatioOver4=0.0`。
+- 本轮处于正常开发阶段，只运行 Chromium `1366×768` 一个代表视口，没有提前运行完成阶段矩阵。
+
+## REQ-QA-LOCAL-RECOMMENDATION-PRESERVATION-20260814
+
+- 聚焦命令：
+
+  ```powershell
+  $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
+  python -m pytest tests/test_qa_mcp_visual_recommendations.py tests/test_qa_message_copy_ui.py tests/test_qa_tool_execution_trace_ui.py -q
+  ```
+
+  成功信号：`15 passed`。新增合同验证“原有常用问题”先于“常用 MCP 模板”，动态 `props.common`
+  与固定 `mcpCommon` 分开传递，滚动区有 `tabIndex=0` 和可访问名称，禁止恢复数组拼接。
+- Chromium `1366×768` 单视口：报告
+  `logs/qa_local_recommendations_1366x768_final/report.json` 为 `1/1 passed`；
+  `originalCommonVisible/mcpCommonVisible/promptScrollerKeyboardAccessible/
+  promptScrollerManuallyScrollable` 全部为 `true`，`real_sent=0`，控制台和页面错误为 0。
+- 发布构建：`python tools/verify_8093_frontend_production_build.py` 返回 `ok=true`、
+  `contractMatch=true`、`changedPixelRatioOver4=0.0`。
+- 本轮仍处于正常开发阶段，没有运行 quick/standard/full 完成阶段矩阵。
+
+## REQ-FURNACE-RULE-FORMULA-HANDBOOK-20260814
+
+- 生成Markdown：
+
+  ```powershell
+  D:\ProgramData\anaconda3\python.exe tools\generate_furnace_rules_formula_handbook.py --output docs\炉况诊断8类与ABC33规则数学公式手册_20260814.md
+  ```
+
+  成功信号：`ok=true`、`rules=41`。
+- PowerShell 7导出PDF：
+
+  ```powershell
+  pwsh.exe -NoLogo -NoProfile -File tools\export_furnace_rules_handbook_pdf.ps1 -MarkdownPath docs\炉况诊断8类与ABC33规则数学公式手册_20260814.md -PdfPath docs\炉况诊断8类与ABC33规则数学公式手册_20260814.pdf
+  ```
+
+  成功信号：JSON `ok=true`、运行时`7.6.4`、PDF大于10KB。
+- 结构与PDF文本验证：
+
+  ```powershell
+  C:\Users\hmw20\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe tools\verify_furnace_rules_formula_handbook.py --markdown docs\炉况诊断8类与ABC33规则数学公式手册_20260814.md --pdf docs\炉况诊断8类与ABC33规则数学公式手册_20260814.pdf
+  ```
+
+  本次成功信号：`legacy_rules=8`、`abc_rules=33`、`pdf_pages=55`，正常顺行在第2页、B4在第26页、
+  C11在第54页；封面、B4和C11页面另外完成PNG视觉检查，中文与表格可读。

@@ -1,0 +1,209 @@
+# REQ-COHESIVE-ZONE-INTELLIGENT-DIAGNOSIS-20260810
+# 来源：《1780级高炉软熔带移动预测特征总结与智能诊断模型》
+#
+# 这是未标定的解释型特征融合层，不是经过真实 H_cz 标签训练的 Chronos-2、
+# TabPFN 或 Transformer。输出只能用于诊断和模型标定准备，禁止自动控制。
+
+schema_version: "1.0"
+
+model:
+  version: "CZ-MOVEMENT-FEATURE-FUSION-2026.08"
+  method: "interpretable_weighted_feature_fusion"
+  evidence: "estimated"
+  calibration_status: "uncalibrated"
+  control_use: "prohibited"
+  confidence_cap: 0.45
+
+time:
+  current_window_minutes: 15
+  reference_window_minutes: 15
+  reference_separation_minutes: 15
+  min_samples_per_window: 5
+  max_age_minutes: 5
+
+decision:
+  stable_score_threshold: 0.18
+  probability_sharpness: 3.0
+  stable_logit_bias: 1.25
+  stable_logit_decay: 4.0
+  min_scored_features: 4
+  min_group_coverage: 0.25
+  required_groups: ["pressure_permeability", "temperature_field"]
+
+features:
+  DP_total:
+    label: "总压差"
+    group: "pressure_permeability"
+    columns: ["DP_total"]
+    valid_min: 0.0
+    valid_max: 600.0
+    delta_scale: 20.0
+    direction_up: 1.0
+    movement_weight: 1.00
+    risk_links: {channel: [1.0, 0.80], column: [1.0, 0.80]}
+  PI:
+    label: "透气性指数"
+    group: "pressure_permeability"
+    columns: ["PI"]
+    valid_min: 0.01
+    valid_max: 100.0
+    delta_scale: 3.0
+    direction_up: -1.0
+    movement_weight: 0.90
+    risk_links: {column: [1.0, 1.00]}
+  P_top_volatility:
+    label: "炉顶压力波动"
+    group: "pressure_permeability"
+    columns: ["P_top", "P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D"]
+    combine: "median"
+    statistic: "volatility"
+    valid_min: 0.0
+    valid_max: 600.0
+    delta_scale: 4.0
+    direction_up: 1.0
+    movement_weight: 0.80
+    risk_links: {channel: [1.0, 1.00]}
+  P_blast:
+    label: "送风压力"
+    group: "pressure_permeability"
+    columns: ["P_blast", "P_blast_cold"]
+    valid_min: 0.0
+    valid_max: 700.0
+    delta_scale: 12.0
+    direction_up: 1.0
+    movement_weight: 0.80
+    risk_links: {channel: [1.0, 0.50], column: [1.0, 0.60]}
+  T_top:
+    label: "炉顶温度"
+    group: "temperature_field"
+    columns: ["T_top", "T_top_A", "T_top_B", "T_top_C", "T_top_D"]
+    combine: "median"
+    valid_min: -20.0
+    valid_max: 1000.0
+    delta_scale: 20.0
+    direction_up: -1.0
+    movement_weight: 0.75
+    risk_links: {}
+  T_body_upper:
+    label: "炉身上部温度"
+    group: "temperature_field"
+    columns: ["T_body_upper"]
+    body_layers: ["L11", "L12", "L13"]
+    combine: "median"
+    valid_min: -20.0
+    valid_max: 600.0
+    delta_scale: 12.0
+    direction_up: 1.0
+    movement_weight: 0.85
+    risk_links: {edge: [1.0, 0.70]}
+  T_body_middle:
+    label: "炉身中部温度"
+    group: "temperature_field"
+    columns: ["T_body_middle"]
+    body_layers: ["L9", "L10"]
+    combine: "median"
+    valid_min: -20.0
+    valid_max: 600.0
+    delta_scale: 12.0
+    direction_up: 0.0
+    movement_weight: 0.0
+    risk_links: {}
+  T_body_lower:
+    label: "炉身下部温度"
+    group: "temperature_field"
+    columns: ["T_body_lower"]
+    body_layers: ["L7", "L8"]
+    combine: "median"
+    valid_min: -20.0
+    valid_max: 600.0
+    delta_scale: 12.0
+    direction_up: 0.0
+    movement_weight: 0.0
+    risk_links: {}
+  CO2_utilisation:
+    label: "CO2/煤气利用指标"
+    group: "gas_utilisation"
+    columns: ["CO2_utilisation", "CO2_utilization", "GasUtil", "CO2"]
+    valid_min: 0.0
+    valid_max: 100.0
+    delta_scale: 3.0
+    direction_up: -1.0
+    movement_weight: 0.60
+    risk_links: {channel: [1.0, 0.40]}
+  CO:
+    label: "CO含量"
+    group: "gas_utilisation"
+    columns: ["CO", "top_gas_CO"]
+    valid_min: 0.0
+    valid_max: 100.0
+    delta_scale: 3.0
+    direction_up: 1.0
+    movement_weight: 0.50
+    risk_links: {channel: [1.0, 0.40]}
+  Si:
+    label: "铁水硅"
+    group: "thermal_regime"
+    columns: ["Si", "si_avg", "hot_metal_si"]
+    valid_min: 0.0
+    valid_max: 10.0
+    delta_scale: 0.20
+    direction_up: 1.0
+    movement_weight: 0.45
+    risk_links: {cold: [-1.0, 1.00]}
+  hot_metal_temperature:
+    label: "铁水温度"
+    group: "thermal_regime"
+    columns: ["hot_metal_temperature", "T_hot_metal", "iron_temperature", "tappingtemp"]
+    valid_min: 1200.0
+    valid_max: 1700.0
+    delta_scale: 20.0
+    direction_up: 1.0
+    movement_weight: 0.45
+    risk_links: {cold: [-1.0, 1.00]}
+  Fuel_ratio:
+    label: "燃料比"
+    group: "thermal_regime"
+    columns: ["Fuel_ratio", "fuel_ratio"]
+    valid_min: 200.0
+    valid_max: 1000.0
+    delta_scale: 20.0
+    direction_up: 0.0
+    movement_weight: 0.0
+    risk_links: {}
+  BurdenSlip:
+    label: "崩滑料代理"
+    group: "burden_descent"
+    columns: ["BurdenSlip", "burden_slip"]
+    valid_min: 0.0
+    valid_max: 1.0
+    delta_scale: 0.25
+    direction_up: 1.0
+    movement_weight: 0.65
+    risk_links: {channel: [1.0, 0.50], column: [1.0, 0.90]}
+  burden_descent_rate:
+    label: "炉料下降速度"
+    group: "burden_descent"
+    columns: ["burden_descent_rate", "LineDropRate", "material_descent_rate"]
+    valid_min: -20.0
+    valid_max: 20.0
+    delta_scale: 0.25
+    direction_up: -1.0
+    movement_weight: 0.70
+    risk_links: {column: [1.0, 1.00]}
+  HotSectorScore:
+    label: "炉身热区代理"
+    group: "temperature_field"
+    columns: ["HotSectorScore"]
+    statistic: "current_level"
+    valid_min: 0.0
+    valid_max: 1.0
+    delta_scale: 1.0
+    direction_up: 1.0
+    movement_weight: 0.0
+    risk_links: {edge: [1.0, 1.00]}
+
+risk_labels:
+  channel: "管道"
+  column: "悬料"
+  edge: "边缘气流"
+  cold: "热制度下行"

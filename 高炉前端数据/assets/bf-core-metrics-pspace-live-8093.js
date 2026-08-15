@@ -9,6 +9,7 @@
 
 const SCHEMA = "bf.core-metrics.pspace-live.8093.v1";
 const EVENT_NAME = "bf:core-pspace-live";
+const FRAME_EVENT_NAME = "bf:pspace-frame";
 const STALE_AFTER_MS = 12_000;
 const RECONNECT_AFTER_MS = 3_000;
 
@@ -229,7 +230,9 @@ function connect() {
   });
   socket.addEventListener("message", (event) => {
     try {
-      applyPayload(JSON.parse(event.data));
+      const payload = JSON.parse(event.data);
+      window.dispatchEvent(new CustomEvent(FRAME_EVENT_NAME, { detail: payload }));
+      applyPayload(payload);
     } catch (error) {
       setStatus("error", error?.message || error);
     }
@@ -251,4 +254,11 @@ if (query.get("core_pspace_disabled") === "1") {
   connect();
 }
 
-if (!ageTimer) ageTimer = window.setInterval(publish, 1_000);
+if (!ageTimer) {
+  const scheduler = window.__BF_SHARED_SCHEDULER__;
+  ageTimer = scheduler?.subscribe
+    ? scheduler.subscribe("core-pspace-age", 1_000, publish)
+    : window.setInterval(() => {
+        if (!document.hidden) publish();
+      }, 1_000);
+}

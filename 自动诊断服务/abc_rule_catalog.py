@@ -6,12 +6,17 @@ controlled feature terms used by :mod:`abc_rule_engine`.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Mapping
+
+try:
+    from .abc_rule_guidance import GUIDANCE_VERSION, RULE_GUIDANCE
+except ImportError:  # pragma: no cover - production service imports this module from its directory.
+    from abc_rule_guidance import GUIDANCE_VERSION, RULE_GUIDANCE
 
 
 REQUIREMENT_ID = "REQ-ABC33-FORMULA-CALIBRATED-REPLAY-20260808"
-CATALOG_VERSION = "abc33-catalog.v2.calibrated"
+CATALOG_VERSION = "abc33-catalog.v4.burden-rate-online"
 
 
 @dataclass(frozen=True)
@@ -95,7 +100,7 @@ RULES: tuple[RuleSpec, ...] = (
 # with the generic 0..1 threshold.
 _CALIBRATED_TERMS: dict[str, dict[str, float]] = {
     "A1":{"std15_P_top":12,"std15_DP_total":12,"std15_Q_blast":12,"std15_P_blast":10,"TopTempRange":12,"TopPressRange":8,"LineBias":10,"HeatProxy":12,"CoolingRisk":12},
-    "A2":{"abs60_Ttap":30,"absSlope_Ttap":15,"absSlope_Ttop":15,"GasUtilDev":10,"abs60_PCI":10,"abs60_Tblast":10,"abs60_TFT":10},
+    "A2":{"BurdenRateHalfHourDev":14,"BurdenRateYesterdayDev":4,"BurdenRate2hDev":2,"abs60_Ttap":24,"absSlope_Ttap":12,"absSlope_Ttop":12,"GasUtilDev":8,"abs60_PCI":8,"abs60_Tblast":8,"abs60_TFT":8},
     "A3":{"TopTempRange":20,"TopPressRange":15,"StaticPressRange":15,"GasUtilDev":15,"BodyHotRisk":15,"BodyColdRisk":10,"abs60_BlastEnergy":10},
     "A4":{"abs60_Qblast":25,"abs60_Pblast":20,"DPHigh":20,"PIBad":15,"std15_Q_blast":10,"std15_P_blast":10},
     "A5":{"abs60_PCI":18,"abs60_O2rate":14,"abs60_QO2":14,"abs60_Tblast":14,"abs60_TFT":14,"DPHigh":14,"PIBad":12},
@@ -106,8 +111,8 @@ _CALIBRATED_TERMS: dict[str, dict[str, float]] = {
     "B1":{"SpikeTopP15":20,"highSlope_Ttop":18,"TopTempRange":15,"TopPressRange":15,"std15_pressure_max":12,"GasUtilDev":10,"BurdenSlip":10},
     "B2":{"BurdenStall":30,"high60_Pblast":20,"low60_Qblast":15,"DPHigh":15,"low60_Ptop":10,"PIBad":10},
     "B3":{"BurdenSlip":30,"SlipFreq60":20,"std15_blast_top_max":15,"std15_DP_total":15,"lowSlope_Ttap":10,"TopTempRange":10},
-    "B4":{"high60_Ttap":25,"highSlope_Ttop":15,"AirAcceptBad":15,"high60_DPupper":10,"TopTempRange":10,"high60_heat_input":15,"low60_PI":10},
-    "B5":{"low60_Ttap":25,"lowSlope_Ttop":15,"low60_Pblast":15,"high60_Qblast":10,"GasUtilDev":10,"low60_heat_input":15,"BurdenSlip":10},
+    "B4":{"BurdenRateHalfHourSlow":14,"BurdenRateYesterdaySlow":4,"BurdenRate2hSlow":2,"high60_Ttap":20,"highSlope_Ttop":12,"AirAcceptBad":12,"high60_DPupper":8,"TopTempRange":8,"high60_heat_input":12,"low60_PI":8},
+    "B5":{"BurdenRateHalfHourFast":14,"BurdenRateYesterdayFast":4,"BurdenRate2hFast":2,"low60_Ttap":20,"lowSlope_Ttop":12,"low60_Pblast":12,"high60_Qblast":8,"GasUtilDev":8,"low60_heat_input":12,"BurdenSlip":8},
     "B6":{"LineLoss":35,"LineLossDuration":15,"highSlope_Ttop":15,"TopTempRange":10,"BodyHotRisk":10,"LineBias":10,"std15_Hopper_weight":5},
     "B7":{"BodyHotRisk":25,"TopTempRange":20,"TopPressRange":15,"StaticPressRange":15,"GasUtilDev":10,"high60_PI":10,"high60_BlastEnergy":5},
     "B8":{"BodyColdRisk":25,"DPHigh":20,"high60_Pblast":15,"low60_PI":15,"lowSlope_Ttop":10,"StaticPressRange":10,"high60_BlastEnergy":5},
@@ -128,7 +133,55 @@ _CALIBRATED_TERMS: dict[str, dict[str, float]] = {
     "C10":{"low60_QN2":30,"low60_PN2":25,"TopPressRange":15,"std15_P_top":15,"abs60_Ptop":15},
     "C11":{"low60_Ttap":20,"DrainProxy":20,"BurdenSlip":15,"CoolingRisk":15,"AirAcceptBad":15,"std15_P_top":15},
 }
-RULES = tuple(RuleSpec(**{**rule.__dict__, "terms": _CALIBRATED_TERMS[rule.rule_id]}) for rule in RULES)
+
+_BODY_SENSORS = tuple(f"T_body_L{level}_{direction}" for level in range(7, 17) for direction in "ABCDEFGH")
+_STATIC_PRESSURE_SENSORS = tuple(
+    f"P_static_{level}_{direction}"
+    for level in ("lower", "middle", "upper")
+    for direction in "ABCDEF"
+)
+_COOLING_SENSORS = (
+    "Q_soft_water", "P_soft_water", "Q_high_pressure_water",
+    "P_high_pressure_water", "P_medium_pressure_water", "ExpansionTankLevel",
+)
+_TOP_TEMPERATURE_SENSORS = ("T_top_A", "T_top_B", "T_top_C", "T_top_D")
+_TOP_PRESSURE_SENSORS = ("P_top", "P_top_gas_A", "P_top_gas_B", "P_top_gas_C", "P_top_gas_D")
+_CALIBRATED_SENSORS: dict[str, tuple[str, ...]] = {
+    "A2": ("T_taphole_1", "T_taphole_2", *_TOP_TEMPERATURE_SENSORS, "GasUtil", "PCI_rate", "T_blast", "TFT"),
+    "B1": (*_TOP_PRESSURE_SENSORS, *_TOP_TEMPERATURE_SENSORS, "P_blast", "DP_total", "PI", "GasUtil", "L"),
+    "B2": ("L", "P_blast", "Q_blast", "DP_total", "DP_upper", "DP_lower", "P_top", "PI"),
+    "B3": ("L", "L_south", "L_north", "P_blast", "Q_blast", "P_top", "DP_total", "T_taphole_1", "T_taphole_2", *_TOP_TEMPERATURE_SENSORS),
+    "B4": ("T_taphole_1", "T_taphole_2", *_TOP_TEMPERATURE_SENSORS, "P_blast", "Q_blast", "DP_total", "DP_upper", "DP_lower", "T_blast", "PCI_rate", "Q_O2", "TFT", "PI"),
+    "B5": ("T_taphole_1", "T_taphole_2", *_TOP_TEMPERATURE_SENSORS, "P_blast", "Q_blast", "GasUtil", "T_blast", "PCI_rate", "Q_O2", "TFT", "L", "P_top", "DP_total"),
+    "B6": ("L_south", "L_north", *_TOP_TEMPERATURE_SENSORS, *_BODY_SENSORS, "Hopper_weight"),
+    "B7": (*_BODY_SENSORS, *_TOP_TEMPERATURE_SENSORS, *_TOP_PRESSURE_SENSORS, *_STATIC_PRESSURE_SENSORS, "GasUtil", "PI", "BlastEnergy"),
+    "B8": (*_BODY_SENSORS, "DP_total", "DP_upper", "DP_lower", "P_blast", "PI", *_TOP_TEMPERATURE_SENSORS, *_STATIC_PRESSURE_SENSORS, "BlastEnergy"),
+    "B9": ("L_south", "L_north", *_TOP_TEMPERATURE_SENSORS, *_TOP_PRESSURE_SENSORS, *_BODY_SENSORS, "Hopper_weight"),
+    "B10": ("DP_total", "DP_upper", "DP_lower", "PI", "P_blast", "Q_blast", "L", "T_taphole_1", "T_taphole_2"),
+    "B11": (*_BODY_SENSORS, "DP_total", "DP_upper", "DP_lower", "PI", "L_south", "L_north"),
+    "B12": (*_COOLING_SENSORS, "T_taphole_1", "T_taphole_2", *_TOP_TEMPERATURE_SENSORS, *_BODY_SENSORS),
+    "B13": ("T_taphole_1", "T_taphole_2", "DP_lower", "PI", "L", "P_blast", "Q_blast", "DP_total", "DP_upper"),
+}
+
+
+def _calibrated_rule(rule: RuleSpec) -> RuleSpec:
+    sensors = _CALIBRATED_SENSORS.get(rule.rule_id, rule.primary_sensors)
+    return replace(
+        rule,
+        terms=_CALIBRATED_TERMS[rule.rule_id],
+        primary_sensors=sensors,
+        primary_review=sensors[:5],
+        expanded_review=sensors[5:],
+        principle=str(RULE_GUIDANCE[rule.rule_id]["formation_principle"]),
+        intervention_order=tuple(RULE_GUIDANCE[rule.rule_id]["intervention_steps"]),
+        source_refs=tuple(RULE_GUIDANCE[rule.rule_id]["source_refs"]),
+    )
+
+
+RULES = tuple(
+    _calibrated_rule(rule)
+    for rule in RULES
+)
 
 
 RULE_BY_ID = {rule.rule_id: rule for rule in RULES}
@@ -139,6 +192,10 @@ def validate_catalog() -> None:
     actual = {category: sum(rule.category == category for rule in RULES) for category in expected}
     if actual != expected or len(RULE_BY_ID) != 33:
         raise RuntimeError(f"ABC rule catalogue must contain A9/B13/C11, got {actual}")
+    if set(RULE_GUIDANCE) != set(RULE_BY_ID):
+        raise RuntimeError(f"ABC guidance mismatch for {GUIDANCE_VERSION}")
+    if any(len(rule.intervention_order) != 5 for rule in RULES):
+        raise RuntimeError("Every ABC rule must expose exactly five handbook intervention steps")
 
 
 validate_catalog()

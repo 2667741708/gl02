@@ -11,6 +11,25 @@
 - 同时核对代理、模型合同、证据编排和分析API四个模块的版本/哈希，不能只看共享代理文件。v3正常标记为 `diagnosis_ai_analysis.v3` 和 `diagnosis-single-condition-five-minute.v3`。
 - 不要通过浏览器构造诊断分数重试；后端只接受炉况标签并重读当前快照。8093走守卫闭环；8094使用 `remote_guarded_enable_8094_diagnosis_ai.ps1`，不得恢复8769旧架构。
 
+### `preparing + attempt_count=0 + TypeError` 的快速分类
+
+2026-08-11 已证实，这个组合表示后台在写入
+`bf_assistant.diagnosis_ai_analysis_snapshots` 之前就失败，优先查
+[begin_ai_analysis](../高炉前端数据/智能助手/backend/diagnosis_review.py)
+的 `Jsonb(canonical_context)`：
+
+1. 先证明 `/api/qa/chat`、`/api/qa/knowledge/search`、`/api/ollama/status` 正常，
+   排除整体模型/RAG 故障。
+2. 读分析接口的 `state/attempt_count`。`attempt_count=0` 不要等模型超时，
+   因为请求尚未进入模型调用。
+3. 用整体上下文回归覆盖 `datetime/date/Decimal`、嵌套容器和 `NaN/Inf`；
+   所有 JSONB 写入必须经 `json_safe_value()`。
+4. 部署只允许替换 `diagnosis_review.py`，失败自动回滚。验收要求
+   `completed`、`attempt_count>=1`、摘要非空，并保护 8094/8768/8770/5432/11434 PID。
+
+受控入口为 [prepare_8093_diagnosis_ai_json_fix_release.ps1](../tools/prepare_8093_diagnosis_ai_json_fix_release.ps1)
+和 [deploy_8093_diagnosis_ai_json_fix_22012.ps1](../tools/deploy_8093_diagnosis_ai_json_fix_22012.ps1)。
+
 ## 8093 智能助手偶发无回复但状态稍后恢复正常
 
 ### 典型现象
@@ -159,6 +178,26 @@ python tools\assistant_8093_auto_recovery.py diagnose --allow-agents-password --
 3. 用 `verify_8093_assistant_sse_once.py --auto-mcp-tools` 验证生产意图路由，不要只用强制工具模式。成功请求必须出现 `tool_start/tool_result`，且回答不能来自模型猜测。
 4. Windows PowerShell 5.1 执行含中文路径的远端脚本时，脚本必须是 UTF-8 BOM。无 BOM 脚本会在预检阶段把项目路径解码错误；不要在未核查结果时重复部署。
 5. SSH 调用端 30 秒超时不等于部署失败。先运行 `remote_probe_8093_imes_mcp_sync_result.ps1`，读取最新 `deployment_result.json`、服务、守卫和端口 PID；确认没有在途部署且结果明确失败后再决定回滚/重试。
+
+## SSH已复用但部署仍不快
+
+1. 运行`pwsh.exe -File tools/verify_22012_persistent_ssh_reuse.ps1 -IncludeColdBaseline`，分别看冷连接、两个复用请求和`connection_id`。
+2. 如果连接ID相同但耗时仍高，分开检查SFTP通道创建、远端PowerShell启动、服务停启和HTTP验收；连接复用只优化认证/握手，不能消除业务重启时间。
+3. 用`deployment_memory.py summary --window 50`比较总耗时和各阶段，不以单次RTT推导整次部署收益。
+4. Reliable SSH MCP用`pool-probe`检查同一Plink PID和`requests_completed`；如果`reconnect_count`增加，检查VPN、220.12 SSH服务、30秒协议keepalive和60秒只读应用心跳。
+5. 传输中断时先核对远端文件、部署结果、服务和端口；`uncertain_execution=true`或连接池错误绝不能直接自动重试。
+
+### `remote_22012_session.py` 报 `unrecognized arguments: --prompt-password`
+
+1. 这是本机命令行参数归属错误，不表示 ReliableSSH MCP、网络或 220.12 SSH 服务不可用。
+2. `--prompt-password` 属于 `remote_22012_exec.py`；`remote_22012_session.py ensure` 不接受该参数。不要把旧临时交互脚本原样重试。
+3. Codex 会话内优先使用已注册的 `reliable_ssh_10_30_220_12` MCP，先执行连接状态与身份探测，再分别上传、执行和验收。
+4. MCP 前端等待 30 秒超时后，先查连接池 `in_flight/requests_completed/reconnect_count` 和远端部署结果。请求仍在执行时不得重发停服或部署命令。
+5. 只有明确使用本地 broker 时才调用 `remote_22012_session.py ensure/serve/run` 的现有参数合同；密码继续通过受控凭据注入，不写入脚本或命令历史。
+
+## 异常复核弹窗与ABC热制度上行分数不一致
+
+2026-08-10后展示源固定为ABC33 B4，旧`raw_scores.hot`仅保留在`legacy_score_archive`。若再次不一致，比较两端`evaluation_id/evaluation_ts/batch_state/score_sources.hot`；同一评价ID必须同分。B4缺失、过期或无效时应显示`--`，不得通过前端回退或写死旧分。
 6. `imes-web-readonly` 已注册不代表绕过验证码。需要登录态的 Web 查询仍必须由受控账号、密码及验证码/会话完成；数据库 MCP 与 Web MCP 的验收要分开记录。
 
 ## 8093 复合问题只回答 MES 或只回答传感器
@@ -190,3 +229,129 @@ python tools\assistant_8093_auto_recovery.py diagnose --allow-agents-password --
 5. 若错误来自220.12旧任务，先确认远端是否已安装PowerShell 7。未完成远端安装与计划任务验收前，不得机械替换全部`powershell.exe`。
 6. 2026-08-10后本机跳板默认使用`pwsh.exe -File`。若仍出现`Unexpected attribute CmdletBinding`，检查是否使用旧版`remote_22012_exec.py`把payload拼到包装前导之后；新版必须上传独立payload。
 7. 若远端报告找不到`pwsh.exe`，直接检查`C:\Program Files\PowerShell\7\pwsh.exe`；不要依赖Windows Server 2016当前SSH服务进程的旧PATH缓存。
+
+## 软熔带智能诊断返回 unavailable 或方向异常
+
+1. 先运行[专项验证入口](../tools/verify_cohesive_zone_intelligent_diagnosis.ps1#L1-L41)，确认代码、依赖、原C2基线和CLI正常。
+2. `empty_input`或`no_data_at_or_before_evaluation_time`表示CSV为空、时间列无法解析，或评价截止早于首条数据；检查`--timestamp-column`和时区，不要删除历史截止门禁。
+3. `insufficient_scored_features`表示可评分特征少于4项；`insufficient_pressure_permeability`或`insufficient_temperature_field`表示必需分组覆盖不足。缺失值不得改填0，应核对[字段别名和有效范围](../炉况规则引擎/config/cohesive_zone_intelligent_diagnosis.yaml#L33-L204)。
+4. 特征存在但未参与时，检查最新样本是否超过5分钟、每个当前/参考窗口是否至少5个样本、数值是否落在`valid_min/max`内。
+5. 方向与现场判断不一致时，先查看JSON中的`drivers`、`feature_vector`和`trend_vector`，确认变量单位、正方向和字段语义；不得直接调大权重或置信度掩盖单位错误。
+6. `direction_consistency=review_required`只表示解释型特征融合方向与既有C2温度剖面几何方向不同，应进入人工复核和历史回测，不应选择其中一个自动控制。
+7. 若需要Chronos-2、TabPFN或Transformer，先取得经接受的`H_cz`真值、冻结标签可用时间、按时间切分训练/验证/测试并完成现场标定；当前`ml_readiness.trained_sequence_model=false`是正确安全状态。
+
+## 8892 HCZ标注服务不可用或无法保存
+
+1. 先检查`http://10.30.220.12:8892/api/health`中的`hcz_label_enabled`和`hcz_label_blind_to_model`，再检查计划任务`\BlastFurnaceServices\SoftZoneTemperatureReplay8892`的Action是否为PowerShell 7入口。
+2. 页面显示“尚未固定实测证据”时，确认标注时刻位于窗口内、结束时间不晚于最新实测、窗口不超过72小时；不要绕过哈希刷新门禁。
+3. HTTP 400通常是字段/窗口/哈希变化；刷新证据后重提。HTTP 401是服务器身份或登录门禁；HTTP 503检查回环PostgreSQL写库配置和`soft_zone_replay_8892.log`，不得在日志中打印密码。
+4. 启动报DDL或权限错误时，核对`BF_DIAG_REVIEW_PGSCHEMA`及写账号对`bf_assistant`的CREATE/INSERT/SELECT权限；不得改用GL02只读账号写标签。
+5. 页面出现HCZ估计开关或估计卡即视为安全故障，停止标注并运行[跨引擎验收](../tools/verify_hcz_expert_label_ui.cjs)和[生产只读冒烟](../tools/verify_hcz_expert_label_remote_ui.cjs)。
+6. 重新部署固定使用[deploy_hcz_expert_label_22012.ps1](../tools/deploy_hcz_expert_label_22012.ps1)；脚本只重启8892并要求8093/8094/8768/8770/5432 PID不变。
+
+## 8093 HCZ上移规则显示数据不足、结果异常或页面不可用
+
+1. 先访问`/api/hcz-upward-rule`。`insufficient_data`时查看`insufficient_reasons`和每项`current_valid_hours/baseline_valid_hours`，不得将缺数改填0。
+2. 直接`T_top`无样本时属于已知现场情况；适配器应由`T_top_A~D`至少3个有效点组成平均顶温。若这些点也缺失，再排查`bf_sensor.one_minute_values`同步。
+3. 炉壁点刷新较稀疏，使用“每点每小时至少1样本、每层至少4方位”；不要套核心指标每小时30点门禁，否则会错误地把7～13层全部判为缺数。
+4. 结果与高炉长判断不一致时，先核对单位：煤气利用率阈值是1个百分点，全压差和风压阈值是kPa，PI使用`m³/(min·kPa)`；再检查24小时窗与之前5天是否连续且不重叠。
+5. `not_triggered`表示至少一个AND门未通过，不代表软熔带稳定或下移。人工复核应结合8892盲标、炉料、风口、出铁和炉况事件。
+6. 页面404或API503时，检查`BFV4PreviewProxy8093`、8093监听和后端导入；重新部署只能使用[受控入口](../tools/deploy_hcz_upward_rule_22012.ps1)，并核对8094/8768/8770/5432/8892 PID不变。
+
+## 8093浏览器矩阵执行过慢或生产加载压力过大
+
+1. 先确认改动范围：单个分数、文案、格式或局部弹窗默认使用`--profile quick`；单路由DOM/布局使用`standard`；共享CSS、导航、三维运行时、响应式基础设施或多页面改动才使用`full`。
+2. 不得为每个组合新建browser context；当前验证器按内核复用context，静态资源缓存可在同一内核的后续页面复用。失败后再按风险升级，不要直接在生产反复跑85个冷页面。
+3. 若用户单次页面仍慢，分别记录HTML传输、JS解析/编译、GLB下载、WebSocket首数和长任务。当前已知高成本包括约907KB未压缩HTML、浏览器Babel、React开发版和约8.23MB GLB。
+4. 优化顺序：构建期编译并移除Babel → React生产版和路由拆包 → HTML gzip/Brotli与哈希静态资源缓存 → Three/GLB按路由延迟加载及Meshopt/Draco/KTX2 → 合并高频定时器并在后台标签暂停。
+5. 这些优化涉及共享运行时；实施时应升级为`full`本机/预览验收，并在生产只做定向冒烟和真实性能采样。
+
+## Codex CLI经济型委派没有变快或token仍然很高
+
+1. 先判断任务是否确定性：哈希、格式化、文件枚举、固定命令和schema校验直接运行脚本，不要调用Luna。
+2. 确认使用Skill包装器默认的`read-only + ephemeral + ignore-user-config + project_doc_max_bytes=4096`，并禁用无关apps/plugins/browser/computer/image工具。
+3. 查看JSON中的`input_tokens/cached_input_tokens/output_tokens/duration_ms`。模型输出很短但输入很大，通常来自系统说明、项目AGENTS和技能目录，不等于业务prompt很长。
+4. 日志出现`responses_websocket`重试后`falling back to HTTP`时，延迟来自当前网络到ChatGPT WebSocket的连接失败；不要通过重复启动更多子任务放大延迟。
+5. 一次委派未通过验收就升级模型或回主任务，不允许让便宜模型反复猜测。节约必须把重试和主任务复核时间算入。
+
+## 3D源页面与生产构建截图出现少量动态偏移
+
+现象：炉体和广告牌样式肉眼一致，但整图像素差因跟随模型的工艺标注在不同渲染帧偏移数像素而超过阈值。
+
+处理：先把活动canvas viewer设为全局viewer并重置相机；广告牌CanvasTexture、位置/缩放和DOM卡片计算样式做精确签名；隐藏动态广告牌/跟随标注后再比较炉体结构图。不得直接提高1%阈值或用一次偶然的0差异冒充稳定。
+
+## 8093核心变量状态成批一致、显示`--`或弹窗被三维画布遮挡
+
+1. 先检查`.core-detail-backdrop`的父节点必须是`document.body`、计算层级为`2147483647`；生产构建必须从`react-dom`导入`createPortal`，不能从`react-dom/client`取不存在的API或内联回退。
+2. 对每行读取`data-baseline-evidence`，核对该变量自己的`raw/median/iqr/deviation/status`；公式固定为`(raw-median)/IQR`。不要用PostgreSQL分钟值判断pSpace秒级显示值。
+3. 大量`--`时核对8768的`baseline_compare.items`和`bf_sensor.daily_baselines`最新日覆盖。基线维护刚完成时应新建页面连接重新取快照；不得用0或硬编码默认值冒充30日基线。
+4. 状态恰好相同并不必然是故障；必须比较各行偏差证据。2026-08-11生产复验28行同时出现五种状态，证明判断是逐变量独立执行。
+5. 曲线行为验收若只报`bf-heat-performance-quality-8093-query-v2.js` 404，应单独登记为既有炉次查询资源问题；不要把它误归因于Portal或基线公式。
+
+## ABC33 智能助手弹窗不可用
+
+固定顺序：`规则批次 → 解释上下文 → 会话来源 → 上下文快照 → 分析缓存 → 模型状态 → SSE → 助手页面索引`。
+
+1. 先查 `abc_rule_evaluation_batches/items` 是否存在精确 `evaluation_id + rule_id`。
+2. 登录 operator/admin 后请求 explanation-context；403是权限问题，409是批次/规则不匹配，503才是数据库链路。
+3. 查 `qa_conversation_origins` 指向的 `context_snapshot_id` 与 `qa_context_snapshots.context_hash`。
+4. 查 `abc_rule_ai_explanations` 的 Prompt版本、模型名和 `generation_state`；同键多请求只能有一个进程内 owner。
+5. 模型生成时 PostgreSQL 活跃连接不应长期占用；SSE只发一次，不因 Failed to fetch 自动重放。
+6. 模型故障但确定性解释也为空时，不要先改Prompt；先修权威行解析或上下文合同。
+
+## 智能助手显示 `qa_session_required`
+
+这是关闭共享访客模式后的会话鉴权提示，不是代理、PostgreSQL或大模型离线。8093 启用 `BF_QA_GUEST_ENABLED=1` 时，未登录 bootstrap 应返回 `access_mode=guest_shared`，不应进入此分支。
+
+1. 先查 `/api/ollama/status`；若 `proxy_ok/ollama_ok/model_ok=true`，不要重启 8093 或 Ollama。
+2. 先查服务配置中的 `BF_QA_GUEST_ENABLED`。显式关闭访客模式时，刷新 `#qa` 后通过 `/api/auth/login` 建立同源会话；启用时应直接进入共享访客问答。
+3. 若匿名 bootstrap 已是 HTTP 200 / `guest_shared`，但页面仍显示“登录后使用智能助手”或私有导航，检查生产 HTML 是否同时包含 `function QaGuestNav`、`accessMode === 'guest_shared'`、`登录私有模式（可选）`。缺少任一标记说明前端发布字节过旧，应按 8093 受控更新流程部署页面；不要通过放宽后端鉴权处理。
+4. 修复后用真实生产 URL 验证初始访客徽标可见、登录卡片不可见、可选登录可打开且“继续匿名使用”可返回访客界面。确认页面字节正确后再处理浏览器缓存。
+5. 登录后页面只重新读取 `/api/qa/bootstrap`，不会重发之前的问题；如发送时会话过期，原问题会恢复到输入框，必须手动再次发送。
+
+## 智能助手显示 `conversation_not_found`
+
+1. 先匿名请求 `/api/qa/bootstrap`；若返回 `access_mode=guest_shared` 和固定 `conversation.id`，说明访客入口与数据库共享房间正常。
+2. 旧标签页、登录/退出切换或浏览器缓存可能提交旧私有会话 ID。现行后端必须忽略访客提交的该 ID，并在模型准备前重新绑定当前 Host:Port 的固定共享会话；不得要求访客清 Cookie 才能恢复。
+3. 若仍返回 404，检查生产 `ollama_proxy_server.py` 是否包含 `qa_chat_conversation_id`，并确认访客分支在 `qa_conversation_owned` 之前完成绑定。
+4. 登录用户出现该错误时仍按安全事件处理：核对 owner 会话是否属于当前 `session.sub`，不得用访客兜底绕过私有 owner 隔离。
+5. 修复验收只发送一次匿名 SSE，并故意提交一个不存在的会话 ID；`prepared/final` 中的会话 ID 必须等于 bootstrap 共享 ID。断线或失败不自动重放。
+
+## 智能助手显示“数据库查询轮数超过上限”或 MCP 工具失败
+
+1. 该文字是旧版 MCP 循环的硬编码终止文案，不等于 PostgreSQL 查询人数过多，也不是数据库连接池容量提示。
+2. 现行实现达到 `BF_QA_MCP_MAX_TOOL_ROUNDS/BF_QA_MCP_MAX_TOOL_CALLS` 后只执行一次 `tools=None` 的最终模型回答，禁止继续请求工具。
+3. 降级回答必须明确“实时数据库未核实”，只能使用已经注入的炉况快照、keyword 知识证据和通用工艺知识，不得声称已经确认当前软熔带上升或下降。
+4. 若仍只出现错误文字，检查部署文件是否包含 `model_without_tools_after_mcp_failure`；若答案为空，再查 Ollama 调用错误，而不是扩大工具轮数。
+5. 高频问题仍应补确定性复合工具和对象映射；模型降级用于保持可回答性，不替代实时数据合同。
+6. 如果正确角色登录后仍返回 403，检查账号角色是否包含 operator/admin/操作/管理/炉长及 Cookie 的 Path/SameSite/签名；不得关闭 owner 隔离或允许匿名模型调用。
+
+## 炉体逐层统计不完整或时间窗变成滚动分钟数
+
+1. 先看 SSE 工具轨迹。7–13 层 A–H 的逐层平均/极差/标准差问题应恰好调用一次
+   `gl02ext__query_body_temperature_statistics`；若出现多个单点工具或只返回第 7 层 A–E，说明仍是
+   旧路由，不能通过提高工具调用上限修复。
+2. 同时出现“最近一小时”和“15 分钟滚动”时，检查工具参数：`end_time-start_time` 应为 60 分钟，
+   `rolling_window_minutes` 应为 15。若总窗也是 15 分钟，检查
+   `qa_mcp_explicit_time_range()`，不得让滚动数字覆盖总时间范围。
+3. 每层默认要求 A–H 8/8 同分钟有效。样本少于期望分钟时先读 coverage、missing、nonfinite、zero
+   和质量分布；不得把缺测分钟插值或静默过滤后冒充完整层平均。
+4. 最终统计必须来自工具确定性结果；若答案与 tool_result 的 count/min/max 不一致，检查
+   `deterministic_mcp_answer()` 的复合工具分支，不要让模型重新计算原始序列。
+5. 生产基线为 Git `849d9554060f7c1252722e8394a9cb224ff13488`；核查版本前仍须先做当前文件
+   哈希和服务探测，不因历史提交号直接覆盖生产文件。
+
+## ABC33 智能解释显示“问答接口 HTTP 400；本次提问未自动重发”
+
+1. 先查响应错误码；`invalid_initial_analysis_question` 表示固定首问合同不一致，不表示
+   Ollama、数据库或炉况快照不可用。
+2. 前端 `streamQuestion(...,{initial:true})` 的文字必须与后端
+   `ABC_RULE_INITIAL_QUESTION` 逐字一致；改动任一侧时运行跨文件一致性测试。
+3. 请求因 400 被拒绝时不要自动重发。修复后由用户重新打开炉框触发一次新的 SSE；仍需保持
+   owner、同源、上下文绑定和固定首问门禁。
+4. 前端应展示 JSON 中的 `error/error_code/message`，不能只显示 HTTP 状态，否则会把合同错误
+   误判为模型无法分析炉况。
+5. 2026-08-14 生产修复已由一次真实固定首问验收：请求数 `1`，SSE 为
+   `preparing → prepared → delta → final → done`。对应版本为 Git `d24543a` / 标签
+   `prod-8093-abc33-http400-20260814-r2`；若再次出现 400，先比较浏览器实际加载的
+   `bf-abc33-assistant-dialog.js` 缓存版本和响应 `error_code`，不要自动重发。

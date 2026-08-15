@@ -1,0 +1,167 @@
+{
+  "schema_version": "bf.thermal-trend.config.v1",
+  "requirement_id": "REQ-8093-THERMAL-TREND-20260813",
+  "config_version": "20260813.2-weighted-direction-score",
+  "window_minutes": 30,
+  "decision_mode": "weighted_direction_score",
+  "confirmation_score_threshold": 60,
+  "minimum_window_coverage_ratio": 0.75,
+  "maximum_source_age_minutes": 5,
+  "slag_iron_exception": {
+    "suppress_burden_rate": true,
+    "confirmation_ttl_minutes": 120
+  },
+  "metrics": [
+    {
+      "key": "burden_rate",
+      "label": "下料速度",
+      "unit": "大批/小时",
+      "up_when": "decrease",
+      "weight": 20,
+      "enabled": true,
+      "up_threshold": 0.5,
+      "down_threshold": 0.5
+    },
+    {
+      "key": "Q_blast",
+      "label": "冷风流量",
+      "unit": "Nm³/min",
+      "up_when": "increase",
+      "weight": 10,
+      "enabled": true,
+      "up_threshold": 50,
+      "down_threshold": 50
+    },
+    {
+      "key": "P_blast_cold",
+      "label": "冷风压力",
+      "unit": "kPa",
+      "up_when": "increase",
+      "weight": 10,
+      "enabled": true,
+      "up_threshold": 5,
+      "down_threshold": 5
+    },
+    {
+      "key": "P_blast",
+      "label": "热风压力",
+      "unit": "kPa",
+      "up_when": "increase",
+      "weight": 10,
+      "enabled": true,
+      "up_threshold": 5,
+      "down_threshold": 5
+    },
+    {
+      "key": "DP_total",
+      "label": "全炉压差",
+      "unit": "kPa",
+      "up_when": "increase",
+      "weight": 15,
+      "enabled": true,
+      "up_threshold": 5,
+      "down_threshold": 5
+    },
+    {
+      "key": "DP_upper",
+      "label": "上部压差",
+      "unit": "kPa",
+      "up_when": "increase",
+      "weight": 10,
+      "enabled": true,
+      "up_threshold": 5,
+      "down_threshold": 5
+    },
+    {
+      "key": "DP_lower",
+      "label": "下部压差",
+      "unit": "kPa",
+      "up_when": "increase",
+      "weight": 10,
+      "enabled": true,
+      "up_threshold": 5,
+      "down_threshold": 5
+    },
+    {
+      "key": "GasUtil",
+      "label": "煤气利用率",
+      "unit": "百分点",
+      "up_when": "increase",
+      "weight": 15,
+      "enabled": true,
+      "up_threshold": 0.5,
+      "down_threshold": 0.5
+    }
+  ],
+  "baseline_monitoring": {
+    "start_date": "2026-08-12",
+    "end_date": "2026-08-13",
+    "metrics": [
+      {
+        "key": "P_blast_cold",
+        "label": "冷风压力",
+        "unit": "kPa",
+        "low_deviation": 5,
+        "high_deviation": 5
+      },
+      {
+        "key": "Q_blast",
+        "label": "冷风流量",
+        "unit": "Nm³/min",
+        "low_deviation": 100,
+        "high_deviation": 100
+      },
+      {
+        "key": "PI",
+        "label": "透气性指数",
+        "unit": "",
+        "low_deviation": 2,
+        "high_deviation": 2
+      },
+      {
+        "key": "DP_total",
+        "label": "全炉压差",
+        "unit": "kPa",
+        "low_deviation": 5,
+        "high_deviation": 5
+      },
+      {
+        "key": "DP_upper",
+        "label": "上部压差",
+        "unit": "kPa",
+        "low_deviation": 3,
+        "high_deviation": 3
+      },
+      {
+        "key": "DP_lower",
+        "label": "下部压差",
+        "unit": "kPa",
+        "low_deviation": 3,
+        "high_deviation": 3
+      },
+      {
+        "key": "GasUtil",
+        "label": "煤气利用率",
+        "unit": "百分点",
+        "low_deviation": 0.5,
+        "high_deviation": 0.5
+      },
+      {
+        "key": "top_temperature",
+        "label": "炉顶4点温度",
+        "unit": "℃",
+        "low_deviation": 10,
+        "high_deviation": 10
+      }
+    ],
+    "top_temperature": {
+      "normal_max_pair_delta": 5,
+      "alarm_max_pair_delta": 10
+    }
+  },
+  "notes": "首版只启用工长已明确的全炉压差和煤气利用率偏差；其他指标由管理员获得工艺确认后填入上下行偏差并启用。工长偏好基准可按任意日期范围计算。",
+  "config_hash": "e51f276ffb7eb92a25ace6751c0894293f10182b304f34431ae86e1a379d599d",
+  "published_by": "glmx",
+  "change_reason": "测试",
+  "published_at": "2026-08-14T01:47:50.964194+00:00"
+}

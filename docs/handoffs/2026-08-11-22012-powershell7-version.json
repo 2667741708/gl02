@@ -1,0 +1,33 @@
+{
+  "schema": "ops.22012.pwsh7-complete-migration.version.v1",
+  "version": "2026.08.11-pwsh7.6.4",
+  "host": "10.30.220.12",
+  "powershell": {
+    "edition": "Core",
+    "version": "7.6.4",
+    "executable": "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
+  },
+  "final_audit": {
+    "tasks_pwsh7": 54,
+    "tasks_legacy_ps5": 0,
+    "services_pwsh7": 7,
+    "services_legacy_ps5": 0,
+    "processes_pwsh7": 17,
+    "processes_legacy_ps5": 0,
+    "sha256": "8422B603EBF1329B68D21E04BD91FD6D675DE06EB2D3453DD4F7441C995335C8"
+  },
+  "toolkit": {
+    "path": "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\tools\\pwsh7_migration\\2026.08.11-pwsh7.6.4",
+    "file_count": 24,
+    "manifest_sha256": "9F867FD015DC43501C55E957301F60B7EABE3861D40EE1FE2DB907C0AAB76A2C",
+    "immutable": true
+  },
+  "http": {
+    "8093": 200,
+    "8094": 200,
+    "8095": 200
+  },
+  "git_base": "982c7c5",
+  "git_commit": null,
+  "git_tag": null
+}

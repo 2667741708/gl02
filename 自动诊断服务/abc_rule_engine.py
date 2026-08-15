@@ -93,6 +93,23 @@ def validate_config(config: Mapping[str, Any]) -> None:
         raise ValueError("published mode must expose scores")
     if float(quality["maximum_age_seconds"]) <= 0:
         raise ValueError("maximum_age_seconds must be positive")
+    burden_rate = (config.get("feature_thresholds") or {}).get("burden_rate") or {}
+    required_burden_fields = {
+        "normal_delta_large_per_hour", "hard_delta_large_per_hour",
+        "two_hour_warn_excess_large_per_hour", "two_hour_full_risk_excess_large_per_hour",
+        "maximum_source_age_minutes",
+    }
+    if set(burden_rate) & required_burden_fields != required_burden_fields:
+        raise ValueError("feature_thresholds.burden_rate is incomplete")
+    normal_delta = _finite(burden_rate.get("normal_delta_large_per_hour"))
+    hard_delta = _finite(burden_rate.get("hard_delta_large_per_hour"))
+    two_hour_warn = _finite(burden_rate.get("two_hour_warn_excess_large_per_hour"))
+    two_hour_alarm = _finite(burden_rate.get("two_hour_full_risk_excess_large_per_hour"))
+    maximum_source_age = _finite(burden_rate.get("maximum_source_age_minutes"))
+    if None in {normal_delta, hard_delta, two_hour_warn, two_hour_alarm, maximum_source_age}:
+        raise ValueError("feature_thresholds.burden_rate values must be finite")
+    if not (0 <= normal_delta < hard_delta and 0 <= two_hour_warn < two_hour_alarm and maximum_source_age > 0):
+        raise ValueError("feature_thresholds.burden_rate thresholds are not monotonic")
     bands = config["score_bands"]
     if not (bands["A"]["candidate_below"] < bands["A"]["review_below"] <= 100):
         raise ValueError("A score bands are not monotonic")
@@ -203,6 +220,7 @@ def evaluate_rule(spec: RuleSpec, features: Mapping[str, Any], quality: Mapping[
     weights.update({str(key): float(value) for key, value in overrides.items()})
     contributions: list[dict[str, Any]] = []
     missing: list[str] = []
+    required_missing: list[str] = []
     available_weight = 0.0
     total_weight = sum(weights.values())
     coverage_value = _finite(quality.get("coverage_ratio"))
@@ -217,6 +235,8 @@ def evaluate_rule(spec: RuleSpec, features: Mapping[str, Any], quality: Mapping[
         available = value is not None and bool(term_quality.get("available", True)) and coverage_ok and age_ok
         if not available:
             missing.append(term)
+            if bool(term_quality.get("required")):
+                required_missing.append(term)
             continue
         # Catalog v2 terms are calibrated 0..1 factors created by the feature
         # builder.  Applying a second generic threshold would distort the
@@ -277,6 +297,8 @@ def evaluate_rule(spec: RuleSpec, features: Mapping[str, Any], quality: Mapping[
             "operator_score": score,
         }
     status, alert_state = _score_status(spec, score, confidence, config)
+    if required_missing:
+        status, alert_state = "needs_data", "none"
     release = config.get("release_control") or {"mode": "shadow_validation", "scores_visible": False, "alerts_enabled": False, "reason": "发布门禁配置缺失"}
     score_released = bool(release.get("scores_visible", True)) and str(release.get("mode")) in {"score_preview", "published"}
     if not bool(release.get("alerts_enabled", True)):
@@ -300,6 +322,7 @@ def evaluate_rule(spec: RuleSpec, features: Mapping[str, Any], quality: Mapping[
         "alert_state": alert_state,
         "data_complete": not missing,
         "missing_features": missing,
+        "required_missing_features": required_missing,
         "formula_terms": [item["feature_key"] for item in contributions],
         "weights": weights,
         "thresholds": threshold_snapshots,

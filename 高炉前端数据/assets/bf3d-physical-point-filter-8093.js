@@ -207,7 +207,7 @@ function mount(viewer) {
   return true;
 }
 
-const timer = window.setInterval(() => {
+const poll = () => {
   const viewer = window.__BF_CAD_FURNACE_VIEWER;
   if (!viewer || viewer === mountedViewer) return;
   try {
@@ -217,6 +217,15 @@ const timer = window.setInterval(() => {
     if (host) host.dataset.pointPolicy = "error";
     console.error("8093 物理测点过滤失败", error);
   }
-}, 120);
+};
+const scheduler = window.__BF_SHARED_SCHEDULER__;
+const stopPolling = scheduler?.subscribe
+  ? scheduler.subscribe("bf3d-physical-point-filter", 120, poll)
+  : (() => {
+      const timer = window.setInterval(() => {
+        if (!document.hidden) poll();
+      }, 120);
+      return () => window.clearInterval(timer);
+    })();
 
-window.addEventListener("beforeunload", () => window.clearInterval(timer), { once: true });
+window.addEventListener("beforeunload", stopPolling, { once: true });

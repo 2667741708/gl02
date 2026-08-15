@@ -1,16 +1,17 @@
-"""Independent spatiotemporal replay page for the GL02 cohesive-zone baseline.
+"""Independent GL02 measured-data replay and blind HCZ expert labeling service.
 
 REQ-BF3D-C2-REPLAY-SPACE-TIME-20260721
 REQ-BODY-TEMP-INFRARED-REPLAY-20260808
 
-The service intentionally stays outside 8092/8093.  It exposes a small
-read-only HTTP API and serves the static replay UI.  The API returns measured
+The service intentionally stays outside 8092/8093.  It exposes a small HTTP
+API and serves the static replay UI.  The replay API returns measured
 L7-L16 wall temperatures and the 18 measured static-pressure points alongside
 the existing C2 *estimated* cohesive-zone root series.
 
 Security and process boundary:
-* Reads only ``bf_sensor.sensor_registry`` and ``bf_sensor.one_minute_values``.
-* Never persists predictions or changes production data.
+* Reads ``bf_sensor.sensor_registry`` and ``bf_sensor.one_minute_values``.
+* The labeling page is blind to C2 and appends only expert weak-label events.
+* Never persists predictions or changes sensor/production data.
 * C2 output remains ``estimated/uncalibrated/control_use=prohibited``.
 * Database credentials are read from inherited environment or an existing
   managed-service JSON file; they are never returned by an API or written to
@@ -20,6 +21,8 @@ Security and process boundary:
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
 import logging
 import math
@@ -29,11 +32,11 @@ import sys
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 from urllib.parse import parse_qs, unquote, urlparse
 
 import pandas as pd
@@ -58,6 +61,32 @@ try:
     from features.cohesive_zone_estimator import CohesiveZoneEstimator  # type: ignore  # noqa: E402
 except (ImportError, ModuleNotFoundError):
     CohesiveZoneEstimator = None  # type: ignore[assignment,misc]
+
+ASSISTANT_BACKEND_DIR = PROJECT_ROOT / "高炉前端数据" / "智能助手" / "backend"
+if str(ASSISTANT_BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(ASSISTANT_BACKEND_DIR))
+
+from diagnosis_review import (  # type: ignore  # noqa: E402
+    ReviewConfig,
+    ReviewConfigurationError,
+    load_review_config,
+    session_from_cookie,
+    submission_identity,
+)
+from hcz_expert_label import (  # type: ignore  # noqa: E402
+    EVIDENCE_CODES,
+    LABEL_VERSION,
+    REQUIREMENT_ID as HCZ_LABEL_REQUIREMENT_ID,
+    ROOT_LEVELS,
+    MOVEMENTS,
+    ECCENTRIC_SECTORS,
+    HczExpertLabelStore,
+    HczLabelConfigurationError,
+    HczLabelValidationError,
+    build_source_context,
+    normalize_timestamp,
+    validate_label_payload,
+)
 
 
 BODY_LAYOUT: tuple[dict[str, Any], ...] = tuple(
@@ -202,7 +231,7 @@ def _profile_radius(height_m: float) -> float:
 
 
 def service_config_env(config_path: Path | None) -> dict[str, str]:
-    """Read only GL02 PostgreSQL env values from an existing managed-service file."""
+    """Read the allowlisted database/identity env from a managed-service file."""
     if not config_path or not config_path.is_file():
         return {}
     try:
@@ -212,8 +241,22 @@ def service_config_env(config_path: Path | None) -> dict[str, str]:
     env = payload.get("env") if isinstance(payload, dict) else None
     if not isinstance(env, dict):
         return {}
-    allowed = {"GL02_PGHOST", "GL02_PGPORT", "GL02_PGDATABASE", "GL02_PGUSER", "GL02_PGPASSWORD"}
+    allowed = {
+        "GL02_PGHOST", "GL02_PGPORT", "GL02_PGDATABASE", "GL02_PGUSER", "GL02_PGPASSWORD",
+        "BF_DIAGNOSIS_REVIEW_ENABLED", "BF_DIAGNOSIS_REVIEW_TEST_MODE",
+        "BF_DIAG_REVIEW_REQUIRE_LOGIN", "BF_DIAG_REVIEW_ANONYMOUS_USERNAME",
+        "BF_DIAG_REVIEW_ANONYMOUS_ROLE", "BF_DIAG_REVIEW_ALLOWED_ROLES",
+        "BF_DIAG_REVIEW_PGHOST", "BF_DIAG_REVIEW_PGPORT", "BF_DIAG_REVIEW_PGDATABASE",
+        "BF_DIAG_REVIEW_PGUSER", "BF_DIAG_REVIEW_PGPASSWORD",
+        "BF_DIAG_REVIEW_PGPASSWORD_ENV", "BF_DIAG_REVIEW_PGSCHEMA",
+        "BF_AUTH_SESSION_SECRET", "BF_AUTH_SESSION_TTL_SECONDS",
+    }
     return {key: str(value) for key, value in env.items() if key in allowed and value not in (None, "")}
+
+
+def apply_service_env(config_path: Path | None) -> None:
+    for key, value in service_config_env(config_path).items():
+        os.environ.setdefault(key, value)
 
 
 def db_params(config_path: Path | None) -> dict[str, Any]:
@@ -232,6 +275,20 @@ def db_params(config_path: Path | None) -> dict[str, Any]:
     if not params["user"] or not params["password"]:
         raise RuntimeError("未找到 GL02 PostgreSQL 只读连接配置。")
     return params
+
+
+def label_store(config: ReviewConfig) -> HczExpertLabelStore:
+    def connect():
+        return psycopg.connect(
+            host=config.pg_host,
+            port=config.pg_port,
+            dbname=config.pg_database,
+            user=config.pg_user,
+            password=config.pg_password,
+            connect_timeout=10,
+        )
+
+    return HczExpertLabelStore(connect, schema=config.pg_schema)
 
 
 @dataclass(frozen=True)
@@ -444,14 +501,123 @@ def build_replay_payload(
 
 
 class ReplayService:
-    """Bounded request validation plus a short-lived, read-only replay cache."""
+    """Bounded replay reads plus append-only blind expert weak labels."""
 
-    def __init__(self, repository: SensorRepository):
+    def __init__(
+        self,
+        repository: SensorRepository,
+        hcz_store: HczExpertLabelStore | None = None,
+        review_config: ReviewConfig | None = None,
+    ):
         self.repository = repository
+        self.hcz_store = hcz_store
+        self.review_config = review_config
         self._cache: dict[
             tuple[str, str, int, bool], tuple[float, dict[str, Any]]
         ] = {}
         self._lock = threading.Lock()
+
+    @staticmethod
+    def _local_naive(value: Any) -> datetime:
+        shanghai = timezone(timedelta(hours=8))
+        return normalize_timestamp(value).astimezone(shanghai).replace(tzinfo=None)
+
+    def identity(self, cookie_header: str) -> dict[str, str]:
+        if self.hcz_store is None or self.review_config is None:
+            raise HczLabelConfigurationError("HCZ专家标注存储未配置")
+        identity = submission_identity(session_from_cookie(cookie_header), self.review_config)
+        if identity is None:
+            raise PermissionError("当前会话没有HCZ标注权限")
+        return identity
+
+    def label_config(self, cookie_header: str) -> dict[str, Any]:
+        identity = self.identity(cookie_header)
+        return {
+            "ok": True,
+            "requirement_id": HCZ_LABEL_REQUIREMENT_ID,
+            "label_version": LABEL_VERSION,
+            "reference_type": "expert_weak_label",
+            "furnace_id": "GL02",
+            "blind_to_model": True,
+            "model_outputs_included": False,
+            "root_levels": ROOT_LEVELS,
+            "movements": MOVEMENTS,
+            "eccentric_sectors": ECCENTRIC_SECTORS,
+            "evidence_codes": EVIDENCE_CODES,
+            "identity": identity,
+            "require_login": self.review_config.require_login,
+            "limits": {"max_window_hours": MAX_HOURS, "max_note_chars": 2000},
+        }
+
+    def _label_context(self, label: Mapping[str, Any]) -> dict[str, Any]:
+        start = self._local_naive(label["source_window_start"])
+        end = self._local_naive(label["source_window_end"])
+        _, frame = self.repository.read_window(start, end)
+        return build_source_context(
+            frame,
+            observed_at=label["observed_at"],
+            window_start=label["source_window_start"],
+            window_end=label["source_window_end"],
+            primary_variables=DISPLAY_IDS,
+        )
+
+    def label_context(self, query: dict[str, list[str]], cookie_header: str) -> dict[str, Any]:
+        self.identity(cookie_header)
+        observed_at = query.get("observed_at", [""])[0]
+        window_start = query.get("start", [""])[0]
+        window_end = query.get("end", [""])[0]
+        if not all((observed_at, window_start, window_end)):
+            raise HczLabelValidationError("observed_at、start和end不能为空")
+        start = normalize_timestamp(window_start)
+        end = normalize_timestamp(window_end)
+        observed = normalize_timestamp(observed_at)
+        if start >= end or not start <= observed <= end:
+            raise HczLabelValidationError("标注时刻必须位于有效证据窗口内")
+        if end - start > timedelta(hours=MAX_HOURS):
+            raise HczLabelValidationError(f"证据窗口不能超过{MAX_HOURS}小时")
+        latest = self.repository.latest_timestamp()
+        if latest is None or self._local_naive(end) > latest + timedelta(minutes=1):
+            raise HczLabelValidationError("证据窗口结束时间不能晚于最新实测时间")
+        context = self._label_context(
+            {
+                "observed_at": observed,
+                "source_window_start": start,
+                "source_window_end": end,
+            }
+        )
+        return {"ok": True, **context}
+
+    def submit_label(
+        self,
+        payload: Any,
+        cookie_header: str,
+        *,
+        client_address: str,
+    ) -> dict[str, Any]:
+        identity = self.identity(cookie_header)
+        label = validate_label_payload(payload)
+        source_context = self._label_context(label)
+        saved = self.hcz_store.save(
+            label,
+            source_context,
+            identity,
+            client_address=client_address,
+        )
+        return {"ok": True, "label": saved}
+
+    def list_labels(self, query: dict[str, list[str]], cookie_header: str) -> dict[str, Any]:
+        self.identity(cookie_header)
+        limit_text = query.get("limit", ["200"])[0] or "200"
+        try:
+            limit = int(limit_text)
+        except ValueError as exc:
+            raise HczLabelValidationError("limit必须是整数") from exc
+        labels = self.hcz_store.list_labels(
+            start=query.get("start", [None])[0],
+            end=query.get("end", [None])[0],
+            limit=limit,
+        )
+        return {"ok": True, "count": len(labels), "labels": labels}
 
     def resolve_request(self, query: dict[str, list[str]]) -> ReplayRequest:
         latest = self.repository.latest_timestamp()
@@ -523,6 +689,14 @@ class ReplayService:
                 "confidence_cap": 0.45,
                 "root_definition": "wall_thermal_activity_centroid",
             },
+            "hcz_expert_label": {
+                "available": self.hcz_store is not None,
+                "requirement_id": HCZ_LABEL_REQUIREMENT_ID,
+                "label_version": LABEL_VERSION,
+                "blind_to_model": True,
+                "model_outputs_included": False,
+                "page": "/hcz-labeling.html",
+            },
         }
 
 
@@ -538,7 +712,7 @@ class ReplayHttpServer(ThreadingHTTPServer):
 
 class ReplayHandler(BaseHTTPRequestHandler):
     server: ReplayHttpServer
-    server_version = "GL02SoftZoneReplay/1.0"
+    server_version = "GL02SoftZoneReplay/2.0"
 
     def log_message(self, fmt: str, *args: Any) -> None:
         logging.info("%s - %s", self.address_string(), fmt % args)
@@ -554,6 +728,49 @@ class ReplayHandler(BaseHTTPRequestHandler):
             self.wfile.write(body)
         except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
             logging.info("client disconnected before JSON response completed: %s", self.path)
+
+    def _read_json(self) -> Any:
+        try:
+            content_length = int(self.headers.get("Content-Length", "0") or "0")
+        except ValueError as exc:
+            raise HczLabelValidationError("Content-Length无效") from exc
+        if content_length <= 0 or content_length > 64 * 1024:
+            raise HczLabelValidationError("请求体大小无效")
+        try:
+            return json.loads(self.rfile.read(content_length).decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise HczLabelValidationError("请求体不是有效UTF-8 JSON") from exc
+
+    def _same_origin(self) -> bool:
+        origin = self.headers.get("Origin", "").strip()
+        if not origin:
+            return True
+        parsed = urlparse(origin)
+        return parsed.scheme in {"http", "https"} and parsed.netloc == self.headers.get("Host", "")
+
+    def _csv(self, labels: list[dict[str, Any]]) -> None:
+        columns = (
+            "id", "reference_id", "observed_at", "available_at", "root_level_label",
+            "movement_label", "center_height_m", "thickness_m", "eccentric_sector",
+            "confidence_grade", "evidence_codes", "note", "operator_name",
+            "reviewer_username", "reviewer_role", "identity_mode", "context_mode",
+            "blind_to_model", "source_data_hash", "supersedes_label_id", "created_at",
+        )
+        output = io.StringIO(newline="")
+        writer = csv.DictWriter(output, fieldnames=columns, extrasaction="ignore")
+        writer.writeheader()
+        for item in labels:
+            row = dict(item)
+            row["evidence_codes"] = "|".join(row.get("evidence_codes") or [])
+            writer.writerow(row)
+        body = ("\ufeff" + output.getvalue()).encode("utf-8")
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "text/csv; charset=utf-8")
+        self.send_header("Content-Disposition", 'attachment; filename="gl02-hcz-expert-labels.csv"')
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
 
     def _static(self, relative_path: str) -> None:
         if relative_path in {"", "/"}:
@@ -598,6 +815,9 @@ class ReplayHandler(BaseHTTPRequestHandler):
                         "feature_requirement_id": FEATURE_REQUIREMENT_ID,
                         "schema_version": SCHEMA_VERSION,
                         "cohesive_available": CohesiveZoneEstimator is not None,
+                        "hcz_label_enabled": True,
+                        "hcz_label_version": LABEL_VERSION,
+                        "hcz_label_blind_to_model": True,
                     },
                 )
                 return
@@ -607,12 +827,63 @@ class ReplayHandler(BaseHTTPRequestHandler):
             if parsed.path == "/api/replay":
                 self._json(HTTPStatus.OK, self.server.service.replay(parse_qs(parsed.query)))
                 return
+            if parsed.path == "/api/hcz-label-config":
+                self._json(
+                    HTTPStatus.OK,
+                    self.server.service.label_config(self.headers.get("Cookie", "")),
+                )
+                return
+            if parsed.path == "/api/hcz-label-context":
+                self._json(
+                    HTTPStatus.OK,
+                    self.server.service.label_context(
+                        parse_qs(parsed.query), self.headers.get("Cookie", "")
+                    ),
+                )
+                return
+            if parsed.path in {"/api/hcz-labels", "/api/hcz-label-export"}:
+                payload = self.server.service.list_labels(
+                    parse_qs(parsed.query), self.headers.get("Cookie", "")
+                )
+                if parsed.path.endswith("export"):
+                    self._csv(payload["labels"])
+                else:
+                    self._json(HTTPStatus.OK, payload)
+                return
             self._static(unquote(parsed.path))
-        except ValueError as exc:
+        except PermissionError as exc:
+            self._json(HTTPStatus.UNAUTHORIZED, {"ok": False, "error": "AUTH_REQUIRED", "message": str(exc)})
+        except (ValueError, HczLabelValidationError) as exc:
             self._json(HTTPStatus.BAD_REQUEST, {"ok": False, "error": "INVALID_REQUEST", "message": str(exc)})
-        except (RuntimeError, psycopg.Error, OSError) as exc:
+        except (RuntimeError, ReviewConfigurationError, HczLabelConfigurationError, psycopg.Error, OSError):
             logging.exception("replay request failed")
             self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"ok": False, "error": "DATA_UNAVAILABLE", "message": "数据链暂不可用，请检查只读数据库连接或缩小时间窗。"})
+
+    def do_POST(self) -> None:  # noqa: N802
+        parsed = urlparse(self.path)
+        try:
+            if parsed.path != "/api/hcz-labels":
+                self.send_error(HTTPStatus.NOT_FOUND, "接口不存在")
+                return
+            if not self._same_origin():
+                self._json(
+                    HTTPStatus.FORBIDDEN,
+                    {"ok": False, "error": "ORIGIN_REJECTED", "message": "请求来源不允许"},
+                )
+                return
+            payload = self.server.service.submit_label(
+                self._read_json(),
+                self.headers.get("Cookie", ""),
+                client_address=self.client_address[0],
+            )
+            self._json(HTTPStatus.CREATED if payload["label"].get("created") else HTTPStatus.OK, payload)
+        except PermissionError as exc:
+            self._json(HTTPStatus.UNAUTHORIZED, {"ok": False, "error": "AUTH_REQUIRED", "message": str(exc)})
+        except (ValueError, HczLabelValidationError) as exc:
+            self._json(HTTPStatus.BAD_REQUEST, {"ok": False, "error": "INVALID_REQUEST", "message": str(exc)})
+        except (RuntimeError, ReviewConfigurationError, HczLabelConfigurationError, psycopg.Error, OSError):
+            logging.exception("HCZ label submission failed")
+            self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"ok": False, "error": "STORE_UNAVAILABLE", "message": "标注暂未保存，请稍后重试。"})
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -624,7 +895,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--db-config",
         type=Path,
         default=PROJECT_ROOT / "tools" / "service_configs" / "22012_BFV4PreviewProxy8093.json",
-        help="现有托管服务 JSON，只读取 GL02 PostgreSQL 环境变量；不会复制或打印凭据。",
+        help="现有托管服务 JSON，只读取允许的数据库/标注身份环境变量；不会打印凭据。",
     )
     parser.add_argument("--log-level", default="INFO", choices=("DEBUG", "INFO", "WARNING", "ERROR"))
     parser.add_argument("--log-file", type=Path, default=None)
@@ -644,7 +915,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     if not args.static_dir.is_dir():
         raise SystemExit(f"静态页面目录不存在：{args.static_dir}")
-    service = ReplayService(SensorRepository(args.db_config))
+    apply_service_env(args.db_config)
+    review_config = load_review_config(require_store=True)
+    hcz_store = label_store(review_config)
+    hcz_store.ensure_schema()
+    service = ReplayService(SensorRepository(args.db_config), hcz_store, review_config)
     server = ReplayHttpServer((args.host, args.port), ReplayHandler, service, args.static_dir)
     logging.info("soft-zone replay page listening on http://%s:%s/", args.host, args.port)
     try:

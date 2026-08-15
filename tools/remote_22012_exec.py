@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import getpass
+import json
 import os
 import re
 import sys
@@ -26,6 +27,13 @@ import paramiko
 ROOT = Path(__file__).resolve().parents[1]
 AGENTS = ROOT / "AGENTS.md"
 DEFAULT_REMOTE_ROOT = r"F:\高炉炼铁项目-real-sensor-v2_V3"
+DEFAULT_PASSWORD_FILE = (
+    Path(os.getenv("LOCALAPPDATA", str(Path.home() / "AppData" / "Local")))
+    / "Codex"
+    / "secrets"
+    / "reliable-ssh"
+    / "22012.pw"
+)
 
 
 def read_agents_ssh_password() -> str | None:
@@ -44,6 +52,13 @@ def resolve_password(args: argparse.Namespace) -> str:
     value = os.getenv("BF_22012_SSH_PASSWORD")
     if value:
         return value
+    password_file = Path(str(getattr(args, "password_file", "") or "")).expanduser()
+    if password_file.is_file():
+        if password_file.stat().st_size > 4096:
+            raise SystemExit("220.12 SSH password file exceeds the 4 KiB safety limit.")
+        value = password_file.read_text(encoding="utf-8").strip()
+        if value:
+            return value
     if args.allow_agents_password:
         value = read_agents_ssh_password()
         if value:
@@ -63,7 +78,7 @@ def parse_pair(value: str) -> tuple[Path, str]:
     return Path(left), right
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run a PowerShell/Python command on 10.30.220.12 via SSH.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -92,6 +107,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--user", default=os.getenv("BF_22012_USER", "administrator"))
     parser.add_argument("--workdir", default=os.getenv("BF_22012_PROJECT_ROOT", DEFAULT_REMOTE_ROOT))
     parser.add_argument("--password-env", default="BF_22012_SSH_PASSWORD")
+    parser.add_argument(
+        "--password-file",
+        default=os.getenv("BF_22012_SSH_PASSWORD_FILE", str(DEFAULT_PASSWORD_FILE)),
+        help="Read the SSH password from a protected local file without emitting it.",
+    )
     parser.add_argument("--allow-agents-password", action="store_true")
     parser.add_argument("--prompt-password", action="store_true")
     parser.add_argument("--timeout", type=int, default=3600)
@@ -109,7 +129,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--no-profile", action="store_true", default=True)
     parser.add_argument("--keep-remote-script", action="store_true")
-    return parser.parse_args()
+    parser.add_argument(
+        "--emit-timing-json",
+        action="store_true",
+        help="Emit sanitized per-phase latency as bf.remote-exec.timing.v1 JSON.",
+    )
+    return parser.parse_args(argv)
 
 
 def connect(args: argparse.Namespace) -> paramiko.SSHClient:
@@ -132,7 +157,7 @@ def connect(args: argparse.Namespace) -> paramiko.SSHClient:
             )
             transport = client.get_transport()
             if transport is not None:
-                transport.set_keepalive(10)
+                transport.set_keepalive(30)
             return client
         except (paramiko.SSHException, OSError) as exc:
             last_error = exc
@@ -227,7 +252,12 @@ exit $LASTEXITCODE
 """.strip()
 
 
-def run_powershell(client: paramiko.SSHClient, args: argparse.Namespace) -> int:
+def run_powershell(
+    client: paramiko.SSHClient,
+    args: argparse.Namespace,
+    sftp: paramiko.SFTPClient | None = None,
+    timings: dict[str, float] | None = None,
+) -> int:
     """Stage UTF-8 scripts and execute them with a short PowerShell 7 -File command."""
 
     token = uuid.uuid4().hex
@@ -238,7 +268,10 @@ def run_powershell(client: paramiko.SSHClient, args: argparse.Namespace) -> int:
     if payload_path:
         remote_paths.append(payload_path)
 
-    sftp = client.open_sftp()
+    stage_started = time.perf_counter()
+    owns_sftp = sftp is None
+    if sftp is None:
+        sftp = client.open_sftp()
     try:
         if args.script and payload_path:
             payload = args.script.read_bytes()
@@ -248,7 +281,10 @@ def run_powershell(client: paramiko.SSHClient, args: argparse.Namespace) -> int:
         with sftp.file(wrapper_path, "wb") as remote_wrapper:
             remote_wrapper.write(wrapper)
     finally:
-        sftp.close()
+        if owns_sftp:
+            sftp.close()
+    if timings is not None:
+        timings["wrapper_stage_ms"] = round((time.perf_counter() - stage_started) * 1000, 3)
 
     if args.remote_shell == "pwsh":
         executable = r"C:\Program Files\PowerShell\7\pwsh.exe"
@@ -263,6 +299,7 @@ def run_powershell(client: paramiko.SSHClient, args: argparse.Namespace) -> int:
         )
 
     try:
+        command_started = time.perf_counter()
         _, stdout, stderr = client.exec_command(invocation, timeout=args.timeout)
         out = stdout.read().decode("utf-8", errors="replace")
         err = stderr.read().decode("utf-8", errors="replace")
@@ -270,51 +307,92 @@ def run_powershell(client: paramiko.SSHClient, args: argparse.Namespace) -> int:
             print(out, end="" if out.endswith("\n") else "\n")
         if err:
             print(err, file=sys.stderr, end="" if err.endswith("\n") else "\n")
-        return stdout.channel.recv_exit_status()
+        exit_code = stdout.channel.recv_exit_status()
+        if timings is not None:
+            timings["remote_command_ms"] = round((time.perf_counter() - command_started) * 1000, 3)
+        return exit_code
     finally:
+        cleanup_started = time.perf_counter()
         if not args.keep_remote_script:
-            sftp = client.open_sftp()
+            cleanup_sftp = sftp if not owns_sftp else client.open_sftp()
             try:
                 for remote_path in remote_paths:
                     try:
-                        sftp.remove(remote_path)
+                        cleanup_sftp.remove(remote_path)
                     except OSError:
                         pass
             finally:
-                sftp.close()
+                if owns_sftp:
+                    cleanup_sftp.close()
+        if timings is not None:
+            timings["remote_cleanup_ms"] = round((time.perf_counter() - cleanup_started) * 1000, 3)
 
 
-def main() -> int:
-    args = parse_args()
+def execute(
+    args: argparse.Namespace,
+    client: paramiko.SSHClient | None = None,
+    sftp: paramiko.SFTPClient | None = None,
+    timings: dict[str, float] | None = None,
+) -> int:
+    """Execute one request, optionally reusing a caller-owned SSH client."""
+
     if args.upload_only and not args.upload:
         raise SystemExit("--upload-only 至少需要一个 --upload。")
     if not args.upload_only and not (args.script or args.python_args or args.command):
         raise SystemExit("必须提供 --command、--script 或 --python 之一。")
-    client = connect(args)
+    total_started = time.perf_counter()
+    phase_timings = timings if timings is not None else {}
+    owns_client = client is None
+    if client is None:
+        connect_started = time.perf_counter()
+        client = connect(args)
+        phase_timings["connect_auth_ms"] = round((time.perf_counter() - connect_started) * 1000, 3)
+    else:
+        phase_timings["connect_auth_ms"] = 0.0
     try:
-        sftp = client.open_sftp()
+        upload_started = time.perf_counter()
+        owns_sftp = sftp is None
+        operation_sftp = sftp if sftp is not None else client.open_sftp()
         try:
-            upload_files(sftp, args.upload)
+            upload_files(operation_sftp, args.upload)
         finally:
-            sftp.close()
+            if owns_sftp:
+                operation_sftp.close()
+        phase_timings["prestage_upload_ms"] = round((time.perf_counter() - upload_started) * 1000, 3)
 
         if args.upload_only:
             print(f"[upload-only] {len(args.upload)} file(s) staged")
             return 0
 
         print(f"[remote] {args.user}@{args.host} cwd={args.workdir}")
-        exit_code = run_powershell(client, args)
+        exit_code = run_powershell(client, args, sftp=sftp, timings=phase_timings)
         print(f"[exit] {exit_code}")
 
         if args.download:
-            sftp = client.open_sftp()
+            download_started = time.perf_counter()
+            download_sftp = sftp if sftp is not None else client.open_sftp()
             try:
-                download_files(sftp, args.download)
+                download_files(download_sftp, args.download)
             finally:
-                sftp.close()
+                if sftp is None:
+                    download_sftp.close()
+            phase_timings["download_ms"] = round((time.perf_counter() - download_started) * 1000, 3)
+        else:
+            phase_timings["download_ms"] = 0.0
         return int(exit_code or 0)
     finally:
-        client.close()
+        if owns_client:
+            client.close()
+        phase_timings["total_ms"] = round((time.perf_counter() - total_started) * 1000, 3)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    timings: dict[str, float] = {}
+    exit_code = execute(args, timings=timings)
+    if args.emit_timing_json:
+        print(json.dumps({"schema": "bf.remote-exec.timing.v1", "phases_ms": timings}, ensure_ascii=False))
+    return exit_code
 
 
 if __name__ == "__main__":

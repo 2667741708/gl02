@@ -31,6 +31,24 @@ from mcp_host.cross_source_plan import (
     success_snapshot,
 )
 
+
+# Authoritative public units for canonical GL02 variables whose legacy MCP
+# payload may omit variable.unit. This mirrors the established assistant
+# evidence contract and must not be extended by guessing from value shape.
+_CANONICAL_UNIT_FALLBACKS: dict[str, str] = {
+    "P_top": "kPa",
+    "DP_total": "kPa",
+    "L_south": "m",
+    "L_north": "m",
+    "P_top_A": "kPa",
+    "P_top_B": "kPa",
+    "P_top_C": "kPa",
+    "P_top_D": "kPa",
+    "P_blast_cold": "kPa",
+    "Q_O2": "Nm³/h",
+    "O2_rate": "%",
+}
+
 # ---------------------------------------------------------------------------
 # Error codes
 # ---------------------------------------------------------------------------
@@ -260,6 +278,16 @@ async def _execute_step(
                 "message": str(exc),
             }, ensure_ascii=False)
 
+    result_payload = _json_payload(result_text)
+    payload_error = result_payload.get("error_code") or result_payload.get("error")
+    resolver_missing = (
+        step.tool == "imes__resolve_spoken_heat_reference"
+        and not result_payload.get("resolved_heat_no")
+    )
+    if result_payload.get("ok") is False or result_payload.get("missing") is True or resolver_missing:
+        status["ok"] = False
+        status["error_code"] = str(payload_error or "DATA_MISSING")
+
     # Emit tool_result
     status["arguments"] = resolved_args
     if emit:
@@ -381,6 +409,32 @@ def _fact_payload_status(
         if not latest and not (matched.get("statistics") or matched.get("history")):
             return True, "EMPTY_SENSOR_VALUE"
         return False, None
+
+    if step.tool == "gl02ext__query_body_temperature_statistics":
+        layer_statistics = payload.get("layer_statistics") or []
+        if fact_id != "body_temperature_statistics" or not isinstance(layer_statistics, list):
+            return True, "VARIABLE_NOT_RETURNED"
+        if not any(
+            isinstance(item, dict) and ((item.get("statistics") or {}).get("count") or 0) > 0
+            for item in layer_statistics
+        ):
+            return True, "NO_SENSOR_ITEMS"
+        return False, None
+
+    if step.tool == "plot_gl02_analysis":
+        correlation = (payload.get("derived") or {}).get("correlation") or {}
+        correlation_values = {
+            "pearson_r": correlation.get("pearson_r"),
+            "aligned_count": correlation.get("aligned_count"),
+            "correlation_left": correlation.get("left"),
+            "correlation_right": correlation.get("right"),
+            "correlation_window": payload.get("start_time") and payload.get("end_time"),
+        }
+        if fact_id == "chart":
+            return (not bool(payload.get("image_url"))), "DATA_MISSING" if not payload.get("image_url") else None
+        if fact_id in correlation_values:
+            value = correlation_values[fact_id]
+            return (value is None or value is False), "DATA_MISSING" if value is None or value is False else None
 
     return False, None
 
@@ -639,16 +693,39 @@ def _extract_fact_value(
                     stats = item.get("statistics") or {}
                     variable = item.get("variable") or {}
                     result["value"] = latest.get("value") if latest else stats.get("avg")
-                    result["unit"] = variable.get("unit") if isinstance(variable, dict) else item.get("unit")
+                    payload_unit = variable.get("unit") if isinstance(variable, dict) else item.get("unit")
+                    result["unit"] = payload_unit or _CANONICAL_UNIT_FALLBACKS.get(fact_id)
                     result["data_time"] = latest.get("ts") if latest else item.get("as_of_time")
-                    result["quality"] = item.get("quality")
+                    result["quality"] = latest.get("quality") or item.get("quality")
                     break
+
+    elif step.tool == "gl02ext__query_body_temperature_statistics":
+        if fact_id == "body_temperature_statistics":
+            result["value"] = payload.get("layer_statistics")
+            result["unit"] = payload.get("unit") or "℃"
+            result["data_time"] = {
+                "start": payload.get("start_time"),
+                "end": payload.get("end_time"),
+            }
+            result["quality"] = payload.get("data_quality")
 
     # --- GL02 chart/analysis/matrix ---
     elif step.tool in ("plot_gl02_trends", "plot_gl02_analysis", "plot_gl02_body_temperature_matrix"):
-        result["value"] = payload.get("image_url")
-        result["data_time"] = (
-            f"{payload.get('start_time', '')} – {payload.get('end_time', '')}"
-        )
+        correlation = (payload.get("derived") or {}).get("correlation") or {}
+        window = f"{payload.get('start_time', '')} – {payload.get('end_time', '')}"
+        result["data_time"] = window
+        if fact_id == "pearson_r":
+            result["value"] = correlation.get("pearson_r")
+        elif fact_id == "aligned_count":
+            result["value"] = correlation.get("aligned_count")
+            result["unit"] = "个"
+        elif fact_id == "correlation_left":
+            result["value"] = correlation.get("left")
+        elif fact_id == "correlation_right":
+            result["value"] = correlation.get("right")
+        elif fact_id == "correlation_window":
+            result["value"] = window
+        else:
+            result["value"] = payload.get("image_url")
 
     return result

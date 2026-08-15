@@ -1,5 +1,10 @@
 # MCP 智能工具系统九阶段升级总表
 
+> - 状态：路线图，不是完成清单
+> - 最后核对：2026-08-11
+> - 完成证据：以 [需求追踪](../docs/requirements_traceability.md)、[测试索引](../docs/test_reference.md)
+>   和 [阶段交接](../docs/handoffs/) 为准；未找到实现、测试和现网验收三方证据的阶段不得标为已完成。
+
 总需求：`REQ-MCP-INTELLIGENT-TOOL-SYSTEM-20260726`
 
 ## 总体目标

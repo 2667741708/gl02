@@ -23,11 +23,11 @@
     <section class="control-panel" aria-label="回放条件">
       <label>
         <span>开始时间</span>
-        <input id="startInput" type="datetime-local" step="60">
+        <input id="startInput" type="datetime-local" step="3600">
       </label>
       <label>
         <span>结束时间</span>
-        <input id="endInput" type="datetime-local" step="60">
+        <input id="endInput" type="datetime-local" step="3600">
       </label>
       <label>
         <span>取帧步长</span>
@@ -67,6 +67,8 @@
         <span>叠加根部代理（较慢）</span>
       </label>
       <button id="loadButton" class="primary" type="button">加载历史</button>
+      <button id="rangePrevButton" type="button" title="时间范围向前一小时">−1h</button>
+      <button id="rangeNextButton" type="button" title="时间范围向后一小时">+1h</button>
     </section>
 
     <section class="workspace">

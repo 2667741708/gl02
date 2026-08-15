@@ -69,6 +69,15 @@ COMPOSITES: dict[str, dict[str, Any]] = {
     "EconomicIntensityEdge": {"formula": "(.60*largest+.40*second_largest)*(0.30+0.70*operating_limit)", "features": ["EconomicIntensityStrength", "EconomicOperatingLimit"], "sources": ["Q_blast", "O2_rate", "PCI_rate", "DP_total", "PI", "GasUtil", "T_taphole_1", "T_taphole_2"]},
     "high60_heat_input": {"formula": "max(g_H(z60_T_blast),g_H(z60_PCI_rate),g_H(z60_Q_O2),g_H(z60_TFT))", "features": ["z60_T_blast", "z60_PCI_rate", "z60_Q_O2", "z60_TFT"], "sources": ["T_blast", "PCI_rate", "Q_O2", "TFT"]},
     "low60_heat_input": {"formula": "max(g_L(z60_T_blast),g_L(z60_PCI_rate),g_L(z60_Q_O2),g_L(z60_TFT))", "features": ["z60_T_blast", "z60_PCI_rate", "z60_Q_O2", "z60_TFT"], "sources": ["T_blast", "PCI_rate", "Q_O2", "TFT"]},
+    "BurdenRateHalfHourDev": {"formula": "g_H(abs(rate_current30-rate_previous30),.25,.50)", "sources": ["L_south", "L_north", "BurdenRate_previous_30_large_per_hour", "BurdenRate_current_30_large_per_hour"]},
+    "BurdenRateYesterdayDev": {"formula": "g_H(abs(rate_current30-rate_yesterday24h),.50,1.00)", "sources": ["L_south", "L_north", "BurdenRate_current_30_large_per_hour", "BurdenRate_yesterday_large_per_hour"]},
+    "BurdenRate2hDev": {"formula": "g_H(abs(rate_rolling2h-rate_yesterday24h),.50,1.00)", "sources": ["L_south", "L_north", "BurdenRate_rolling_2h_large_per_hour", "BurdenRate_yesterday_large_per_hour"]},
+    "BurdenRateHalfHourSlow": {"formula": "g_H(rate_previous30-rate_current30,.25,.50)", "sources": ["L_south", "L_north", "BurdenRate_previous_30_large_per_hour", "BurdenRate_current_30_large_per_hour"]},
+    "BurdenRateYesterdaySlow": {"formula": "g_H(rate_yesterday24h-rate_current30,.50,1.00)", "sources": ["L_south", "L_north", "BurdenRate_current_30_large_per_hour", "BurdenRate_yesterday_large_per_hour"]},
+    "BurdenRate2hSlow": {"formula": "g_H(rate_yesterday24h-rate_rolling2h,.50,1.00)", "sources": ["L_south", "L_north", "BurdenRate_rolling_2h_large_per_hour", "BurdenRate_yesterday_large_per_hour"]},
+    "BurdenRateHalfHourFast": {"formula": "g_H(rate_current30-rate_previous30,.25,.50)", "sources": ["L_south", "L_north", "BurdenRate_previous_30_large_per_hour", "BurdenRate_current_30_large_per_hour"]},
+    "BurdenRateYesterdayFast": {"formula": "g_H(rate_current30-rate_yesterday24h,.50,1.00)", "sources": ["L_south", "L_north", "BurdenRate_current_30_large_per_hour", "BurdenRate_yesterday_large_per_hour"]},
+    "BurdenRate2hFast": {"formula": "g_H(rate_rolling2h-rate_yesterday24h,.50,1.00)", "sources": ["L_south", "L_north", "BurdenRate_rolling_2h_large_per_hour", "BurdenRate_yesterday_large_per_hour"]},
     "C2CompositeGate": {"formula": "1 if B1/B3 severe gate and highSlope_Ttop=SpikeTopP15=BurdenSlip=1 else 0", "features": ["highSlope_Ttop", "SpikeTopP15", "BurdenSlip"], "sources": ["P_top", "T_top_A", "T_top_B", "T_top_C", "T_top_D", "L", "DP_total"]},
 }
 
@@ -166,6 +175,8 @@ def build_factor_audit(features: Mapping[str, Any], current: Mapping[str, Any], 
             effective["line"] = dict(cfg.get("line") or {})
         elif term in {"LineLossDuration", "LineBiasDuration", "BodyColdDuration"}:
             effective["duration_minutes"] = dict(cfg.get("duration_minutes") or {})
+        elif term.startswith("BurdenRate"):
+            effective["burden_rate"] = dict(cfg.get("burden_rate") or {})
         result[str(term)] = {
             "factor_value": factor_value,
             "formula": spec.get("formula") or "direct feature value",

@@ -98,6 +98,33 @@ class FixtureHandler(SimpleHTTPRequestHandler):
         if path == "/api/short-window/conversations":
             self.send_json({"ok": True, "items": [], "fixture": True})
             return
+        if path == "/api/furnace-rules/latest":
+            rules = [
+                {
+                    "rule_id": f"{category}{index}",
+                    "category": category,
+                    "display_name": f"{category}类炉况{index}",
+                    "score": 20 + index,
+                    "status": "eligible",
+                    "score_available": True,
+                    "confidence": 0.88,
+                    "missing_sensors": [],
+                }
+                for category, count in (("A", 9), ("B", 13), ("C", 11))
+                for index in range(1, count + 1)
+            ]
+            self.send_json(
+                {
+                    "ok": True,
+                    "available": True,
+                    "fixture": True,
+                    "evaluation_id": "browser-fixture-abc33",
+                    "evaluation_ts": "2026-08-14T00:00:00+08:00",
+                    "rules": rules,
+                    "public_bundle": {"rules": rules},
+                }
+            )
+            return
         if path == "/api/diagnosis-review-context":
             self.send_json(
                 {
@@ -108,8 +135,23 @@ class FixtureHandler(SimpleHTTPRequestHandler):
                         "snapshot_id": "browser-fixture-1305",
                         "snapshot_source": "local_fixture",
                         "diagnosis_ts": "2026-08-05T13:05:00+08:00",
+                        "episode_start_ts": "2026-08-05T12:55:00+08:00",
+                        "episode_key": "browser-fixture-cold-1305",
+                        "is_abnormal": True,
                         "main_label": "cold",
                         "main_display_label": "热制度下行",
+                        "main_score": 84,
+                        "display_main_score": 84,
+                        "data_coverage": {"coverage_ratio": 1.0},
+                        "candidates": [
+                            {"key": "lowline", "label": "低料线", "score": 72},
+                            {"key": "edge", "label": "边缘煤气流发展", "score": 68},
+                            {"key": "channel", "label": "管道行程", "score": 46},
+                            {"key": "normal", "label": "正常顺行", "score": 42},
+                            {"key": "column", "label": "悬料/料柱阻滞", "score": 38},
+                            {"key": "center", "label": "边缘不足/中心过吹", "score": 31},
+                            {"key": "hot", "label": "热制度上行", "score": 19},
+                        ],
                         "raw_scores": {
                             "normal": 42,
                             "lowline": 72,
@@ -256,6 +298,8 @@ class FixtureHandler(SimpleHTTPRequestHandler):
             html = page_path.read_text(encoding="utf-8")
             fixture = FIXTURE_PATH.read_text(encoding="utf-8")
             assets = (
+                '<link rel="stylesheet" href="/assets/bf-diagnosis-review-local.css">'
+                '<script defer src="/assets/bf-diagnosis-review-local.js"></script>'
                 '<link rel="stylesheet" href="/assets/bf-diagnosis-manual-score-local.css">'
                 '<script defer src="/assets/bf-diagnosis-manual-score-local.js"></script>'
             )

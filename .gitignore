@@ -54,6 +54,7 @@ node_modules/
 .codex_patch_probe.*
 patch_probe.txt
 __patch_heat_performance_quality.py
+.codex_runtime/
 
 # Local services, generated output and operational evidence
 logs/
@@ -77,6 +78,23 @@ docs/assets/
 *.cache
 *.bak
 *.bak_*
+
+# Local editor/operational backup variants (files only)
+*.backup
+*.backup_*
+*.old
+*.orig
+*.save
+*~
+
+# Local backup/staging directories at any depth
+backup/
+backup_*/
+*_backup/
+archives/
+
+# Reproducible local maintainer handoff packages and staging areas
+/handoff_packages/
 
 # Training data, experiment output and Blender working files
 PT/**/data/
@@ -126,3 +144,8 @@ PT.zip
 # Keep the one GLB used by the 8093 review harness when the source asset is present.
 !PT/高炉3D模型/模型资产库/09_高炉本体133点Billboard_cn/
 !PT/高炉3D模型/模型资产库/09_高炉本体133点Billboard_cn/GL02_FURNACE_BODY_R1.glb
+
+# Reproducible 8093 Vite production-build outputs
+/高炉前端数据/dashboard_build/.generated/
+/高炉前端数据/assets/build/
+/高炉前端数据/frontend_dashboard_v3.production.html

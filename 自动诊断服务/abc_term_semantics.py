@@ -39,6 +39,15 @@ COMPOSITES: dict[str, dict[str, Any]] = {
     "BodyTempRange": {"label": "炉体温度截面离散风险", "meaning": "同一时刻炉体测温点最大值与最小值差异过大。"},
     "BurdenSlip": {"label": "崩滑料代理", "meaning": "料线突变、料线波动、顶压波动与压差波动共同支持崩滑料风险。"},
     "BurdenStall": {"label": "悬料代理", "meaning": "料线停滞并伴随送风压力、压差和风量异常，反映下料不畅。"},
+    "BurdenRateHalfHourDev": {"label": "前后30分钟料速偏差", "meaning": "后30分钟完整大批速度相对前30分钟完整大批速度的绝对偏离，0.25大批/h内视为正常波动。"},
+    "BurdenRateYesterdayDev": {"label": "相对昨日平均料速偏差", "meaning": "当前30分钟完整大批速度相对昨日24小时平均料速的绝对偏离。"},
+    "BurdenRate2hDev": {"label": "连续2小时料速偏差", "meaning": "最近连续2小时平均料速相对昨日24小时平均料速的绝对偏离。"},
+    "BurdenRateHalfHourSlow": {"label": "前后30分钟料速变慢", "meaning": "后30分钟料速低于前30分钟，方向支持热制度上行。"},
+    "BurdenRateYesterdaySlow": {"label": "当前料速低于昨日平均", "meaning": "当前30分钟料速低于昨日24小时平均，方向支持热制度上行。"},
+    "BurdenRate2hSlow": {"label": "连续2小时料速偏慢", "meaning": "最近连续2小时平均料速低于昨日24小时平均，支持持续热制度上行风险。"},
+    "BurdenRateHalfHourFast": {"label": "前后30分钟料速变快", "meaning": "后30分钟料速高于前30分钟，方向支持热制度下行。"},
+    "BurdenRateYesterdayFast": {"label": "当前料速高于昨日平均", "meaning": "当前30分钟料速高于昨日24小时平均，方向支持热制度下行。"},
+    "BurdenRate2hFast": {"label": "连续2小时料速偏快", "meaning": "最近连续2小时平均料速高于昨日24小时平均；达到1大批/h时形成强持续风险。"},
     "C2CompositeGate": {"label": "严重管道—崩滑料复合门", "meaning": "只有管道风险和崩滑料风险同时具备足够证据时才形成复合报警。"},
     "CoolingFlowLow": {"label": "冷却水流量不足", "meaning": "软水流量或高压水流量低于各自30日正常基线。"},
     "CoolingRisk": {"label": "冷却系统风险", "meaning": "软水/高压水/中压水流量压力下降或膨胀罐液位异常的组合风险。"},
@@ -92,4 +101,3 @@ def term_semantics(term: str) -> dict[str, str]:
                 "meaning": f"{variable[1]}；{meaning_prefix}，并转换为0–1风险因子。",
             }
     return {"label": term, "meaning": "受控规则因子；需在后台结合来源变量和计算可用性复核。"}
-

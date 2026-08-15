@@ -51,9 +51,43 @@ class CoreMetricPspaceLive8093Tests(unittest.TestCase):
         self.assertIn("data-value-age-seconds={current.ageSeconds ?? ''}", page)
         self.assertIn("data-transport-age-seconds={transportAgeSeconds}", page)
         self.assertIn("data-value-quality={current.quality}", page)
+        self.assertIn("coreMetricBaselineEvidence8093(buf, item, current)", page)
+        self.assertIn("metricItemIds(item).map((id, index)", page)
+        self.assertIn("rollingIqrBaseline(buf, id)", page)
+        self.assertIn("rollingIqrDeviation(buf, id, raw)", page)
+        self.assertIn("status = iqrStatus(deviation)", page)
+        self.assertIn("data-value-raw={primary.raw ?? ''}", page)
+        self.assertIn("data-baseline-median={primary.median ?? ''}", page)
+        self.assertIn("data-baseline-iqr={primary.iqr ?? ''}", page)
+        self.assertIn("data-baseline-deviation={z ?? ''}", page)
+        self.assertIn("data-baseline-status={st.level}", page)
+        self.assertIn("data-baseline-evidence={JSON.stringify(evidence)}", page)
+        self.assertNotIn(
+            "key={key}, z = metricItemDeviation(buf, item)",
+            page,
+        )
         self.assertIn("已降级为分钟镜像", page)
         self.assertIn("<CoreMetricSparkButtonV1 buf={buf} item={item}", page)
         self.assertIn("coreDetailTrendOptionV1(buf, targetId, minutes)", page)
+
+    def test_each_variable_keeps_its_own_baseline_evidence_even_in_combined_rows(self) -> None:
+        page = PAGE.read_text(encoding="utf-8")
+        helper = re.search(
+            r"function coreMetricBaselineEvidence8093\(.*?\n",
+            page,
+        )
+        self.assertIsNotNone(helper)
+        source = helper.group(0)
+        for contract in (
+            "const raw = current?.rawValues?.[index]",
+            "rollingIqrBaseline(buf, id)",
+            "rollingIqrDeviation(buf, id, raw)",
+            "status: status.level",
+            "statusLabel: status.label",
+        ):
+            self.assertIn(contract, source)
+        self.assertIn("evidence.map(row =>", page)
+        self.assertIn("ROW_BY_ID[row.id]?.name || row.id", page)
 
     def test_history_merge_is_timestamp_aligned_and_rejects_incomplete_series(self) -> None:
         page = PAGE.read_text(encoding="utf-8")
@@ -111,6 +145,18 @@ class CoreMetricPspaceLive8093Tests(unittest.TestCase):
         self.assertIn("已降级为分钟镜像", source)
         self.assertIn("ALL_VIEWPORTS", source)
         self.assertIn("REPRESENTATIVE_VIEWPORTS", source)
+
+    def test_detail_modal_requires_body_portal_above_page_stacking_contexts(self) -> None:
+        page = PAGE.read_text(encoding="utf-8")
+        self.assertIn("return ReactDOM.createPortal(dialog, document.body)", page)
+        self.assertNotIn(
+            "return ReactDOM.createPortal ? ReactDOM.createPortal(dialog, document.body) : dialog",
+            page,
+        )
+        self.assertIn(
+            ".core-detail-backdrop{position:fixed;inset:0;z-index:2147483647",
+            page,
+        )
 
 
 if __name__ == "__main__":

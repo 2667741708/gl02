@@ -1,5 +1,17 @@
 # 配置参考
 
+## 工长趋势罐重设定点位（2026-08-14）
+
+正式点位清单当前为 165 行：162 个物理点、3 个派生点。新增物理点
+`Hopper_weight_set_01`～`Hopper_weight_set_11` 映射到
+`SIO_GL02_LD_T0115/T0116/T0117/T0119–T0126`；派生项 `Hopper_weight_set` 表示同一分钟
+11 个状态之和。`T0118` 是圈数设定，不属于该集合。登记入口为
+`tools/register_hopper_weight_set_points.py`，默认只读，只有显式 `--apply` 才写
+`bf_sensor.sensor_registry`。
+
+派生项当前只登记语义，未配置分钟物化；分量缺失不得按 0 求和。完整生产状态见
+[登记交接](handoffs/2026-08-14-hopper-weight-set-registry-production.md)。
+
 ## 炉次质量回看同步参数（2026-08-07）
 
 `tools/sync_22012_heat_performance_quality.py` 的关键参数：`--repair-days` 为回看日期范围，`--repair-page-size` 为单页行数（1–500），`--repair-max-rows` 为单轮最大扫描行数（上限50000），`--audit-detail-limit` 为每类缺口明细上限，`--no-repair` 关闭异常回看，`--dry-run` 禁止 PostgreSQL 写入。达到最大扫描行数时必须返回 `repair_truncated=true`。`--dry-run` 的 `repaired` 固定为0，拟修复数量看 `repair_prepared`。
@@ -26,6 +38,10 @@
 | 配置 | 现行值 | 生效位置 | 作用 |
 |---|---|---|---|
 | `BF_QA_KNOWLEDGE_SEARCH_MODE` | 8093=`keyword`；8094=`keyword` | 代理服务启动期环境变量 | 让 PostgreSQL 知识库只做关键词/词法检索，不调用 embedding |
+| `BF_QA_GUEST_ENABLED` | `1` | 代理服务启动期环境变量 | 是否让未登录局域网访问者进入共享匿名问答；关闭后恢复 `qa_session_required` |
+| `BF_QA_GUEST_ROOM_KEY` | 空；回退当前 `Host:Port` | 代理服务启动期环境变量 | 共享匿名房间稳定键；8093/8094 默认隔离，集群多实例需显式设为同值 |
+| `BF_QA_MCP_MAX_TOOL_ROUNDS` | `2` | 代理服务启动期环境变量 | MCP 模型规划上限；达到上限后不直接报错，转一次无工具模型回答 |
+| `BF_QA_MCP_MAX_TOOL_CALLS` | `4` | 代理服务启动期环境变量 | 单次问答工具调用上限；不建议靠盲目增大掩盖工具合同缺口 |
 | `BF_QA_KNOWLEDGE_ENABLED` | 未显式设置，代码默认 `true` | 智能助手后端 | 启用知识库链路 |
 | `BF_QA_KNOWLEDGE_INTENT_GATE_ENABLED` | 未显式设置，代码默认 `true` | 智能助手后端 | 仅在知识意图命中时检索 |
 | `BF_QA_KNOWLEDGE_TOP_K` | 未显式设置，代码默认 `6` | 智能助手后端 | 限制注入 Prompt 的知识证据数量 |
@@ -211,7 +227,7 @@ IMES Web MCP 即使已注册，也仍需有效登录态/验证码；数据库 MC
 | 配置/入口 | 现行口径 | 验收重点 |
 | --- | --- | --- |
 | `数据库同步和存取/run_realtime_sync_pg_bg.ps1` | 每轮显式传 `--config <ScriptRoot>\\config\\sync_config.json` | 不能依赖当前工作目录或 Python 默认路径 |
-| `config/sync_config.json:point_catalog_tsv` | `数据库同步和存取/config/点位清单.tsv` | 153 行、151 物理点、2 派生点 |
+| `config/sync_config.json:point_catalog_tsv` | `数据库同步和存取/config/点位清单.tsv` | 当前 165 行、162 物理点、3 派生点；2026-08-07 部署基线为153/151/2 |
 | `tools/remote_deploy_foreman_points_coal_20260806.ps1` | 入口、配置、清单和注册器同包原子替换 | 注册确认19项后再恢复 `BlastFurnaceV3PgContinuousSync30s` |
 
 一次失败部署曾留下“注册表已更新、清单回滚、`tags_ok=148`”的部分状态；后续必须用入口哈希、清单标记、`sync_runs.tags_ok` 和新增点 `one_minute_values` Good 行共同验收。
@@ -236,6 +252,36 @@ IMES Web MCP 即使已注册，也仍需有效登录态/验证码；数据库 MC
 | 日志 | `logs\soft_zone_replay_8892.log` |
 
 远端V4当前没有C2根部代理模块，`cohesive_available=false`。这是可选覆盖层，不影响80点炉体温度回放。
+
+## 传感器曲线统一交互（2026-08-11）
+
+220.12 上运行的 8093 工长趋势、8094 趋势分析、8095 预览、8096 基线影子页以及 8892 炉体历史曲线统一支持：时间范围按整小时（`step=3600`）调整，`−1h/+1h`移动窗口；在曲线上右键会显示点位ID、曲线值和原始时间戳。8093/8094/8095/8096 的 ECharts 图表使用共享 `高炉前端数据/assets/curve-inspector.js`（8096 同步到其旧版 V3 前端 `assets` 目录），8892 的温度/静压力 Canvas 使用页面内命中检测。该交互只读，不改变 8768 分钟历史、8770 pSpace 实时桥或数据库采集链路。
+
+2026-08-11 生产验收：8093 备份为 `curve_inspector_8093_20260811_180912`，8094 备份为 `curve_inspector_8094_20260811_181624`，8095 备份为 `curve_inspector_static_8095_20260811_182215`，8096 备份为旧 V3 根目录下 `curve_inspector_static_8096_20260811_182358`；8093/8094/8095/8096/8892 HTTP 均为 200，统一检查器资源可读，受保护端口 PID 未变化。
+
+## 软熔带移动特征融合配置（2026-08-10）
+
+配置文件：[cohesive_zone_intelligent_diagnosis.yaml:L1-L209](../炉况规则引擎/config/cohesive_zone_intelligent_diagnosis.yaml#L1-L209)。
+
+| 字段 | 类型/默认值 | 含义与风险 |
+|---|---|---|
+| `model.confidence_cap` | `float / 0.45` | 未标定诊断置信度上限；加载器拒绝大于0.45的值 |
+| `model.control_use` | `string / prohibited` | 固定禁止自动控制；加载器拒绝其他值 |
+| `time.current_window_minutes` | `int / 15` | 当前窗口长度 |
+| `time.reference_window_minutes` | `int / 15` | 历史参考窗口长度 |
+| `time.reference_separation_minutes` | `int / 15` | 当前与参考窗口间隔离区，防相邻噪声混叠 |
+| `time.max_age_minutes` | `int / 5` | 每个特征最新样本年龄上限 |
+| `decision.stable_score_threshold` | `float / 0.18` | 合成分数在正负阈值内判稳定 |
+| `decision.min_scored_features` | `int / 4` | 形成诊断的最少有权重特征数 |
+| `decision.required_groups` | `list` | 必须至少覆盖压力/透气性和温度场两组 |
+| `features.*.columns` | `list[string]` | 同一概念的受控字段别名；按配置选择或聚合 |
+| `features.*.valid_min/max` | `float` | 单位相关有效范围；越界值转缺失，不钳制成正常值 |
+| `features.*.delta_scale` | `float` | 当前相对参考变化归一化尺度；修改会改变灵敏度 |
+| `features.*.direction_up` | `-1/0/1` | 当前值上升对软熔带上移证据的方向；0只保留上下文 |
+| `features.*.movement_weight` | `float>=0` | 移动方向融合权重；压力/透气性保持最高权重 |
+| `features.*.risk_links` | `mapping` | 只形成关联证据，不改现有8类炉况分数 |
+
+验证：[verify_cohesive_zone_intelligent_diagnosis.ps1:L1-L41](../tools/verify_cohesive_zone_intelligent_diagnosis.ps1#L1-L41)。没有现场标定前，不得提高置信度上限或取消禁止控制标签。
 
 ## V20 平均 Si 影子工作台配置（2026-08-08）
 
@@ -315,3 +361,159 @@ IMES Web MCP 即使已注册，也仍需有效登录态/验证码；数据库 MC
 |任务名|`\BlastFurnaceServices\SiV20StrictHourlyPrediction`|独立常开，不受操作者配置影响|
 
 严格通道只读220.12本地业务库；禁止在预测请求中访问外部IMES。炉料化学本地镜像不可用时保留缺失与水位审计，不回退外部连接。
+
+## HCZ专家弱标签配置（8892，2026-08-10）
+
+服务复用8093托管配置中的GL02只读连接和诊断复核写库配置，但只读取显式白名单环境变量。写库必须为本机回环地址：`BF_DIAG_REVIEW_PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD[_ENV]/PGSCHEMA`。现场无登录模式由`BF_DIAG_REVIEW_REQUIRE_LOGIN=0`、`BF_DIAG_REVIEW_ANONYMOUS_USERNAME`和`BF_DIAG_REVIEW_ANONYMOUS_ROLE`控制；浏览器传入的身份字段无效。
+
+固定限制：单窗口最多72小时、请求体64KB、备注2000字符、中心高度10–35m、厚度0.5–8m、可信等级1–5、历史单次最多2000条。配置与实现见[hcz_expert_label.py](../高炉前端数据/智能助手/backend/hcz_expert_label.py)和[soft_zone_replay_server.py](../tools/soft_zone_replay_server.py)。
+
+## HCZ上移综合趋势经验规则配置（8093，2026-08-10）
+
+配置文件：[hcz_upward_expert_rule.yaml](../炉况规则引擎/config/hcz_upward_expert_rule.yaml)。
+
+| 配置 | 固定值 | 说明 |
+|---|---:|---|
+| `windows.current_hours` | 24 | 当前小时窗 |
+| `windows.baseline_days` | 5 | 当前窗之前连续基准天数 |
+| `windows.required_consecutive_hours` | 12 | 完整组合的最小连续小时 |
+| `coverage.min_core_samples_per_hour` | 30 | 核心指标每小时最小分钟点数 |
+| `coverage.min_body_sectors_per_layer_hour` | 4 | 炉壁层小时均值最少方位数 |
+| `coverage.min_current_valid_hours` | 18 | 当前24小时最少有效小时 |
+| `coverage.min_baseline_valid_hours` | 96 | 前120小时最少有效小时 |
+| `body_temperature.min_rising_layers` | 2 | 升温10℃触发层数 |
+| `body_temperature.strong_rising_layers` | 3 | 强证据层数；同时要求至少1层升20℃ |
+
+五项阈值分别为顶温`+15℃`、全压差`+5kPa`、PI`-0.5`、GasUtil`-1个百分点`、冷风风压`P_blast_cold`上升`+5kPa`。2026-08-11已明确禁止把热风压力`P_blast`仅改名冒充冷风风压。任何变更都必须保留`automatic_control: prohibited`并同步规则文档、测试和部署证据。
+
+页面历史试算允许在不修改生产配置的前提下临时调整上述五项阈值，以及炉壁升温阈值`0～40℃`、方向层数`1～7`、连续小时`1～24`；历史范围只允许`7/30/90`天。顶温、全压差、PI、煤气利用率、冷风风压的合法范围分别为`0～40℃`、`0～20kPa`、`0～5`、`0～10个百分点`、`0～20kPa`。这些值仅作为单次查询参数，不落库、不更新YAML。
+
+`GasUtil`源值固定按0～1比例解释，API入口乘100后参与“百分点”比较。页面当前值和前五天基线使用`%`；差值及阈值使用“个百分点”，禁止重复乘100。
+
+## 220.12持久SSH会话配置（2026-08-10）
+
+| 配置 | 默认值 | 说明 |
+|---|---|---|
+| `BF_22012_HOST` | `10.30.220.12` | 会话固定远端；切换时先显式stop旧会话 |
+| `BF_22012_USER` | `administrator` | 与状态身份严格匹配 |
+| `BF_22012_PROJECT_ROOT` | `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW` | 8093受控部署工作目录 |
+| `BF_22012_SSH_PASSWORD` | 无 | 首选凭据环境变量；值不写状态、日志或Skill |
+| keepalive | 30秒 | Paramiko SSH协议保活；不是应用命令 |
+| monitor | 请求时 | 请求之间发现失效transport后才重连；在途命令不重放 |
+| 状态文件 | `%LOCALAPPDATA%\Codex\ssh-sessions\22012.json` | 仅localhost代理端口、随机令牌、PID、会话/远端身份；不在仓库 |
+
+### Windows 凭据管理器恢复边界（2026-08-14）
+
+| 配置 | 固定值 | 约束 |
+|---|---|---|
+| 授权目标 | `TERMSRV/10.30.220.12` | 不允许通配或改用于其他主机/协议 |
+| 预期用户 | `administrator` | 读取后只比较用户名，不输出秘密 |
+| 恢复入口 | `tools/restore_22012_ssh_secret_from_windows_credential.ps1` | 仅 PowerShell 7；输出不含密码、长度、哈希 |
+| 受控回退 | `C:\Users\hmw20\.codex\secrets\reliable-ssh-10-30-220-12.password` | 仅 Windows 不导出秘密时使用；必须先验证 Owner、继承保护和允许 ACE |
+| 密码文件 | `%LOCALAPPDATA%\Codex\secrets\reliable-ssh\22012.pw` | 仅当前用户和 `SYSTEM` 完全控制；禁止进入 Git/日志/模型上下文 |
+| 验收 | 两次 `configure_22012_reliable_ssh_secret.ps1` + 一次全新 SSH 登录 | 两次配置必须是独立 `pwsh -File` 进程 |
+
+该恢复授权只修复本机认证材料，不自动授权远程文件写入、服务停启或数据库操作。Reliable SSH MCP
+可用于已授权的 220.12 操作，但必须先通过主机身份校验并保持 `automatic_replay=false`。
+
+入口为`tools/start_remote_22012_session.ps1`、`tools/remote_22012_session.py status/run`和显式`tools/stop_remote_22012_session.ps1`。`run`不自动重放传输中断的命令；部署者必须先核对远端实际状态。
+
+## Reliable SSH MCP 220.12连接池配置（2026-08-10）
+
+配置位置：`C:\Users\hmw20\.codex\config.toml`的`mcp_servers.reliable_ssh_10_30_220_12`。
+
+| 参数 | 值 | 作用 |
+|---|---:|---|
+| `--ssh-flavor` | `plink` | Windows密码认证与固定主机公钥 |
+| `--remote-python` | `python` | 220.12 Windows远端runner入口 |
+| `--pool-size` | `1` | 单服务器MCP维持一个认证连接；0关闭 |
+| `--keepalive-interval` | `30`秒 | SSH协议层保活 |
+| `--heartbeat-interval` | `60`秒 | 常驻runner的只读`probe_identity`应用心跳 |
+| `--connect-timeout` | `8`秒 | 初次连接阶段超时 |
+| `--command-timeout` | `25`秒 | 默认远端操作超时，部署器可显式提高 |
+
+连接池状态通过MCP工具`connection_status`或`tools/reliable_ssh_22012_cli.mjs pool-probe`查看。修改`config.toml`后需重新加载对应MCP进程；不能把密码复制到参数、日志或文档。掉线后的连接只在后续请求前重建，在途命令不重放。
+
+## Codex经济型委派参数
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `-Model` | `gpt-5.6-luna` | 每次先从`codex debug models`实时目录验证 |
+| `-ReasoningEffort` | `low` | 支持值必须同时出现在该模型目录中 |
+| `-Sandbox` | `read-only` | `workspace-write`还必须显式给出`-AllowWorkspaceWrite` |
+| `-PersistSession` | false | 默认`--ephemeral`，避免无关历史上下文 |
+| `-UseUserConfig` | false | 默认不加载用户MCP/配置，减少工具面与启动成本 |
+| `project_doc_max_bytes` | `4096` | 委派专用内联覆盖，不修改全局Codex配置 |
+
+委派入口还默认禁用apps、plugins、browser、computer、image和tool suggestion。以上是单次CLI覆盖，不改变主Codex应用或当前会话配置。
+
+## 8093静态压缩配置
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `BF_HTTP_COMPRESSION_MIN_BYTES` | `1024` | 低于此字节数不压缩；文本、HTML、JS、CSS、JSON、SVG参与协商 |
+
+Brotli库为可选能力；缺失时服务仍可启动并回退gzip。HTML保持`no-store`，带哈希或显式版本的静态资源使用一年`immutable`缓存。
+
+## 8093部署Skill项目镜像同步参数
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `-Action` | `Verify` | `ImportGlobalToProject`仅首次导入/恢复；`PublishProjectToGlobal`从项目版本源发布到全局运行镜像；`Verify`只比较精确清单和哈希 |
+| `-GlobalSkillPath` | 当前用户`.codex\skills\deploy-8093-guarded-update` | 允许显式指定Codex运行镜像目录；项目源固定为仓库`.codex\skills\deploy-8093-guarded-update` |
+
+同步入口为`tools/sync_deploy_8093_guarded_update_skill.ps1`，固定要求PowerShell 7 Core和UTF-8。它只处理14个白名单文件；发现额外文件、缺失文件或bundle SHA-256差异时失败，不删除文件，也不连接220.12。
+
+## 8093维护交接包配置
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `-ManifestPath` | `tools/handoff/8093_handoff_manifest.json` | 交接包明确白名单、顶层说明源和禁止路径片段 |
+| `-OutputDirectory` | `handoff_packages` | 本地ZIP与临时暂存目录；已被Git忽略 |
+
+构建器固定拒绝`.env`、私钥/证书容器扩展名、数据库账号文档、日志、备份和数据目录，并扫描私钥头、常见访问令牌、带用户口令的数据库URI及明文字面量密钥赋值。
+
+## V3本机原生PostgreSQL启动配置（2026-08-11）
+
+| 配置 | 默认值 | 必需 | 使用位置 | 风险与验证 |
+| --- | --- | --- | --- | --- |
+| `GL02_LOCAL_PGHOST` | `127.0.0.1` | 是 | `start_v3_full.ps1`、本地同步子进程 | 只允许获批本机目标；启动输出核对目标但不输出密码 |
+| `GL02_LOCAL_PGPORT` | `18000` | 是 | 同上 | 用服务、监听和`SELECT version()`验证，不依据客户端版本猜测 |
+| `GL02_LOCAL_PGDATABASE` | `bf_trend` | 是 | 助手、诊断、实时桥接和同步目标 | 缺少所需schema时只能运行降级/fixture测试 |
+| `GL02_LOCAL_PGUSER` | `postgres` | 是 | 启动器复制到`GL02_PGUSER` | 可由获批本机运行角色覆盖；不得使用远端只读角色冒充本机写账号 |
+| `GL02_LOCAL_PGPASSWORD` | 无 | 是 | 仅当前进程环境 | 不写脚本、普通文档或日志；缺失时正常启动失败 |
+| `BF_USE_EXISTING_PG_ENV` | 未启用 | 否 | `start_v3_full.ps1`主连接选择 | 只有`1/true/yes`保留既有`GL02_PG*`；本地同步仍使用`GL02_LOCAL_PG*` |
+
+默认模式为`local-native`，会覆盖用户级环境中可能指向220.12的`GL02_PGHOST/PORT/DATABASE/USER/PASSWORD`。
+历史 Docker `15432` 不再是该入口的默认值或回退目标。
+
+## ABC33 上下文助手
+
+| 环境变量 | 默认值 | 说明 |
+|---|---:|---|
+| `BF_ABC_RULE_ASSISTANT_PROMPT_VERSION` | `abc_rule_explanation.v1` | 首轮解释缓存版本；改变即生成新缓存 |
+| `BF_ABC_RULE_ASSISTANT_WAIT_SECONDS` | `300` | 同上下文并发等待唯一 owner 的最长秒数 |
+| `BF_ABC_RULE_ASSISTANT_CONTEXT_MAX_BYTES` | `262144` | 完整不可变解释快照上限 |
+| `BF_ABC_RULE_ASSISTANT_PROMPT_CONTEXT_MAX_BYTES` | `24576` | 注入模型的有界单炉框上下文上限 |
+
+知识库继续使用 `BF_QA_KNOWLEDGE_SEARCH_MODE=keyword`；模型仍只驻留一个。
+### 8093 MCP 并行规划（REQ-8093-MCP-PARALLEL-5-AND-GUEST-DEPLOY-20260813）
+
+- `BF_QA_MCP_MAX_TOOL_ROUNDS=5`：一次问答最多进行 5 轮模型规划。
+- `BF_QA_MCP_MAX_TOOL_CALLS=5`：一次问答累计最多执行 5 个工具请求，跨轮次合计。
+- `BF_QA_MCP_PARALLEL_TOOL_CALLS=1`：允许同一规划轮内的独立只读工具调用并行执行。
+- `BF_QA_MCP_MAX_PARALLEL_TOOL_CALLS=5`：单轮并行协程上限为 5；同一 MCP server 的 stdio 调用仍由服务级锁串行。
+- 并行不会放宽工具白名单、JSON Schema、参数大小、单工具超时或整次执行预算。超过上限或工具失败时只进行一次禁用工具的模型降级回答，并明确实时数据未核实。
+## 220.12 每两小时更新同步配置
+
+| 配置项 | 当前值 | 说明 |
+|---|---|---|
+| 事项编号 | `OPS-22012-BIDIRECTIONAL-SYNC-20260813` | 服务器更新检测、本地同步与 Git 版本保存 |
+| 自动任务 ID | `220-12` | Codex 项目级本地自动任务 |
+| 执行频率 | 每两小时 | 无更新时只保存轻量检查记录，不创建空版本 |
+| 本地项目 | `D:\文件\冀南钢铁运行中第二版本` | 运行前必须保存 `git status --short` 基线 |
+| 远端项目 | `F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW` | 本任务仅允许只读探测与脱敏快照 |
+| 运行证据 | `reports/server_sync/` | Git 忽略目录，保存快照、候选、状态和报告 |
+| Git 保存 | 精确 pathspec commit + 唯一本地 annotated tag | 禁止全量暂存、amend、强制覆盖 tag 和外部 push |
+
+敏感路径、运行日志、备份、数据库、模型权重、缓存、虚拟环境、依赖目录和浏览器认证状态不进入监视或同步范围。本地与远端同文件并行变化时状态必须为 `conflict_needs_review`，不得自动覆盖。

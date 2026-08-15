@@ -1,5 +1,16 @@
 # 数据结构参考
 
+## `bf_sensor.sensor_registry` 罐重设定目录（2026-08-14）
+
+`Hopper_weight_set_01`～`Hopper_weight_set_11` 是 pSpace 物理分量，分别对应
+`SIO_GL02_LD_T0115/T0116/T0117/T0119–T0126`；`Hopper_weight_set` 是目录中的派生项，
+语义为 11 个分量在同一分钟的状态和，单位 t。`T0118` 为布料圈数设定，不能作为重量分量。
+
+目录登记不等于派生事实已物化：当前 11 个物理分量已有 `raw_5s_values` 和
+`one_minute_values`，派生项尚无分钟事实。后续物化必须使用同一分钟状态、允许受控前向保持，
+并在任一分量缺失时输出缺数状态而不是补零。追踪：
+`OPS-SENSOR-REGISTRY-HOPPER-WEIGHT-SET-20260814`。
+
 ## `bf_sensor.coal_injection_hourly`（2026-08-06新增）
 
 2号高炉整点喷煤记录，一小时一行。`metered_amount_t`来自确认点`SIO_GL02_PC_T0004`并归属上一完整小时；`integrated_amount_t`由`PCI_rate`分钟值按实际`interval_seconds/3600`积分；`average_rate_tph`保存小时平均速率，`coverage_ratio`保存有效覆盖率，缺测不补零。完整小时视图优先实测累计，当前小时视图使用速率积分。详见[工长趋势2号炉点位与整点喷煤量](工长趋势2号炉点位与整点喷煤量_20260806.md)。
@@ -149,3 +160,42 @@ v2不执行DDL迁移。`canonical_context` JSONB新增 `feature_snapshot/variabl
 - `si_v20_prediction_audit`为严格记录增加`execution_completed_at/dispatch_delay_seconds/attempt_count/initial_target_meltno/matched_actual_meltno/matched_actual_open_ts/actual_match_frozen_at/actual_match_rule_version/feature_watermarks`。
 - “每小时Si预测与炉次化验汇总”不是新物理业务表，而是严格槽、`si_v20_prediction_audit`和`heat_performance_quality_summary`的只读API视图；逐次化验Si从`sample_details`抽取，平均Si只取`si_avg`。
 - 唯一性：`request_mode='strict_hourly'`时按`furnace_no + schedule_slot_ts + model_sha256`唯一；匹配炉次一旦固化只补实际值，不再换炉。
+
+## bf_assistant.hcz_expert_label_events（2026-08-10）
+
+追踪编号：`REQ-HCZ-EXPERT-WEAK-LABEL-20260810`。DDL见[postgresql_hcz_expert_label.sql](../高炉前端数据/智能助手/backend/schema/postgresql_hcz_expert_label.sql)。
+
+- 主键/幂等：`id`、唯一`reference_id`、唯一`idempotency_key`。
+- 类型/版本：`reference_type=expert_weak_label`、`label_version=hcz-expert-weak-label.v1`、`furnace_id=GL02`。
+- 知识时间：`observed_at`、`available_at`、`source_window_start`、`source_window_end`及`context_mode`。
+- 标签：`root_level_label`、`movement_label`、可空`center_height_m/thickness_m/eccentric_sector`、`confidence_grade`、`evidence_codes`和`note`。
+- 责任链：手填`operator_name`、服务器`reviewer_username/reviewer_role/identity_mode`、可空`supersedes_label_id`。
+- 证据：`blind_to_model=true`、`source_schema_version`、64位`source_data_hash`和`source_context` JSONB。
+
+表只提供追加写入与读取API，不提供UPDATE/DELETE入口。标签是专家弱标签，不等价于HCZ直接真值。
+
+2026-08-11首条生产标签为`id=1`、`reference_id=HCZ-28cf0aad-63af-4e64-a27d-679ca79dbfdd`：观察时刻`2026-08-09 22:00+08:00`，方向`up`，绝对位置`uncertain`，可信等级4，证据窗口`2026-08-09 20:00`至`2026-08-10 06:00`。记录为事后证据型盲标注，`source_data_hash=1cd05b954ab2053a1ccad58c27ae78e7a5dfd274b1a363cc345cafcda256163e`。
+
+## HCZ上移综合趋势规则的数据边界（2026-08-10）
+
+`REQ-HCZ-UPWARD-EXPERT-RULE-20260810`不新增表、字段、视图或迁移。8093端点只读既有`bf_sensor.one_minute_values`及其变量目录，查询最近144小时并在应用层生成小时聚合；计算结果仅在进程内缓存120秒，不持久化为事实表，也不写生产控制数据。
+
+## ABC33 B4展示分归档（2026-08-10）
+
+`REQ-8093-ABC33-B4-CANONICAL-SCORE-20260810`不新增DDL、不改写`bf_sensor.diagnosis_snapshots`历史行。`raw_scores/main_score`及人工事件表中的对应数值字段继续保持旧八类诊断语义；新事件在既有JSONB分数字段中追加`_display_contract`对象，保存`display_scores/display_main_score/score_sources/legacy_score_archive/score_contract_version`。旧行没有该对象即代表legacy合同。禁止将B4展示分覆盖到旧数值键中。
+
+## ABC33 上下文助手增量表（2026-08-11）
+
+- `bf_assistant.qa_context_snapshots`：按 `context_hash` 去重的不可变上下文。
+- `bf_assistant.qa_conversation_origins`：会话来源、初始批次、返回路由、操作者与班次。
+- `bf_assistant.qa_message_context_snapshots`：消息与当时快照的多对多绑定，唯一键含 `usage_kind`。
+- `bf_assistant.abc_rule_ai_explanations`：按 `context_snapshot_id + prompt_version + model_name` 唯一的生成状态和完成缓存。
+
+迁移为 `schema/20260811_abc_contextual_assistant.sql`；代码回滚不删除表。
+## QA 共享匿名房间（2026-08-13）
+
+- 继续复用 `bf_assistant.qa_conversations` 与 `qa_messages`，不建立第二套消息表。
+- 共享房间的 `owner_subject=guest:<sha256(room_key)[:24]>`、`owner_role=anonymous_guest`，会话 ID 为 `qa_guest_<room_id>`。
+- 条件唯一索引 `uq_qa_shared_guest_room(owner_subject) WHERE owner_role='anonymous_guest'` 保证每个房间只有一条持久会话。
+- `qa_messages.created_at` 保存每条用户/助手消息的 UTC ISO 时间戳；`snapshot_id` 和 `hidden_context_json` 保留当次页面炉况及其来源时间。
+- 访客记录属于共享可见数据，不得写入项目资料、报表附件、登录主体私有会话或 ABC 私有上下文表。

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>GL02 HCZ专家盲标注</title>
+  <link rel="stylesheet" href="hcz-labeling.css?v=20260810-r1">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">GL02 · 高炉长人工标注</p>
+      <h1>HCZ专家弱标签工作台</h1>
+      <p class="subtitle">只显示炉体温度、静压力等实测证据；页面不加载、不展示HCZ模型结果。</p>
+    </div>
+    <div class="top-actions">
+      <span id="serviceStatus" class="status waiting">连接中</span>
+      <button id="refreshButton" type="button" class="button secondary">刷新记录</button>
+      <a class="button secondary" href="/api/hcz-label-export">导出CSV</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="contract-bar" aria-label="标注边界">
+      <span class="contract-item safe">盲标注</span>
+      <span class="contract-item">标签类型：专家弱标签</span>
+      <span class="contract-item">用途：训练/回测候选，不是真实测量</span>
+      <span id="identityText" class="contract-item">身份核验中</span>
+    </section>
+
+    <div class="workspace-grid">
+      <section class="panel replay-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>实测证据回放</h2>
+            <p>拖动时间轴选择要判断的时刻。证据窗口及数据指纹由服务器固定。</p>
+          </div>
+          <span id="frameState" class="minor-state">等待回放</span>
+        </div>
+        <iframe
+          id="replayFrame"
+          title="GL02实测炉体温度与静压力回放"
+          src="/?labeling_blind=1"
+          loading="eager"
+        ></iframe>
+      </section>
+
+      <section class="panel form-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>填写专家判断</h2>
+            <p>没有把握时请选择“无法判断”，不要猜测。</p>
+          </div>
+        </div>
+
+        <form id="labelForm" novalidate>
+          <div class="time-card">
+            <span>标注时刻</span>
+            <strong id="observedAt">尚未选择</strong>
+            <small id="windowText">请等待左侧实测回放加载</small>
+          </div>
+
+          <fieldset>
+            <legend>软熔带位置高低 <b>*</b></legend>
+            <div class="segmented" data-field="root_level_label">
+              <label><input type="radio" name="root_level_label" value="high"><span>偏高</span></label>
+              <label><input type="radio" name="root_level_label" value="normal"><span>正常</span></label>
+              <label><input type="radio" name="root_level_label" value="low"><span>偏低</span></label>
+              <label><input type="radio" name="root_level_label" value="uncertain"><span>无法判断</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>移动方向 <b>*</b></legend>
+            <div class="segmented" data-field="movement_label">
+              <label><input type="radio" name="movement_label" value="up"><span>上移</span></label>
+              <label><input type="radio" name="movement_label" value="stable"><span>稳定</span></label>
+              <label><input type="radio" name="movement_label" value="down"><span>下移</span></label>
+              <label><input type="radio" name="movement_label" value="uncertain"><span>无法判断</span></label>
+            </div>
+          </fieldset>
+
+          <div class="field-grid">
+            <label class="field">估计中心高度（m，可空）
+              <input id="centerHeight" type="number" min="10" max="35" step="0.1" inputmode="decimal" placeholder="10–35">
+            </label>
+            <label class="field">估计厚度（m，可空）
+              <input id="thickness" type="number" min="0.5" max="8" step="0.1" inputmode="decimal" placeholder="0.5–8">
+            </label>
+            <label class="field">偏心方位（可空）
+              <select id="eccentricSector">
+                <option value="">未填写</option>
+                <option value="none">无明显偏心</option>
+                <option value="A">A</option><option value="B">B</option>
+                <option value="C">C</option><option value="D">D</option>
+                <option value="E">E</option><option value="F">F</option>
+                <option value="G">G</option><option value="H">H</option>
+                <option value="uncertain">无法判断</option>
+              </select>
+            </label>
+            <label class="field">可信等级 <b>*</b>
+              <select id="confidenceGrade" required>
+                <option value="">请选择</option>
+                <option value="1">1 - 很低</option>
+                <option value="2">2 - 较低</option>
+                <option value="3">3 - 一般</option>
+                <option value="4">4 - 较高</option>
+                <option value="5">5 - 很高</option>
+              </select>
+            </label>
+          </div>
+
+          <fieldset>
+            <legend>判断依据（可多选）</legend>
+            <div class="checks">
+              <label><input type="checkbox" name="evidence" value="temperature_pattern">炉体温度分布</label>
+              <label><input type="checkbox" name="evidence" value="pressure_permeability">压差/透气性</label>
+              <label><input type="checkbox" name="evidence" value="top_condition">炉顶状态</label>
+              <label><input type="checkbox" name="evidence" value="burden_descent">料尺/下料</label>
+              <label><input type="checkbox" name="evidence" value="gas_utilisation">煤气利用</label>
+              <label><input type="checkbox" name="evidence" value="hot_metal_quality">铁水质量</label>
+              <label><input type="checkbox" name="evidence" value="operation_log">操作记录</label>
+              <label><input type="checkbox" name="evidence" value="other">其他</label>
+            </div>
+          </fieldset>
+
+          <label class="field">实际标注人姓名或工号 <b>*</b>
+            <input id="operatorName" type="text" minlength="2" maxlength="64" autocomplete="name" placeholder="用于责任追溯">
+          </label>
+          <label class="field">判断说明
+            <textarea id="note" maxlength="2000" rows="4" placeholder="建议记录现象、依据和不确定性；位置与方向均无法判断时必须填写原因。"></textarea>
+          </label>
+
+          <div id="contextState" class="context-state">尚未固定实测证据</div>
+          <div id="formError" class="form-message error" role="alert" hidden></div>
+          <div id="formSuccess" class="form-message success" role="status" hidden></div>
+          <button id="submitButton" type="submit" class="button primary" disabled>保存专家弱标签</button>
+        </form>
+      </section>
+    </div>
+
+    <section class="panel history-panel">
+      <div class="panel-heading">
+        <div><h2>最近标注记录</h2><p>记录只追加不覆盖；修订通过“修订标签ID”形成审计链。</p></div>
+        <span id="historyCount" class="minor-state">0条</span>
+      </div>
+      <div id="historyLoading" class="table-state">正在读取...</div>
+      <div id="historyEmpty" class="table-state" hidden>尚无专家标注。</div>
+      <div id="historyError" class="table-state error" hidden></div>
+      <div class="table-wrap" id="historyTableWrap" hidden>
+        <table>
+          <thead><tr><th>ID</th><th>标注时刻</th><th>位置</th><th>方向</th><th>可信度</th><th>标注人</th><th>证据模式</th><th>操作</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="hcz-labeling.js?v=20260810-r1" defer></script>
+</body>
+</html>

@@ -56,6 +56,20 @@
         "service": "blast-furnace-gl02-extended-mcp",
         "tools": ["query_furnace_diagnosis_history"]
       }
+    },
+    {
+      "object_id": "body_temperature_layer_statistics",
+      "object_type": "calculation",
+      "display_name": "炉体分层温度统计",
+      "aliases": ["每层平均温度", "逐层标准差", "层温极差", "滚动标准差", "炉身分层波动"],
+      "unit": "℃",
+      "capabilities": ["batch_read", "layer_mean", "stddev_pop", "range", "delta", "slope", "cv", "rolling_variation"],
+      "status": "enabled",
+      "description": "一次只读调用批量读取7-16层A-H点位，按分钟完整对齐后计算逐层及单点确定性统计",
+      "executor": {
+        "service": "blast-furnace-gl02-extended-mcp",
+        "tools": ["query_body_temperature_statistics"]
+      }
     }
   ]
 }

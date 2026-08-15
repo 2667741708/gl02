@@ -43,3 +43,12 @@ python .\tools\train_benchmark_timeseries_models_19.py --training-days 14 --test
 - Chronos平均STD比0.3640、差分STD比0.2234、方向准确率0.5388、p10-p90覆盖率0.7537，确认主要问题是过度平滑和区间覆盖不足。
 - TimesFM 2.5 CPU运行环境已创建，但本机与220.12下载官方大权重均超时，未生成预测。不得把环境就绪写成TimesFM实验完成。
 - 完整结论见[PT首轮实验报告](../../PT/时间序列预测评测/2026-08-08首轮多模型实验报告.md)。
+
+## 2026-08-11统一排行榜扩展
+
+- 新增排行榜生成器：[tools/timeseries_leaderboard.py](../../tools/timeseries_leaderboard.py)。它合并同切点评测明细，去重重复基线，只保留所有模型共同完整的19项目标切点。
+- 新增只读接口`GET /api/timeseries/leaderboard`；8778状态接口增加排行榜文件可用性、生成时间和公共切点数量。
+- 默认排行榜文件为`PT/时间序列预测评测/results/timeseries_model_leaderboard_current.json`，服务按文件修改时间热加载；schema错误或文件缺失返回503，不生成伪排行榜。
+- 当前8个公共切点的综合排名为：Ridge-Delta target-only、Ridge-Delta expert-sparse、Chronos-2、IBM TTM R2、LastValue。分段冠军分别为0–30分钟Chronos-2、31–60分钟Ridge expert-sparse、61–120分钟Ridge target-only。
+- 本机接口冒烟使用临时端口18778通过，默认模型仍为LastValue；本机8777未启动，因此冒烟中的Chronos上游不可达只代表本机环境，不代表220.12状态。
+- 尚未更新220.12的8778任务，尚未修改8093页面，尚未切换8768的预测上游。

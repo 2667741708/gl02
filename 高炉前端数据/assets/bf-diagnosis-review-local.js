@@ -5,6 +5,34 @@
   window.__BF_DIAGNOSIS_REVIEW_LOCAL__=true;
 
   var LABELS={normal:"正常顺行",lowline:"低料线",edge:"边缘煤气流发展",center:"边缘不足/中心过吹",channel:"管道行程",cold:"热制度下行",hot:"热制度上行",column:"崩滑料/悬料"};
+  var EVIDENCE_LABELS={
+    low_body_temperature:"炉体温度偏低",
+    low_blast_pressure:"风压偏低",
+    operation_heat_reduction:"操作减热",
+    high_body_temperature:"炉体温度偏高",
+    high_blast_pressure:"风压偏高",
+    operation_heat_increase:"操作加热",
+    low_top_temperature:"炉顶温度偏低",
+    high_top_temperature:"炉顶温度偏高",
+    low_gas_utilization:"煤气利用率偏低",
+    high_gas_utilization:"煤气利用率偏高",
+    low_permeability:"透气性偏低",
+    high_permeability:"透气性偏高",
+    burden_descent_abnormal:"料柱下降异常",
+    pressure_difference_high:"压差偏高",
+    pressure_difference_low:"压差偏低",
+    sync_pending:"等待数据同步",
+    window_coverage_low:"诊断窗口数据覆盖不足"
+  };
+  var VARIABLE_LABELS={
+    P_top:"综合顶压",P_top_gas_A:"上升管压力A",P_top_gas_B:"上升管压力B",P_top_gas_C:"上升管压力C",P_top_gas_D:"上升管压力D",
+    T_top:"综合顶温",T_top_A:"顶温A",T_top_B:"顶温B",T_top_C:"顶温C",T_top_D:"顶温D",
+    Q_blast:"冷风流量",P_blast_cold:"冷风压力",P_blast:"热风压力",T_blast:"热风温度",
+    PI:"透气性指数",DP_total:"全炉压差",DP_upper:"上部压差",DP_lower:"下部压差",GasUtil:"煤气利用率",
+    L:"料线",L_south:"南探尺料线",L_north:"北探尺料线",PCI_rate:"实际喷煤速率",PCI_set:"喷煤设定",
+    O2_rate:"富氧率",Q_O2:"富氧流量",TFT:"理论燃烧温度",T_taphole_1:"1号铁口温度",T_taphole_2:"2号铁口温度",
+    Hopper_weight:"料罐重量",Hopper_weight_set:"料罐重量设定",P_N2:"氮气压力",Q_N2:"氮气流量"
+  };
   var state={data:null,context:null,openedKey:"",submitting:false,lastFocus:null,timer:null};
   var root=document.createElement("div");
   root.id="bf-diagnosis-review-root";
@@ -18,7 +46,7 @@
   });
 
   function escapeHtml(value){return String(value==null?"":value).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});}
-  function scoreText(value){var n=Number(value);return Number.isFinite(n)?n.toFixed(1):"0.0";}
+  function scoreText(value){if(value==null||value==="")return "--";var n=Number(value);return Number.isFinite(n)?n.toFixed(1):"--";}
   function formatTime(value){try{return new Intl.DateTimeFormat("zh-CN",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(value));}catch(_){return String(value||"");}}
   function coverageText(value){
     value=value||{};var ratio=value.coverage_ratio;
@@ -27,11 +55,21 @@
     if(value.observed_variables&&value.expected_variables) return value.observed_variables+"/"+value.expected_variables;
     return "未提供";
   }
+  function chineseDisplayName(value,fallback){
+    var text=String(value==null?"":value).trim();
+    if(!text) return fallback||"证据";
+    if(EVIDENCE_LABELS[text]) return EVIDENCE_LABELS[text];
+    if(VARIABLE_LABELS[text]) return VARIABLE_LABELS[text];
+    if(LABELS[text]) return LABELS[text];
+    if(/[\u3400-\u9fff]/.test(text)) return text;
+    if(/^[a-z][a-z0-9_]*(?:\.[a-z0-9_-]+)?$/i.test(text)) return fallback||"诊断证据";
+    return text;
+  }
   function evidenceText(item){
-    if(typeof item==="string") return item;
+    if(typeof item==="string") return chineseDisplayName(item,"诊断证据");
     if(!item||typeof item!=="object") return String(item||"");
-    var title=item.title||item.variable||item.name||item.rule||"证据";
-    var detail=item.detail||item.message||item.description||item.reason||item.value||"";
+    var title=chineseDisplayName(item.display_label||item.label||item.title||item.variable||item.name||item.rule,"诊断证据");
+    var detail=item.detail||item.text||item.message||item.description||item.reason||item.value||"";
     return title+(detail?"："+detail:"");
   }
   function contextUrl(){
@@ -48,18 +86,19 @@
     if(!data||!ctx||!ctx.available){badge.classList.add("bfdr-hidden");closeModal();return;}
     if(!ctx.is_abnormal){badge.classList.add("bfdr-hidden");closeModal();state.openedKey="";return;}
     root.querySelector(".bfdr-title").textContent=ctx.main_display_label||LABELS[ctx.main_label]||ctx.main_label;
-    summary.innerHTML='<div class="bfdr-meta"><div class="bfdr-meta-item"><span class="bfdr-label">诊断时间</span><span class="bfdr-value">'+escapeHtml(formatTime(ctx.diagnosis_ts))+'</span></div><div class="bfdr-meta-item"><span class="bfdr-label">异常段开始</span><span class="bfdr-value">'+escapeHtml(formatTime(ctx.episode_start_ts))+'</span></div><div class="bfdr-meta-item"><span class="bfdr-label">数据覆盖率</span><span class="bfdr-value">'+escapeHtml(coverageText(ctx.data_coverage))+'</span></div></div><div class="bfdr-primary-score"><div class="bfdr-primary-name">当前主诊断：'+escapeHtml(ctx.main_display_label||LABELS[ctx.main_label]||ctx.main_label)+'</div><div class="bfdr-primary-number">'+escapeHtml(scoreText(ctx.main_score))+' 分</div><div class="bfdr-score-note">诊断把握分表示规则符合度，不是统计概率。请结合现场工况和全部候选分数进行复核。</div></div>';
+    var mainDisplayScore=Object.prototype.hasOwnProperty.call(ctx,"display_main_score")?ctx.display_main_score:ctx.main_score,hotSource=ctx.score_sources&&ctx.score_sources.hot,scoreSourceNote=hotSource?'热制度上行统一采用ABC33 '+escapeHtml(hotSource.rule_id||"B4")+'分数；缺失或过期时显示“--”，不回退旧八类分数。':'';
+    summary.innerHTML='<div class="bfdr-meta"><div class="bfdr-meta-item"><span class="bfdr-label">诊断时间</span><span class="bfdr-value">'+escapeHtml(formatTime(ctx.diagnosis_ts))+'</span></div><div class="bfdr-meta-item"><span class="bfdr-label">异常段开始</span><span class="bfdr-value">'+escapeHtml(formatTime(ctx.episode_start_ts))+'</span></div><div class="bfdr-meta-item"><span class="bfdr-label">数据覆盖率</span><span class="bfdr-value">'+escapeHtml(coverageText(ctx.data_coverage))+'</span></div></div><div class="bfdr-primary-score"><div class="bfdr-primary-name">当前主诊断：'+escapeHtml(ctx.main_display_label||LABELS[ctx.main_label]||ctx.main_label)+'</div><div class="bfdr-primary-number">'+escapeHtml(scoreText(mainDisplayScore))+' 分</div><div class="bfdr-score-note">诊断把握分表示规则符合度，不是统计概率。请结合现场工况和全部候选分数进行复核。'+scoreSourceNote+'</div></div>';
     var evidence=Array.isArray(ctx.evidence)?ctx.evidence:[];
     evidenceWrap.innerHTML=evidence.length?'<ul class="bfdr-evidence">'+evidence.map(function(item){return '<li>'+escapeHtml(evidenceText(item))+'</li>';}).join("")+'</ul>':'<div class="bfdr-empty">本次快照未提供文字证据，请结合分数和现场状态判断。</div>';
     var candidates=Array.isArray(ctx.candidates)?ctx.candidates:[];
-    scoreList.innerHTML=candidates.map(function(item){var n=Math.max(0,Math.min(100,Number(item.score)||0));return '<div class="bfdr-score-row"><span class="bfdr-score-name">'+escapeHtml(item.label||LABELS[item.key]||item.key)+'</span><span class="bfdr-score-track" aria-hidden="true"><span class="bfdr-score-bar" style="width:'+n+'%"></span></span><span class="bfdr-score-value">'+escapeHtml(scoreText(item.score))+'</span></div>';}).join("");
+    scoreList.innerHTML=candidates.map(function(item){var n=Math.max(0,Math.min(100,Number(item.score)||0)),name=chineseDisplayName(item.display_label||item.label||LABELS[item.key]||item.key,"其他炉况");return '<div class="bfdr-score-row"><span class="bfdr-score-name">'+escapeHtml(name)+'</span><span class="bfdr-score-track" aria-hidden="true"><span class="bfdr-score-bar" style="width:'+n+'%"></span></span><span class="bfdr-score-value">'+escapeHtml(scoreText(item.score))+'</span></div>';}).join("");
     var auth=data.auth||{},reviewed=!!data.reviewed_by_current_user,canSubmit=!!auth.can_submit,loginRequired=auth.login_required!==false;
     root.querySelector(".bfdr-login").classList.remove("bfdr-hidden");
     authBox.classList.toggle("bfdr-hidden",canSubmit||!loginRequired);
     form.classList.toggle("bfdr-hidden",!canSubmit||reviewed);
     root.querySelector(".bfdr-logout").classList.toggle("bfdr-hidden",!auth.authenticated);
     if(reviewed){badge.textContent="异常已复核 · "+(ctx.main_display_label||LABELS[ctx.main_label]);badge.classList.add("bfdr-hidden");}
-    else{badge.textContent="异常待复核 · "+(ctx.main_display_label||LABELS[ctx.main_label])+" · "+scoreText(ctx.main_score)+"分";badge.classList.remove("bfdr-hidden");}
+    else{badge.textContent="异常待复核 · "+(ctx.main_display_label||LABELS[ctx.main_label])+" · "+scoreText(mainDisplayScore)+"分";badge.classList.remove("bfdr-hidden");}
     if(loginRequired&&auth.authenticated&&!canSubmit){authBox.classList.remove("bfdr-hidden");authBox.querySelector("h3").textContent="当前角色无权提交复核";root.querySelector(".bfdr-login").classList.add("bfdr-hidden");}
     var hasOpened=localStorage.getItem(openedStorageKey(ctx.episode_key))==="1";
     if(!reviewed&&!hasOpened){localStorage.setItem(openedStorageKey(ctx.episode_key),"1");state.openedKey=ctx.episode_key;openModal();}
