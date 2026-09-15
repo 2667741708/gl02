@@ -1,0 +1,1956 @@
+{
+  "schema": "bf.qa.collected-review.v1",
+  "evaluation_id": "Q-QA-ROUTING-RESULT-REVIEW-20260915",
+  "scope": "collected runtime metadata; answer fidelity requires case review",
+  "collected_count": 306,
+  "nonempty_answers": 305,
+  "answer_accuracy": null,
+  "route_counts": {
+    "grounded_fact_only": 84,
+    "general_model": 22,
+    "partial_grounded_analysis": 24,
+    "model_without_tools_after_mcp_failure_failed": 44,
+    "grounding_guard_rejected": 39,
+    "mcp_grounded_analysis": 11,
+    "deterministic_formatter_with_grounded_model_explanation": 2,
+    "realtime_failed_closed": 23,
+    "model_without_tools_after_mcp_failure": 31,
+    "deterministic_heat_dependency_failure": 3,
+    "model_planner_then_deterministic_formatter": 9,
+    "cross_source_with_analysis": 1,
+    "mcp_grounded_analysis_fallback": 4,
+    "deterministic_preflight_gate": 6,
+    "cross_source_deterministic_formatter": 2,
+    "no_final_route": 1
+  },
+  "latency_seconds": {
+    "p50": 13.547,
+    "p95_nearest_rank": 105.297,
+    "max": 150.765
+  },
+  "no_code_response_count": 28,
+  "no_code_non_arrow_count": 23,
+  "no_code_case_ids": [
+    "TPL-C5DF79304112ED85",
+    "TPL-A60B0CD794D49E48",
+    "TPL-BCA3335AC5ED904A",
+    "TPL-8B7C1859A362E3DD",
+    "TPL-D1FB28CE1B9C21E1",
+    "TPL-9350A36260D7589A",
+    "TPL-2945C0479E5AA40A",
+    "TPL-31A40BF0C39381C9",
+    "TPL-F4939324AC3D3D5F",
+    "TPL-7CBE3D558CAAD686",
+    "TPL-0F3B72EDE439BD33",
+    "TPL-00F9E60C73D8BE83",
+    "TPL-7199ADD9883B18D3",
+    "TPL-90EE7B371FE7A879",
+    "TPL-E5DB029B9B3B8DAC",
+    "TPL-7A5E5B1C2350866A",
+    "TPL-18399CD0A0FDD84D",
+    "TPL-EE9BDE0EB2830161",
+    "TPL-ED788A23FD13D06F",
+    "TPL-1FC0AF73CFDEC56F",
+    "TPL-AE9F0420FB3D1189",
+    "TPL-79F7FD9CA65536B7",
+    "TPL-3F71EF4AE829B406",
+    "TPL-ED01B1D5ACB947E6",
+    "TPL-B80F4BE6C7299763",
+    "TPL-C1E1277A435B94D0",
+    "TPL-66E35905C1B965AB",
+    "TPL-38A9CDFC0900CA9A"
+  ],
+  "known_structure_lines_executed": [
+    "TPL-8AE9CE4E0E3F1C66",
+    "TPL-6BBB7E3B1A467517",
+    "TPL-3B7081CA8E66236F",
+    "TPL-E1BAE7F4B1333FA5",
+    "TPL-F84DE7A21CEE68C4",
+    "TPL-9F85785238ED0526",
+    "TPL-37A8AE49DC70F26A",
+    "TPL-28D2AECCDEA9D723",
+    "TPL-3D972B0CDA47AF39",
+    "TPL-ED01B1D5ACB947E6",
+    "TPL-B80F4BE6C7299763",
+    "TPL-E0181EAF585C91D6",
+    "TPL-556727AA8980F753",
+    "TPL-6069D659076B1A5C",
+    "TPL-DF1C73C5E8F4946C",
+    "TPL-C1E1277A435B94D0",
+    "TPL-BFCEB9B028815574",
+    "TPL-02F0AED13898BFB8",
+    "TPL-42AFB23F5E20D859",
+    "TPL-30CE6D31FEFC9E1C",
+    "TPL-1632DC38C32021F5",
+    "TPL-234C98ED0639D6A0",
+    "TPL-66E35905C1B965AB",
+    "TPL-38A9CDFC0900CA9A",
+    "TPL-5F8E57003636E2BC",
+    "TPL-A2A05207F1AE7818"
+  ],
+  "source_counts": {
+    "PT/MCP可执行功能及口语调用模板.md": 146,
+    "PT/IMES_Vastbase_MCP指令模板全集.md": 11,
+    "PT/MCP少信息口语模板与无Prompt直连测试规范.md": 69,
+    "PT/8093近期炉况口语问答与安全边界Prompt模板.md": 38,
+    "PT/智能体工具能力评估与153点位稳定Prompt路由方案.md": 16,
+    "docs/8093_8094_Prompt固定KV前缀与知识库回答链路_20260805.md": 12,
+    "PT/智能体工具能力金标任务清单.v1.json": 8,
+    "PT/智能体工具能力扩展生产回归.v1.json": 6
+  },
+  "knowledge_questions_collected": 0,
+  "observed_tool_error_counts": {
+    "TimeoutError": 83,
+    "NO_DRAWABLE_DATA": 1,
+    "TOOL_POLICY_REJECTED": 3,
+    "INSUFFICIENT_VARIABLES": 1
+  },
+  "case_routes": [
+    {
+      "case_id": "TPL-F2180C7D419DA198",
+      "route": "grounded_fact_only",
+      "seconds": 3.344,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-A5F5920FB3425C53",
+      "route": "general_model",
+      "seconds": 52.688,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-6FEC8B7F06A3D59B",
+      "route": "partial_grounded_analysis",
+      "seconds": 72.687,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-DFAFBFA898C6552F",
+      "route": "grounded_fact_only",
+      "seconds": 1.438,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-342113EAB17420C6",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 2.89,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-DAA60976527882AB",
+      "route": "grounding_guard_rejected",
+      "seconds": 4.594,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E1C7A67C947531E9",
+      "route": "grounded_fact_only",
+      "seconds": 5.125,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-0940D9DF0383484E",
+      "route": "grounded_fact_only",
+      "seconds": 4.5,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-55D0652FF4DA336A",
+      "route": "mcp_grounded_analysis",
+      "seconds": 14.047,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-FD3912331A49B991",
+      "route": "grounded_fact_only",
+      "seconds": 1.25,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-AF1FDAA9E0181875",
+      "route": "grounded_fact_only",
+      "seconds": 1.688,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-8DA6777B502376D4",
+      "route": "grounded_fact_only",
+      "seconds": 3.688,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-3B2C2E2E0A950645",
+      "route": "grounded_fact_only",
+      "seconds": 2.985,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-01EEE414179DB624",
+      "route": "grounding_guard_rejected",
+      "seconds": 19.984,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-B8D1175D30946423",
+      "route": "mcp_grounded_analysis",
+      "seconds": 21.891,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-FDD2EA94EBDB2630",
+      "route": "grounded_fact_only",
+      "seconds": 6.64,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1E6DF4660CDF8A38",
+      "route": "deterministic_formatter_with_grounded_model_explanation",
+      "seconds": 68.75,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-D61D0BF109805FA0",
+      "route": "grounded_fact_only",
+      "seconds": 3.563,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-2BFAEE32F9469266",
+      "route": "mcp_grounded_analysis",
+      "seconds": 10.766,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-7714B2D83F72FD86",
+      "route": "realtime_failed_closed",
+      "seconds": 2.094,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-C5DF79304112ED85",
+      "route": "grounding_guard_rejected",
+      "seconds": 76,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-BE97AA4EAD567003",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.515,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-A60B0CD794D49E48",
+      "route": "grounding_guard_rejected",
+      "seconds": 49.515,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-254A275F94B2E4D5",
+      "route": "grounded_fact_only",
+      "seconds": 5.953,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-4F88313740F4A5DD",
+      "route": "grounded_fact_only",
+      "seconds": 5.375,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E27163EABE69434C",
+      "route": "grounded_fact_only",
+      "seconds": 2.141,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-AECC82CB5AF44AFE",
+      "route": "grounded_fact_only",
+      "seconds": 3.031,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-790672760E5C98BA",
+      "route": "grounded_fact_only",
+      "seconds": 2.828,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-37F6B2853458E87F",
+      "route": "grounded_fact_only",
+      "seconds": 2.032,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-4461883D26891DB1",
+      "route": "grounded_fact_only",
+      "seconds": 1.422,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1AC880F596B4C1DB",
+      "route": "grounded_fact_only",
+      "seconds": 1.25,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1515EADD20F91D1D",
+      "route": "grounded_fact_only",
+      "seconds": 1.781,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-B3665E43A2908C1D",
+      "route": "grounded_fact_only",
+      "seconds": 1.313,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E9863B2159D4228C",
+      "route": "grounded_fact_only",
+      "seconds": 3.047,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-61F40958498914A0",
+      "route": "grounded_fact_only",
+      "seconds": 1.86,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-A51164EBA99CD0BB",
+      "route": "grounded_fact_only",
+      "seconds": 2.766,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-D0368B2C7EEF8AD8",
+      "route": "grounded_fact_only",
+      "seconds": 1.313,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-C8DBEDC1FA204362",
+      "route": "grounded_fact_only",
+      "seconds": 1.828,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E794EB91CED6633F",
+      "route": "grounded_fact_only",
+      "seconds": 1.063,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-34A8A093B99F42E2",
+      "route": "grounded_fact_only",
+      "seconds": 1.39,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-F84133F736C1F86F",
+      "route": "grounded_fact_only",
+      "seconds": 2.203,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-6D74CE01415C1164",
+      "route": "grounded_fact_only",
+      "seconds": 1.485,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-D5FE1DF02687B2DC",
+      "route": "mcp_grounded_analysis",
+      "seconds": 16.688,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-70DF4BD02E6B7D5A",
+      "route": "grounded_fact_only",
+      "seconds": 1.672,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-8A602502C26C1C21",
+      "route": "grounded_fact_only",
+      "seconds": 2.438,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-42AD464DEFE7E2B4",
+      "route": "grounded_fact_only",
+      "seconds": 3.422,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-38825D11787076E6",
+      "route": "grounded_fact_only",
+      "seconds": 1.094,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-31971B66739393C5",
+      "route": "grounded_fact_only",
+      "seconds": 1.563,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-AC19B177D37BCB64",
+      "route": "grounded_fact_only",
+      "seconds": 1.078,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-55AEE738B4FFC481",
+      "route": "grounded_fact_only",
+      "seconds": 1.797,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-3139C78613255A2A",
+      "route": "mcp_grounded_analysis",
+      "seconds": 13.078,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-43C6592D4F5568D2",
+      "route": "mcp_grounded_analysis",
+      "seconds": 19.219,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-CD273A901AC9E486",
+      "route": "grounded_fact_only",
+      "seconds": 4.406,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-933773C8C24B2E93",
+      "route": "grounded_fact_only",
+      "seconds": 1.328,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-C3F026C6D4D667AF",
+      "route": "grounded_fact_only",
+      "seconds": 1.656,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-9B7FD4CA4057CD60",
+      "route": "grounding_guard_rejected",
+      "seconds": 5.797,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-EFD94E336BA52493",
+      "route": "mcp_grounded_analysis",
+      "seconds": 43.016,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-FAC91EC6AEE57B1C",
+      "route": "grounded_fact_only",
+      "seconds": 3.079,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-16C25305FB491188",
+      "route": "grounded_fact_only",
+      "seconds": 2.375,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-42C940219979744B",
+      "route": "grounded_fact_only",
+      "seconds": 3.203,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1A417CC3E21DFFCD",
+      "route": "grounded_fact_only",
+      "seconds": 2.782,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-BCA3335AC5ED904A",
+      "route": "grounding_guard_rejected",
+      "seconds": 51.578,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-FACD6F5FE05C74FC",
+      "route": "grounded_fact_only",
+      "seconds": 1.953,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-92D00C7A8293BD92",
+      "route": "mcp_grounded_analysis",
+      "seconds": 22.297,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-F6811B7ECE5CF418",
+      "route": "grounded_fact_only",
+      "seconds": 5.875,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-286140EA071F9D0B",
+      "route": "grounded_fact_only",
+      "seconds": 5.844,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-F6EAF033EF47A028",
+      "route": "partial_grounded_analysis",
+      "seconds": 62.39,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-E3BEE594879973AF",
+      "route": "grounded_fact_only",
+      "seconds": 5.266,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-8D2A73325B9808DA",
+      "route": "grounded_fact_only",
+      "seconds": 3.938,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-6BEB7753ED8C77F1",
+      "route": "grounded_fact_only",
+      "seconds": 3.219,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-CCCEC17F69658665",
+      "route": "partial_grounded_analysis",
+      "seconds": 57.5,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-68EAF698EA7347F2",
+      "route": "mcp_grounded_analysis",
+      "seconds": 16.297,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-F286AD575F513AD8",
+      "route": "deterministic_formatter_with_grounded_model_explanation",
+      "seconds": 19.719,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-A4D9A6D2D7870998",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 33.641,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1C9D77429081E27B",
+      "route": "mcp_grounded_analysis",
+      "seconds": 14.718,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1CD4F70FB899C981",
+      "route": "grounded_fact_only",
+      "seconds": 1.375,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-4CA73F09C24F631B",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 20.328,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-8B7C1859A362E3DD",
+      "route": "grounding_guard_rejected",
+      "seconds": 40.844,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-186D633F24760100",
+      "route": "realtime_failed_closed",
+      "seconds": 43.235,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-D1FB28CE1B9C21E1",
+      "route": "grounding_guard_rejected",
+      "seconds": 41.297,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-F80A57468B2450A6",
+      "route": "grounded_fact_only",
+      "seconds": 6.39,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-3A3C2068691A88C3",
+      "route": "partial_grounded_analysis",
+      "seconds": 113.985,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-DDAFB36C104C4B7B",
+      "route": "grounded_fact_only",
+      "seconds": 1.578,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-9350A36260D7589A",
+      "route": "grounding_guard_rejected",
+      "seconds": 45.078,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-1F500CEAC5EBE767",
+      "route": "mcp_grounded_analysis",
+      "seconds": 12.157,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-2D8914F0F3604F36",
+      "route": "grounded_fact_only",
+      "seconds": 1.266,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-7614CA67D7F2E7DD",
+      "route": "grounded_fact_only",
+      "seconds": 1.094,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-DFF32C419B36606C",
+      "route": "grounded_fact_only",
+      "seconds": 1.781,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-2945C0479E5AA40A",
+      "route": "grounding_guard_rejected",
+      "seconds": 108.484,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-31A40BF0C39381C9",
+      "route": "grounding_guard_rejected",
+      "seconds": 71.359,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-BCAD4912B95EDE53",
+      "route": "partial_grounded_analysis",
+      "seconds": 105.297,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-3DE1B6B6ACEA0AD7",
+      "route": "realtime_failed_closed",
+      "seconds": 2.704,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-05A9A96C9888D367",
+      "route": "realtime_failed_closed",
+      "seconds": 40.781,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-E503D9911C7D851C",
+      "route": "grounded_fact_only",
+      "seconds": 3.204,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-3877C5B34E972AA0",
+      "route": "grounded_fact_only",
+      "seconds": 1.656,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-CF2F5CE08B7C89A3",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 138.515,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-4EB4CE7FC45519A5",
+      "route": "grounded_fact_only",
+      "seconds": 1.828,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-F4939324AC3D3D5F",
+      "route": "grounding_guard_rejected",
+      "seconds": 114.171,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-35837203701E36D7",
+      "route": "grounded_fact_only",
+      "seconds": 2.391,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-51DBD2F7F660CCFF",
+      "route": "grounded_fact_only",
+      "seconds": 2.796,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-2E436DEA426D7A67",
+      "route": "realtime_failed_closed",
+      "seconds": 6.406,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-20B68D32B089FB25",
+      "route": "realtime_failed_closed",
+      "seconds": 5.406,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-6A0FCF631C93CD41",
+      "route": "deterministic_heat_dependency_failure",
+      "seconds": 6.89,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-A9387634063418C6",
+      "route": "realtime_failed_closed",
+      "seconds": 6,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-9A26776AB4AAE34E",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 25.313,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-46D743ACF5E5D23F",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 148.109,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-9765A2A0720C9565",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 15.609,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E5D0A896A19FA09C",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 45.906,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-B25F617E028B3D02",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 15.344,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-F504EE3A58BF0152",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 38.297,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-FA2BC995A3E9A8AA",
+      "route": "general_model",
+      "seconds": 39.265,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-5C9E874BAB815CA3",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 15.281,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-FB4A691D552071D0",
+      "route": "deterministic_heat_dependency_failure",
+      "seconds": 5.859,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-DEF5A3FC86C5ECE7",
+      "route": "realtime_failed_closed",
+      "seconds": 5.532,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-D5F91DFF48FCF73D",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 6.891,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-7E378C4D189BD5BB",
+      "route": "partial_grounded_analysis",
+      "seconds": 58.281,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-82506935F3B1526D",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 83.656,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-DD06B43897BFB698",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 98.094,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-C63168FFEBEE9B51",
+      "route": "realtime_failed_closed",
+      "seconds": 54.172,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-EB3BC80BD49EF7FF",
+      "route": "realtime_failed_closed",
+      "seconds": 21.656,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-732341F85F0DA24B",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 10.172,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-724154A3167A5D38",
+      "route": "realtime_failed_closed",
+      "seconds": 69.282,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-A9F800FA85F26D86",
+      "route": "realtime_failed_closed",
+      "seconds": 57.171,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-4D247852B0237D54",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 13.547,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-86EB267E28428D76",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 80.344,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-201FE4273F383C4C",
+      "route": "realtime_failed_closed",
+      "seconds": 58.891,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-189C0C054B96DC99",
+      "route": "grounded_fact_only",
+      "seconds": 6.672,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E607DB4EC23223CD",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 8.218,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-79D344DDCB7808A8",
+      "route": "realtime_failed_closed",
+      "seconds": 8.844,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-4AEEDBF394C836AA",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 37.86,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-EE93F1449900FE4F",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 77.766,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-B1021F8C3DB297E1",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 49.344,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-0EA377D298843D33",
+      "route": "realtime_failed_closed",
+      "seconds": 9.344,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-C9F9F7E707F8F24F",
+      "route": "realtime_failed_closed",
+      "seconds": 8.64,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-B22F8349CBBA899C",
+      "route": "grounding_guard_rejected",
+      "seconds": 16.453,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-43E24946FC502E1B",
+      "route": "grounding_guard_rejected",
+      "seconds": 17.312,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-2F264A18AAF43481",
+      "route": "grounding_guard_rejected",
+      "seconds": 20.469,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-79DC17D6D5B3FC54",
+      "route": "partial_grounded_analysis",
+      "seconds": 73.625,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-60B3072811C34572",
+      "route": "grounded_fact_only",
+      "seconds": 5.859,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-21F62D5A3F36607D",
+      "route": "grounded_fact_only",
+      "seconds": 5.219,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-7FCACEA621E2FD32",
+      "route": "grounding_guard_rejected",
+      "seconds": 13.688,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-DD39194D33C358BC",
+      "route": "grounding_guard_rejected",
+      "seconds": 4.375,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-26CC8346013E1DEA",
+      "route": "grounded_fact_only",
+      "seconds": 1.531,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-664F43926235B0C3",
+      "route": "grounding_guard_rejected",
+      "seconds": 3.625,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-496B774E90F8EA09",
+      "route": "grounded_fact_only",
+      "seconds": 2.625,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-918B8A50FB93700D",
+      "route": "cross_source_with_analysis",
+      "seconds": 26.688,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-71D2AE5C27F684A9",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 145.141,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-7CBE3D558CAAD686",
+      "route": "grounding_guard_rejected",
+      "seconds": 45.11,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-DA538AD197BCA163",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 111.234,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-CE96B3FDF31B8E48",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 101.796,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-EEE07553C8D3C220",
+      "route": "realtime_failed_closed",
+      "seconds": 49.625,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-0F689B2B79933981",
+      "route": "realtime_failed_closed",
+      "seconds": 47.531,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-081C1B699AB1A427",
+      "route": "realtime_failed_closed",
+      "seconds": 7.016,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-887A8D56EFDEA16F",
+      "route": "partial_grounded_analysis",
+      "seconds": 56.031,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-235789EDAE84A37D",
+      "route": "realtime_failed_closed",
+      "seconds": 5.313,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-89557D6BDBEE0145",
+      "route": "partial_grounded_analysis",
+      "seconds": 107.297,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-0F3B72EDE439BD33",
+      "route": "grounding_guard_rejected",
+      "seconds": 31.953,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-27FD9F826DDBBABF",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.219,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-7EC66E35CF5B3472",
+      "route": "grounded_fact_only",
+      "seconds": 1.704,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1D8981688110331D",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 3.234,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-AE3C234746DBF140",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 63,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-12DB3A42BB308BDF",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 65.485,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-84041DBB66556306",
+      "route": "grounded_fact_only",
+      "seconds": 3.25,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-00F9E60C73D8BE83",
+      "route": "grounding_guard_rejected",
+      "seconds": 39.187,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-A231568C4504BFDA",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 29.328,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-8D4B6000E27F403D",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 81.985,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-9F75FA1A5D4B8683",
+      "route": "partial_grounded_analysis",
+      "seconds": 48.188,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-F5FB0911BE281950",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 2.75,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-077A2581C869B427",
+      "route": "mcp_grounded_analysis_fallback",
+      "seconds": 53.671,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-68430DF10F43BD4F",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 113.328,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-4EC1A8EE7C7FAA06",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 72.843,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-DC6C94AD6981E143",
+      "route": "partial_grounded_analysis",
+      "seconds": 57.218,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-665A75C9340DFCD2",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.281,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-76BCDA4D4F170E15",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 81.062,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-3465358734E6BB59",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.078,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-5C7DD2614DD42A9E",
+      "route": "partial_grounded_analysis",
+      "seconds": 65.594,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-4F3E4DA366EA5176",
+      "route": "partial_grounded_analysis",
+      "seconds": 73.859,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-494886E5102887DF",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.921,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-41DBA44D05DD7B82",
+      "route": "general_model",
+      "seconds": 39.109,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-7199ADD9883B18D3",
+      "route": "grounding_guard_rejected",
+      "seconds": 79.141,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-7A9011316E1B0C6B",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 91.719,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-80CCC9782DAC861C",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 100.578,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-90EE7B371FE7A879",
+      "route": "grounding_guard_rejected",
+      "seconds": 57.25,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-C622D1416B2D6793",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 101.672,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-90B560E861D8489F",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 118.375,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-9D88BBD4D3F8817B",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 2.438,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-3C54E644754F2D34",
+      "route": "realtime_failed_closed",
+      "seconds": 5.687,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-50982250B2F2DE3A",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 20.015,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-71C94E6A66F62AC5",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 65.14,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-D327A61D3835A1E6",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 8.656,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-DD9B6FE5026CB74E",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 94.828,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-F59F38724F27BD8F",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 106.281,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-6618CA7965988798",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 3.016,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-6AD64FD7C5C75D8C",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 66.265,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-77B1BBADF0DF38FA",
+      "route": "grounded_fact_only",
+      "seconds": 1.641,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-A28CF1C38007A45F",
+      "route": "general_model",
+      "seconds": 28.438,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E5DB029B9B3B8DAC",
+      "route": "grounding_guard_rejected",
+      "seconds": 21.36,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-7A5E5B1C2350866A",
+      "route": "grounding_guard_rejected",
+      "seconds": 15.437,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E2C848E6277ECFB7",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.75,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-E3A26FF1BF5434C9",
+      "route": "partial_grounded_analysis",
+      "seconds": 72.953,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-D2C76D5EEB0599FD",
+      "route": "grounded_fact_only",
+      "seconds": 3.391,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-AC03EBFC7B6DE0C9",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 106.36,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-D8C48E81693725D9",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.625,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-BD1BA42AD97CDD85",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 120.375,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-265F33969E1082DB",
+      "route": "partial_grounded_analysis",
+      "seconds": 47.609,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-C98A215EA8BB5EAC",
+      "route": "grounded_fact_only",
+      "seconds": 1.61,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-18399CD0A0FDD84D",
+      "route": "grounding_guard_rejected",
+      "seconds": 56.344,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-EE9BDE0EB2830161",
+      "route": "grounding_guard_rejected",
+      "seconds": 75.312,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-06B87FAC373B1D85",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 75.141,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-65C5A782EFEE7380",
+      "route": "model_planner_then_deterministic_formatter",
+      "seconds": 15,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-A64DC38A7F771A47",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 6.265,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-E7160F2B98A847EA",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.703,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-ED788A23FD13D06F",
+      "route": "grounding_guard_rejected",
+      "seconds": 58.656,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-0CF5DE34239FDE3D",
+      "route": "grounded_fact_only",
+      "seconds": 2.281,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-F1779C85E6E83762",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 3.703,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-BCC646D084C224D2",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 100.391,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-202D79E7DC4B3E3D",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 54.063,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-C4C57D8FAE7CEDE7",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 75.703,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1FC0AF73CFDEC56F",
+      "route": "grounding_guard_rejected",
+      "seconds": 53.156,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-B8803DD511E17A4B",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 2.203,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-BE307DA37C794353",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 62.984,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-0FADB12B4A5C0E02",
+      "route": "grounded_fact_only",
+      "seconds": 1.062,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-587BFCACCCD5C610",
+      "route": "partial_grounded_analysis",
+      "seconds": 77.453,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-572CBDEF5C5F8738",
+      "route": "grounded_fact_only",
+      "seconds": 4.062,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-83C8D51AA7BC286F",
+      "route": "partial_grounded_analysis",
+      "seconds": 99.844,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-F6C42D98F00CA017",
+      "route": "partial_grounded_analysis",
+      "seconds": 92.5,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-6B3FE81B4E7906E9",
+      "route": "grounding_guard_rejected",
+      "seconds": 1.969,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-B2833049FF8C163A",
+      "route": "grounded_fact_only",
+      "seconds": 1.906,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-AE9F0420FB3D1189",
+      "route": "grounding_guard_rejected",
+      "seconds": 48.594,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-018003C335C4D261",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.11,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-FB64BF57CE2B8868",
+      "route": "partial_grounded_analysis",
+      "seconds": 28.156,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-571C3D819478C687",
+      "route": "realtime_failed_closed",
+      "seconds": 44.265,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-0373032410BC6869",
+      "route": "partial_grounded_analysis",
+      "seconds": 58.39,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-5B23FB9A18D0527E",
+      "route": "realtime_failed_closed",
+      "seconds": 53.204,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-109281BE5A474A7B",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.547,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-6A9C558EEF78002E",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 3.14,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-CB5ACF6C3044D76A",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 150.765,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-4CF21718A200D91E",
+      "route": "grounding_guard_rejected",
+      "seconds": 1.719,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-D46D8F21C0B59397",
+      "route": "partial_grounded_analysis",
+      "seconds": 63.485,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-059238A5F1576C31",
+      "route": "grounded_fact_only",
+      "seconds": 1.468,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-E765DF3B76316A3B",
+      "route": "grounded_fact_only",
+      "seconds": 3.672,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-79F7FD9CA65536B7",
+      "route": "grounding_guard_rejected",
+      "seconds": 30.984,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-D5A47CCDF5D927C0",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.515,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-42C1BE6A46F11574",
+      "route": "mcp_grounded_analysis_fallback",
+      "seconds": 66.922,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-096D4D57B1AF9647",
+      "route": "partial_grounded_analysis",
+      "seconds": 26.531,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-33F5A641E3E7CA68",
+      "route": "mcp_grounded_analysis_fallback",
+      "seconds": 62.672,
+      "tool_calls": 4
+    },
+    {
+      "case_id": "TPL-96043053AFB1A1DC",
+      "route": "partial_grounded_analysis",
+      "seconds": 24.078,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-D65A75EBA7D69960",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 68.015,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-E6AFA41064AC3669",
+      "route": "general_model",
+      "seconds": 13.937,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-E662064460480B9D",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.328,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-3F71EF4AE829B406",
+      "route": "grounding_guard_rejected",
+      "seconds": 55.234,
+      "tool_calls": 3
+    },
+    {
+      "case_id": "TPL-9DB503A7BACAA94B",
+      "route": "general_model",
+      "seconds": 62.047,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-A5B88C77C41F24B4",
+      "route": "deterministic_preflight_gate",
+      "seconds": 0.828,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-BFD50B3C6DCDC2F0",
+      "route": "general_model",
+      "seconds": 22.125,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-C833E6E32CC4D8D9",
+      "route": "general_model",
+      "seconds": 42.094,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-B3BF044061F33E41",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.172,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-BEB617417A376656",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.922,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-0F1075D1C8967EA5",
+      "route": "general_model",
+      "seconds": 32.281,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-19DA2A3B97F0F609",
+      "route": "mcp_grounded_analysis_fallback",
+      "seconds": 26.375,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-BF8B5D19F943E1A7",
+      "route": "general_model",
+      "seconds": 13.343,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-5692B289B45F48DC",
+      "route": "general_model",
+      "seconds": 63.39,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-F18561BE83F2F590",
+      "route": "deterministic_preflight_gate",
+      "seconds": 0.266,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-0E52220D8E441F94",
+      "route": "deterministic_preflight_gate",
+      "seconds": 0.359,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-9B7A5B9CBAFED3A4",
+      "route": "deterministic_preflight_gate",
+      "seconds": 0.281,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-8AE9CE4E0E3F1C66",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 33.781,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-6BBB7E3B1A467517",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 18.016,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-3B7081CA8E66236F",
+      "route": "general_model",
+      "seconds": 20.421,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-E1BAE7F4B1333FA5",
+      "route": "general_model",
+      "seconds": 17.422,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-F84DE7A21CEE68C4",
+      "route": "model_without_tools_after_mcp_failure",
+      "seconds": 51.125,
+      "tool_calls": 5
+    },
+    {
+      "case_id": "TPL-9F85785238ED0526",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 2.672,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-37A8AE49DC70F26A",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 3.157,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-C6DA6228562BE537",
+      "route": "general_model",
+      "seconds": 19.141,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-28D2AECCDEA9D723",
+      "route": "deterministic_preflight_gate",
+      "seconds": 0.172,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-3D972B0CDA47AF39",
+      "route": "partial_grounded_analysis",
+      "seconds": 105.922,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-ED01B1D5ACB947E6",
+      "route": "grounding_guard_rejected",
+      "seconds": 45.656,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-B80F4BE6C7299763",
+      "route": "grounding_guard_rejected",
+      "seconds": 36.844,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-E0181EAF585C91D6",
+      "route": "general_model",
+      "seconds": 12.094,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-556727AA8980F753",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.688,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-6069D659076B1A5C",
+      "route": "general_model",
+      "seconds": 44.937,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-DF1C73C5E8F4946C",
+      "route": "general_model",
+      "seconds": 6.781,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-C1E1277A435B94D0",
+      "route": "grounding_guard_rejected",
+      "seconds": 34.297,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-BFCEB9B028815574",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.296,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-02F0AED13898BFB8",
+      "route": "general_model",
+      "seconds": 42.109,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-42AFB23F5E20D859",
+      "route": "general_model",
+      "seconds": 23.687,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-30CE6D31FEFC9E1C",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 22.562,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-1632DC38C32021F5",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 46.031,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-234C98ED0639D6A0",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 1.594,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-66E35905C1B965AB",
+      "route": "grounding_guard_rejected",
+      "seconds": 36.078,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-38A9CDFC0900CA9A",
+      "route": "grounding_guard_rejected",
+      "seconds": 25.579,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-5F8E57003636E2BC",
+      "route": "model_without_tools_after_mcp_failure_failed",
+      "seconds": 4.391,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-A2A05207F1AE7818",
+      "route": "general_model",
+      "seconds": 23.265,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-EC34B09083C2CD62",
+      "route": "general_model",
+      "seconds": 54.156,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-2DF1B40A2B827533",
+      "route": "grounded_fact_only",
+      "seconds": 4.312,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-6592EC7EB4D68DC3",
+      "route": "cross_source_deterministic_formatter",
+      "seconds": 9.563,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-BF711DBC10B737EC",
+      "route": "cross_source_deterministic_formatter",
+      "seconds": 7.61,
+      "tool_calls": 2
+    },
+    {
+      "case_id": "TPL-AB5CA518CBCD6621",
+      "route": "general_model",
+      "seconds": 44.265,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-16E27E745C7096C0",
+      "route": "grounded_fact_only",
+      "seconds": 4.985,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-7DECFC653813749E",
+      "route": "deterministic_heat_dependency_failure",
+      "seconds": 7.094,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-18F38D141C29CF15",
+      "route": null,
+      "seconds": 0.156,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-9393CFDA83E97166",
+      "route": "deterministic_preflight_gate",
+      "seconds": 0.14,
+      "tool_calls": 0
+    },
+    {
+      "case_id": "TPL-4774C00F556C8580",
+      "route": "grounded_fact_only",
+      "seconds": 2.687,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-BC154E9C24E11A56",
+      "route": "grounded_fact_only",
+      "seconds": 4.078,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-B85AF9BC8053421B",
+      "route": "grounded_fact_only",
+      "seconds": 3.797,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-559531E21843976D",
+      "route": "grounded_fact_only",
+      "seconds": 2.422,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-F0335E9C274BAAA1",
+      "route": "grounded_fact_only",
+      "seconds": 2.062,
+      "tool_calls": 1
+    },
+    {
+      "case_id": "TPL-08C16AB9B8974F38",
+      "route": "grounded_fact_only",
+      "seconds": 1.953,
+      "tool_calls": 1
+    }
+  ],
+  "unmeasured": [
+    "full-corpus answer accuracy",
+    "pass^5",
+    "six-user concurrency",
+    "guest/operator parity",
+    "all numerical claims",
+    "raw-series independent statistics"
+  ],
+  "private_input_sha256": "daa411ca2d6582b76b50fa7208d60a1a69f141c9aa5c4468e717c1531c51f364"
+}
+
