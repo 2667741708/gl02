@@ -1,5 +1,12 @@
 # 程序索引
 
+## 智能助手证据优先回归集
+
+- `tools/qa_regression.py`：只读校验用例和合成夹具，生成规范用例列表，评分由可信收集器提供的候选运行记录；不连接模型、生产接口或数据库。
+- `tests/qa_regression/cases.v1.json` / `fixtures.v1.json`：问答合同与合成数据的唯一机器权威；`run.example.json` 仅演示格式。
+- `tests/test_qa_regression.py`：评分器的正反例及防误报检查。
+- 需求与边界：[回归集维护说明](../tests/qa_regression/README.md)，REQ-QA-EVIDENCE-FIRST-REGRESSION-20260915。
+
 ## 罐重设定 sensor_registry 登记
 
 - `tools/register_hopper_weight_set_points.py`：从正式 TSV 读取南北探尺、11 个罐重设定物理

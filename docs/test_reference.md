@@ -1,5 +1,18 @@
 # 测试参考
 
+## TEST-QA-EVIDENCE-FIRST-REGRESSION-20260915
+
+```powershell
+python -X utf8 tools/qa_regression.py
+python -X utf8 tools/qa_regression.py --list
+python -X utf8 -m unittest discover -s tests -p test_qa_regression.py -v
+```
+
+- 对应需求：REQ-QA-EVIDENCE-FIRST-REGRESSION-20260915；[目录、格式、评分及持续扩展](../tests/qa_regression/README.md)。
+- 首批验证：30条用例、11组完全合成夹具合法；17项评分器测试通过，包含舍入/编号、伪造值、错误载荷、跨owner、部分失败、时限及审阅绑定。
+- 只验证集合与评分器，没有实际模型或生产MCP执行；不报告生产通过率。
+- `python -X utf8 tools/qa_regression.py --results tests/qa_regression/run.example.json` 预期退出1：仅有一条人工构造示例，报告待审阅及其余未运行，不得当作全绿。
+
 ## TEST-SENSOR-REGISTRY-HOPPER-WEIGHT-SET-20260814
 
 ```powershell
