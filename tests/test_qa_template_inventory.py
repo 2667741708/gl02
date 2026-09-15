@@ -35,6 +35,8 @@ class InventoryTests(unittest.TestCase):
     def test_public_scrubber(self):
         result=inventory.sanitized('入口http://192.168.1.1:80 token=abc')
         self.assertNotIn('192.168',result); self.assertNotIn('abc',result)
+        self.assertEqual(inventory.sanitized('请解释5.3.3.1条'),'请解释5.3.3.1条')
+        self.assertNotIn('2#20260716-101',inventory.sanitized('查询2#20260716-101'))
     def test_batch_refuses_changed_runtime_before_request(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp); collector=root/'collector.py'; collector.write_text('pass',encoding='utf-8')

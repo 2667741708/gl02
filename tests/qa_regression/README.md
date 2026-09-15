@@ -99,6 +99,8 @@ python -X utf8 tools/qa_regression.py --results path/to/run.json --reviews path/
 
 全量模板入口：[来源与问题目录](templates.v1.json)、[合同检查](template_contracts_20260915.json)、[第二版结果与范围](live_after_v2_20260915.md)。导入工具为 tools/import_qa_prompt_sources.py，执行计划生成器为 tools/prepare_qa_template_batch.py，串行执行器为 tools/run_qa_template_batch.py；系统模板不作为用户消息发送，参考答案不能进入执行载荷。
 
+长批次使用 tools/start_qa_batch_independent.ps1 在已授权服务器上启动无窗口独立进程。恢复前先核实原进程、claim、结果及必要的会话持久化，再用 tools/prepare_qa_batch_continuation.py 排除所有已 claim 题；未知结果不能自动重发，多轮题缺少原会话时拒绝续接。progress.json 的 completed 表示收集完成，answer_contract=pending_review 表示尚未通过内容审阅。
+
 1. 从新问题提炼失败模式，先脱敏/改写，再分配下一个 QA 编号；不要复用或重排旧编号。
 2. 添加最小合成夹具，明确对象、时间、来源、质量、权限和故障阶段；计算结果必须可独立复算。
 3. 优先成对补题：同一句话配“足够/不足”证据，或同一证据配“历史/当前”问题，验证路由依据而不是关键词。
