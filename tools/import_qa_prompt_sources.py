@@ -41,10 +41,12 @@ def disposition(text, kind):
     if kind == 'system_template': return 'contract_only', 'system_template_not_user_question'
     if kind == 'code_block': return 'contract_only', 'code_or_protocol_example'
     if not text.strip(): return 'skipped', 'blank'
-    if text.startswith(('助手：', 'assistant:', '无数据：', '多样品：', '缺失值：', '查询失败：', '超时：', '权限不足：')):
+    if text.startswith(('助手：', 'assistant:', '无数据：', '多样品：', '缺失值：', '查询失败：', '超时：', '权限不足：', '尚未发布：', '概念歧义：')):
         return 'skipped', 'assistant_example'
     if re.search(r'\{[^{}]+\}|<[^>]+>|\[填', text): return 'skipped', 'unresolved_placeholder'
-    if text.startswith(('->', 'MCP Client', '固定', '动态')): return 'contract_only', 'prompt_structure'
+    if text.startswith(('->', '→', 'MCP Client', '固定', '动态')): return 'contract_only', 'prompt_structure'
+    if text in ('用户口语问题', '用户问题', '当前问题'): return 'contract_only', 'prompt_structure'
+    if re.match(r'^[A-Za-z]:[\\/]', text): return 'contract_only', 'source_path_not_question'
     if not re.search(r'[\u4e00-\u9fff]', text): return 'contract_only', 'identifier_or_protocol'
     return 'ready', None
 
@@ -207,3 +209,4 @@ def main():
     write(a.output,public)
     print(json.dumps({'counts':private['counts'],'sources':len(sources),'missing':[s['path'] for s in sources if s['status']=='missing']},ensure_ascii=False))
 if __name__=='__main__': main()
+

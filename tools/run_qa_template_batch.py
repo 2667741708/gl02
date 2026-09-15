@@ -19,6 +19,8 @@ def write(path,obj):
 
 def verify(plan,root,collector):
     if digest(collector)!=plan['collector_sha256']: raise RuntimeError('collector hash changed')
+    if plan.get('catalog_sha256') and digest(root/'数据库同步和存取/config/点位语义目录.json')!=plan['catalog_sha256']:
+        raise RuntimeError('catalog hash changed')
     for relative,sha in plan['runtime_hashes'].items():
         if digest(root/relative)!=sha: raise RuntimeError('runtime version changed: '+relative)
 
@@ -55,7 +57,7 @@ def main():
     state={'schema':'bf.qa.batch-progress.v1','pid':os.getpid(),'plan_sha256':digest(a.plan),
         'total':len(plan['cases']),'completed':0,'requests':0,'state':'running','results':[],
         'automatic_retries':0,'started_at':time.time()}
-    conversations={}
+    conversations=dict(plan.get('initial_conversations') or {})
     progress=a.output/'progress.json'
     try:
         for case in plan['cases']:
@@ -103,3 +105,4 @@ def main():
     print(json.dumps({k:v for k,v in state.items() if k!='results'},ensure_ascii=False))
 
 if __name__=='__main__': main()
+
