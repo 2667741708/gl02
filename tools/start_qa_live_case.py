@@ -20,7 +20,7 @@ def main():
     parser.add_argument('--runner-base64', required=True)
     args = parser.parse_args()
     case = json.loads(args.case_json)
-    if not re.fullmatch(r'LIVE-\d{3}', case['case_id']) or args.phase not in {'before', 'after'}:
+    if not re.fullmatch(r'(?:LIVE-\d{3}|TPL-[A-F0-9]{16})', case['case_id']) or not re.fullmatch(r'(?:before|after)(?:-v\d+)?|templates-v\d+', args.phase):
         raise ValueError('invalid case or phase')
     source = base64.b64decode(args.runner_base64, validate=True)
     compile(source, '<qa-live-collector>', 'exec')

@@ -70,7 +70,7 @@ def run(args):
     catalog = json.loads(catalog_bytes.decode('utf-8-sig'))
     objects = catalog['objects']
     forbidden = [str(o['object_id']) for o in objects if re.search(r'[A-Za-z_]', str(o['object_id']))]
-    if any(re.search(r'(?<![A-Za-z0-9_])' + re.escape(v) + r'(?![A-Za-z0-9_])', question) for v in forbidden):
+    if case.get('prompt_mode', 'spoken') == 'spoken' and any(re.search(r'(?<![A-Za-z0-9_])' + re.escape(v) + r'(?![A-Za-z0-9_])', question) for v in forbidden):
         raise RuntimeError('oracle_invalid: internal catalog ID in prompt')
     listeners = {c.pid for c in psutil.net_connections(kind='tcp')
                  if c.status == 'LISTEN' and c.laddr.port == 8093}
@@ -105,7 +105,7 @@ def run(args):
         created, _ = json_request('/api/qa/conversations', {'title': '回归基线 ' + case['case_id']}, cookie)
         conversation_id = created['conversation']['id']
     backend = root / '高炉前端数据/智能助手/backend'
-    files = ['ollama_proxy_server.py', 'mcp_tool_selection.py', 'mcp_tool_policy.py',
+    files = ['ollama_proxy_server.py', 'qa_evidence_policy.py', 'mcp_tool_selection.py', 'mcp_tool_policy.py',
              'qa_request_control.py', 'mcp_host/server_registry.json']
     hashes = {name: hashlib.sha256((backend / name).read_bytes()).hexdigest() for name in files}
     result = {'schema': 'bf.qa.live.case.v1', 'case_id': case['case_id'], 'question': question,
