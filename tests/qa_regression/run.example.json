@@ -8,7 +8,7 @@
     "program_commit": "example_not_a_program_run",
     "prompt_version": "example-v1",
     "tool_schema_version": "fixture-capabilities-v1",
-    "cases_sha256": "81b135c9973b17c21d2233e8eab09a64f41a4da4290fe60559d307983c4ca6d1",
+    "cases_sha256": "afcf7fce1f033211e4f2a5554b4aaf060fb8d50e451d1307cf270abab835edb3",
     "fixtures_sha256": "90b44cc55b0e36b1519ab2a66ea7adca7ef8473040dd8e80f82ee96b5165eea1"
   },
   "results": [

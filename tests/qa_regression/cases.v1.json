@@ -1016,6 +1016,70 @@
         "提示中断并允许手动恢复，不自动重放"
       ],
       "tool_fixtures": []
+    },
+    {
+      "case_id": "QA-031",
+      "version": 1,
+      "category": "no_tool",
+      "provenance": "incident_pattern_rewritten_with_synthetic_data",
+      "language": "zh-CN",
+      "prompt": "请在100字以内介绍你能帮助高炉现场做哪些工作。不查现场数据，不要举工艺算例。",
+      "as_of": "2030-01-01T10:02:00+08:00",
+      "fixture_ids": [],
+      "history": [],
+      "expected": {
+        "tool_policy": "forbidden",
+        "allowed_capabilities": [],
+        "required_capabilities": [],
+        "allowed_outcomes": [
+          "completed"
+        ],
+        "required_evidence": [],
+        "forbidden_evidence": [],
+        "max_tool_calls": 0,
+        "max_seconds": 60,
+        "no_raw_json": true
+      },
+      "rubric": [
+        "简要说明问答、已给数据计算和诊断解释能力，不承诺代码或生产写入",
+        "不主动生成未经核实的工艺因果关系或计算示例",
+        "回答完整，不被长度上限截断"
+      ],
+      "tool_fixtures": []
+    },
+    {
+      "case_id": "QA-032",
+      "version": 1,
+      "category": "provided_data",
+      "provenance": "incident_pattern_rewritten_with_synthetic_data",
+      "language": "zh-CN",
+      "prompt": "只根据三个假设的每分钟顶压值250、251、252千帕，先给出总变化量，再说明能否证明正常、统计显著或炉况恶化。不要查询现场数据。",
+      "as_of": "2030-01-01T10:02:00+08:00",
+      "fixture_ids": [
+        "user_series"
+      ],
+      "history": [],
+      "expected": {
+        "tool_policy": "forbidden",
+        "allowed_capabilities": [],
+        "required_capabilities": [],
+        "allowed_outcomes": [
+          "completed"
+        ],
+        "required_evidence": [
+          "user_series.delta"
+        ],
+        "forbidden_evidence": [],
+        "max_tool_calls": 0,
+        "max_seconds": 60,
+        "no_raw_json": true
+      },
+      "rubric": [
+        "明确总变化量为2千帕，并且基于用户假设输入",
+        "没有正常范围不能声称属于正常波动；没有统计检验条件不能断言有或无统计显著性",
+        "三点单指标不足以确认真实炉况恶化；不以现场数据替换输入"
+      ],
+      "tool_fixtures": []
     }
   ]
 }
