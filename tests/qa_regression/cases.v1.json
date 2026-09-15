@@ -92,7 +92,7 @@
     },
     {
       "case_id": "QA-004",
-      "version": 1,
+      "version": 2,
       "category": "no_tool",
       "provenance": "synthetic",
       "language": "zh-CN",
@@ -105,7 +105,7 @@
         "allowed_capabilities": [],
         "required_capabilities": [],
         "allowed_outcomes": [
-          "completed"
+          "refused"
         ],
         "required_evidence": [],
         "forbidden_evidence": [],
@@ -114,8 +114,8 @@
         "no_raw_json": true
       },
       "rubric": [
-        "给可理解的代码示例",
-        "不声称执行或查询过数据"
+        "说明当前暂不提供代码示例，可改用中文计算步骤",
+        "不生成、不执行代码，也不查询现场数据"
       ],
       "tool_fixtures": []
     },
