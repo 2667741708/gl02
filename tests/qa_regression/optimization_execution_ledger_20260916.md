@@ -3,7 +3,7 @@
 - 状态：执行中；最后核对：2026-09-16。
 - 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。
 - 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。
-- 生产基线：`70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9`；V4本机候选覆盖 `QAOPT-R03/R04/R05`，尚未部署；R05全文完整性仍待验收。
+- 生产基线：`f79b13ccf79d3b522c5a7a253989c9915df74aa4`；V4已部署，六题复测3通过/1部分/2失败，V5继续修复。
 
 ## 借鉴 DSH 与 Codex 的实施边界
 
@@ -21,9 +21,9 @@
 |---:|---|---|---|---|---|
 |1|`QAOPT-R01` 统一任务决策，阻止关键词抢路由|P0|deployed_partial_verified|V3 TaskPlan已在预取前运行；结构未知任务终态仍未收紧|补结构失败/歧义澄清门并做复合意图回归|
 |2|`QAOPT-R02` 历史问答与业务证据分离|P0|deployed_partial_verified|3条生产复测中2条路由正确但渲染不佳，1条生命周期失败|完成历史结果中文投影、owner隔离和生命周期保全|
-|3|`QAOPT-R03` 完整解析多对象及范围|P1|local_candidate_verified|V4实体解析器已覆盖CO/CO2/H2、A-D、南北探尺，19项聚焦测试通过|受控部署后只复测3条代表题|
-|4|`QAOPT-R04` 多时间窗与历史基线|P1|local_candidate_verified|V4已补TaskPlan门禁、固定时区锚点、两窗串行与30日基线质量/时间校验；本机合同已通过|受控部署后各首次复测1次，核对两窗/基线实际证据|
-|5|`QAOPT-R05` 报表工作流读取正文|P1|local_candidate_verified|V4已补list→select→read→摘要摘录；中文字符/字节截断缺陷已在准确生产MCP基线上修正|受控部署后复测真实日报摘要；长报表无摘要章节时保持明确摘录边界|
+|3|`QAOPT-R03` 完整解析多对象及范围|P1|deployed_partial_verified|V4三条代表题中CO/CO2/H2及南北探尺通过；A-D温差问句未过动作门|V5修复观测式问句并复测四点实际统计|
+|4|`QAOPT-R04` 多时间窗与历史基线|P1|deployed_partial_verified|V4真实30日基线通过；两窗查询成功但扁平items适配错误，误丢统计|V5按生产扁平结构验证两窗统计、差值与窗口边界|
+|5|`QAOPT-R05` 报表工作流读取正文|P1|deployed_partial_verified|V4已读取最新日报正文；漏识别行内摘要而退回长正文|V5支持摘要元数据行并证明不输出整份明细|
 |6|`QAOPT-R06` 权威诊断和复合问题覆盖|P1|production_verified|2条诊断/复合分析题均通过生产复测|扩大持出集，保持每子任务完成合同|
 |7|`QAOPT-R07` 无工具、用户数据与已有证据优先|P1|deployed_partial_verified|无工具题正确保持0调用，但答案因长度截断|加入无工具完成度检查和长度续写/压缩策略|
 |8|`QAOPT-R08` 禁代码策略不误伤正常回答|P0|deployed_partial_verified|禁代码未再吞掉正常压力回答；1条因Origin合同未发送|用合规同源客户端复测并补混合请求部分拒绝|

@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param()
+param([ValidateSet('V3','V4')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -14,6 +14,7 @@ $env:PYTHONUTF8 = '1'
 $env:PYTHONIOENCODING = 'utf-8'
 
 $StageRoot = 'C:\Users\Administrator\AppData\Local\Temp\qa-routing-v3-20260916-r1'
+if ($Version -eq 'V4') { $StageRoot = 'C:\Users\Administrator\AppData\Local\Temp\qa-routing-v4-20260916-r1' }
 $Python = 'C:\Program Files\Python311\python.exe'
 $Guard = Join-Path $StageRoot 'git_record_guard.py'
 $Expectation = Join-Path $StageRoot 'recordability-expectation.json'

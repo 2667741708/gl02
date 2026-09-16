@@ -26,10 +26,23 @@ def write(path: Path, value: dict) -> None:
     temporary.replace(path)
 
 
-def status_ready(url: str, timeout: int) -> bool:
-    with urlopen(url, timeout=timeout) as response:
-        status = json.load(response)
-    return all(status.get(key) for key in ("ok", "proxy_ok", "ollama_ok", "model_ok"))
+def status_ready(url: str, timeout: int, evidence: list | None = None) -> bool:
+    # Only GET readiness is retried, before creating the durable POST claim.
+    # Never retry a question or infer request completion from readiness.
+    for attempt in range(3):
+        try:
+            with urlopen(url, timeout=timeout) as response:
+                status = json.load(response)
+            observed = {key: status.get(key) is True for key in ("ok", "proxy_ok", "ollama_ok", "model_ok")}
+        except Exception as exc:
+            observed = {"error_type": type(exc).__name__}
+        if evidence is not None:
+            evidence.append({"attempt": attempt + 1, **observed})
+        if all(observed.get(key) for key in ("ok", "proxy_ok", "ollama_ok", "model_ok")):
+            return True
+        if attempt < 2:
+            time.sleep(0.25)
+    return False
 
 
 def request_once(url: str, question: str, timeout: int, case_id: str) -> dict:
@@ -155,7 +168,11 @@ def main() -> int:
             case_id = case["case_id"]
             progress["active_case"] = case_id
             write(progress_path, progress)
-            if not status_ready(args.status_url, 20):
+            readiness = []
+            ready = status_ready(args.status_url, 6, readiness)
+            progress["readiness_checks"] = readiness
+            write(progress_path, progress)
+            if not ready:
                 raise RuntimeError("model unavailable before request; no request sent")
             claim_path = args.output / f"{case_id}.claim"
             with claim_path.open("x", encoding="utf-8") as claim:

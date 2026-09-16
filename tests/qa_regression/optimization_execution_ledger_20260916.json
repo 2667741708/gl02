@@ -2,21 +2,33 @@
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
   "checked_at": "2026-09-16",
-  "production_commit": "70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9",
+  "production_commit": "f79b13ccf79d3b522c5a7a253989c9915df74aa4",
   "production_retest": {
     "passed": 2,
     "partial": 6,
     "failed": 7,
     "blocked_client_contract": 1
   },
-  "current_local_candidate": {
+  "latest_production_retest": {
     "version": "routing-v4",
+    "requests": 6,
+    "sse_done": 6,
+    "passed": 3,
+    "partial": 1,
+    "failed": 2,
+    "automatic_post_retries": 0
+  },
+  "current_local_candidate": {
+    "version": "routing-v5",
     "issues": [
       "QAOPT-R03",
       "QAOPT-R04",
-      "QAOPT-R05"
+      "QAOPT-R05",
+      "QAOPT-R02",
+      "QAOPT-O01",
+      "QAOPT-E01"
     ],
-    "state": "local_candidate_verified_production_pending"
+    "state": "in_progress"
   },
   "rows": [
     {
@@ -55,9 +67,9 @@
       "issue_id": "QAOPT-R03",
       "priority": "P1",
       "title": "完整解析多对象及范围",
-      "state": "local_candidate_verified",
-      "evidence": "V4实体解析器已覆盖CO/CO2/H2、A-D、南北探尺，19项聚焦测试通过",
-      "next_gate": "受控部署后只复测3条代表题",
+      "state": "deployed_partial_verified",
+      "evidence": "V4三条代表题中CO/CO2/H2及南北探尺通过；A-D温差问句未过动作门",
+      "next_gate": "V5修复观测式问句并复测四点实际统计",
       "case_ids": [
         "TPL-61F40958498914A0",
         "TPL-933773C8C24B2E93",
@@ -72,9 +84,9 @@
       "issue_id": "QAOPT-R04",
       "priority": "P1",
       "title": "多时间窗与历史基线",
-      "state": "local_candidate_verified",
-      "evidence": "V4已补TaskPlan门禁、固定时区锚点、两窗串行与30日基线质量/时间校验；本机合同已通过",
-      "next_gate": "受控部署后各首次复测1次，核对两窗/基线实际证据",
+      "state": "deployed_partial_verified",
+      "evidence": "V4真实30日基线通过；两窗查询成功但扁平items适配错误，误丢统计",
+      "next_gate": "V5按生产扁平结构验证两窗统计、差值与窗口边界",
       "case_ids": [
         "TPL-26CC8346013E1DEA",
         "TPL-E1C7A67C947531E9"
@@ -89,9 +101,9 @@
       "issue_id": "QAOPT-R05",
       "priority": "P1",
       "title": "报表工作流读取正文",
-      "state": "local_candidate_verified",
-      "evidence": "V4已补list→select→read→摘要摘录；中文字符/字节截断缺陷已在准确生产MCP基线上修正",
-      "next_gate": "受控部署后复测真实日报摘要；长报表无摘要章节时保持明确摘录边界",
+      "state": "deployed_partial_verified",
+      "evidence": "V4已读取最新日报正文；漏识别行内摘要而退回长正文",
+      "next_gate": "V5支持摘要元数据行并证明不输出整份明细",
       "case_ids": [
         "TPL-8DA6777B502376D4"
       ],

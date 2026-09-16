@@ -3186,3 +3186,10 @@ pwsh.exe -NoLogo -NoProfile -File `
 - [中文截断测试](../tests/test_qa_report_excerpt_contract.py)：执行真实本机及生产差分候选读取函数；中文全文不误报，实际截断仍标记。
 - [候选接缝测试](../tests/test_qa_routing_v4_candidate.py)：实际代理AST接缝与精确生产基线；不导入无关生产模块。
 - 不包含生产复测、模型驻留竞争或并发通过证明；非空不记语义通过。
+# QA V4 生产复测补充（2026-09-16）
+
+REQ-QA-FULL-ISSUE-INVENTORY-20260916：六题各一次POST，3通过/1部分/2失败；
+见[生产交接](handoffs/2026-09-16-qa-routing-v4-production-and-retest.md)和
+[脱敏审阅](../tests/qa_regression/routing_v4_production_review_20260916.json)。
+`run_qa_failed_retest_once.py`仅在POST claim创建之前对就绪GET最多重查三次，记录四项布尔状态；
+所有已发送或发送不确定的问题仍禁止自动重放。

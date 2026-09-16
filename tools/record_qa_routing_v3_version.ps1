@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param()
+param([ValidateSet('V3','V4')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -21,6 +21,12 @@ $Git = 'C:\Program Files\Git\cmd\git.exe'
 $Python = 'C:\Program Files\Python311\python.exe'
 $MainRef = 'refs/heads/production-8093'
 $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v3-20260916-r1'
+if ($Version -eq 'V4') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v4-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v4-20260916-r1'
+    $CommitMessage = 'fix: preserve entities, compare windows and read reports [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v4-20260916-r1]'
+}
 $Guard = Join-Path $StageRoot 'git_record_guard.py'
 $OperationPath = Join-Path $StageRoot 'operation.json'
 $PlanPath = Join-Path $StageRoot 'record-plan.json'

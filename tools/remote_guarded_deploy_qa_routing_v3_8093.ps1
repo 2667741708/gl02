@@ -1,5 +1,6 @@
 [CmdletBinding()]
 param(
+    [ValidateSet('V3','V4')][string]$Version = 'V3',
     [Parameter(Mandatory)][string]$StageRoot,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$PlanHash,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$GateHash
@@ -25,8 +26,20 @@ $Allowed = @(
     '高炉前端数据/智能助手/backend/qa_task_plan.py',
     '高炉前端数据/智能助手/backend/qa_evidence_claims.py'
 )
+if ($Version -eq 'V4') {
+    $Req = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $Allowed = @(
+        '高炉前端数据/智能助手/backend/ollama_proxy_server.py',
+        '高炉前端数据/智能助手/backend/qa_task_plan.py',
+        '高炉前端数据/智能助手/backend/qa_entity_resolution.py',
+        '高炉前端数据/智能助手/backend/qa_time_window_plan.py',
+        '高炉前端数据/智能助手/backend/qa_report_workflow.py',
+        '高炉前端数据/智能助手/mcp/bf_data_mcp_server.py'
+    )
+}
+$ReleaseName = 'qa-routing-' + $Version.ToLowerInvariant() + '-20260916-r1'
 $StageRoot = [IO.Path]::GetFullPath($StageRoot)
-$ExpectedStage = [IO.Path]::GetFullPath('C:\Users\Administrator\AppData\Local\Temp\qa-routing-v3-20260916-r1')
+$ExpectedStage = [IO.Path]::GetFullPath((Join-Path 'C:\Users\Administrator\AppData\Local\Temp' $ReleaseName))
 if ($StageRoot -ne $ExpectedStage) { throw 'Stage identity mismatch' }
 $PlanPath = Join-Path $StageRoot 'delta-plan.json'
 $GatePath = Join-Path $StageRoot 'scope-gate.json'
@@ -35,7 +48,8 @@ if ((Hash $PlanPath) -ne $PlanHash -or (Hash $GatePath) -ne $GateHash) { throw '
 $Plan = Get-Content -LiteralPath $PlanPath -Raw | ConvertFrom-Json
 $Gate = Get-Content -LiteralPath $GatePath -Raw | ConvertFrom-Json
 if ($Plan.schema -ne 'bf.deploy.delta-plan.v1' -or $Plan.requirement_id -ne $Req) { throw 'Wrong plan contract' }
-if ($Plan.changes.Count -ne 5) { throw 'Exactly five reviewed targets required' }
+if ($Plan.changes.Count -ne $Allowed.Count) { throw 'Exact reviewed target count required' }
+if ($Gate.requirement_id -ne $Req -or $Gate.execution_id -ne $ReleaseName) { throw 'Wrong scope gate identity' }
 foreach ($Change in $Plan.changes) {
     $Relative = [IO.Path]::GetRelativePath($Root, [string]$Change.target).Replace('\','/')
     if ($Relative -notin $Allowed) { throw 'Target outside exact allowlist' }
@@ -48,7 +62,7 @@ foreach ($Change in $Plan.changes) {
         }
     }
 }
-if (@($Plan.changes.target | Select-Object -Unique).Count -ne 5) { throw 'Duplicate targets' }
+if (@($Plan.changes.target | Select-Object -Unique).Count -ne $Allowed.Count) { throw 'Duplicate targets' }
 function Assert-Baselines {
     foreach ($Change in $Plan.changes) {
         if ($Change.current_exists) {
@@ -101,7 +115,7 @@ $Mutex = [Threading.Mutex]::new($false, 'Global\BFV4PreviewProxy8093Deployment')
 $Acquired = $false
 $StopAttempted = $false
 $Touched = [Collections.Generic.List[object]]::new()
-$Backup = Join-Path $Root ('backups/qa-routing-v3-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+$Backup = Join-Path $Root ('backups/' + $ReleaseName + '-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 $ResultPath = Join-Path $StageRoot 'deployment-result.json'
 $Result = [ordered]@{ ok=$false; requirement_id=$Req; backup=$Backup; rollback_applied=$false; guard_paused=$false; guard_restored=$false }
 try {
