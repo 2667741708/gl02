@@ -1,5 +1,9 @@
 # API 参考
 
+## V15多章节完成合同（2026-09-16）
+
+正式多章节请求的`completion.subsection_subtasks`逐项给出终态，并公开请求/完成数量。所有章节完整才completed；明确缺章且有已完成章节时partial，保留有效原文。独立来源及选中章节一致覆盖门在原文回答前执行；不靠模型补写缺章。最新追问不能把旧窗口平均值当当前单点。[验证证据](handoffs/2026-09-16-qa-routing-v15-production.md)。
+
 ## QA当前复合完成合同与消息投影（2026-09-16）
 
 `POST /api/qa/chat`可选`response_projection: "turn"`只返回当前精确user/assistant两条消息，`messages_projection`明确投影方式；省略字段保留默认会话合同。owner、同源和角色边界不变。

@@ -91,16 +91,24 @@ def _label(value: str) -> str:
     return re.sub(r"[\s，,。；;：:‘’“”\"']", "", value)
 
 
-def _reference(question: str):
+def _references(question: str):
     # The book title selects the source; a quoted numbered path selects its
     # subsection. Neither is interpreted as a live-data instruction.
+    references = []
     for match in re.finditer(r"“([^”]+)”|\"([^\"]+)\"", question):
+        if question[max(0, match.start() - 2):match.start()] == '关于':
+            continue  # atomic quoted wording is not another section request
         path = (match.group(1) or match.group(2)).strip()
         leaf = re.split(r"\s*[>＞]\s*", path)[-1]
         ref = _numbered_line(leaf)
-        if ref:
-            return ref
-    return None
+        if ref and ref not in references:
+            references.append(ref)
+    return references
+
+
+def _reference(question: str):
+    references = _references(question)
+    return references[0] if references else None
 
 
 def _atomic_selector(question: str) -> str | None:
@@ -193,6 +201,26 @@ def _original_subsection(selected, reference, intro, manifest):
     return _outcome(intro + f"【{chapter} / {regulation} / {code}】\n以下为对应原文，未补写其他章节：\n\n" + content,
                     "completed", "verified_original_subsection", [manifest],
                     {"section_code": code, "matched_scopes": 1, "table_blocks_preserved": True})
+
+
+def _original_subsections(selected, references, intro, manifest):
+    if len(references) > 8:
+        return _outcome(intro + '本次明确指定的章节超过8个，请分批读取；未只回答第一章就标为全部完成。',
+                        'needs_clarification', 'subsection_request_limit', [manifest])
+    outcomes = [_original_subsection(selected, reference, '', manifest) for reference in references]
+    answer = intro + '\n\n'.join(f'【子任务 {index + 1}：{references[index][0]} {references[index][1]}】\n' + item['answer']
+                                  for index, item in enumerate(outcomes))
+    if len(answer) > MAX_BLOCK_CHARS:
+        return _outcome(intro + '所选多个完整章节总长度超出受控范围，请分批读取；未裁切条款、表格或静默遗漏章节。',
+                        'needs_clarification', 'subsection_combined_limit', [manifest])
+    complete = all(item['completion']['terminal_state'] == 'completed' for item in outcomes)
+    any_completed = any(item['completion']['terminal_state'] == 'completed' for item in outcomes)
+    state = 'completed' if complete else 'partial' if any_completed else 'needs_clarification'
+    result = _outcome(answer, state, 'verified_original_subsections' if complete else 'subsection_subtasks_incomplete', [manifest],
+                      {'requested_subsections': len(references), 'completed_subsections': sum(item['completion']['terminal_state'] == 'completed' for item in outcomes),
+                       'table_blocks_preserved': True})
+    result['completion'].update(complete=complete, subsection_subtasks=[item['completion'] for item in outcomes])
+    return result
 
 
 def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) -> dict[str, Any] | None:
@@ -291,9 +319,11 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     if not scope_gate['verified']:
         return _outcome(intro + "所选岗位/规程的章节内容与其他已核验原文索引不一致，可能缺少条款；未将当前片段标为完整。",
                         'dependency_blocked', scope_gate['reason'], [manifest], {'selected_scope': scope_gate})
-    reference = _reference(question)
-    if reference is not None:
-        return _original_subsection(selected, reference, intro, manifest)
+    references = _references(question)
+    if len(references) > 1:
+        return _original_subsections(selected, references, intro, manifest)
+    if references:
+        return _original_subsection(selected, references[0], intro, manifest)
     pages: list[list[dict[str, Any]]] = [[]]
     chars = 0
     for item in selected:

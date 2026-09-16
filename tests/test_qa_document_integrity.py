@@ -43,3 +43,21 @@ def test_invalid_hash_authority_and_bounds_are_not_complete():
     assert not integrity.inspect('原文', [])['verified']
     assert not integrity.inspect('', [row])['verified']
     assert not integrity.inspect(' \n\t', [chunk(' \n\t')])['verified']
+
+
+def test_selected_scope_cache_tracks_payload_and_reference_mutation():
+    selected = [{'chapter': '岗位甲', 'regulation': '安全规程', 'content': '1.1 确认\n1.2 禁止'}]
+    references = [dict(chunk('1.1 确认\n1.2 禁止'), enriched_content='【岗位/制度】1. 岗位甲\n【规程类型】安全规程')]
+    assert integrity.inspect_selected_scope(selected, references)['verified']
+    selected[0]['content'] = '1.1 确认'
+    assert not integrity.inspect_selected_scope(selected, references)['verified']
+    references[0]['content'] = '1.1 确认'
+    assert integrity.inspect_selected_scope(selected, references)['verified']
+
+
+def test_selected_scope_cache_tracks_metadata_mutation():
+    selected = [{'chapter': '岗位甲', 'regulation': '安全规程', 'content': '1.1 确认'}]
+    references = [dict(chunk('1.2 禁止'), enriched_content='【岗位/制度】1. 岗位乙\n【规程类型】安全规程')]
+    assert integrity.inspect_selected_scope(selected, references)['verified']
+    references[0]['enriched_content'] = '【岗位/制度】1. 岗位甲\n【规程类型】安全规程'
+    assert not integrity.inspect_selected_scope(selected, references)['verified']

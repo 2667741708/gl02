@@ -244,6 +244,35 @@ def test_rehashed_foreign_clause_still_cannot_be_formal_authority(connection):
     assert foreign not in result['answer']
 
 
+def test_multiple_numbered_references_are_all_answered_and_tracked(connection):
+    connection.execute('DELETE FROM rag_chunk')
+    add_piece(connection, 1, '1 工作前\n1.1 确认劳保用品\n2 工作中\n2.1 禁止自行检修')
+    result = run(connection, '请分别完整说明《三规二制》高炉工长“1 工作前”和“2 工作中”的原文。')
+    assert '1.1 确认劳保用品' in result['answer'] and '2.1 禁止自行检修' in result['answer']
+    assert result['completion']['coverage']['requested_subsections'] == 2
+    assert len(result['completion']['subsection_subtasks']) == 2
+    assert result['completion']['terminal_state'] == 'completed'
+
+
+def test_unknown_second_reference_cannot_hide_behind_first_completed_reference(connection):
+    connection.execute('DELETE FROM rag_chunk')
+    add_piece(connection, 1, '1 工作前\n1.1 确认劳保用品')
+    result = run(connection, '请分别说明《三规二制》高炉工长“1 工作前”和“99 不存在章节”的全部原文。')
+    assert result['completion']['terminal_state'] == 'partial'
+    assert '1.1 确认劳保用品' in result['answer']
+    assert result['completion']['subsection_subtasks'][1]['reason'] == 'subsection_not_found'
+
+
+def test_duplicate_reference_is_one_subtask_and_excess_requests_are_clarified(connection):
+    assert doc._references('“1 工作前”和“1 工作前”') == [('1', '工作前')]
+    question = '请完整说明《三规二制》高炉工长' + '、'.join(f'“{i} 章节”' for i in range(1, 10)) + '的原文'
+    assert run(connection, question)['completion']['reason'] == 'subsection_request_limit'
+
+
+def test_atomic_quoted_numbered_wording_is_not_an_extra_section_request():
+    assert doc._references('高炉工长在“1 工作前”中，关于“1.1 劳保要求”需要记住什么？') == [('1', '工作前')]
+
+
 def test_atomic_tail_cannot_mask_missing_section_page(connection):
     tail = '2 工作中\n2.1 条件不明不得操作'
     add_piece(connection, 2, tail)

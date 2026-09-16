@@ -16,9 +16,14 @@ foreach ($Name in $Scripts) {
     [void][Management.Automation.Language.Parser]::ParseFile($Path, [ref]$Tokens, [ref]$Errors)
     if ($Errors.Count -ne 0) { throw "Release script parse failed: $Name" }
     $Text = [IO.File]::ReadAllText($Path, $Utf8)
-    if (-not $Text.Contains("ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14')")) { throw "Version gate missing: $Name" }
+    if (-not $Text.Contains("ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15')")) { throw "Version gate missing: $Name" }
 }
 $Deployer = [IO.File]::ReadAllText((Join-Path $PSScriptRoot $Scripts[1]), $Utf8)
+$ReadonlyPath = Join-Path $PSScriptRoot 'invoke_qa_document_candidate_readonly.ps1'
+$ReadonlyTokens = $null
+$ReadonlyErrors = $null
+[void][Management.Automation.Language.Parser]::ParseFile($ReadonlyPath, [ref]$ReadonlyTokens, [ref]$ReadonlyErrors)
+if ($ReadonlyErrors.Count -ne 0) { throw 'Read-only candidate invocation parse failed' }
 foreach ($Marker in @('Global\BFV4PreviewProxy8093Deployment','Check-Protected $Before','finally','Assert-Baselines','guard_restored')) {
     if (-not $Deployer.Contains($Marker)) { throw "Deployment safety marker missing: $Marker" }
 }

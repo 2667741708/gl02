@@ -2,7 +2,7 @@
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
   "checked_at": "2026-09-16",
-  "production_commit": "06db3d6db6371af381816cc1523cc294c0981a18",
+  "production_commit": "25d4cd1cc4777153bcbe1d8cd38b4ab1755f9874",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -10,12 +10,12 @@
     "blocked_client_contract": 1
   },
   "latest_production_retest": {
-    "version": "routing-v14",
-    "requests": 3,
-    "sse_done": 3,
-    "passed": 3,
+    "version": "routing-v15",
+    "requests": 5,
+    "sse_done": 5,
+    "passed": 5,
     "failed": 0,
-    "expected_partial": 1,
+    "expected_partial": 2,
     "automatic_post_retries": 0
   },
   "knowledge_collection": {
@@ -187,9 +187,9 @@
       "issue_id": "QAOPT-R10",
       "priority": "P1",
       "title": "多轮范围继承与主题切换",
-      "state": "deployed_contract_verified",
-      "evidence": "V6上下文主题/窗口/对象重置、600秒失效与禁止旧证据复用通过",
-      "next_gate": "真实多轮角色矩阵",
+      "state": "deployed_partial_verified",
+      "evidence": "V15真实120分钟窗口后最新追问使用当前单点；无效时钟/非法窗口及清旧证据聚焦测试通过",
+      "next_gate": "来源消息ID全链路绑定与多角色真实多轮矩阵",
       "case_ids": [
         "TPL-18399CD0A0FDD84D",
         "TPL-3482A8EE5B37D413"
@@ -237,8 +237,8 @@
       "priority": "P1",
       "title": "完整章节及表格读取",
       "state": "deployed_partial_verified",
-      "evidence": "V10完整表格、短术语、长原句和小节边界真实通过；V11有效803题原文覆盖",
-      "next_gate": "索引独立末尾完整性门及多引用聚合",
+      "evidence": "V15多章节逐项原文真实通过、缺章partial；选中章节缺尾及缓存删改失效门部署",
+      "next_gate": "独立岗位元数据和原子条款边界审核，扩大多引用持出集",
       "case_ids": [
         "TPL-B1DDFC78E40D26DD",
         "TPL-81261F34B14214DC"
@@ -287,8 +287,8 @@
       "priority": "P1",
       "title": "知识数据质量和更新可追踪",
       "state": "deployed_partial_verified",
-      "evidence": "版本/哈希已公开；只读独立审计5897源非空行在原子索引中无缺行，聚合片段所有原文行属于权威源",
-      "next_gate": "执行器独立缺失末尾门，不能仅凭连续片段编号推完整",
+      "evidence": "V15独立权威源全文行覆盖门和选中岗位跨索引缺尾门；实际833只读803覆盖候选通过/30冲突单列",
+      "next_gate": "语义角色与源范围独立验证，版本化修正30项oracle",
       "case_ids": [],
       "depends_on": [
         "QAOPT-K03"
@@ -357,8 +357,8 @@
       "priority": "P0",
       "title": "输出字段边界及完整性",
       "state": "deployed_partial_verified",
-      "evidence": "V6长度中止一次内部压缩；V8分页/V9策略缺项终态公开",
-      "next_gate": "全部复合子任务覆盖检查",
+      "evidence": "V15多章节逐子任务完成与缺章partial真实通过，保持旧长度中止内部修复合同",
+      "next_gate": "全部复合源及全部模型工具分支完成覆盖",
       "case_ids": [
         "TPL-0F1075D1C8967EA5"
       ],
@@ -513,8 +513,8 @@
       "priority": "P1",
       "title": "版本冻结、候选对比与受控发布",
       "state": "implemented_verified",
-      "evidence": "V3至V14受控部署/CAS/保护PID/一次发送闭环；V12/V13启动健康失败先回滚只读恢复",
-      "next_gate": "后续版本保持冻结字节与短阶段执行",
+      "evidence": "V3至V15密封/8093-only守卫/CAS/保护PID/一次POST和独立审阅闭环",
+      "next_gate": "后续版本保持当前冻结字节和精确基线",
       "case_ids": [],
       "depends_on": [
         "QAOPT-T04",

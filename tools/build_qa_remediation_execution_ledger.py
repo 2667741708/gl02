@@ -94,6 +94,15 @@ STATUS.update({
 })
 
 
+STATUS.update({
+    'QAOPT-R10': ('deployed_partial_verified', 'V15真实120分钟窗口后最新追问使用当前单点；无效时钟/非法窗口及清旧证据聚焦测试通过', '来源消息ID全链路绑定与多角色真实多轮矩阵'),
+    'QAOPT-K03': ('deployed_partial_verified', 'V15多章节逐项原文真实通过、缺章partial；选中章节缺尾及缓存删改失效门部署', '独立岗位元数据和原子条款边界审核，扩大多引用持出集'),
+    'QAOPT-K06': ('deployed_partial_verified', 'V15独立权威源全文行覆盖门和选中岗位跨索引缺尾门；实际833只读803覆盖候选通过/30冲突单列', '语义角色与源范围独立验证，版本化修正30项oracle'),
+    'QAOPT-E05': ('deployed_partial_verified', 'V15多章节逐子任务完成与缺章partial真实通过，保持旧长度中止内部修复合同', '全部复合源及全部模型工具分支完成覆盖'),
+    'QAOPT-T05': ('implemented_verified', 'V3至V15密封/8093-only守卫/CAS/保护PID/一次POST和独立审阅闭环', '后续版本保持当前冻结字节和精确基线'),
+})
+
+
 def main() -> int:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     issues = catalog["issues"]
@@ -118,9 +127,9 @@ def main() -> int:
         "schema": "bf.qa.optimization-execution-ledger.v1",
         "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
         "checked_at": "2026-09-16",
-        "production_commit": "06db3d6db6371af381816cc1523cc294c0981a18",
+        "production_commit": "25d4cd1cc4777153bcbe1d8cd38b4ab1755f9874",
         "production_retest": {"passed": 2, "partial": 6, "failed": 7, "blocked_client_contract": 1},
-        "latest_production_retest": {"version": "routing-v14", "requests": 3, "sse_done": 3, "passed": 3, "failed": 0, "expected_partial": 1, "automatic_post_retries": 0},
+        "latest_production_retest": {"version": "routing-v15", "requests": 5, "sse_done": 5, "passed": 5, "failed": 0, "expected_partial": 2, "automatic_post_retries": 0},
         "knowledge_collection": {"source": 833, "valid_once_only_requests": 803, "original_coverage_contract_verified": 803, "oracle_conflicts_blocked": 30, "full_semantic_pass_inferred": False},
         "current_local_candidate": {"version": "next", "issues": ["QAOPT-K06", "QAOPT-R02", "QAOPT-R10", "QAOPT-O04", "QAOPT-T02", "QAOPT-T04"], "state": "remaining_items_in_progress"},
         "rows": rows,
@@ -133,8 +142,8 @@ def main() -> int:
         "- 状态：执行中；最后核对：2026-09-16。",
         "- 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。",
         "- 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。",
-        "- 生产修复版本：`06db3d6db6371af381816cc1523cc294c0981a18`；V14三题完成单发送并独立语义通过，其中未知制度按预期partial。新有效803知识题已核验原文覆盖，30题标准答案冲突阻断；剩余项继续修复，非空不算通过。",
-        "- 最新权威实施：[V10–V14生产修复交接](../../docs/handoffs/2026-09-16-qa-routing-v10-v14-production.md)。旧阶段记录保留为历史证据。",
+        "- 生产修复版本：`25d4cd1cc4777153bcbe1d8cd38b4ab1755f9874`；V15五题单发送并独立语义通过，其中未知章节与代码策略按预期partial。有效803知识题已核验原文覆盖，30题标准答案冲突阻断；剩余项继续修复，非空不算通过。",
+        "- 最新权威实施：[V15生产修复交接](../../docs/handoffs/2026-09-16-qa-routing-v15-production.md)。旧阶段记录保留为历史证据。",
         "",
         "## 借鉴 DSH 与 Codex 的实施边界",
         "",

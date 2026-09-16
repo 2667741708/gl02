@@ -9,6 +9,7 @@ Requirement: REQ-MCP-CONVERSATION-CONTEXT-20260726
 from __future__ import annotations
 
 from typing import Any
+import math
 import re
 import time
 
@@ -103,7 +104,11 @@ def update_tool_context(
     text = str(question or "")
     current_time = time.time() if now is None else now
     previous_time = previous.get("updated_at")
-    stale = isinstance(previous_time, (int, float)) and (current_time - previous_time > 600 or current_time < previous_time)
+    valid_clock = (not isinstance(previous_time, bool) and isinstance(previous_time, (int, float))
+                   and math.isfinite(previous_time))
+    has_prior_scope = bool(previous_objects or previous.get('time_range'))
+    unverified_clock = has_prior_scope and not valid_clock
+    stale = unverified_clock or (valid_clock and (current_time - previous_time > 600 or current_time < previous_time))
     reset = bool(re.search(r"换个话题|新问题|另一个问题|不看(?:刚才|上面|之前)|忘掉|不要继承", text)
                  or re.search(r"(?:不要|不需要|无需|不必|禁止|不)[^，。；;\n]{0,16}(?:查询|查实时|访问|调用)[^，。；;\n]{0,12}(?:数据|工具|现场|数据库)", text)
                  or re.search(r"原理|一般|通常|概念|含义|制度|规程|历史问答|聊天记录", text))
@@ -130,17 +135,24 @@ def update_tool_context(
         selected = []
         inherited_objects = False
 
-    if duration_minutes:
+    explicit_duration = isinstance(duration_minutes, int) and not isinstance(duration_minutes, bool) and duration_minutes > 0
+    current_read = (not explicit_duration and bool(re.search(r'现在|当前|最新|实时|此刻|目前', text))
+                    and not re.search(r'趋势|统计|平均|最高|最低|波动|过去|最近|历史|对比|比较', text))
+    previous_range = previous.get('time_range')
+    prior_minutes = previous_range.get('minutes') if isinstance(previous_range, dict) else None
+    valid_prior_range = (isinstance(previous_range, dict) and previous_range.get('mode') == 'relative'
+                         and isinstance(prior_minutes, int) and not isinstance(prior_minutes, bool) and prior_minutes > 0)
+    if explicit_duration:
         time_range = {"mode": "relative", "minutes": int(duration_minutes)}
         inherited_time = False
-    elif is_followup and isinstance(previous.get("time_range"), dict):
-        time_range = dict(previous["time_range"])
+    elif is_followup and valid_prior_range and not current_read:
+        time_range = {"mode": "relative", "minutes": prior_minutes}
         inherited_time = True
     else:
         time_range = None
         inherited_time = False
 
-    goal = infer_analysis_goal(text)
+    goal = 'latest' if current_read else infer_analysis_goal(text)
     if not goal and is_followup:
         goal = previous.get("analysis_goal")
     chart = infer_chart(text, goal)
@@ -158,7 +170,13 @@ def update_tool_context(
             "pending_clarification": "missing_business_object" if goal and not selected else None,
             "inheritance": {"objects": inherited_objects, "time_range": inherited_time},
             "updated_at": current_time,
-            "inheritance_reason": "expired" if stale else "explicit_reset" if reset else "explicit_followup" if is_followup else "new_question",
+            "inheritance_reason": "clock_unverified" if unverified_clock else "expired" if stale else "explicit_reset" if reset else "explicit_followup" if is_followup else "new_question",
+            "inheritance_provenance": {
+                "objects": {"source_updated_at": previous_time if inherited_objects else current_time,
+                            "basis": "explicit_followup" if inherited_objects else "explicit_objects" if selected else "none"},
+                "time_range": {"source_updated_at": previous_time if inherited_time else current_time if time_range else None,
+                               "basis": "explicit_followup" if inherited_time else "explicit_duration" if time_range else "explicit_latest_reset" if current_read else "none"},
+            },
             "evidence_reuse": False,
         }
     )

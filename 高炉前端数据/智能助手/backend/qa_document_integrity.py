@@ -69,6 +69,20 @@ def inspect_selected_scope(selected, indexed):
     This checks cross-index consistency within the selected role/regulation;
     it does not independently authenticate the scope metadata itself.
     """
+    selected_key = tuple((str(row['chapter']), str(row['regulation']), str(row['content'])) for row in selected)
+    indexed_key = tuple((str(row.get('chunk_type') or ''), str(row.get('enriched_content') or ''),
+                         str(row.get('content') or '')) for row in indexed)
+    return dict(_inspect_selected_scope(selected_key, indexed_key))
+
+
+@lru_cache(maxsize=4)
+def _inspect_selected_scope(selected_key, indexed_key):
+    # Bind both payload and scope metadata; a deleted tail, reassigned role or
+    # mutated reference must invalidate the previous consistency result.
+    selected = [{'chapter': chapter, 'regulation': regulation, 'content': content}
+                for chapter, regulation, content in selected_key]
+    indexed = [{'chunk_type': kind, 'enriched_content': header, 'content': content}
+               for kind, header, content in indexed_key]
     scopes = {}
     for row in selected:
         key = (str(row['chapter']), str(row['regulation']))

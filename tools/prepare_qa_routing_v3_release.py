@@ -121,10 +121,12 @@ def write_json(path: Path, value: object) -> None:
 
 def main() -> int:
     global REQ, EXECUTION, STAGE, ARTIFACTS, READ_SET
+    extension_path = Path(__file__).with_name("qa_routing_release_extensions.json")
+    extensions = json.loads(extension_path.read_text(encoding="utf-8")) if extension_path.exists() else {}
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-head", required=True)
     parser.add_argument("--semantic-review", choices=("passed", "pending"), default="pending")
-    parser.add_argument("--version", choices=("v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"), default="v3")
+    parser.add_argument("--version", choices=("v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", *extensions), default="v3")
     args = parser.parse_args()
     if args.version in ("v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"):
         REQ = "REQ-QA-FULL-ISSUE-INVENTORY-20260916"
@@ -197,6 +199,13 @@ def main() -> int:
                 "高炉前端数据/智能助手/backend/ollama_proxy_server.py":"9a942b2fe73ddb34d0bff8d18beea14047ef898bb6596570d0c1d9509a34e81b",
                 "高炉前端数据/智能助手/backend/qa_document_compound.py":"bfcefd214fae105e1c137ec8f516df8c84c749f04331b6b65077db3ab80d8301",
             })
+    extension = extensions.get(args.version)
+    if extension is not None:
+        REQ = "REQ-QA-FULL-ISSUE-INVENTORY-20260916"
+        EXECUTION = f"qa-routing-{args.version}-20260916-r1"
+        STAGE = Path("C:/Users/Administrator/AppData/Local/Temp") / EXECUTION
+        ARTIFACTS = extension["artifacts"]
+        READ_SET = extension["read_files"]
     base_head = args.base_head.lower()
     if len(base_head) != 40:
         raise ValueError("base head must be a full commit id")
@@ -387,6 +396,10 @@ def main() -> int:
                 "高炉前端数据/智能助手/backend/qa_verified_facts.py", "tests/test_qa_v6_contracts.py", "tests/test_qa_release_readiness.py")]
             validations[0]["evidence"] = "35 focused tests: registered-unit provenance, unknown-unit partial, no alias guessing or value conversion, compound source isolation and durable once-only claims"
             validations.append({"id":"release-get-readiness-faults","kind":"deterministic","status":"passed","evidence":"4 actual PowerShell readiness fault tests, at most 3 GETs, no POST"})
+        if extension is not None:
+            spec["sources"] = [str(root / path) for path in extension["sources"]]
+            spec["validations"] = [dict(row) for row in extension["validations"]]
+            spec["validations"].append({"id": "independent-diff-review", "kind": "semantic", "status": args.semantic_review})
         write_json(release / "release-spec.json", spec)
     print(json.dumps({"ok": True, "release": str(release), "artifacts": len(artifact_rows), "recordability_present": evidence.exists()}, ensure_ascii=False))
     return 0

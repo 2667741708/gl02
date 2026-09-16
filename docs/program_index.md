@@ -1,5 +1,9 @@
 # 程序索引
 
+## 智能助手V15当前实现（2026-09-16）
+
+原文独立完整性门`qa_document_integrity.inspect/inspect_selected_scope`；多章节逐项完成`qa_document_knowledge._original_subsections`；最新读取及无效时钟窗口继承门`mcp_conversation_context.update_tool_context`。符号行号TODO-LINES。新增版本元数据统一在`tools/qa_routing_release_extensions.json`定义并由现有冻结发布器消费；仍要求精确三目标部署和远端只读验证。证据：[V15生产交接](handoffs/2026-09-16-qa-routing-v15-production.md)。
+
 ## 智能助手V10–V14当前实现（2026-09-16）
 
 `REQ-QA-FULL-ISSUE-INVENTORY-20260916`：制度原文复合隔离`qa_document_compound`、可读失败证据`qa_tool_fallback`、两条消息投影`qa_response_projection`、已登记单位血缘/缺项终态`qa_verified_facts`、DAG依赖完整性`CrossSourcePlan`。符号行号TODO-LINES。

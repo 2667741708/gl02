@@ -1,5 +1,9 @@
 # 排障手册
 
+## 原文少答一章或最新追问沿用历史窗口
+
+V15已补逐章节完成和最新窗口重置。先核对当前生产提交及三个文件哈希，再查`completion.subsection_subtasks`、来源完整性和继承依据；不要重发已发送/不确定题。超出只读检查时限时使用`check_qa_knowledge_candidate_readonly.py --summary --offset N --limit 100`分批核对，0 POST/模型/数据库写入；结果不能推断全题语义通过。[V15权威交接](handoffs/2026-09-16-qa-routing-v15-production.md)。
+
 ## 8093/8094 炉况卡显示“智能分析暂不可用”
 
 2026-08-06已确认过一种明确根因：共享 `ollama_proxy_server.py` 已是支持v3单炉况调用的新版，但远端 `diagnosis_model_review.py` 和 `diagnosis_ai_analysis_api.py` 仍是旧版，形成模块版本错位；8094同时缺少启用环境变量。表现为Ollama健康正常，但分析长期停在准备态，或接口直接返回 `enabled=false`。
