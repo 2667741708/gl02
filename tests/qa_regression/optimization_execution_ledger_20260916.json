@@ -2,7 +2,7 @@
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
   "checked_at": "2026-09-17",
-  "production_commit": "b55f754ac8d8592e2819083f01a71438bd6e23c7",
+  "production_commit": "6ec408b17db75a040028fdee843cbd1b5b63c5ff",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -10,23 +10,20 @@
     "blocked_client_contract": 1
   },
   "latest_production_retest": {
-    "version": "routing-v24",
-    "requests": 5,
-    "sse_done": 5,
-    "partial": 3,
-    "passed": 1,
+    "version": "routing-v25",
+    "planned": 822,
+    "requests": 1,
+    "sse_done": 1,
+    "passed": 0,
+    "partial": 0,
     "failed": 1,
-    "planned": 407,
-    "not_sent": 402,
+    "not_sent": 821,
+    "stable_sample": 0,
     "model_identity_drift_or_unavailable": true,
     "automatic_post_retries": 0,
-    "stable_sample": 4,
-    "stable_sample_correct_complete": 1,
-    "stable_sample_correct_complete_rate": 0.25,
-    "first_405_failed_attempted": 3,
     "full_dataset_accuracy_available": false,
-    "evidence": "routing_v24_paired_observations_20260917.json",
-    "dependency_records": "routing_v24_unattempted_dependencies_20260917.json"
+    "evidence": "routing_v25_paired_observations_20260917.json",
+    "dependency_records": "routing_v25_unattempted_dependencies_20260917.json"
   },
   "knowledge_collection": {
     "source": 833,
@@ -36,14 +33,16 @@
     "full_semantic_pass_inferred": false
   },
   "current_local_candidate": {
-    "version": "v24",
+    "version": "v25",
+    "state": "deployed_new_runtime_defects_open",
     "issues": [
+      "QAOPT-R01",
+      "QAOPT-R03",
+      "QAOPT-R04",
       "QAOPT-E01",
-      "QAOPT-R08",
-      "QAOPT-R09"
+      "QAOPT-O03"
     ],
-    "state": "deployed_targeted_improvement_verified_remaining_failures_open",
-    "focused_tests_passed": 76
+    "focused_tests_passed": 159
   },
   "rows": [
     {
@@ -58,7 +57,11 @@
         "TPL-11F6C2E3DDD207BC",
         "TPL-DE3A348E8836BC03"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "repair_and_acceptance_plan": "统一外层任务计划，固定来源、对象、时间窗、子任务和完成条件；所有降级分支读取同一计划。验收：复合问题逐项覆盖，引用或关键词不抢路由。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      }
     },
     {
       "order": 2,
@@ -75,7 +78,11 @@
       ],
       "depends_on": [
         "QAOPT-R01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "聊天历史仅作对话证据，业务事实另查权威源；owner 和消息截止 ID 固定。验收：历史+当前任务分别有来源，跨用户历史不可见。",
+      "initial_linked_semantic_counts": {
+        "failed": 3
+      }
     },
     {
       "order": 3,
@@ -83,8 +90,8 @@
       "priority": "P1",
       "title": "完整解析多对象及范围",
       "state": "deployed_partial_verified",
-      "evidence": "V6实际A-D统计已返回；缺单位、零值和稀疏覆盖已明确标记; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-342113EAB17420C6 failed；TPL-C5DF79304112ED85 failed V24图表原题仍failed；中文钟点/高度与方位范围仍需修复。",
-      "next_gate": "核对数据依赖后扩展多对象质量回归",
+      "evidence": "V6实际A-D统计已返回；缺单位、零值和稀疏覆盖已明确标记; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-342113EAB17420C6 failed；TPL-C5DF79304112ED85 failed V24图表原题仍failed；中文钟点/高度与方位范围仍需修复。; V25真实绘图原题：18个请求点进入路由，工具仅16点且最终图表遗漏，不能标解决。",
+      "next_gate": "修复工具点数静默截断和完整JSON证据/图表恢复，再做新版原题一次复测",
       "case_ids": [
         "TPL-61F40958498914A0",
         "TPL-933773C8C24B2E93",
@@ -92,7 +99,11 @@
       ],
       "depends_on": [
         "QAOPT-R01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "保留全对象集合，高度和方位分别解析；工具不得静默截断列表。验收：18 个请求点=18 个返回/明确失败点，未知层位先澄清。",
+      "initial_linked_semantic_counts": {
+        "failed": 3
+      }
     },
     {
       "order": 4,
@@ -109,7 +120,11 @@
       "depends_on": [
         "QAOPT-R01",
         "QAOPT-R03"
-      ]
+      ],
+      "repair_and_acceptance_plan": "明确日期钟点优先于滚动窗口和旧上下文；相邻窗统一冻结时钟，基线质量独立审查。验收：起止时间精确、跨午夜正确、缺基线不冒充正常。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      }
     },
     {
       "order": 5,
@@ -124,7 +139,11 @@
       ],
       "depends_on": [
         "QAOPT-R01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "目录检索后读取实际报表正文；缺正文和类型不符分别记录。验收：摘要可追溯到该报告，不用文件名替代正文。",
+      "initial_linked_semantic_counts": {
+        "failed": 1
+      }
     },
     {
       "order": 6,
@@ -142,7 +161,11 @@
         "QAOPT-R03",
         "QAOPT-R04",
         "QAOPT-E02"
-      ]
+      ],
+      "repair_and_acceptance_plan": "诊断从权威批次加载，复合任务生成有依赖的只读步骤。验收：每个子任务有结果或明确缺项，不仅回答最容易的一问。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      }
     },
     {
       "order": 7,
@@ -156,7 +179,9 @@
       "depends_on": [
         "QAOPT-R01",
         "QAOPT-E02"
-      ]
+      ],
+      "repair_and_acceptance_plan": "无工具解释、用户给定数据和已核实证据可直接回答；新实时事实才查询。验收：禁实时请求零数据调用，数学复算正确。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 8,
@@ -172,7 +197,11 @@
       ],
       "depends_on": [
         "QAOPT-E03"
-      ]
+      ],
+      "repair_and_acceptance_plan": "代码执行与代码示例独立禁用，拒绝该子任务同时完成允许的查询/统计/图表。验收：不承诺提供代码，不误拒普通问题。",
+      "initial_linked_semantic_counts": {
+        "failed": 48
+      }
     },
     {
       "order": 9,
@@ -188,7 +217,11 @@
       "depends_on": [
         "QAOPT-R01",
         "QAOPT-K01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "能力说明由工具注册、授权和实时健康派生，与 Prompt 目标一致。验收：已接通查询/绘图时不虚假否认能力，故障准确说明具体限制。",
+      "initial_linked_semantic_counts": {
+        "failed": 1
+      }
     },
     {
       "order": 10,
@@ -205,7 +238,11 @@
       "depends_on": [
         "QAOPT-R01",
         "QAOPT-E02"
-      ]
+      ],
+      "repair_and_acceptance_plan": "多轮仅继承已确认对象/窗口/来源，换题清空不适用上下文。验收：追问/最新值/主题切换及用户数据任务均独立可复现。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      }
     },
     {
       "order": 11,
@@ -221,7 +258,11 @@
       ],
       "depends_on": [
         "QAOPT-R01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "正式知识采用岗位、文档版本、章节和条款定位，检索与现场数据路由独立。验收：原文证据和语义答案分别审核，覆盖不算正确。",
+      "initial_linked_semantic_counts": {
+        "failed": 90
+      }
     },
     {
       "order": 12,
@@ -237,7 +278,11 @@
       "depends_on": [
         "QAOPT-R01",
         "QAOPT-T02"
-      ]
+      ],
+      "repair_and_acceptance_plan": "权威知识排除聊天及测试标准答案，原文源单独登记。验收：回归集和旧助手回答不能成为正式制度引用。",
+      "initial_linked_semantic_counts": {
+        "failed": 106
+      }
     },
     {
       "order": 13,
@@ -253,7 +298,11 @@
       ],
       "depends_on": [
         "QAOPT-K01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "全文章节及表格按结构边界读取，校验开头/结尾/连续性及多章节完整覆盖。验收：不漏尾、不串岗、不丢表头和单位。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      }
     },
     {
       "order": 14,
@@ -270,7 +319,11 @@
       "depends_on": [
         "QAOPT-K03",
         "QAOPT-E03"
-      ]
+      ],
+      "repair_and_acceptance_plan": "未知正式制度先说明资料缺失；一般工艺解释必须标明非正式条款。验收：不编造制度编号、阈值或操作授权。",
+      "initial_linked_semantic_counts": {
+        "failed": 3
+      }
     },
     {
       "order": 15,
@@ -287,7 +340,11 @@
       "depends_on": [
         "QAOPT-R01",
         "QAOPT-K01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "报表和制度来源域分离，复合问题分别组织证据。验收：报表目录不能冒充制度内容，存在两来源时不漏问。",
+      "initial_linked_semantic_counts": {
+        "failed": 24
+      }
     },
     {
       "order": 16,
@@ -300,7 +357,9 @@
       "case_ids": [],
       "depends_on": [
         "QAOPT-K03"
-      ]
+      ],
+      "repair_and_acceptance_plan": "文档和 oracle 分别版本化；89 题标准阻断对照岗位原文逐条确认，记录修正理由和旧标准。验收：同问不同标准/错编号不自动改答案。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 17,
@@ -308,14 +367,18 @@
       "priority": "P0",
       "title": "成功证据不能被生命周期异常清空",
       "state": "deployed_partial_verified",
-      "evidence": "V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回; V23全文审核：TPL-01EEE414179DB624 partial；TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24原题温度由failed变partial，真实读数保留；压力由partial变passed，99.219秒→0.094秒；均0追加工具/0模型，单位缺项保持partial。",
-      "next_gate": "全部工具成功证据恢复与追加账本",
+      "evidence": "V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回; V23全文审核：TPL-01EEE414179DB624 partial；TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24原题温度由failed变partial，真实读数保留；压力由partial变passed，99.219秒→0.094秒；均0追加工具/0模型，单位缺项保持partial。; V25真实绘图原题：18个请求点进入路由，工具仅16点且最终图表遗漏，不能标解决。",
+      "next_gate": "修复工具点数静默截断和完整JSON证据/图表恢复，再做新版原题一次复测",
       "case_ids": [
         "TPL-4CA73F09C24F631B"
       ],
       "depends_on": [
         "QAOPT-E02"
-      ]
+      ],
+      "repair_and_acceptance_plan": "完整类型化工具结果先追加保存，再生成界面/模型摘录；生命周期错误保留成功事实及图表。验收：成功生成的图与真实数据不会被失败回合清空。",
+      "initial_linked_semantic_counts": {
+        "failed": 249
+      }
     },
     {
       "order": 18,
@@ -328,7 +391,9 @@
       "case_ids": [],
       "depends_on": [
         "QAOPT-R01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "证据绑定对象、窗口、来源、单位、质量、适用范围及原始哈希。验收：当前单点不能证明历史趋势，目录不能证明实时数据。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 19,
@@ -341,7 +406,12 @@
       "case_ids": [],
       "depends_on": [
         "QAOPT-E02"
-      ]
+      ],
+      "repair_and_acceptance_plan": "数值、单位和派生量逐字段核对；缺单位保持缺项，舍入不改变方向。验收：温标/CV/零值和微小变化可独立复算且保留血缘。",
+      "initial_linked_semantic_counts": {
+        "partial": 1,
+        "failed": 47
+      }
     },
     {
       "order": 20,
@@ -357,7 +427,9 @@
       "depends_on": [
         "QAOPT-E02",
         "QAOPT-E03"
-      ]
+      ],
+      "repair_and_acceptance_plan": "固定计算器统一均值、总体标准差、首末变化、回归和局部趋势；明确冲突与质量。验收：Held、稀疏覆盖和近零均值不会判成正式稳定等级。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 21,
@@ -365,14 +437,18 @@
       "priority": "P0",
       "title": "输出字段边界及完整性",
       "state": "deployed_partial_verified",
-      "evidence": "V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列 V24图表答案completed却实际failed，温度分析结尾未完成；仍需覆盖MCP最终答案终态校验。",
-      "next_gate": "全部工具及模型分支完成覆盖，不凭非空升级",
+      "evidence": "V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列 V24图表答案completed却实际failed，温度分析结尾未完成；仍需覆盖MCP最终答案终态校验。; V25真实绘图原题：18个请求点进入路由，工具仅16点且最终图表遗漏，不能标解决。",
+      "next_gate": "修复工具点数静默截断和完整JSON证据/图表恢复，再做新版原题一次复测",
       "case_ids": [
         "TPL-0F1075D1C8967EA5"
       ],
       "depends_on": [
         "QAOPT-E03"
-      ]
+      ],
+      "repair_and_acceptance_plan": "所有最终出口检查任务覆盖、截断、结束原因和缺项；传输完成与语义成功分开。验收：未完成句子或缺图回答不能标 complete。",
+      "initial_linked_semantic_counts": {
+        "failed": 1
+      }
     },
     {
       "order": 22,
@@ -386,7 +462,9 @@
       "depends_on": [
         "QAOPT-R06",
         "QAOPT-E04"
-      ]
+      ],
+      "repair_and_acceptance_plan": "多源时间、数值和制度冲突显式展示；区分描述性观察与有阈值的风险判断。验收：对比题有直接结论和适用限制，不仅堆统计。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 23,
@@ -394,15 +472,19 @@
       "priority": "P0",
       "title": "模型就绪与请求间竞态",
       "state": "dependency_blocked",
-      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24第5题后身份未核实停止；只读恢复时模型曾恢复批准:0，随后latest切为批准:1；402题无claim证明未发。",
-      "next_gate": "独立授权受控模型窗口；固定版本后只续跑402证明未发送题，已发送不重放",
+      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24第5题后身份未核实停止；只读恢复时模型曾恢复批准:0，随后latest切为批准:1；402题无claim证明未发。; V25首题后身份未核实停止，821题无claim证明未发。",
+      "next_gate": "独立授权固定Qwen窗口；只续跑821证明未发题，不自动重发已发首题",
       "case_ids": [
         "TPL-18F38D141C29CF15"
       ],
       "depends_on": [
         "QAOPT-R01",
         "QAOPT-E01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "在独立授权窗口内固定已批准 Qwen digest，模型管理器与问答共享调度边界；单驻留并核对 alias。验收：请求前/后身份一致，波动停止下一发送。",
+      "initial_linked_semantic_counts": {
+        "failed": 1
+      }
     },
     {
       "order": 24,
@@ -415,7 +497,13 @@
       "case_ids": [],
       "depends_on": [
         "QAOPT-E01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "注册、连接、工具、模型和流式分别限时，失败只影响依赖步骤；同请求允许一次有证据降级。验收：成功步骤保留，断线未知不自动 POST 重放。",
+      "initial_linked_semantic_counts": {
+        "partial": 12,
+        "failed": 289,
+        "insufficient_evidence": 7
+      }
     },
     {
       "order": 25,
@@ -423,13 +511,15 @@
       "priority": "P1",
       "title": "工具参数schema及步骤依赖",
       "state": "deployed_contract_verified",
-      "evidence": "V12实际部署StepPlan依赖绑定、声明上游和环检查；67项DAG/完整性测试通过",
-      "next_gate": "全部工具输入输出类型化及实际故障矩阵",
+      "evidence": "V12实际部署StepPlan依赖绑定、声明上游和环检查；67项DAG/完整性测试通过; V25真实绘图原题：18个请求点进入路由，工具仅16点且最终图表遗漏，不能标解决。",
+      "next_gate": "修复工具点数静默截断和完整JSON证据/图表恢复，再做新版原题一次复测",
       "case_ids": [],
       "depends_on": [
         "QAOPT-R01",
         "QAOPT-E02"
-      ]
+      ],
+      "repair_and_acceptance_plan": "工具 schema、参数范围和 DAG 依赖在执行前校验，显式拒绝超限；完整证据与模型投影分开。验收：18 点列表不缩为16，长 JSON 不被剪成非法证据。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 26,
@@ -443,7 +533,9 @@
       "depends_on": [
         "QAOPT-E01",
         "QAOPT-T01"
-      ]
+      ],
+      "repair_and_acceptance_plan": "turn/step/item 统一状态、耗时和故障类型；浏览器有界合并与历史分页。验收：可区分数据空、超时、模型变化和答案不完整，不泄漏身份/凭据。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 27,
@@ -457,7 +549,9 @@
       "depends_on": [
         "QAOPT-O03",
         "QAOPT-O04"
-      ]
+      ],
+      "repair_and_acceptance_plan": "按用户要求全服务同时仅一个问答 owner，另一人立即409，不排队；取消确认实际结束再释放。验收：真实双角色隔离、并发409和取消释放均通过。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 28,
@@ -470,7 +564,9 @@
       "case_ids": [
         "TPL-10C8C8FAF2C694EF"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "repair_and_acceptance_plan": "全题唯一 ID、发送 claim、程序/模型/Prompt/结果哈希冻结。验收：全题对账，首次未知题永不重发，续跑仅限证明未发。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 29,
@@ -484,7 +580,11 @@
         "TPL-ED01B1D5ACB947E6",
         "TPL-2941ED6E73448D66"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "repair_and_acceptance_plan": "结构误导入26条剔除评分但保留事实；标准冲突和证据不足单列。验收：分母可复算，不把无效行、无答案或无法判定当成功。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      }
     },
     {
       "order": 30,
@@ -498,22 +598,26 @@
       "depends_on": [
         "QAOPT-R09",
         "QAOPT-O04"
-      ]
+      ],
+      "repair_and_acceptance_plan": "绑定服务端最终系统 Prompt、模板版本、请求策略及故障夹具。验收：每条回复可追溯实际 Prompt hash，不只绑定源文件名。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 31,
       "issue_id": "QAOPT-T04",
       "priority": "P1",
       "title": "全答案审阅、持出集与重复可靠性",
-      "state": "in_progress",
-      "evidence": "历史828待语义审查为旧快照；新有效803题原文覆盖已核验，30oracle阻断单列，不称833全通过; V23全文审核：TPL-E1C7A67C947531E9 partial gpt-5.6-luna真实人工审核540/828，中间五类157/131/122/41/89；剩288，未发布全量准确率。",
-      "next_gate": "828真实逐题审核完成；初筛默认passed结果不作为语义准确率",
+      "state": "initial_review_complete_version_retests_open",
+      "evidence": "gpt-5.6-luna 828/828实际逐题审核完成，269通过/186部分/231失败/89标准阻断/53证据不足；合并首次有效1233题，636失败。89标准阻断不等同89条标准冲突，833知识来源审计另有30条原文/标准冲突。",
+      "next_gate": "822原失败/部分题新版完整复测与持出集，不凭非空计算准确率",
       "case_ids": [],
       "depends_on": [
         "QAOPT-T01",
         "QAOPT-T02",
         "QAOPT-E03"
-      ]
+      ],
+      "repair_and_acceptance_plan": "已完成828逐题审核；每版继续审核原失败/部分题，再增加持出集。验收：完整正确率、完整有用回答率、传输率分开，模型不同分层。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 32,
@@ -521,13 +625,15 @@
       "priority": "P1",
       "title": "版本冻结、候选对比与受控发布",
       "state": "implemented_verified",
-      "evidence": "V3至V20受控切换/保护PID/CAS；V18/V19失败冻结，V20新五题独立通过；实际适配器和续跑claim去重门保持 V24精确3写/24读、497代理AST和22共享标记、受保护PID/HTTP/哈希及生产CAS验收通过；5发送+402逐题阻断冻结。",
+      "evidence": "V3至V20受控切换/保护PID/CAS；V18/V19失败冻结，V20新五题独立通过；实际适配器和续跑claim去重门保持 V24精确3写/24读、497代理AST和22共享标记、受保护PID/HTTP/哈希及生产CAS验收通过；5发送+402逐题阻断冻结。; V25精确4写24读、490 AST/22标记、受保护PID/HTTP/哈希和生产CAS通过。",
       "next_gate": "后续版本保持冻结字节与独立最终答案审查",
       "case_ids": [],
       "depends_on": [
         "QAOPT-T04",
         "QAOPT-O05"
-      ]
+      ],
+      "repair_and_acceptance_plan": "冻结最小写/读集合，独立审查、recordability、共享功能合同、8093守卫和CAS。验收：版本/哈希/HTTP/PID可核对，失败回滚不自动重试同候选。",
+      "initial_linked_semantic_counts": {}
     },
     {
       "order": 33,
@@ -541,7 +647,9 @@
       "depends_on": [
         "QAOPT-T01",
         "QAOPT-O04"
-      ]
+      ],
+      "repair_and_acceptance_plan": "以新故障追加回归并记录覆盖空白和响应时间目标；定期按题型发布质量趋势。验收：新增题无原始生产数据/身份，历史报告可复现。",
+      "initial_linked_semantic_counts": {}
     }
   ],
   "previous_targeted_retest": {
@@ -599,5 +707,38 @@
     "oracle_blocked": 89,
     "state": "intermediate_snapshot_not_final_accuracy",
     "model": "gpt-5.6-luna"
+  },
+  "historical_v24_retest": {
+    "version": "routing-v24",
+    "requests": 5,
+    "sse_done": 5,
+    "partial": 3,
+    "passed": 1,
+    "failed": 1,
+    "planned": 407,
+    "not_sent": 402,
+    "model_identity_drift_or_unavailable": true,
+    "automatic_post_retries": 0,
+    "stable_sample": 4,
+    "stable_sample_correct_complete": 1,
+    "stable_sample_correct_complete_rate": 0.25,
+    "first_405_failed_attempted": 3,
+    "full_dataset_accuracy_available": false,
+    "evidence": "routing_v24_paired_observations_20260917.json",
+    "dependency_records": "routing_v24_unattempted_dependencies_20260917.json"
+  },
+  "initial_semantic_review_final": {
+    "valid_collected": 1233,
+    "counts": {
+      "passed": 269,
+      "partial": 186,
+      "failed": 636,
+      "insufficient_evidence": 53,
+      "oracle_blocked": 89
+    },
+    "independently_scoreable": 1091,
+    "correct_complete_rate_scoreable": 0.2465627864344638,
+    "failed_or_partial_retest": 822,
+    "evidence": "initial_semantic_summary_20260917.json"
   }
 }

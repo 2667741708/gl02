@@ -1,5 +1,15 @@
 # QA 33项问题逐项执行台账
 
+状态：V24及此前历史快照已保留；最新权威状态已更新至V25。
+
+[最新33项详细方案](../../docs/handoffs/2026-09-17-qa-full-optimization-plan.md)；[最新机器台账](optimization_execution_ledger_20260916.json)。
+
+首次1233有效题完整判定：269通过、186部分、636失败、142未定；V25新版822题仅发送1题且失败，821题证明未发，不能报告全量优化后准确率。
+
+## 以下为V24历史状态
+
+# QA 33项问题逐项执行台账
+
 - 状态：执行中；最后核对：2026-09-17。
 - 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。
 - 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。

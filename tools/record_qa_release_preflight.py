@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version', choices=('v21','v22','v23','v24'), required=True)
+    parser.add_argument('--version', choices=('v21','v22','v23','v24','v25'), required=True)
     args = parser.parse_args()
     release = ROOT/f'.codex_runtime/qa-routing-{args.version}/release'
     baseline = json.loads((release/'readonly-baseline.json').read_text(encoding='utf-8'))

@@ -1123,3 +1123,11 @@ V4构建器新增准确生产MCP SHA-256绑定与字符截断差分。本机旧�
 - `qa_history_projection.py::fetch_owned_history`：历史检索生成答案排除和回答角色过滤。
 - `mcp_conversation_context.py::update_tool_context`：明确追问继承、主题切换/过期重置、旧数值证据不复用。
 - `tools/build_qa_routing_v6_candidate.py`：精确V5生产代理补丁；发布脚本V6为五文件精确写集。上述backend路径相对`高炉前端数据/智能助手/backend`，定位行号TODO-LINES；[权威证据](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。
+
+## V25智能助手更新与首次全题统计（2026-09-17）
+
+状态：V25已部署；首次1233题判定已合并。最新权威方案见 [33项优化与核对方案](handoffs/2026-09-17-qa-full-optimization-plan.md)。
+
+明确钟点/跨午夜窗口不回落最近一小时，历史记录和质量保留；18点绘图已进入正确路由，但生产工具只返回16点且生命周期降级遗漏图，仍待修复。
+
+本机159检查、14黄金题结构、4写24读/490 AST/22标记、8093受控发布和CAS通过。新版822原失败/部分题复测只发1题且失败，821题证明未发。首次完整正确269/可判1091=24.66%，不能报告优化后全量准确率。

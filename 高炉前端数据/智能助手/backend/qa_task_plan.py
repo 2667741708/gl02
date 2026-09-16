@@ -38,6 +38,7 @@ _LIVE_ACTIONS = (
     "查询", "查看", "读取", "调取", "检索", "分析", "判断", "统计", "计算",
     "平均", "最大", "最小", "变化", "是多少", "多少", "有没有", "是否",
     "说一下", "告诉我", "给我说", "给出",
+    "查一下", "查下", "看一下", "画出来", "画出", "绘图", "可视化",
 )
 _KNOWLEDGE_TERMS = (
     "原理", "机理", "原因", "为什么", "含义", "解释", "工艺", "规则", "阈值",
@@ -121,6 +122,11 @@ def _explicit_live_request(instruction: str) -> bool:
             and _contains_any(instruction, ("通常", "一般", "原理", "原因", "含义"))):
         return False
     if qa_time_window_plan.temporal_intent(instruction):
+        return True
+    # REQ-QA-EXPLICIT-CLOCK-AND-CHART-20260917: route requests even when
+    # their explicit clock is invalid; the execution preflight clarifies it.
+    if (qa_time_window_plan.explicit_clock_intent(instruction)
+            and _contains_any(instruction, _LIVE_ACTIONS)):
         return True
     # REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
     # Single-window comparisons and stability questions are observations too.

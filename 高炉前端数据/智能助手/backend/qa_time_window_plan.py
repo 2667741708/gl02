@@ -10,13 +10,179 @@ from __future__ import annotations
 import asyncio
 import math
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 VERSION = "qa-time-window-plan-v1"
 LOCAL_TZ = timezone(timedelta(hours=8), "Asia/Shanghai")
 MIN_BASELINE_COVERAGE = 0.8  # evidence-quality policy, not an alarm threshold
 _DURATION = r"(半|一|两|二|三|\d+(?:\.\d+)?)\s*(分钟|小时|天)"
+
+# REQ-QA-EXPLICIT-CLOCK-AND-CHART-20260917: clock ranges are not rolling
+# durations. Invalid explicit clocks must never become a default last hour.
+_CLOCK_NUMBER = r"(?:\d{1,3}|[零〇一二两三四五六七八九十]{1,3})"
+_CLOCK_HINT = re.compile(_CLOCK_NUMBER + r"\s*(?:点|时|:)")
+_CLOCK = re.compile(
+    r"(?<![0-9零〇一二两三四五六七八九十])(?P<period>上午|下午|中午|晚上|夜里|凌晨|早上|傍晚)?\s*"
+    r"(?P<hour>" + _CLOCK_NUMBER + r")\s*(?P<separator>点|时|:)\s*"
+    r"(?:(?P<fraction>半|一刻|三刻)|(?P<minute>" + _CLOCK_NUMBER + r")\s*分?)?"
+)
+_EXPLICIT_DATE = re.compile(r"(?:(\d{4})\s*[年/.-]\s*(\d{1,2})\s*[月/.-]\s*(\d{1,2})\s*日?|(\d{1,2})\s*[月/]\s*(\d{1,2})\s*日?)")
+_RELATIVE_DAY = re.compile(r"今天|今日|昨天|昨日|昨晚|前天|前晚|今早")
+
+
+def _clock_number(text: str) -> int:
+    if text.isdigit():
+        return int(text)
+    digits = {char: index for index, char in enumerate('零一二三四五六七八九')}
+    digits.update({'〇': 0, '两': 2})
+    if text.count('十') == 1:
+        left, right = text.split('十')
+        if len(left) > 1 or len(right) > 1:
+            raise ValueError('invalid Chinese clock number')
+        return (digits[left] if left else 1) * 10 + (digits[right] if right else 0)
+    if len(text) == 1:
+        return digits[text]
+    raise ValueError('invalid Chinese clock number')
+
+
+def explicit_clock_intent(question: str) -> bool:
+    text = _instruction(str(question or '').split('\n[服务端对话状态：', 1)[0])
+    return bool(_CLOCK_HINT.search(text))
+
+
+def parse_explicit_clock_range(question: str, *, anchor: datetime | None = None) -> dict[str, Any] | None:
+    """Return valid aware endpoints or an explicit clarification, never a default.
+
+    A single day anchor and two clocks are supported, including a midnight
+    crossing. Multiple day anchors need clarification instead of guessed dates.
+    The existing tools use inclusive end times; the user's exact end is retained.
+    """
+    text = _instruction(str(question or '').split('\n[服务端对话状态：', 1)[0])
+    if not explicit_clock_intent(text):
+        return None
+    result: dict[str, Any] = {'schema': 'qa-explicit-clock-range-v1', 'ok': False}
+    def blocked(reason: str) -> dict[str, Any]:
+        return {**result, 'blocked_reason': reason + '；本次不会改查最近一小时，请明确日期及起止时刻。'}
+    now = anchor or datetime.now(LOCAL_TZ)
+    if now.tzinfo is None:
+        raise ValueError('clock-range anchor must be timezone-aware')
+    now = now.astimezone(LOCAL_TZ)
+    clocks = list(_CLOCK.finditer(text))
+    if len(clocks) != 2:
+        return blocked('需要唯一的两个起止时刻')
+    between = text[clocks[0].end():clocks[1].start()].strip()
+    if not re.fullmatch(r'(?:到|至|-|—|－|~|～)', between):
+        return blocked('起止时刻或跨日期表达不完整')
+    # Seconds and malformed numeric suffixes cannot be silently discarded.
+    if re.match(r'\s*(?::|\d|秒|半|刻|分)', text[clocks[1].end():]):
+        return blocked('秒级时刻或分钟表达尚未明确')
+    dates = list(_EXPLICIT_DATE.finditer(text))
+    days = list(_RELATIVE_DAY.finditer(text))
+    if len(dates) + len(days) > 1:
+        return blocked('存在多个日期锚点')
+    day = now.date()
+    try:
+        if dates:
+            matched = dates[0]
+            day = date(int(matched.group(1) or now.year), int(matched.group(2) or matched.group(4)), int(matched.group(3) or matched.group(5)))
+        elif days:
+            label = days[0].group()
+            day -= timedelta(days=2 if label in {'前天', '前晚'} else 1 if label in {'昨天', '昨日', '昨晚'} else 0)
+        night_day = bool(days and days[0].group() in {'昨晚', '前晚'})
+        periods = [clocks[0]['period'] or ('晚上' if night_day else ''), clocks[1]['period'] or '']
+        if not periods[1]:
+            raw_end = _clock_number(clocks[1]['hour'])
+            periods[1] = '凌晨' if periods[0] in {'晚上', '夜里', '傍晚'} and raw_end < 6 else periods[0]
+        endpoints = []
+        for clock, period in zip(clocks, periods):
+            hour = _clock_number(clock['hour'])
+            minute = _clock_number(clock['minute']) if clock['minute'] else 0
+            fraction = clock['fraction']
+            if fraction and clock['minute']:
+                return blocked('分钟与半点/刻钟表达冲突')
+            if fraction:
+                minute = {'半': 30, '一刻': 15, '三刻': 45}[fraction]
+            if clock['separator'] == ':' and not clock['minute']:
+                return blocked('冒号时刻缺少分钟')
+            if hour > 23 or minute > 59:
+                return blocked('时刻超出0至23时、0至59分范围')
+            if period in {'上午', '早上', '凌晨'} and hour > 12:
+                return blocked('时段与小时数冲突')
+            offset = 0
+            if period in {'下午', '中午', '晚上', '夜里', '傍晚'}:
+                if hour in {0, 12} and period in {'晚上', '夜里', '傍晚'}:
+                    hour, offset = 0, 1
+                elif hour == 0:
+                    return blocked('时段与零点表达冲突')
+                elif hour < 12:
+                    hour += 12
+            elif period == '凌晨' and hour == 12:
+                hour = 0
+            endpoint = datetime.combine(day + timedelta(days=offset), datetime.min.time(), LOCAL_TZ)
+            endpoints.append(endpoint.replace(hour=hour, minute=minute))
+        start, end = endpoints
+        if end == start:
+            return blocked('起止时刻相同，不能推测为整天')
+        if end < start:
+            end += timedelta(days=1)
+        if end > now:
+            return blocked('请求窗口包含尚未发生的时刻')
+    except (ValueError, KeyError):
+        return blocked('日期或中文时刻无效')
+    return {**result, 'ok': True, 'start': start, 'end': end, 'anchor': now}
+
+
+def format_history_answer(payload: dict[str, Any]) -> str:
+    """Render returned records only, retaining time, quality and missing evidence.
+
+    Matching the requested window is mandatory. A tool limit or absent unit
+    cannot be described as complete coverage of the user's historical data.
+    """
+    start, end = _dt(payload.get('start_time')), _dt(payload.get('end_time'))
+    if payload.get('query_type') != 'history' or not start or not end or end < start:
+        return '历史查询缺少有效起止时间，无法核实记录；未以当前值替代。'
+    lines = [f"历史数据：{start.isoformat()} 至 {end.isoformat()}（结束时刻包含在查询内）。"]
+    items = payload.get('items')
+    if not isinstance(items, list) or not items:
+        return '\n'.join(lines + ['没有取得对象记录。'])
+    seen: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            lines.append('对象响应格式无效，未展示为有效数据。')
+            continue
+        requested = str(item.get('requested_variable') or '')
+        result = _mapping(item.get('result', item))
+        meta, source = _mapping(result.get('variable')), _mapping(result.get('source'))
+        records = result.get('data')
+        matched = (requested and requested not in seen and result.get('ok') is True
+                   and meta.get('variable_name') == requested
+                   and _dt(result.get('start_time')) == start and _dt(result.get('end_time')) == end
+                   and source.get('read_policy') == 'readonly' and isinstance(records, list)
+                   and type(result.get('count')) is int and result['count'] == len(records))
+        seen.add(requested)
+        if not matched:
+            lines.append(f'{requested or "未知对象"}：对象、时间窗、来源或记录数量不匹配，未展示为有效数据。')
+            continue
+        unit = str(meta.get('unit') or '').strip()
+        source_name = str(source.get('profile') or source.get('engine') or source.get('type') or '只读来源')
+        lines.append(f'{requested}：返回 {len(records)} 条；单位 {unit or "未登记，不能核实单位"}；来源 {source_name} / readonly。')
+        rejected = 0
+        for row in records:
+            stamp = _dt(row.get('ts')) if isinstance(row, dict) else None
+            if not stamp or not start <= stamp <= end or not _finite(row.get('value')):
+                rejected += 1
+                continue
+            lines.append(f"- {stamp.isoformat()}：{row['value']:.12g} {unit or '单位未登记'}；质量 {row.get('quality') or '未标注'}。")
+        if rejected:
+            lines.append(f'{requested}：{rejected} 条无有效时间或有限数值，不能作为有效读数。')
+        limit = result.get('limit') or payload.get('max_points_per_variable')
+        if isinstance(limit, int) and len(records) >= limit:
+            lines.append(f'{requested}：已达到 {limit} 条返回上限，不能宣称覆盖全部记录。')
+        if not records:
+            lines.append(f'{requested}：该窗口没有返回记录。')
+        lines.append(f'{requested}：以上为实际返回记录；采样是否覆盖整个窗口及传感器标定尚未核实。')
+    return '\n'.join(lines)
 
 
 def _minutes(number: str, unit: str) -> float:

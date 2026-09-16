@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "rollback_applied": false,
+  "guard_restored": true,
+  "old_8093_pid": 8396,
+  "new_8093_pid": 3736,
+  "http_8093": 200,
+  "installed_hashes": {
+    "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/ollama_proxy_server.py": "EF7B970CAF748D8965EABDFBD308B988EBD1D47BA4C6B4A9CC8DBFB38DB7ECF9",
+    "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_time_window_plan.py": "3BB8ABC23FA98BA6C207DE0E37D747ECAB1C5B76AA740E499F68642A48563DBF",
+    "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_task_plan.py": "C1248B946B759F164ED0288A82F4D051CC22BB38DC401879EECA703038AA8BBA",
+    "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_entity_resolution.py": "2F6145D47F492CCB26A65D97C57111A14EAC45A1B8116A2C329024822BD0A9B1"
+  },
+  "version": "v25",
+  "production_commit": "6ec408b17db75a040028fdee843cbd1b5b63c5ff",
+  "protected_pids_unchanged": true,
+  "focused_tests_passed": 159,
+  "gold_structures_valid": 14,
+  "write_count": 4,
+  "read_count": 24,
+  "protected_ast_nodes": 490,
+  "shared_markers": 22,
+  "independent_review": "gpt-5.6-luna low PASS"
+}

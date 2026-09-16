@@ -51,6 +51,7 @@ def resolve_requested_entities(question: str) -> dict[str, Any]:
     lowered = text.lower()
     compact = re.sub(r"[\s，,、。；;：:？?！!（）()]", "", lowered)
     matches: list[tuple[int, int, str, str, str]] = []
+    unresolved: list[str] = []
 
     def add(position: int, order: int, variable: str, mention: str, rule: str) -> None:
         matches.append((max(position, 0), order, variable, mention, rule))
@@ -61,6 +62,26 @@ def resolve_requested_entities(question: str) -> dict[str, Any]:
             add(match.start(), order, _CHEMICAL_VARIABLES[token], match.group(0), "chemical_list")
 
     ranges = _letter_ranges(lowered)
+    # REQ-QA-EXPLICIT-CLOCK-AND-CHART-20260917: three registered static
+    # pressure heights are distinct from their A-F relative positions.
+    if '静压力' in compact or '静压' in compact:
+        height_specs = (
+            (('20.35', '20米35', '20350', '炉身下部', '炉腰'), 'lower'),
+            (('23.49', '23.488', '23米49', '23488', '炉身中部'), 'middle'),
+            (('28.98', '28.976', '28米98', '28976', '炉身上部'), 'upper'),
+        )
+        all_heights = any(term in compact for term in ('三个高度', '三种高度', '所有高度', '各高度', '三层高度'))
+        if ranges and not all_heights and not any(term in compact for terms, _ in height_specs for term in terms):
+            unresolved.append('静压力方位范围缺少层位高度；请指定高度或明确全部三个高度')
+        unknown_ranges = re.findall(r'(?<![a-z])([a-z])\s*(?:-|至|到)\s*([a-z])(?![a-z])', lowered)
+        if any(left not in 'abcdef' or right not in 'abcdef' for left, right in unknown_ranges):
+            unresolved.append('静压力只登记A至F相对方位，所请求的方位范围未登记')
+        for height_index, (terms, level) in enumerate(height_specs):
+            if not all_heights and not any(term in compact for term in terms):
+                continue
+            for position, letters, mention in ranges:
+                for order, letter in enumerate(letters):
+                    add(position, height_index * 6 + order, f'P_static_{level}_{letter}', mention, 'static_pressure_height_position_range')
     family_specs = (
         (("炉喉温度", "炉喉"), "T_throat_", "throat_temperature_range"),
         (("顶温", "上升管煤气温度"), "T_top_", "top_temperature_range"),
@@ -104,5 +125,5 @@ def resolve_requested_entities(question: str) -> dict[str, Any]:
         "schema": VERSION,
         "variables": _ordered_unique(variables),
         "entities": entities,
-        "unresolved": [],
+        "unresolved": unresolved,
     }

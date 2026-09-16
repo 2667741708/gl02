@@ -387,3 +387,11 @@ python tools\assistant_8093_auto_recovery.py diagnose --allow-agents-password --
    `preparing → prepared → delta → final → done`。对应版本为 Git `d24543a` / 标签
    `prod-8093-abc33-http400-20260814-r2`；若再次出现 400，先比较浏览器实际加载的
    `bf-abc33-assistant-dialog.js` 缓存版本和响应 `error_code`，不要自动重发。
+
+## V25智能助手更新与首次全题统计（2026-09-17）
+
+状态：V25已部署；首次1233题判定已合并。最新权威方案见 [33项优化与核对方案](handoffs/2026-09-17-qa-full-optimization-plan.md)。
+
+明确钟点/跨午夜窗口不回落最近一小时，历史记录和质量保留；18点绘图已进入正确路由，但生产工具只返回16点且生命周期降级遗漏图，仍待修复。
+
+本机159检查、14黄金题结构、4写24读/490 AST/22标记、8093受控发布和CAS通过。新版822原失败/部分题复测只发1题且失败，821题证明未发。首次完整正确269/可判1091=24.66%，不能报告优化后全量准确率。
