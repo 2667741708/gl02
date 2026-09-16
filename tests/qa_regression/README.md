@@ -98,6 +98,8 @@ python -X utf8 tools/qa_regression.py --results path/to/run.json --reviews path/
 
 ## 如何持续扩展
 
+全来源核对入口：[问题统计](issue_statistics_20260916.md)、[1418行逐题CSV](question_ledger_20260916.csv)、[33项逐条整改与验收清单](optimization_checklist_20260916.md)。本轮异常标签可重叠，未审阅答案不能计通过；实施状态与收集状态分别跟踪。
+
 当前实施计划见[路由策略与智能助手完善计划](assistant_improvement_plan_20260916.md)。2026-09-16核对的知识来源为833行，其中818条独立ready题、15条重复来源；收集完成与答案通过分别验收，先冻结问题收集和审阅，再修改路由。
 
 全量模板入口：[来源与问题目录](templates.v1.json)、[合同检查](template_contracts_20260915.json)、[第二版结果与范围](live_after_v2_20260915.md)。导入工具为 tools/import_qa_prompt_sources.py，执行计划生成器为 tools/prepare_qa_template_batch.py，串行执行器为 tools/run_qa_template_batch.py；系统模板不作为用户消息发送，参考答案不能进入执行载荷。
