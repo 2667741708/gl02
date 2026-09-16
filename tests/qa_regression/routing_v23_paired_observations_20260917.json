@@ -5,17 +5,17 @@
   "production_commit": "baaa7496afbd43b35be98c1e231f79a71d3aa7cf",
   "method": "Primary-agent full-question/full-answer review; statistical and prefetch evidence inspected, report source independently read; history response reviewed without a separate database re-query.",
   "planned": 407,
-  "attempted": 8,
-  "proven_unsent": 399,
+  "attempted": 9,
+  "proven_unsent": 398,
   "passed": 2,
-  "partial": 3,
+  "partial": 4,
   "failed": 3,
   "stable_identity_sampled": 7,
   "stable_sample_correct_complete": 2,
   "stable_sample_accuracy": 0.2857142857142857,
   "accuracy_scope": "Seven observed samples only; not full assistant accuracy, causal improvement, or all 405 failure recovery.",
-  "initial_405_failed_attempted": 6,
-  "initial_405_failed_proven_unsent": 399,
+  "initial_405_failed_attempted": 7,
+  "initial_405_failed_proven_unsent": 398,
   "initial_failure_stable_sample": {
     "attempted": 5,
     "passed": 2,
@@ -23,7 +23,7 @@
     "failed": 2,
     "correct_complete_rate": 0.4
   },
-  "transport_complete": 8,
+  "transport_complete": 9,
   "transport_rate": 1.0,
   "automatic_post_retries": 0,
   "state": "blocked_model_identity_drift_or_unavailable",
@@ -220,6 +220,49 @@
         "after_identity": null,
         "post_turn_identity": "drift_or_unavailable"
       }
+    },
+    {
+      "case_id": "TPL-A60B0CD794D49E48",
+      "cohort": "initial_confirmed_failure",
+      "round": "r2",
+      "status": "partial",
+      "reason": "实际顶压值和真实时间与成功最新值工具一致；单位未登记，简单值查询仍重复规划近百秒并出现未完成提示；请求后身份不可核实，不能计入固定模型效果。",
+      "issue_ids": [
+        "QAOPT-E01",
+        "QAOPT-E04",
+        "QAOPT-O01"
+      ],
+      "result_sha256": "f51d825141b18d8408a9529aa341448a1a4e912f0029b4149859687968c1f6ea",
+      "route": "grounding_guard_rejected",
+      "transport_complete": true,
+      "eligible_stable_sample": false,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": null,
+        "post_turn_identity": "drift_or_unavailable"
+      }
     }
-  ]
+  ],
+  "r1_counts": {
+    "attempted": 8,
+    "passed": 2,
+    "partial": 3,
+    "failed": 3
+  },
+  "continuation": {
+    "round": "paired-v23-20260917-r2",
+    "planned": 399,
+    "attempted": 1,
+    "proven_unsent": 398,
+    "excluded_predecessor_sent": 8,
+    "previous_process_absent_verified": true,
+    "pid": 14776,
+    "plan_sha256": "952f22764c8658b45904ef9eed0dd28da33669906b5e2f96fc9a432e48046fab",
+    "state": "blocked_model_identity_drift_or_unavailable",
+    "model_task_modified": false,
+    "automatic_post_retries": 0
+  }
 }

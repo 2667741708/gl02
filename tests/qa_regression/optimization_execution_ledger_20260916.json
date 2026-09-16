@@ -11,21 +11,22 @@
   },
   "latest_production_retest": {
     "version": "routing-v23",
-    "requests": 8,
-    "sse_done": 8,
+    "requests": 9,
+    "sse_done": 9,
     "passed": 2,
-    "partial": 3,
+    "partial": 4,
     "failed": 3,
     "planned": 407,
-    "not_sent": 399,
+    "not_sent": 398,
     "model_identity_drift_or_unavailable": true,
     "automatic_post_retries": 0,
     "stable_sample": 7,
     "stable_sample_correct_complete": 2,
     "stable_sample_correct_complete_rate": 0.2857142857142857,
-    "first_405_failed_attempted": 6,
+    "first_405_failed_attempted": 7,
     "full_dataset_accuracy_available": false,
-    "evidence": "routing_v23_paired_observations_20260917.json"
+    "evidence": "routing_v23_paired_observations_20260917.json",
+    "dependency_records": "routing_v23_unattempted_dependencies_20260917.json"
   },
   "knowledge_collection": {
     "source": 833,
@@ -309,7 +310,7 @@
       "priority": "P0",
       "title": "成功证据不能被生命周期异常清空",
       "state": "deployed_partial_verified",
-      "evidence": "V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回; V23全文审核：TPL-01EEE414179DB624 partial；TPL-BE97AA4EAD567003 failed",
+      "evidence": "V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回; V23全文审核：TPL-01EEE414179DB624 partial；TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实",
       "next_gate": "全部工具成功证据恢复与追加账本",
       "case_ids": [
         "TPL-4CA73F09C24F631B"
@@ -350,7 +351,7 @@
       "priority": "P1",
       "title": "固定计算与统计定义",
       "state": "deployed_partial_verified",
-      "evidence": "V5相邻两窗/V6确定性统计及公式样本数质量限制; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-01EEE414179DB624 partial",
+      "evidence": "V5相邻两窗/V6确定性统计及公式样本数质量限制; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-01EEE414179DB624 partial; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实",
       "next_gate": "统一跨工具派生计算与冲突",
       "case_ids": [
         "TPL-496B774E90F8EA09"
@@ -395,7 +396,7 @@
       "priority": "P0",
       "title": "模型就绪与请求间竞态",
       "state": "dependency_blocked",
-      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed",
+      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实",
       "next_gate": "单独授权受控模型窗口，原状态恢复验证后续跑399明确未发送题",
       "case_ids": [
         "TPL-18F38D141C29CF15"

@@ -41,6 +41,29 @@ def main():
              'initial_failure_stable_sample': {'attempted': 5, 'passed': 2, 'partial': 1, 'failed': 2, 'correct_complete_rate': 2/5},
              'transport_complete': 8, 'transport_rate': 1.0, 'automatic_post_retries': 0,
              'state': 'blocked_model_identity_drift_or_unavailable', 'full_dataset_accuracy_available': False, 'rows': rows}
+    r2_path = ROOT / '.codex_runtime/qa-routing-v23/r2-snapshots/results.private.json'
+    if r2_path.exists():
+        r2 = json.loads(r2_path.read_text(encoding='utf-8'))
+        if len(r2['rows']) != 1 or r2['rows'][0]['case_id'] != 'TPL-A60B0CD794D49E48':
+            raise ValueError('Continuation review scope mismatch')
+        source = r2['rows'][0]
+        if source['request_count'] != 1 or not source['done'] or not source['terminated']:
+            raise ValueError('Continuation transport incomplete')
+        item = r2['progress']['results'][0]
+        rows.append({'case_id': source['case_id'], 'cohort': 'initial_confirmed_failure', 'round': 'r2',
+                     'status': 'partial', 'reason': '实际顶压值和真实时间与成功最新值工具一致；单位未登记，简单值查询仍重复规划近百秒并出现未完成提示；请求后身份不可核实，不能计入固定模型效果。',
+                     'issue_ids': ['QAOPT-E01', 'QAOPT-E04', 'QAOPT-O01'], 'result_sha256': source['result_file_sha256'],
+                     'route': source['final'].get('answer_route'), 'transport_complete': True,
+                     'eligible_stable_sample': item.get('post_turn_identity') == 'matched',
+                     'model_identity_samples': {k: item.get(k) for k in ['before_identity','after_identity','post_turn_identity']}})
+        value.update(attempted=9, proven_unsent=398, partial=4, initial_405_failed_attempted=7,
+                     initial_405_failed_proven_unsent=398, transport_complete=9,
+                     r1_counts={'attempted':8,'passed':2,'partial':3,'failed':3})
+        value['continuation'] = {'round':'paired-v23-20260917-r2', 'planned':399,'attempted':1,'proven_unsent':398,
+                                'excluded_predecessor_sent':8,'previous_process_absent_verified':True,'pid':14776,
+                                'plan_sha256':'952f22764c8658b45904ef9eed0dd28da33669906b5e2f96fc9a432e48046fab',
+                                'state':'blocked_model_identity_drift_or_unavailable','model_task_modified':False,
+                                'automatic_post_retries':0}
     path = ROOT / 'tests/qa_regression/routing_v23_paired_observations_20260917.json'
     path.write_bytes((json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode('utf-8'))
     print(json.dumps({k: value[k] for k in ['attempted','passed','partial','failed','proven_unsent']}))

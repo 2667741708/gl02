@@ -3,7 +3,7 @@
 - 状态：执行中；最后核对：2026-09-17。
 - 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。
 - 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。
-- 最新生产版本：V23 `baaa7496afbd43b35be98c1e231f79a71d3aa7cf`，8093 PID19444，受控验收与CAS记录通过。407题计划已发8题：2通过、3部分、3失败；身份稳定采样7题中2题正确完整（28.57%，仅小样本）。399道首次失败原题未发送；1条首次未知永不重放。
+- 最新生产版本：V23 `baaa7496afbd43b35be98c1e231f79a71d3aa7cf`，8093 PID19444，受控验收与CAS记录通过。407题计划及安全续跑累计已发9题：2通过、4部分、3失败；身份稳定采样7题中2题正确完整（28.57%，仅小样本）。398道首次失败原题未发送，均有逐题依赖阻断记录；1条首次未知永不重放。
 - 最新权威实施：[V23生产与失败题核验](../../docs/handoffs/2026-09-17-qa-v23-single-window-routing.md)及[模型固定窗口/V24逐项方案](../../docs/handoffs/2026-09-17-qa-model-window-and-v24-plan.md)。33项均保留实际验证范围，未全部解决；旧阶段记录仅作为历史证据。
 
 ## 借鉴 DSH 与 Codex 的实施边界
@@ -36,13 +36,13 @@
 |14|QAOPT-K04 避免通用知识补写正式制度|P0|production_verified|纯制度及V12/V13未知制度复合题均明确澄清，不补写条款|扩展未知标题持出集|
 |15|QAOPT-K05 报表目录不能回答制度问题|P1|deployed_partial_verified|纯制度绕开报表/聊天；复合分支过滤正式原文问题与旧聊天，独立原文合成|全部来源组合持出回归|
 |16|QAOPT-K06 知识数据质量和更新可追踪|P1|deployed_partial_verified|V15独立权威源全文行覆盖门和选中岗位跨索引缺尾门；实际833只读803覆盖候选通过/30冲突单列|语义角色与源范围独立验证，版本化修正30项oracle|
-|17|QAOPT-E01 成功证据不能被生命周期异常清空|P0|deployed_partial_verified|V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回; V23全文审核：TPL-01EEE414179DB624 partial；TPL-BE97AA4EAD567003 failed|全部工具成功证据恢复与追加账本|
+|17|QAOPT-E01 成功证据不能被生命周期异常清空|P0|deployed_partial_verified|V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回; V23全文审核：TPL-01EEE414179DB624 partial；TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实|全部工具成功证据恢复与追加账本|
 |18|QAOPT-E02 有类型的证据与适用范围|P1|deployed_partial_verified|V6当前对象及A-D统计EvidenceItem绑定对象/时间/单位/来源; V23全文审核：TPL-E1C7A67C947531E9 partial|全部工具证据追加账本|
 |19|QAOPT-E03 字段级事实校验与合理舍入|P0|deployed_partial_verified|V14实际压力单位/时间/来源及规范单位血缘独立通过，未知制度partial；未登记单位partial合同通过|全部工具单位/派生量血缘|
-|20|QAOPT-E04 固定计算与统计定义|P1|deployed_partial_verified|V5相邻两窗/V6确定性统计及公式样本数质量限制; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-01EEE414179DB624 partial|统一跨工具派生计算与冲突|
+|20|QAOPT-E04 固定计算与统计定义|P1|deployed_partial_verified|V5相邻两窗/V6确定性统计及公式样本数质量限制; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-01EEE414179DB624 partial; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实|统一跨工具派生计算与冲突|
 |21|QAOPT-E05 输出字段边界及完整性|P0|deployed_partial_verified|V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列|全部工具及模型分支完成覆盖，不凭非空升级|
 |22|QAOPT-E06 多源证据冲突与分析深度|P1|deployed_partial_verified|单点不推趋势、窗口均值不冒充同步温差、V12控制与热平衡条件性因果通过; V23全文审核：TPL-FACD6F5FE05C74FC partial|跨源冲突和时效矩阵|
-|23|QAOPT-O01 模型就绪与请求间竞态|P0|dependency_blocked|V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed|单独授权受控模型窗口，原状态恢复验证后续跑399明确未发送题|
+|23|QAOPT-O01 模型就绪与请求间竞态|P0|dependency_blocked|V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实|单独授权受控模型窗口，原状态恢复验证后续跑399明确未发送题|
 |24|QAOPT-O02 工具超时和故障域隔离|P1|deployed_partial_verified|执行器已有独立超时/每服务预算；V12成功证据保留和失败不扩散合同通过|MCP注册/会话/流式故障矩阵|
 |25|QAOPT-O03 工具参数schema及步骤依赖|P1|deployed_contract_verified|V12实际部署StepPlan依赖绑定、声明上游和环检查；67项DAG/完整性测试通过|全部工具输入输出类型化及实际故障矩阵|
 |26|QAOPT-O04 状态、耗时与可观测性|P1|deployed_partial_verified|V11受控turn投影实际803题和定向题均仅返回当前2条消息；浏览器默认全历史兼容保留|浏览器有界消息合并与历史分页，现场UI验收|
@@ -64,3 +64,8 @@
 5. **S5 稳定性和全量评测**：O02/O04/O05 → T03/T04/T06。
 
 每项只能在对应代码、聚焦回归、真实生产复测及脱敏证据四者齐全后标为 `resolved`。
+
+
+### V23续跑终止补记（2026-09-17）
+
+在只读证明未发送的范围内续跑r2，首题TPL-A60B0CD794D49E48返回真实顶压值但仍部分完成，随后身份不可核实中断。两轮累计9次单POST，2通过、4部分、3失败；398原失败题明确未发送，逐题记录为模型依赖阻断。身份稳定7题中的2通过仅是小样本观察，不代表全量准确率。下一步需受控固定模型窗口，原9题不自动重放。
