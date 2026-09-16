@@ -31,10 +31,72 @@ def connection():
 def add_piece(conn, part, content, *, chapter="高炉工长", regulation="安全操作规程", hash_value=None):
     header = f"【岗位/制度】1. {chapter}\n【规程类型】{regulation}\n【粒度】section\n【原文】\n{content}"
     conn.execute("INSERT INTO rag_chunk VALUES(?,?,?,?,?,?,?,?)", (f"piece{part}", doc.THREE_RULES, f"{chapter} - {regulation} - 第{part}部分", content, header, hash_value or digest(content), "knowledge_doc", "three_rules_section"))
+    count = conn.execute('SELECT count(*) FROM rag_chunk').fetchone()[0]
+    append_authority(conn, content, reset=count == 1)
+
+
+def append_authority(conn, content, reset=False):
+    # Synthetic authoritative originals are registered separately from index
+    # metadata. Tests may delete/mutate the index without mutating this source.
+    row = conn.execute('SELECT full_text FROM rag_document WHERE doc_id = ?', (doc.THREE_RULES,)).fetchone()
+    if row and (reset or content not in row['full_text']):
+        source = content if reset else row['full_text'] + '\n' + content
+        conn.execute('UPDATE rag_document SET full_text = ?, content_hash = ? WHERE doc_id = ?', (source, digest(source), doc.THREE_RULES))
 
 
 def run(conn, question):
     return doc.execute_document_question(conn, question, qa_task_plan.build_task_plan(question))
+
+
+def add_atomic(conn, content, path="1 工作前", chunk_id="atomic1", regulation="安全操作规程"):
+    header = f"【岗位/制度】1. 高炉工长\n【规程类型】{regulation}\n【层级路径】{path}\n【原文】\n{content}"
+    conn.execute("INSERT INTO rag_chunk VALUES(?,?,?,?,?,?,?,?)", (chunk_id, doc.THREE_RULES, chunk_id, content, header, digest(content), "knowledge_doc", "three_rules_atomic"))
+    append_authority(conn, content)
+
+
+def test_atomic_reference_without_book_uses_unique_original_full_clause(connection):
+    clause = "1.1 上班前必须佩戴好劳保用品，严禁酒后上岗。"
+    add_atomic(connection, clause)
+    result = run(connection, "高炉工长在“1 工作前”中，关于“上班前必须佩戴好劳保用品，严禁酒后上岗”需要记住什么？请按原文回答。")
+    assert result["completion"]["reason"] == "verified_original_atomic"
+    assert clause in result["answer"]
+
+
+def test_atomic_preview_returns_full_original_and_not_neighbor(connection):
+    clause = "科学合理组织高炉生产，对炉内各参数进行精细调剂和合理管控，完成全部任务。"
+    add_atomic(connection, clause, path="1 岗位描述")
+    result = run(connection, "高炉工长在“1 岗位描述”中，关于“科学合理组织高炉生产，对炉内各参数进行精细调”需要记住什么？请按原文回答。")
+    assert clause in result["answer"]
+    assert "设备 |" not in result["answer"]
+
+
+def test_atomic_same_wording_other_path_is_not_substituted(connection):
+    add_atomic(connection, "1.1 上班前必须佩戴好劳保用品。", path="1 工作前")
+    result = run(connection, "高炉工长在“2 工作中”中，关于“上班前必须佩戴好劳保用品”需要记住什么？请按原文回答。")
+    assert result["completion"]["reason"] == "atomic_reference_not_found"
+
+
+def test_short_named_term_prefers_exact_colon_boundary_over_shared_prefix(connection):
+    add_atomic(connection, "1.1 煤粉：需要按工艺要求核对。")
+    add_atomic(connection, "1.2 煤粉灰分：另一个参数。", chunk_id="atomic2")
+    result = run(connection, "高炉工长在“1 工作前”中，关于“煤粉”需要记住什么？请按原文回答。")
+    assert "1.1 煤粉：" in result["answer"]
+    assert "煤粉灰分" not in result["answer"]
+
+
+def test_ambiguous_equal_rank_terms_require_clarification(connection):
+    add_atomic(connection, "1.1 煤粉：第一条。")
+    add_atomic(connection, "1.2 煤粉：第二条。", chunk_id="atomic2")
+    result = run(connection, "高炉工长在“1 工作前”中，关于“煤粉”需要记住什么？请按原文回答。")
+    assert result["completion"]["reason"] == "atomic_reference_ambiguous"
+
+
+def test_section_ten_excludes_verified_unnumbered_next_heading(connection):
+    connection.execute("DELETE FROM rag_chunk")
+    add_piece(connection, 1, "10. 工艺影响因素表\n10.1 参数\n名称 | 影响\n风温 | 变化\n生铁与原燃料标准\n11.1 生铁标准")
+    result = run(connection, "请完整说明《三规二制》中高炉工长“10工艺影响因素表”的全部规定。")
+    assert "风温 | 变化" in result["answer"]
+    assert "生铁与原燃料标准" not in result["answer"]
 
 
 def test_preserves_original_prohibitions_and_whole_table(connection):
@@ -63,7 +125,7 @@ def test_document_hash_drift_blocks_answer(connection):
 
 def test_chunk_hash_drift_blocks_answer(connection):
     connection.execute("UPDATE rag_chunk SET content='禁止条款被修改'")
-    assert run(connection, "完整列出高炉工长安全操作规程")["completion"]["reason"] == "section_integrity_unverified"
+    assert run(connection, "完整列出高炉工长安全操作规程")["completion"]["reason"] == "original_index_integrity"
 
 
 def test_missing_or_duplicate_parts_do_not_claim_full_text(connection):
@@ -160,8 +222,45 @@ def test_same_code_in_different_regulations_requires_title_or_type(connection):
     add_piece(connection, 1, "1. 工作前\n1.1 技术条款。", regulation="技术操作规程")
     # replace the safety part with a competing numbered heading
     connection.execute("UPDATE rag_chunk SET content=?, content_hash=? WHERE enriched_content LIKE ?", ("1. 工作前\n1.1 安全条款。", digest("1. 工作前\n1.1 安全条款。"), "%安全操作规程%"))
+    append_authority(connection, '1. 工作前\n1.1 安全条款。\n1. 工作前\n1.1 技术条款。', reset=True)
     result = run(connection, "完整说明《三规二制》高炉工长“1 工作前”")
     assert result["completion"]["reason"] == "subsection_ambiguous"
+
+
+def test_deleted_tail_is_blocked_against_unchanged_independent_authority(connection):
+    add_piece(connection, 2, '2 工作中\n2.1 条件不明不得操作')
+    assert run(connection, '完整列出高炉工长安全操作规程原文')['completion']['terminal_state'] == 'completed'
+    connection.execute('DELETE FROM rag_chunk WHERE chunk_id = ?', ('piece2',))
+    result = run(connection, '完整列出高炉工长安全操作规程原文')
+    assert result['completion']['reason'] == 'authority_index_missing_lines'
+    assert result['completion']['terminal_state'] == 'dependency_blocked'
+
+
+def test_rehashed_foreign_clause_still_cannot_be_formal_authority(connection):
+    foreign = '1. 完全不属于权威原文的条款'
+    connection.execute('UPDATE rag_chunk SET content = ?, content_hash = ?', (foreign, digest(foreign)))
+    result = run(connection, '完整列出高炉工长安全操作规程原文')
+    assert result['completion']['terminal_state'] == 'dependency_blocked'
+    assert foreign not in result['answer']
+
+
+def test_atomic_tail_cannot_mask_missing_section_page(connection):
+    tail = '2 工作中\n2.1 条件不明不得操作'
+    add_piece(connection, 2, tail)
+    add_atomic(connection, tail, path='2 工作中')
+    assert run(connection, '完整列出高炉工长安全操作规程原文')['completion']['terminal_state'] == 'completed'
+    connection.execute('DELETE FROM rag_chunk WHERE chunk_id = ?', ('piece2',))
+    result = run(connection, '完整列出高炉工长安全操作规程原文')
+    assert result['completion']['terminal_state'] == 'dependency_blocked'
+    assert result['completion']['reason'] == 'selected_scope_missing_original_lines'
+
+
+def test_other_regulation_atomic_text_does_not_expand_selected_scope(connection):
+    add_piece(connection, 2, '2 技术\n2.1 技术原文', regulation='技术操作规程')
+    add_atomic(connection, '2.1 技术原文', path='2 技术', regulation='技术操作规程')
+    result = run(connection, '完整列出高炉工长安全操作规程原文')
+    assert result['completion']['terminal_state'] == 'completed'
+    assert '技术原文' not in result['answer']
 
 
 def test_wrong_section_title_does_not_fallback_to_numeric_code(connection):

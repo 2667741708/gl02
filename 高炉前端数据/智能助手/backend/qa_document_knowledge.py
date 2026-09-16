@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import re
 from typing import Any
+import qa_document_integrity
 
 VERSION = "qa-document-knowledge-v1"
 THREE_RULES = "bf_three_rules_two_systems_20260712"
@@ -48,7 +49,7 @@ def _outcome(answer: str, state: str, code: str, manifests=(), coverage=None) ->
     return {"answer": answer, "answer_route": "verified_document_knowledge",
             "completion": {"schema": VERSION, "terminal_state": state, "reason": code,
                            "semantic_review_required": True, "coverage": coverage or {}},
-            "knowledge_manifest": list(manifests), "tool_calls": 0}
+            "knowledge_manifest": list(manifests), "tool_calls": 0, "model_request_count": 0}
 
 
 def _manifest(row: dict[str, Any]) -> dict[str, Any]:
@@ -72,6 +73,8 @@ def _doc_id(question: str) -> str | None:
         return THREE_RULES
     if "高炉事故处理" in question:
         return ACCIDENT
+    if "高炉工长" in question and "按原文回答" in question and _atomic_selector(question):
+        return THREE_RULES
     return None
 
 
@@ -100,6 +103,61 @@ def _reference(question: str):
     return None
 
 
+def _atomic_selector(question: str) -> str | None:
+    match = re.search(r"关于“(.+)”需要记住", question)
+    return match.group(1).strip() if match else None
+
+
+def _original_atomic(conn, question, intro, manifest):
+    selector = _atomic_selector(question)
+    if not selector:
+        return None
+    wanted = _label(selector)
+    if len(wanted) < 2:
+        return _outcome(intro + "条款引用过短，无法唯一识别原文，请补充原句。", "needs_clarification", "atomic_reference_too_short", [manifest])
+    parent = _reference(question)
+    rows = conn.execute(
+        "SELECT chunk_id, doc_id, content, enriched_content, content_hash, authority_level "
+        "FROM rag_chunk WHERE doc_id = ? AND chunk_type = ? ORDER BY chunk_id LIMIT 12001",
+        (THREE_RULES, "three_rules_atomic"),
+    ).fetchall()
+    if len(rows) > 12000:
+        return _outcome(intro + "条款索引超出受控上限，未截取少量片段冒充完整匹配。", "dependency_blocked", "atomic_index_exceeds_limit", [manifest])
+    matches = {}
+    for raw in rows:
+        row = dict(raw)
+        header = canonical_text(row.get("enriched_content"))
+        role = re.search(r"^【岗位/制度】\d+\.\s*(.+)$", header, re.M)
+        regulation = re.search(r"^【规程类型】(.+)$", header, re.M)
+        path = re.search(r"^【层级路径】(.+)$", header, re.M)
+        if not role or role.group(1).strip() != "高炉工长" or not regulation:
+            continue
+        if parent and (not path or _label(parent[0] + parent[1]) not in _label(path.group(1))):
+            continue
+        content = canonical_text(row.get("content")).strip()
+        parsed = _numbered_line(content.split("\n", 1)[0])
+        wording = _label(parsed[1] if parsed else content)
+        if not wording.startswith(wanted):
+            continue
+        if row.get("authority_level") != "knowledge_doc" or not _integrity(row):
+            return _outcome(intro + "匹配条款的来源或哈希未通过核验，未生成正式答案。", "dependency_blocked", "atomic_integrity_unverified", [manifest])
+        raw_wording = parsed[1] if parsed else content
+        named_term = _label(re.split(r"[:：]", raw_wording, maxsplit=1)[0])
+        rank = 3 if wording == wanted else (2 if named_term == wanted else 1)
+        matches[(regulation.group(1).strip(), content)] = (rank, row)
+    if matches:
+        best_rank = max(value[0] for value in matches.values())
+        matches = {key: value for key, value in matches.items() if value[0] == best_rank}
+    if len(matches) != 1:
+        return _outcome(intro + "未唯一确认所引原文条款，请补充规程类型、章节路径或完整原句。", "needs_clarification", "atomic_reference_ambiguous" if matches else "atomic_reference_not_found", [manifest])
+    (regulation, content), (_, row) = next(iter(matches.items()))
+    if len(content) > MAX_BLOCK_CHARS:
+        return _outcome(intro + "完整条款或表格超出受控范围，未裁切原文。", "dependency_blocked", "atomic_block_exceeds_limit", [manifest])
+    return _outcome(intro + f"【高炉工长 / {regulation}】\n以下为唯一匹配的完整原文条款：\n\n" + content,
+                    "completed", "verified_original_atomic", [manifest],
+                    {"chunk_id": str(row["chunk_id"]), "matched_scopes": 1, "table_blocks_preserved": True})
+
+
 def _original_subsection(selected, reference, intro, manifest):
     code, label = reference
     groups = {}
@@ -114,6 +172,11 @@ def _original_subsection(selected, reference, intro, manifest):
                 continue
             end = len(lines)
             for next_index in range(index + 1, len(lines)):
+                # Reviewed source anomaly: this heading omits its section 11
+                # number. It precedes 11.1, and is not part of section 10.
+                if code.split(".")[0] == "10" and lines[next_index].strip() == "生铁与原燃料标准":
+                    end = next_index
+                    break
                 next_parsed = _numbered_line(lines[next_index])
                 if next_parsed and not next_parsed[0].startswith(code + "."):
                     end = next_index
@@ -151,6 +214,19 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
                         "dependency_blocked", "document_integrity_unverified")
     manifest = _manifest(doc)
     intro = f"来源：《{doc['title']}》；版本 {manifest['version']}；更新 {manifest['updated_at']}。\n"
+    if doc_id == THREE_RULES:
+        indexed = conn.execute(
+            "SELECT chunk_type, content, content_hash, authority_level, enriched_content FROM rag_chunk "
+            "WHERE doc_id = ? AND chunk_type IN (?, ?, ?) ORDER BY chunk_id LIMIT 15001",
+            (doc_id, 'three_rules_atomic', 'three_rules_section', 'three_rules_topic'),
+        ).fetchall()
+        gate = qa_document_integrity.inspect(str(doc.get('full_text') or ''), [dict(row) for row in indexed])
+        if not gate['verified']:
+            return _outcome(intro + "权威原文与章节索引的独立完整性核验未通过，可能有缺失或来源不一致；未将现有片段当作完整正式制度。",
+                            'dependency_blocked', gate['reason'], [manifest], {'authority_index': gate})
+        atomic_result = _original_atomic(conn, question, intro, manifest)
+        if atomic_result is not None:
+            return atomic_result
     if doc_id == ACCIDENT:
         body = canonical_text(doc.get("full_text"))
         if len(body) > MAX_BLOCK_CHARS:
@@ -211,6 +287,10 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     if any(parts != list(range(1, len(parts) + 1)) for parts in groups.values()):
         return _outcome(intro + "所选章节存在缺页或重复片段，未把拼接结果标为完整。",
                         "dependency_blocked", "section_parts_not_contiguous", [manifest])
+    scope_gate = qa_document_integrity.inspect_selected_scope(selected, [dict(row) for row in indexed])
+    if not scope_gate['verified']:
+        return _outcome(intro + "所选岗位/规程的章节内容与其他已核验原文索引不一致，可能缺少条款；未将当前片段标为完整。",
+                        'dependency_blocked', scope_gate['reason'], [manifest], {'selected_scope': scope_gate})
     reference = _reference(question)
     if reference is not None:
         return _original_subsection(selected, reference, intro, manifest)
