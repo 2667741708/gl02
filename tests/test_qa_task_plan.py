@@ -86,3 +86,17 @@ def test_tool_domains_are_enforced_after_intent_selection() -> None:
     assert qa_task_plan.tool_allowed("query_gl02_statistics", live)
     assert not qa_task_plan.tool_allowed("search_qa_messages", live)
     assert not qa_task_plan.tool_allowed("update_furnace_setting", live)
+
+
+def test_tool_safety_is_an_exact_allowlist_not_a_name_prefix_guess() -> None:
+    live = qa_task_plan.build_task_plan("查询当前炉顶压力")
+    assert qa_task_plan.tool_allowed("query_gl02_statistics", live)
+    assert qa_task_plan.tool_allowed("imes__query_current_heat_chemistry", live)
+    for disguised_write in (
+        "get_update_furnace_setting",
+        "query_and_write",
+        "list_then_delete",
+        "calculate_and_execute",
+    ):
+        assert qa_task_plan.tool_domain(disguised_write) == "restricted_unknown"
+        assert not qa_task_plan.tool_allowed(disguised_write, live)

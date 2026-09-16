@@ -67,6 +67,9 @@ def test_request_flow_has_single_plan_for_prefetch_knowledge_and_tools() -> None
     assert 'else bool(task_plan.get("allow_mcp_tools"))' in SOURCE
     assert '"qa_task_plan": qa_task_plan.public_task_plan(task_plan)' in SOURCE
     assert "if available and qa_task_plan.tool_allowed(name, task_plan)" in SOURCE
+    assert 'if tool_selection.get("mode") == "required":' in SOURCE
+    assert "if not qa_task_plan.tool_allowed(name, task_plan)" in SOURCE
+    assert '"reason": "task_plan_forced_tool_rejected"' in SOURCE
 
 
 def _run_loop_scope(async_loop):

@@ -3137,7 +3137,7 @@ pwsh.exe -NoLogo -NoProfile -File `
   python -m pytest tests/test_qa_task_plan.py tests/test_qa_evidence_claims.py tests/test_qa_routing_candidate.py tests/test_qa_evidence_policy.py -q
   ```
 
-  本次成功信号：`43 passed`。覆盖公开失败模板的文档/历史/实时三联路由、工具域隔离、JSON围栏、
+  本次成功信号：`44 passed`。覆盖公开失败模板的文档/历史/实时三联路由、工具域隔离、JSON围栏、
   混合代码问题、合理舍入、错对象和生命周期异常后的事实保留。
 - 回归合同与既有目录：
 
@@ -3148,4 +3148,14 @@ pwsh.exe -NoLogo -NoProfile -File `
   ```
 
   本次成功信号：TaskPlan `ok=true checked=15`；合成问答 `corpus_valid case_count=32`；MCP 金标
-  `ok=true case_count=14`。这些信号只证明本机候选和合同，不表示真实模型或生产已通过。
+  `ok=true case_count=14`。
+- 生产逐题复测：
+
+  ```powershell
+  python -X utf8 tools/run_qa_failed_retest_once.py --help
+  ```
+
+  实际执行使用新建的 Git 忽略输出目录、显式 `--execute` 和逐题不可覆盖 claim。16 道既有失败题共
+  POST 16 次，自动重试 0；14 次完整 `done`，1 次明确模型未驻留 SSE 错误，1 次同源客户端合同拒绝。
+  人工审阅为通过 2、部分通过 6、失败 7、客户端合同阻断 1。脱敏逐题结果见
+  [routing_retest_review_20260916.json](../tests/qa_regression/routing_retest_review_20260916.json)，原始回答不得提交。

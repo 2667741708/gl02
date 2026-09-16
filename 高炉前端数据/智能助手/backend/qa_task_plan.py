@@ -43,6 +43,56 @@ _KNOWLEDGE_TERMS = (
 _NO_LIVE_PATTERN = re.compile(r"(?:不要|不需要|无需|不必|不用|禁止|不)\s*(?:查(?:询)?|读取|访问|调用|检索|连接)[^，。；;\n]{0,12}(?:实时|现场|生产|数据库|数据|工具)")
 _USER_DATA_PATTERN = re.compile(r"(?:只|仅)(?:用|看|根据|依据|基于)[^，。；;\n]{0,16}(?:我给|我提供|这些数|假设|已给|提供的)")
 
+# The production MCP registry is read-only, but routing must not infer safety
+# from a verb-shaped tool name.  Keep an explicit allowlist of exposed names;
+# a newly registered tool remains unavailable until this list and its tests are
+# reviewed together.
+_HISTORY_TOOL_NAMES = {"search_qa_messages"}
+_REPORT_TOOL_NAMES = {"list_recent_reports", "read_report_excerpt"}
+_LIVE_READONLY_TOOL_NAMES = {
+    "query_bf2_operation_log_report",
+    "list_business_objects",
+    "search_business_objects",
+    "get_business_object",
+    "find_gl02_variables",
+    "get_gl02_variable_info",
+    "list_gl02_available_variables",
+    "get_latest_gl02_value",
+    "query_gl02_history",
+    "query_gl02_statistics",
+    "query_gl02_sensors",
+    "query_gl02_feature_statistics",
+    "plot_gl02_trends",
+    "plot_gl02_body_temperature_matrix",
+    "plot_gl02_analysis",
+    "get_latest_furnace_snapshot",
+    "gl02ext__query_furnace_diagnosis_history",
+    "gl02ext__query_body_temperature",
+    "gl02ext__query_body_temperature_statistics",
+    "imes__imes_relay_status",
+    "imes__list_imes_database_profiles",
+    "imes__list_imes_business_objects",
+    "imes__search_imes_variables",
+    "imes__explain_imes_variable",
+    "imes__resolve_imes_natural_language",
+    "imes__query_imes_object",
+    "imes__query_imes_readonly_sql",
+    "imes__query_imes_variables",
+    "imes__query_hot_metal_silicon",
+    "imes__get_current_heat_context",
+    "imes__get_current_previous_heat_si_summary",
+    "imes__resolve_spoken_heat_reference",
+    "imes__query_hot_metal_chemistry_by_heat",
+    "imes__query_heat_chemistry",
+    "imes__query_current_heat_chemistry",
+    "imes__query_heat_chemistry_by_time_range",
+    "imes__query_blast_furnace_slag_by_heat",
+    "imes__query_sinter_feed_chemistry",
+    "imesweb__get_imes_web_status",
+    "imesweb__list_imes_web_datasets",
+    "imesweb__query_imes_web_dataset",
+}
+
 
 def _quoted_spans(text: str) -> list[str]:
     return [match.group(0) for match in _QUOTED_RE.finditer(text)]
@@ -175,11 +225,11 @@ def tool_domain(tool_name: str) -> str:
     """Map an exposed read-only tool to the evidence domain it can read."""
 
     name = str(tool_name or "").lower()
-    if any(term in name for term in ("search_qa_messages", "conversation_history", "chat_history")):
+    if name in _HISTORY_TOOL_NAMES:
         return "conversation_history"
-    if any(term in name for term in ("recent_reports", "report_excerpt", "period_report")):
+    if name in _REPORT_TOOL_NAMES:
         return "period_report"
-    if any(term in name for term in ("get_", "query_", "list_", "search_", "read_", "plot_", "resolve_", "calculate_")):
+    if name in _LIVE_READONLY_TOOL_NAMES:
         return "live_readonly_data"
     return "restricted_unknown"
 

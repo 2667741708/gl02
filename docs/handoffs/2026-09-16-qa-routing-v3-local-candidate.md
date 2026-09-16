@@ -1,6 +1,7 @@
 # QA 路由 V3 本机候选交接
 
-- 状态：`local_candidate_verified_not_deployed`
+- 状态：`historical_predeployment_snapshot`；已由
+  [生产更新与复测](./2026-09-16-qa-routing-v3-production-and-retest.md)取代
 - 最后核对：2026-09-16
 - 需求：`REQ-QA-ROUTING-ASSISTANT-UPDATE-20260916`
 - 适用边界：普通智能助手问答、知识检索、只读 MCP 路由、证据降级和禁代码输出。

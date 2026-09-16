@@ -264,6 +264,19 @@ def _proxy_candidate(source: str) -> tuple[str, int]:
             tool_selection = dict(
                 payload.get("_qa_tool_selection") or {"mode": "auto", "tools": []}
             )
+            if tool_selection.get("mode") == "required":
+                requested_tool_names = tuple(str(item) for item in tool_selection.get("tools") or [])
+                rejected_tool_names = tuple(
+                    name for name in requested_tool_names
+                    if not qa_task_plan.tool_allowed(name, task_plan)
+                )
+                if not requested_tool_names or rejected_tool_names:
+                    tool_selection = {
+                        "mode": "none",
+                        "tools": [],
+                        "rejected_tools": list(rejected_tool_names or requested_tool_names),
+                        "reason": "task_plan_forced_tool_rejected",
+                    }
             mcp_started = time.perf_counter()
             if tool_selection.get("mode") == "required":
                 mcp_prefetch = {"used": False, "reason": "forced_tool_selection"}

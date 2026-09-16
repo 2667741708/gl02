@@ -1045,5 +1045,7 @@
 | [qa_evidence_claims.py](../高炉前端数据/智能助手/backend/qa_evidence_claims.py) | 对象/统计字段数值绑定和显示精度舍入 | 增加别名时要防同值跨对象误认；单位和时间尚未在此模块校验 |
 | [build_qa_routing_candidate.py](../tools/build_qa_routing_candidate.py) | 对精确 V2 生产基线应用可审查修改并输出本机 V3 候选 | 基线哈希变化必须停止并重新审查，不能放宽哈希门禁 |
 | [evaluate_qa_task_plan_contracts.py](../tools/evaluate_qa_task_plan_contracts.py) | 验证公开模板与合成反例的确定性路由合同 | 不得将线上原始答案、身份、生产数值或 oracle 传给模型 |
+| [run_qa_failed_retest_once.py](../tools/run_qa_failed_retest_once.py) | 对人工确认失败题执行逐题 claim、单次生产 SSE 和无重放核算 | 原始回答仅写入 Git 忽略目录；明确或不确定的已发送题均不得自动重发 |
 
-完整边界见 [QA 路由 V3 本机候选交接](./handoffs/2026-09-16-qa-routing-v3-local-candidate.md)。
+生产已记录为 `70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9`。完整边界、16 题脱敏审阅和
+下一轮修复项见 [QA 路由 V3 生产更新与复测](./handoffs/2026-09-16-qa-routing-v3-production-and-retest.md)。
