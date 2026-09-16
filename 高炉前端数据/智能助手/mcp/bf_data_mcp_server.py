@@ -3647,6 +3647,7 @@ def read_report_excerpt(report_path: str, mode: str = "excerpt", max_chars: int 
     if candidate.suffix.lower() not in {".md", ".txt"}:
         raise ValueError("当前工具只允许读取 .md 或 .txt 报表文本")
     text = candidate.read_text(encoding="utf-8", errors="replace")
+    total_chars = len(text)
     if mode != "full":
         text = text[:max_chars]
     else:
@@ -3656,7 +3657,8 @@ def read_report_excerpt(report_path: str, mode: str = "excerpt", max_chars: int 
         "report_path": str(candidate.relative_to(REPORTS_DIR)),
         "mode": mode,
         "chars_returned": len(text),
-        "truncated": len(text) < candidate.stat().st_size,
+        "total_chars": total_chars,
+        "truncated": len(text) < total_chars,
         "content": text,
     }
 

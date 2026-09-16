@@ -517,3 +517,10 @@ Brotli库为可选能力；缺失时服务仍可启动并回退gzip。HTML保持
 | Git 保存 | 精确 pathspec commit + 唯一本地 annotated tag | 禁止全量暂存、amend、强制覆盖 tag 和外部 push |
 
 敏感路径、运行日志、备份、数据库、模型权重、缓存、虚拟环境、依赖目录和浏览器认证状态不进入监视或同步范围。本地与远端同文件并行变化时状态必须为 `conflict_needs_review`，不得自动覆盖。
+
+### V4 QA工作流本机候选策略值
+
+- 状态：候选，未部署；2026-09-16；权威实现为[时间窗模块](../高炉前端数据/智能助手/backend/qa_time_window_plan.py)与[报表模块](../高炉前端数据/智能助手/backend/qa_report_workflow.py)。未修改生产模型或路由环境变量。
+- 时间：Asia/Shanghai、一个请求锚点、秒精度适配器、每窗不超过24小时；调用数仍受现有QA_MCP_MAX_TOOL_CALLS与请求时间预算约束。
+- 基线：30日；MIN_BASELINE_COVERAGE=0.8是证据质量门，未标定为生产报警规则。时间晚于查询起点、截断或IQR无效时拒用。
+- 报表：目录limit=20，正文max_chars=10000仍由工具系统上限夹紧；摘录最多2500字符，缩短即标记范围不完整。

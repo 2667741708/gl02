@@ -12,6 +12,7 @@ import re
 from typing import Any
 
 import qa_entity_resolution
+import qa_time_window_plan
 
 
 VERSION = "qa-task-plan-v2"
@@ -116,6 +117,8 @@ def _is_no_live_request(instruction: str) -> bool:
 def _explicit_live_request(instruction: str) -> bool:
     if not _contains_any(instruction, _LIVE_TERMS):
         return False
+    if qa_time_window_plan.temporal_intent(instruction):
+        return True
     if _contains_any(instruction, _LIVE_ACTIONS):
         return True
     compact = re.sub(r"[\s，,。；;？?！!]", "", instruction)

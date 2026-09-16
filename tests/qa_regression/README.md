@@ -120,3 +120,9 @@ python -X utf8 tools/qa_regression.py --results path/to/run.json --reviews path/
 7. 执行上述检查，提交独立变更；真实结果若含生产或个人信息，保留在受控位置，公开仓库只提交合成用例与经过审查的汇总。
 
 扩展顺序：同义口语 → 连续追问与范围切换 → 多源组合 → 部分缺失与冲突 → 超时取消 → 新业务需求。与实际故障关联只保留问题类型及需求编号，不上传原始日志。
+
+## 2026-09-16 V4新增故障回归
+
+- [V4修复交接](../../docs/handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md)：R04时间窗/独立基线，R05报表依赖链/中文截断。
+- 合成测试位于tests/test_qa_time_window_plan.py、test_qa_report_workflow.py、test_qa_report_excerpt_contract.py；包含独立复算、部分失败和越界输入，不含生产数据。
+- [33项执行台账](optimization_execution_ledger_20260916.md)保留本机候选与生产通过的区别；候选源文件、原始线上源码及真实工具结果不随回归集上传。

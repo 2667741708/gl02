@@ -1057,3 +1057,7 @@
 | [qa_entity_resolution.py](../高炉前端数据/智能助手/backend/qa_entity_resolution.py) | 展开共享前缀列表、字母范围和成对对象，返回有序 canonical ID | 只允许显式审查的别名/范围；未知对象不得生成虚构ID |
 | [build_qa_routing_v4_candidate.py](../tools/build_qa_routing_v4_candidate.py) | 从已验收V3精确哈希生成V4候选，并将解析结果接入执行器 | 基线不符立即停止；不能顺带重写代理主文件其他逻辑 |
 | [build_qa_remediation_execution_ledger.py](../tools/build_qa_remediation_execution_ledger.py) | 校验33项状态覆盖并生成可核对执行台账 | 状态必须来自测试/生产证据，不能把计划标成已解决 |
+| [qa_time_window_plan.py](../高炉前端数据/智能助手/backend/qa_time_window_plan.py#L40) | QAOPT-R04固定锚点、两窗及基线工作流与确定性答案 | 基线质量门不能替代炉况报警；不得合并成单窗 |
+| [qa_report_workflow.py](../高炉前端数据/智能助手/backend/qa_report_workflow.py#L73) | QAOPT-R05目录→选定→正文→摘要摘录 | 依赖失败停止；目录、历史报表及实时数据分开 |
+
+V4构建器新增准确生产MCP SHA-256绑定与字符截断差分。本机旧代理/MCP不作整文件生产候选，细节见[V4交接](handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md)。

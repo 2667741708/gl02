@@ -12,9 +12,11 @@
   "current_local_candidate": {
     "version": "routing-v4",
     "issues": [
-      "QAOPT-R03"
+      "QAOPT-R03",
+      "QAOPT-R04",
+      "QAOPT-R05"
     ],
-    "state": "local_candidate_verified"
+    "state": "local_candidate_verified_production_pending"
   },
   "rows": [
     {
@@ -70,9 +72,9 @@
       "issue_id": "QAOPT-R04",
       "priority": "P1",
       "title": "多时间窗与历史基线",
-      "state": "production_retest_failed",
-      "evidence": "两窗口和历史基线题仍未取得完整证据",
-      "next_gate": "实现TimeWindowPlan和两个不重叠查询步骤",
+      "state": "local_candidate_verified",
+      "evidence": "V4已补TaskPlan门禁、固定时区锚点、两窗串行与30日基线质量/时间校验；本机合同已通过",
+      "next_gate": "受控部署后各首次复测1次，核对两窗/基线实际证据",
       "case_ids": [
         "TPL-26CC8346013E1DEA",
         "TPL-E1C7A67C947531E9"
@@ -87,9 +89,9 @@
       "issue_id": "QAOPT-R05",
       "priority": "P1",
       "title": "报表工作流读取正文",
-      "state": "production_retest_failed",
-      "evidence": "最新日报摘要仍停在目录列表",
-      "next_gate": "实现list→select→read→summarize依赖链",
+      "state": "local_candidate_verified",
+      "evidence": "V4已补list→select→read→摘要摘录；中文字符/字节截断缺陷已在准确生产MCP基线上修正",
+      "next_gate": "受控部署后复测真实日报摘要；长报表无摘要章节时保持明确摘录边界",
       "case_ids": [
         "TPL-8DA6777B502376D4"
       ],

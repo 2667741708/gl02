@@ -3165,7 +3165,7 @@ pwsh.exe -NoLogo -NoProfile -File `
 - 构建：
 
   ```powershell
-  python -X utf8 tools/build_qa_routing_v4_candidate.py --v3-candidate .codex_runtime/qa-routing-v3/candidate --output .codex_runtime/qa-routing-v4/candidate
+  python -X utf8 tools/build_qa_routing_v4_candidate.py --v3-candidate .codex_runtime/qa-routing-v3/candidate --mcp-baseline .codex_runtime/qa-routing-v4/production-baseline/bf_data_mcp_server.py --output .codex_runtime/qa-routing-v4/candidate
   ```
 
 - 聚焦验证：
@@ -3177,3 +3177,12 @@ pwsh.exe -NoLogo -NoProfile -File `
 - 成功信号：`19 passed`；V4候选固定到已验收V3代理哈希。三气体解析为
   `CO_top/CO2_top/H2_top`，炉喉`A-D`展开四点，南北探尺按用户顺序保留两个对象，未知对象不生成虚构ID。
 - 生产状态：本机候选验证通过，尚未部署；部署后每道代表题只允许一次POST，禁止自动重放。
+
+### QAOPT-R04/R05：窗口及报表工作流回归
+
+- 2026-09-16本机相关回归98 passed；命令、环境和完整限制见[V4交接](handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md)。
+- [时间窗测试](../tests/test_qa_time_window_plan.py)：独立窗口成员集合、算术复算、基线时间/对象/质量、部分失败不重放。
+- [报表依赖测试](../tests/test_qa_report_workflow.py)：真实原题TaskPlan门禁、目录→正文顺序、失败停止、路径和代码限制。
+- [中文截断测试](../tests/test_qa_report_excerpt_contract.py)：执行真实本机及生产差分候选读取函数；中文全文不误报，实际截断仍标记。
+- [候选接缝测试](../tests/test_qa_routing_v4_candidate.py)：实际代理AST接缝与精确生产基线；不导入无关生产模块。
+- 不包含生产复测、模型驻留竞争或并发通过证明；非空不记语义通过。

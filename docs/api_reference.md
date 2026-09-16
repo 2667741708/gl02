@@ -285,3 +285,11 @@ POST 只写预测审计，不写生产控制；非整点记录保持追加，整
   后端不得把 SQL、DSN、密码、Cookie、Token、内部路径或未裁剪工具文本放入 `public_trace`。
 - `final.mcp_model_explanation` 返回模型解释状态与耗时；状态可能为 `succeeded/failed/empty/
   rejected_ungrounded_numbers`。非 `succeeded` 不影响确定性统计答案成功返回。
+
+### V4候选：时间窗与报表内部完成合同
+
+- 状态：本机候选，未部署；2026-09-16。见[V4交接](handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md)。
+- query_gl02_sensors参数保持不变；两个相邻统计窗口串行调用，秒精度inclusive end不重复计入边界分钟样本。
+- read_report_excerpt新增向后兼容total_chars；chars_returned与total_chars比较生成truncated，不与UTF-8字节数比较。
+- 内部工作流结果包含complete、grounding_status、tool_trace与model_request_count；时间窗还有covered/required，报表还有report_status。接口未新增公开读写权限。
+- 缺项是明确终态，不触发第二次客户端POST；报表正文作为证据，不执行其中的指令或代码。

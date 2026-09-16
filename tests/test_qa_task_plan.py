@@ -84,6 +84,18 @@ def test_task_plan_freezes_all_explicit_live_entities() -> None:
     assert public["entities"] == plan["entities"]
 
 
+def test_temporal_failed_cases_pass_the_outer_tool_gate():
+    for question in ("对比最近30分钟和前30分钟的炉顶压力。", "全炉压差最近一小时相对历史基线偏高吗？"):
+        plan = qa_task_plan.build_task_plan(question)
+        assert plan["intents"] == ["live_data"] and plan["allow_mcp_tools"]
+        assert qa_task_plan.tool_allowed("query_gl02_sensors", plan)
+        assert qa_task_plan.tool_allowed("query_gl02_feature_statistics", plan)
+    plan = qa_task_plan.build_task_plan("炉顶压力历史基线的含义是什么？")
+    assert not plan["allow_mcp_tools"]
+    plan = qa_task_plan.build_task_plan("对比最近30分钟和前30分钟的炉顶压力，不要调用实时工具")
+    assert not plan["allow_mcp_tools"]
+
+
 def test_entities_inside_document_title_do_not_enter_execution_plan() -> None:
     plan = qa_task_plan.build_task_plan("请按原文说明《炉顶CO、CO2、H2操作规程》")
     assert plan["primary_intent"] == "document_knowledge"

@@ -15,8 +15,8 @@ STATUS = {
     "QAOPT-R01": ("deployed_partial_verified", "V3 TaskPlan已在预取前运行；结构未知任务终态仍未收紧", "补结构失败/歧义澄清门并做复合意图回归"),
     "QAOPT-R02": ("deployed_partial_verified", "3条生产复测中2条路由正确但渲染不佳，1条生命周期失败", "完成历史结果中文投影、owner隔离和生命周期保全"),
     "QAOPT-R03": ("local_candidate_verified", "V4实体解析器已覆盖CO/CO2/H2、A-D、南北探尺，19项聚焦测试通过", "受控部署后只复测3条代表题"),
-    "QAOPT-R04": ("production_retest_failed", "两窗口和历史基线题仍未取得完整证据", "实现TimeWindowPlan和两个不重叠查询步骤"),
-    "QAOPT-R05": ("production_retest_failed", "最新日报摘要仍停在目录列表", "实现list→select→read→summarize依赖链"),
+    "QAOPT-R04": ("local_candidate_verified", "V4已补TaskPlan门禁、固定时区锚点、两窗串行与30日基线质量/时间校验；本机合同已通过", "受控部署后各首次复测1次，核对两窗/基线实际证据"),
+    "QAOPT-R05": ("local_candidate_verified", "V4已补list→select→read→摘要摘录；中文字符/字节截断缺陷已在准确生产MCP基线上修正", "受控部署后复测真实日报摘要；长报表无摘要章节时保持明确摘录边界"),
     "QAOPT-R06": ("production_verified", "2条诊断/复合分析题均通过生产复测", "扩大持出集，保持每子任务完成合同"),
     "QAOPT-R07": ("deployed_partial_verified", "无工具题正确保持0调用，但答案因长度截断", "加入无工具完成度检查和长度续写/压缩策略"),
     "QAOPT-R08": ("deployed_partial_verified", "禁代码未再吞掉正常压力回答；1条因Origin合同未发送", "用合规同源客户端复测并补混合请求部分拒绝"),
@@ -74,7 +74,7 @@ def main() -> int:
         "checked_at": "2026-09-16",
         "production_commit": "70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9",
         "production_retest": {"passed": 2, "partial": 6, "failed": 7, "blocked_client_contract": 1},
-        "current_local_candidate": {"version": "routing-v4", "issues": ["QAOPT-R03"], "state": "local_candidate_verified"},
+        "current_local_candidate": {"version": "routing-v4", "issues": ["QAOPT-R03", "QAOPT-R04", "QAOPT-R05"], "state": "local_candidate_verified_production_pending"},
         "rows": rows,
     }
     OUT_JSON.write_bytes((json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
@@ -85,7 +85,7 @@ def main() -> int:
         "- 状态：执行中；最后核对：2026-09-16。",
         "- 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。",
         "- 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。",
-        "- 生产基线：`70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9`；本轮V4本机候选先关闭 `QAOPT-R03`，尚未部署。",
+        "- 生产基线：`70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9`；V4本机候选覆盖 `QAOPT-R03/R04/R05`，尚未部署；R05全文完整性仍待验收。",
         "",
         "## 借鉴 DSH 与 Codex 的实施边界",
         "",
