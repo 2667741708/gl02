@@ -1,5 +1,9 @@
 # 程序索引
 
+## REQ-QA-EXCLUSIVE-USE-20260916：问答独占门（本机）
+
+[qa_request_control.py](../高炉前端数据/智能助手/backend/qa_request_control.py#L135)在现有注册锁内检查所有未完成请求，先拒绝其他发送，再进入原问答。锁不覆盖模型等待；取消保持占用直到实际finally结束。[生命周期测试](../tests/test_qa_exclusive_use.py)与[实施记录](handoffs/2026-09-16-qa-exclusive-use-local.md)。生产尚未更新。
+
 ## V20 指代趋势追问（2026-09-16）
 
 规划器新增“这个/那个/这些/它们/刚才/上面”指代识别，明确新对象仍优先当前问题。V19失败的30分钟追问现走确定性统计；真实五题与数据库只读来源各5/5通过，模型趋势解释被可信守卫拒绝单列。仅更新8093代理，模型配置不变；整体33项仍执行中。[权威证据](handoffs/2026-09-16-qa-routing-v20-production.md)。

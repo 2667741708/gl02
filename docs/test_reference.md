@@ -1,5 +1,9 @@
 # 测试参考
 
+## REQ-QA-EXCLUSIVE-USE-20260916：全角色独占回归
+
+[test_qa_exclusive_use.py](../tests/test_qa_exclusive_use.py)以真实控制模块、合成身份验证6组角色对、取消保持占用、失败释放和同时注册竞态，共9项通过；关联来源绑定与测试持久化共35项通过，独立应用审查通过。命令：`python -X utf8 -m pytest tests/test_qa_exclusive_use.py tests/test_qa_context_provenance.py tests/test_qa_retest_persistence.py -q --basetemp .codex_runtime/pytest-exclusive-new-run`。0生产POST、0模型调用；真实角色/浏览器与生产独占验收仍待受控发布。[证据](handoffs/2026-09-16-qa-exclusive-use-local.md)。
+
 ## V20 指代趋势追问（2026-09-16）
 
 规划器新增“这个/那个/这些/它们/刚才/上面”指代识别，明确新对象仍优先当前问题。V19失败的30分钟追问现走确定性统计；真实五题与数据库只读来源各5/5通过，模型趋势解释被可信守卫拒绝单列。仅更新8093代理，模型配置不变；整体33项仍执行中。[权威证据](handoffs/2026-09-16-qa-routing-v20-production.md)。

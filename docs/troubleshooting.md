@@ -1,5 +1,9 @@
 # 排障手册
 
+## 模型检查失败不等于模型卸载（2026-09-16）
+
+Q-QA-QWEN-READINESS-CONCURRENCY-ORACLE-20260916：先区分成功读取/api/ps但批准模型缺席，与查询超时/HTTP失败/异常结构。当前resolve_resident吞fetch异常为空列表，model_ok=false原因不充分。本轮业务模型确认是允许且驻留的Qwen系列。[诊断证据与解决方案](handoffs/2026-09-16-qa-qwen-readiness-concurrency-oracle-plan.md)。旧冻结报告保留，后续按更细原因判定。
+
 ## V20 指代趋势追问（2026-09-16）
 
 规划器新增“这个/那个/这些/它们/刚才/上面”指代识别，明确新对象仍优先当前问题。V19失败的30分钟追问现走确定性统计；真实五题与数据库只读来源各5/5通过，模型趋势解释被可信守卫拒绝单列。仅更新8093代理，模型配置不变；整体33项仍执行中。[权威证据](handoffs/2026-09-16-qa-routing-v20-production.md)。

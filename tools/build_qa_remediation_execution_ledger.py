@@ -119,7 +119,9 @@ STATUS.update({
 
 
 STATUS.update({
-    'QAOPT-R10': ('deployed_partial_verified', 'V19来源绑定生产6/6通过；V20修正规划器指代词，真实30分钟追问/最新/换题/用户分析5/5及数据库来源5/5通过', 'operator/admin真实多轮并发与指代持出集'),
+    'QAOPT-R10': ('deployed_partial_verified', 'V19来源绑定生产6/6通过；V20修正规划器指代词，真实30分钟追问/最新/换题/用户分析5/5及数据库来源5/5通过', 'operator/admin真实多轮与指代持出集；并发发送应按用户限定独占拒绝'),
+    'QAOPT-O05': ('implemented_local_verified_production_pending', '用户限定所有角色同一时间一个活动问答；本机全局注册门与9项生命周期测试及独立审查通过，关联35项通过；生产未更新', '受控发布后验证真实角色独占409、取消实际停止后释放与owner隔离；不排队、不自动重放'),
+    'QAOPT-O01': ('production_dependency_open', '前轮model_ok临时false和启动失败已记录；本轮确认批准业务模型为已驻留Qwen，吞查询异常为空列表不足以证明卸载', '先细分就绪检查失败/成功查询缺席，再按执行能力依赖门与Qwen驻留/调度方案验证'),
     'QAOPT-E01': ('deployed_partial_verified', 'V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回', '全部工具成功证据恢复与追加账本'),
     'QAOPT-E05': ('deployed_partial_verified', 'V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列', '全部工具及模型分支完成覆盖，不凭非空升级'),
     'QAOPT-T05': ('implemented_verified', 'V3至V20受控切换/保护PID/CAS；V18/V19失败冻结，V20新五题独立通过；实际适配器和续跑claim去重门保持', '后续版本保持冻结字节与独立最终答案审查'),

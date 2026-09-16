@@ -29,7 +29,7 @@
 |7|`QAOPT-R07` 无工具、用户数据与已有证据优先|P1|production_verified|V12顶压调节控制和风温/焦比/喷煤条件性因果两题独立语义通过，0外部工具|扩展工艺持出集和稳定性|
 |8|`QAOPT-R08` 禁代码策略不误伤正常回答|P0|production_verified|V9/V12正常数据查询保留，代码子请求独立拒绝并标策略部分完成|保留禁执行和禁生成代码，扩展混合类型|
 |9|`QAOPT-R09` 统一能力说明与Prompt目标|P1|deployed_partial_verified|V8统一能力目标与允许证据，禁实时不抹掉允许的原文知识|核对所有复合与降级分支|
-|10|`QAOPT-R10` 多轮范围继承与主题切换|P1|deployed_partial_verified|V19来源绑定生产6/6通过；V20修正规划器指代词，真实30分钟追问/最新/换题/用户分析5/5及数据库来源5/5通过|operator/admin真实多轮并发与指代持出集|
+|10|`QAOPT-R10` 多轮范围继承与主题切换|P1|deployed_partial_verified|V19来源绑定生产6/6通过；V20修正规划器指代词，真实30分钟追问/最新/换题/用户分析5/5及数据库来源5/5通过|operator/admin真实多轮与指代持出集；并发发送应按用户限定独占拒绝|
 |11|`QAOPT-K01` 原文知识路由独立于现场数据|P0|production_coverage_verified_semantic_partial|V11有效803题真实单发送全部原文覆盖和来源/版本合同通过；30源标准答案冲突阻断|独立语义持出审查与版本化修正30个oracle|
 |12|`QAOPT-K02` 禁止用聊天或回归记录替代权威知识|P0|deployed_partial_verified|V12制度原文与实时/用户数据子任务隔离，原文由独立执行器完成|扩展多书名、多章节及不可分复合问题|
 |13|`QAOPT-K03` 完整章节及表格读取|P1|deployed_partial_verified|V15多章节逐项原文真实通过、缺章partial；选中章节缺尾及缓存删改失效门部署|独立岗位元数据和原子条款边界审核，扩大多引用持出集|
@@ -42,11 +42,11 @@
 |20|`QAOPT-E04` 固定计算与统计定义|P1|deployed_partial_verified|V5相邻两窗/V6确定性统计及公式样本数质量限制|统一跨工具派生计算与冲突|
 |21|`QAOPT-E05` 输出字段边界及完整性|P0|deployed_partial_verified|V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列|全部工具及模型分支完成覆盖，不凭非空升级|
 |22|`QAOPT-E06` 多源证据冲突与分析深度|P1|deployed_partial_verified|单点不推趋势、窗口均值不冒充同步温差、V12控制与热平衡条件性因果通过|跨源冲突和时效矩阵|
-|23|`QAOPT-O01` 模型就绪与请求间竞态|P0|production_dependency_open|V18首次启动因批准模型未驻留回滚，用户明确授权后重部署；V19两次题目发送前阻断，仅未发送题续跑|请求级模型驻留租约和跨服务占槽核查，不修改Ollama或8094配置|
+|23|`QAOPT-O01` 模型就绪与请求间竞态|P0|production_dependency_open|前轮model_ok临时false和启动失败已记录；本轮确认批准业务模型为已驻留Qwen，吞查询异常为空列表不足以证明卸载|先细分就绪检查失败/成功查询缺席，再按执行能力依赖门与Qwen驻留/调度方案验证|
 |24|`QAOPT-O02` 工具超时和故障域隔离|P1|deployed_partial_verified|执行器已有独立超时/每服务预算；V12成功证据保留和失败不扩散合同通过|MCP注册/会话/流式故障矩阵|
 |25|`QAOPT-O03` 工具参数schema及步骤依赖|P1|deployed_contract_verified|V12实际部署StepPlan依赖绑定、声明上游和环检查；67项DAG/完整性测试通过|全部工具输入输出类型化及实际故障矩阵|
 |26|`QAOPT-O04` 状态、耗时与可观测性|P1|deployed_partial_verified|V11受控turn投影实际803题和定向题均仅返回当前2条消息；浏览器默认全历史兼容保留|浏览器有界消息合并与历史分页，现场UI验收|
-|27|`QAOPT-O05` 并发与角色边界|P1|planned|并发请求、共享访客和角色能力缺系统矩阵|补并发预算、owner隔离和角色能力回归|
+|27|`QAOPT-O05` 并发与角色边界|P1|implemented_local_verified_production_pending|用户限定所有角色同一时间一个活动问答；本机全局注册门与9项生命周期测试及独立审查通过，关联35项通过；生产未更新|受控发布后验证真实角色独占409、取消实际停止后释放与owner隔离；不排队、不自动重放|
 |28|`QAOPT-T01` 题目状态、分母与未知发送隔离|P0|implemented_verified|1418行分母、1259已收集和1条不确定发送已独立记录|保持不确定发送永不自动重放|
 |29|`QAOPT-T02` 导入错误与评测污染|P0|implemented_partial_verified|原分母保留；833知识源明确30个编号/同问不同标准答案冲突，禁止当失败重发或自动改标准|版本化修正经原文独立审核|
 |30|`QAOPT-T03` 系统Prompt绑定与故障夹具|P1|partial|TaskPlan/故障夹具已建立；系统Prompt版本绑定仍需全链路证明|记录prompt_hash并覆盖工具/模型/流式故障|

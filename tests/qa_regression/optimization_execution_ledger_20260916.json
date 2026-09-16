@@ -189,7 +189,7 @@
       "title": "多轮范围继承与主题切换",
       "state": "deployed_partial_verified",
       "evidence": "V19来源绑定生产6/6通过；V20修正规划器指代词，真实30分钟追问/最新/换题/用户分析5/5及数据库来源5/5通过",
-      "next_gate": "operator/admin真实多轮并发与指代持出集",
+      "next_gate": "operator/admin真实多轮与指代持出集；并发发送应按用户限定独占拒绝",
       "case_ids": [
         "TPL-18399CD0A0FDD84D",
         "TPL-3482A8EE5B37D413"
@@ -386,8 +386,8 @@
       "priority": "P0",
       "title": "模型就绪与请求间竞态",
       "state": "production_dependency_open",
-      "evidence": "V18首次启动因批准模型未驻留回滚，用户明确授权后重部署；V19两次题目发送前阻断，仅未发送题续跑",
-      "next_gate": "请求级模型驻留租约和跨服务占槽核查，不修改Ollama或8094配置",
+      "evidence": "前轮model_ok临时false和启动失败已记录；本轮确认批准业务模型为已驻留Qwen，吞查询异常为空列表不足以证明卸载",
+      "next_gate": "先细分就绪检查失败/成功查询缺席，再按执行能力依赖门与Qwen驻留/调度方案验证",
       "case_ids": [
         "TPL-18F38D141C29CF15"
       ],
@@ -442,9 +442,9 @@
       "issue_id": "QAOPT-O05",
       "priority": "P1",
       "title": "并发与角色边界",
-      "state": "planned",
-      "evidence": "并发请求、共享访客和角色能力缺系统矩阵",
-      "next_gate": "补并发预算、owner隔离和角色能力回归",
+      "state": "implemented_local_verified_production_pending",
+      "evidence": "用户限定所有角色同一时间一个活动问答；本机全局注册门与9项生命周期测试及独立审查通过，关联35项通过；生产未更新",
+      "next_gate": "受控发布后验证真实角色独占409、取消实际停止后释放与owner隔离；不排队、不自动重放",
       "case_ids": [],
       "depends_on": [
         "QAOPT-O03",

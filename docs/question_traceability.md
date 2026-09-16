@@ -1,5 +1,18 @@
 # 问题核查追踪
 
+## REQ-QA-EXCLUSIVE-USE-20260916：多角色并发限定
+
+按用户最新限定改为8093全角色共用一个活动问答名额，其他发送409使用中；不排队、不自动重放，取消实际停止才释放。9项独占测试、35项关联回归及独立审查通过；本机已实施，生产尚未更新，QAOPT-O05保留生产待验收。[记录](handoffs/2026-09-16-qa-exclusive-use-local.md)。
+
+## Q-QA-QWEN-READINESS-CONCURRENCY-ORACLE-20260916
+
+- 用户问题：模型驻留波动、多角色并发和知识标准冲突如何解决；要求允许Qwen驻留。
+- 本轮只读核对：业务别名模型family=qwen35，实际已驻留并在8093允许清单内；健康API本次正常。
+- 诊断更正：前轮model_ok临时false不足以证明模型卸载。当前resolve_resident将查询异常替换为空列表，应分开probe_timeout/failed与成功查询缺席。
+- 方案：准确就绪分类及按能力检查依赖、批准Qwen身份/驻留与有界推理队列、owner及共享访客多角色矩阵、30项oracle版本化逐题修正；803原文覆盖不等于全语义通过。
+- 权威方案：[2026-09-16 Qwen/并发/oracle解决方案](handoffs/2026-09-16-qa-qwen-readiness-concurrency-oracle-plan.md)。关联QAOPT-O01/O05/T02/T04。
+- 本轮无生产修改或新问答POST，后续实施按受控发布与独立答案核查。
+
 ## Q-FOREMAN-CURVE-POINT-MAPPING-20260814
 
 - 用户问题：工长趋势中部分曲线和传感器数值没有完全对应，要求重新核查正式点位清单。
