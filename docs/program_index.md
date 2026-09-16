@@ -1049,3 +1049,11 @@
 
 生产已记录为 `70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9`。完整边界、16 题脱敏审阅和
 下一轮修复项见 [QA 路由 V3 生产更新与复测](./handoffs/2026-09-16-qa-routing-v3-production-and-retest.md)。
+
+### REQ-QA-FULL-ISSUE-INVENTORY-20260916 / QAOPT-R03
+
+| 程序/合同 | 职责 | 修改风险 |
+|---|---|---|
+| [qa_entity_resolution.py](../高炉前端数据/智能助手/backend/qa_entity_resolution.py) | 展开共享前缀列表、字母范围和成对对象，返回有序 canonical ID | 只允许显式审查的别名/范围；未知对象不得生成虚构ID |
+| [build_qa_routing_v4_candidate.py](../tools/build_qa_routing_v4_candidate.py) | 从已验收V3精确哈希生成V4候选，并将解析结果接入执行器 | 基线不符立即停止；不能顺带重写代理主文件其他逻辑 |
+| [build_qa_remediation_execution_ledger.py](../tools/build_qa_remediation_execution_ledger.py) | 校验33项状态覆盖并生成可核对执行台账 | 状态必须来自测试/生产证据，不能把计划标成已解决 |

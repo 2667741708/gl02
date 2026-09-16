@@ -11,8 +11,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
+import qa_entity_resolution
 
-VERSION = "qa-task-plan-v1"
+
+VERSION = "qa-task-plan-v2"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
@@ -126,6 +128,7 @@ def build_task_plan(question: str) -> dict[str, Any]:
     text = str(question or "").strip()
     quoted = _quoted_spans(text)
     instruction = _instruction_text(text).strip()
+    entity_resolution = qa_entity_resolution.resolve_requested_entities(instruction)
     no_live = _is_no_live_request(instruction)
     wants_user_data = bool(_USER_DATA_PATTERN.search(instruction))
     wants_document = _contains_any(instruction, _DOCUMENT_TERMS) and (
@@ -197,6 +200,8 @@ def build_task_plan(question: str) -> dict[str, Any]:
         "allow_mcp_tools": allow_tools,
         "allowed_sources": allowed_sources,
         "allowed_tool_domains": allowed_tool_domains,
+        "entities": list(entity_resolution.get("variables") or []),
+        "unresolved_entities": list(entity_resolution.get("unresolved") or []),
         "no_live_lookup": no_live,
         "reason": "+".join(intents),
     }
@@ -215,6 +220,8 @@ def public_task_plan(plan: dict[str, Any] | None) -> dict[str, Any]:
         "allow_mcp_tools": bool(source.get("allow_mcp_tools")),
         "allowed_sources": list(source.get("allowed_sources") or []),
         "allowed_tool_domains": list(source.get("allowed_tool_domains") or []),
+        "entities": list(source.get("entities") or []),
+        "unresolved_entity_count": len(source.get("unresolved_entities") or []),
         "no_live_lookup": bool(source.get("no_live_lookup")),
         "reason": str(source.get("reason") or ""),
         "quoted_span_count": len(source.get("quoted_spans") or []),

@@ -3,7 +3,8 @@
 - 需求：REQ-QA-EVIDENCE-FIRST-REGRESSION-20260915。
 - 状态：32 条合成用例；全量问题收集已冻结，1 条发送状态不确定并保持隔离、不自动重放；路由 V3 本机候选已进入聚焦回归，尚未部署生产。
 - 最后核对：2026-09-16。
-- 最新：[全量问题统计](issue_statistics_20260916.md)、[33项整改清单](optimization_checklist_20260916.md)、
+- 最新：[全量问题统计](issue_statistics_20260916.md)、[33项执行台账](optimization_execution_ledger_20260916.md)、
+  [33项整改清单](optimization_checklist_20260916.md)、
   [TaskPlan路由合同](task_plan_contracts_20260916.json)和
   [V3本机候选交接](../../docs/handoffs/2026-09-16-qa-routing-v3-local-candidate.md)。
 - 机器权威：[cases.v1.json](cases.v1.json)、[fixtures.v1.json](fixtures.v1.json)。
@@ -102,7 +103,7 @@ python -X utf8 tools/qa_regression.py --results path/to/run.json --reviews path/
 
 ## 如何持续扩展
 
-全来源核对入口：[问题统计](issue_statistics_20260916.md)、[1418行逐题CSV](question_ledger_20260916.csv)、[33项逐条整改与验收清单](optimization_checklist_20260916.md)。本轮异常标签可重叠，未审阅答案不能计通过；实施状态与收集状态分别跟踪。
+全来源核对入口：[问题统计](issue_statistics_20260916.md)、[1418行逐题CSV](question_ledger_20260916.csv)、[33项逐条执行台账](optimization_execution_ledger_20260916.md)、[33项整改与验收清单](optimization_checklist_20260916.md)。本轮异常标签可重叠，未审阅答案不能计通过；实施状态与收集状态分别跟踪。
 
 当前实施计划见[路由策略与智能助手完善计划](assistant_improvement_plan_20260916.md)。2026-09-16核对的知识来源为833行，其中818条独立ready题、15条重复来源；收集完成与答案通过分别验收，先冻结问题收集和审阅，再修改路由。
 

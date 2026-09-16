@@ -4,6 +4,7 @@
 - 最后核对日期：2026-09-16；动态统计以[统计报告](issue_statistics_20260916.md)和[机器统计](issue_statistics_20260916.json)的checked_at为准。
 - 需求：REQ-QA-FULL-ISSUE-INVENTORY-20260916；延续REQ-QA-ROUTING-AND-ASSISTANT-IMPROVEMENT-20260916。
 - 权威机器清单：[33项整改目录](optimization_issue_catalog_20260916.json)；逐题依据：[CSV台账](question_ledger_20260916.csv)、[JSON台账](question_ledger_20260916.json)。
+- 当前实施状态以[33项执行台账](optimization_execution_ledger_20260916.md)及其[机器JSON](optimization_execution_ledger_20260916.json)为准；本文件各节中的旧状态文字保留为最初方案快照。
 - 范围：问答入口、路由、知识库、只读工具编排、计算、证据校验、Prompt、多轮状态、页面状态及回归。生产控制和代码生成/执行继续关闭。
 - 开始修复门槛：所有有效题有结果或明确中断/依赖阻断记录，完成最终答案审阅并冻结脱敏基线。待审阅项不得记成通过；未满足门槛前只做只读排查和方案。
 - 证据等级：confirmed=至少有已核对实例；design_gap=设计/验收缺口，不能推断所有相关题已失败；not_tested=目前没有真实执行证明。linked_cases仅表示整改关联范围，不是独立失败数。

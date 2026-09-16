@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 
@@ -13,6 +14,9 @@ MODULE_PATH = ROOT / "高炉前端数据" / "智能助手" / "backend" / "qa_tas
 
 
 def _load_module():
+    backend = str(MODULE_PATH.parent)
+    if backend not in sys.path:
+        sys.path.insert(0, backend)
     spec = importlib.util.spec_from_file_location("qa_task_plan_contract_eval", MODULE_PATH)
     if not spec or not spec.loader:
         raise RuntimeError("qa_task_plan module could not be loaded")

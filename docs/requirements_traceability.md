@@ -1119,3 +1119,12 @@
   16 道既有失败题逐题单次复测后为通过 2、部分通过 6、失败 7、客户端合同阻断 1，自动重试为 0。
   完整部署证据、逐题脱敏审阅和下一轮修复顺序见
   [生产更新与复测](./handoffs/2026-09-16-qa-routing-v3-production-and-retest.md)。
+
+## REQ-QA-FULL-ISSUE-INVENTORY-20260916
+
+- 全部33项的当前状态、已核对证据、下一验收门和固定处理顺序见
+  [QA问题逐项执行台账](../tests/qa_regression/optimization_execution_ledger_20260916.md)。
+- `QAOPT-R03` 已形成V4本机候选：新增
+  [qa_entity_resolution.py](../高炉前端数据/智能助手/backend/qa_entity_resolution.py)，由TaskPlan和
+  `qa_mcp_variables()`共同消费同一有序实体集合；三气体、A-D炉喉温度及南北探尺不再缩成单对象。
+- 状态：`local_candidate_verified_not_deployed`。聚焦验证`19 passed`；生产部署及三道代表题单次复测尚未执行。

@@ -3159,3 +3159,21 @@ pwsh.exe -NoLogo -NoProfile -File `
   POST 16 次，自动重试 0；14 次完整 `done`，1 次明确模型未驻留 SSE 错误，1 次同源客户端合同拒绝。
   人工审阅为通过 2、部分通过 6、失败 7、客户端合同阻断 1。脱敏逐题结果见
   [routing_retest_review_20260916.json](../tests/qa_regression/routing_retest_review_20260916.json)，原始回答不得提交。
+
+## TEST-QAOPT-R03-MULTI-ENTITY-20260916
+
+- 构建：
+
+  ```powershell
+  python -X utf8 tools/build_qa_routing_v4_candidate.py --v3-candidate .codex_runtime/qa-routing-v3/candidate --output .codex_runtime/qa-routing-v4/candidate
+  ```
+
+- 聚焦验证：
+
+  ```powershell
+  python -m pytest tests/test_qa_entity_resolution.py tests/test_qa_task_plan.py tests/test_qa_routing_v4_candidate.py -q -p no:cacheprovider
+  ```
+
+- 成功信号：`19 passed`；V4候选固定到已验收V3代理哈希。三气体解析为
+  `CO_top/CO2_top/H2_top`，炉喉`A-D`展开四点，南北探尺按用户顺序保留两个对象，未知对象不生成虚构ID。
+- 生产状态：本机候选验证通过，尚未部署；部署后每道代表题只允许一次POST，禁止自动重放。
