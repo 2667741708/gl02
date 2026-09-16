@@ -9,6 +9,8 @@ Requirement: REQ-MCP-CONVERSATION-CONTEXT-20260726
 from __future__ import annotations
 
 from typing import Any
+import copy
+import json
 import math
 import re
 import time
@@ -40,6 +42,96 @@ FOLLOWUP_TERMS = (
     "一起",
 )
 ADD_TERMS = ("再加", "加上", "也加", "也看", "再看", "一起看", "同时")
+
+
+def _message_id(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value > 0
+
+
+def _mapping(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def bind_persisted_context(context: dict[str, Any], message_id: int) -> dict[str, Any]:
+    """Bind routing ancestry to a server-persisted user message, not a timestamp."""
+    if not _message_id(message_id):
+        raise ValueError('invalid_persisted_message_id')
+    result = copy.deepcopy(context)
+    provenance = _mapping(result.get('inheritance_provenance'))
+    result['inheritance_provenance'] = provenance
+    objects = _mapping(provenance.get('objects'))
+    provenance['objects'] = objects
+    prior_sources = _mapping(objects.get('sources'))
+    selected = result.get('selected_objects')
+    selected = [name for name in selected if isinstance(name, str) and name] if isinstance(selected, list) else []
+    result['selected_objects'] = list(dict.fromkeys(selected))
+    objects['sources'] = {
+        name: source if _message_id(source := prior_sources.get(name)) and source <= message_id else message_id
+        for name in result['selected_objects']}
+    window = _mapping(provenance.get('time_range'))
+    provenance['time_range'] = window
+    source = window.get('source_message_id')
+    window['source_message_id'] = (source if _message_id(source) and source <= message_id else message_id) if result.get('time_range') else None
+    result['source_message_id'] = message_id
+    result['version'] = 3
+    return result
+
+
+def _owned_ancestry(conn: Any, conversation_id: str, owner: str, context: dict[str, Any]) -> bool:
+    provenance = context['inheritance_provenance']
+    ids = set(provenance['objects']['sources'].values())
+    if provenance['time_range'].get('source_message_id'):
+        ids.add(provenance['time_range']['source_message_id'])
+    ids.add(context['source_message_id'])
+    placeholders = ','.join('?' for _ in ids)
+    rows = conn.execute('''SELECT m.id FROM qa_messages m JOIN qa_conversations c ON c.id=m.conversation_id
+        WHERE m.conversation_id=? AND c.owner_subject=? AND m.role='user'
+          AND m.id IN (''' + placeholders + ')', (conversation_id, owner, *sorted(ids))).fetchall()
+    return {row['id'] for row in rows} == ids
+
+
+def load_owned_tool_context(conn: Any, conversation_id: str, owner: str) -> dict[str, Any] | None:
+    """Only persisted user turns from this server-authorized owner may inherit."""
+    if not isinstance(owner, str) or not owner.strip():
+        return None
+    rows = conn.execute('''SELECT m.id, m.hidden_context_json FROM qa_messages m
+        JOIN qa_conversations c ON c.id = m.conversation_id
+        WHERE m.conversation_id = ? AND c.owner_subject = ? AND m.role = 'user'
+          AND m.hidden_context_json IS NOT NULL ORDER BY m.id DESC LIMIT 8''',
+        (conversation_id, owner)).fetchall()
+    for row in rows:
+        try:
+            hidden = json.loads(row['hidden_context_json'])
+        except (TypeError, ValueError):
+            continue
+        context = hidden.get('mcp_conversation_context') if isinstance(hidden, dict) else None
+        if isinstance(context, dict) and _message_id(row['id']):
+            # Existing version-2 user rows predate ID binding. The identity-
+            # restricted persisted row is the migration anchor; no client IDs.
+            bound = bind_persisted_context(context, row['id'])
+            return bound if _owned_ancestry(conn, conversation_id, owner, bound) else None
+    return None
+
+
+def persist_owned_context_binding(conn: Any, conversation_id: str, owner: str,
+                                  message_id: int, hidden_context: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(owner, str) or not owner.strip() or not _message_id(message_id):
+        raise ValueError('invalid_context_binding_authority')
+    hidden = copy.deepcopy(hidden_context)
+    hidden['mcp_conversation_context'] = bind_persisted_context(hidden['mcp_conversation_context'], message_id)
+    if not _owned_ancestry(conn, conversation_id, owner, hidden['mcp_conversation_context']):
+        raise ValueError('context_ancestry_not_owned_user_turns')
+    cursor = conn.execute('''UPDATE qa_messages SET hidden_context_json = ?
+        WHERE id = ? AND conversation_id = ? AND role = 'user'
+          AND EXISTS(SELECT 1 FROM qa_conversations c
+                     WHERE c.id = qa_messages.conversation_id AND c.owner_subject = ?)
+        RETURNING id''',
+        (json.dumps(hidden, ensure_ascii=False), message_id, conversation_id, owner))
+    rows = cursor.fetchall()
+    if len(rows) != 1 or rows[0]['id'] != message_id:
+        raise ValueError('context_binding_not_owned_user_turn')
+    conn.commit()
+    return hidden
 
 
 def empty_tool_context() -> dict[str, Any]:
@@ -159,6 +251,10 @@ def update_tool_context(
     if not chart and is_followup and goal == previous.get("analysis_goal"):
         chart = previous.get("preferred_chart")
 
+    prior_provenance = _mapping(previous.get('inheritance_provenance'))
+    prior_object_sources = _mapping(_mapping(prior_provenance.get('objects')).get('sources'))
+    prior_window_source = _mapping(prior_provenance.get('time_range')).get('source_message_id')
+
     context.update(
         {
             "selected_objects": selected,
@@ -173,8 +269,10 @@ def update_tool_context(
             "inheritance_reason": "clock_unverified" if unverified_clock else "expired" if stale else "explicit_reset" if reset else "explicit_followup" if is_followup else "new_question",
             "inheritance_provenance": {
                 "objects": {"source_updated_at": previous_time if inherited_objects else current_time,
+                            "sources": {name: prior_object_sources.get(name) if inherited_objects and name in previous_objects else None for name in selected},
                             "basis": "explicit_followup" if inherited_objects else "explicit_objects" if selected else "none"},
                 "time_range": {"source_updated_at": previous_time if inherited_time else current_time if time_range else None,
+                               "source_message_id": prior_window_source if inherited_time else None,
                                "basis": "explicit_followup" if inherited_time else "explicit_duration" if time_range else "explicit_latest_reset" if current_read else "none"},
             },
             "evidence_reuse": False,

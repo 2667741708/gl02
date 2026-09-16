@@ -1,5 +1,13 @@
 # 程序索引
 
+## V20 指代趋势追问（2026-09-16）
+
+规划器新增“这个/那个/这些/它们/刚才/上面”指代识别，明确新对象仍优先当前问题。V19失败的30分钟追问现走确定性统计；真实五题与数据库只读来源各5/5通过，模型趋势解释被可信守卫拒绝单列。仅更新8093代理，模型配置不变；整体33项仍执行中。[权威证据](handoffs/2026-09-16-qa-routing-v20-production.md)。
+
+## V18–V19 多轮来源与适配器修复（2026-09-16）
+
+`mcp_conversation_context.load_owned_tool_context/bind_persisted_context/persist_owned_context_binding`统一来源门；代理在add_message后绑定ID。适配器兼容使用RETURNING ID。测试及只读核查工具见交接，符号行号TODO-LINES。 [权威证据](handoffs/2026-09-16-qa-routing-v18-v19-production.md)。
+
 ## V17 历史复合执行入口（2026-09-16）
 
 `qa_history_compound.split_request/execute/model_messages/normalize_present/compose` 管理历史与非历史子任务；生产代理 JSON/两条 SSE 使用相同合成接缝。完成归一化复用已核验原文合同或实际最新工具事实，不根据非空答案升级。[权威实施](handoffs/2026-09-16-qa-routing-v17-production.md)，符号行号 TODO-LINES。

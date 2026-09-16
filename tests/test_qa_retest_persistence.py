@@ -1,7 +1,9 @@
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import sys
+import pytest
 
 path = Path(__file__).resolve().parents[1] / 'tools/run_qa_failed_retest_once.py'
 spec = importlib.util.spec_from_file_location('retest_persistence', path)
@@ -45,3 +47,68 @@ def test_document_readiness_does_not_require_model_but_still_requires_proxy(monk
     monkeypatch.setattr(runner.time, 'sleep', lambda *args: None)
     assert runner.status_ready('http://local/status', 1, [], False)
     assert not runner.status_ready('http://local/status', 1, [], True)
+
+
+def test_followup_uses_only_completed_server_conversation_without_replay(tmp_path, monkeypatch):
+    cases = tmp_path / 'cases.json'
+    cases.write_text(json.dumps({'reviews': [{'case_id':'seed','question':'查询顶压'},
+        {'case_id':'follow','question':'它现在是多少','conversation_from':'seed'}]}), encoding='utf-8')
+    output = tmp_path / 'output'
+    monkeypatch.setattr(sys, 'argv', ['runner','--failures',str(cases),'--output',str(output),'--execute'])
+    monkeypatch.setattr(runner, 'status_ready', lambda *args: True)
+    calls = []
+    def request(*args):
+        calls.append(args)
+        return {'answer':'test','determinate':True,'terminated':True,'http_status':200,
+                'final':{'ok':True,'conversation':{'id':'server-room'}}}
+    monkeypatch.setattr(runner,'request_once',request)
+    assert runner.main() == 0 and len(calls) == 2
+    assert calls[0][-1] is None and calls[1][-1] == 'server-room'
+    assert (output/'seed.claim').exists() and (output/'follow.claim').exists()
+
+
+def test_failed_prior_turn_blocks_followup_before_its_claim(tmp_path, monkeypatch):
+    cases = tmp_path/'cases.json'
+    cases.write_text(json.dumps({'reviews':[{'case_id':'seed','question':'查询顶压'},
+        {'case_id':'follow','question':'继续看','conversation_from':'seed'}]}), encoding='utf-8')
+    output = tmp_path/'output'
+    monkeypatch.setattr(sys,'argv',['runner','--failures',str(cases),'--output',str(output),'--execute'])
+    monkeypatch.setattr(runner,'status_ready',lambda *args: True)
+    calls=[]
+    def request(*args):
+        calls.append(args)
+        return {'answer':'','determinate':True,'terminated':False,'http_status':401,'final':{}}
+    monkeypatch.setattr(runner,'request_once',request)
+    assert runner.main() == 1 and len(calls) == 1
+    assert not (output/'follow.claim').exists()
+    assert json.loads((output/'progress.json').read_text())['requests'] == 1
+
+
+@pytest.mark.parametrize('replay', [False, True])
+def test_continuation_reuses_completed_dependency_and_rejects_any_existing_claim(tmp_path, monkeypatch, replay):
+    cases = tmp_path/'cases.json'
+    cases.write_text(json.dumps({'reviews':[{'case_id':'seed','question':'查询顶压'},
+        {'case_id':'follow','question':'它现在是多少','conversation_from':'seed'}]}), encoding='utf-8')
+    prior = tmp_path/'prior'
+    prior.mkdir()
+    (prior/'progress.json').write_text(json.dumps({'source_sha256':hashlib.sha256(cases.read_bytes()).hexdigest(),
+        'automatic_retries':0,'requests':1}), encoding='utf-8')
+    (prior/'seed.claim').write_text(json.dumps({'prompt_sha256':hashlib.sha256('查询顶压'.encode()).hexdigest()}), encoding='utf-8')
+    (prior/'seed.json').write_text(json.dumps({'case_id':'seed','request_count':1,'determinate':True,
+        'terminated':True,'final':{'ok':True,'conversation':{'id':'server-room'}}}), encoding='utf-8')
+    argv=['runner','--failures',str(cases),'--output',str(tmp_path/'output'),'--prior-round',str(prior),'--execute']
+    if not replay: argv.extend(['--skip-case','seed'])
+    monkeypatch.setattr(sys,'argv',argv)
+    monkeypatch.setattr(runner,'status_ready',lambda *args: True)
+    calls=[]
+    def request(*args):
+        calls.append(args)
+        return {'answer':'test','determinate':True,'terminated':True,'http_status':200,
+            'final':{'ok':True,'conversation':{'id':'server-room'}}}
+    monkeypatch.setattr(runner,'request_once',request)
+    if replay:
+        with pytest.raises(RuntimeError, match='existing POST claim'): runner.main()
+        assert not calls and not (tmp_path/'output').exists()
+    else:
+        assert runner.main()==0 and len(calls)==1 and calls[0][-1]=='server-room'
+        assert not (tmp_path/'output/seed.claim').exists()

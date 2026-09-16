@@ -2,7 +2,7 @@
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
   "checked_at": "2026-09-16",
-  "production_commit": "ab0dafa3f2008b819ed40211b43a17858ecf654c",
+  "production_commit": "4304243a1e53cee2ed35c8f541b38be2d359f55e",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -10,12 +10,12 @@
     "blocked_client_contract": 1
   },
   "latest_production_retest": {
-    "version": "routing-v17",
+    "version": "routing-v20",
     "requests": 5,
     "sse_done": 5,
     "passed": 5,
     "failed": 0,
-    "expected_partial": 2,
+    "provenance_readonly_passed": 5,
     "automatic_post_retries": 0
   },
   "knowledge_collection": {
@@ -188,8 +188,8 @@
       "priority": "P1",
       "title": "多轮范围继承与主题切换",
       "state": "deployed_partial_verified",
-      "evidence": "V15真实120分钟窗口后最新追问使用当前单点；无效时钟/非法窗口及清旧证据聚焦测试通过",
-      "next_gate": "来源消息ID全链路绑定与多角色真实多轮矩阵",
+      "evidence": "V19来源绑定生产6/6通过；V20修正规划器指代词，真实30分钟追问/最新/换题/用户分析5/5及数据库来源5/5通过",
+      "next_gate": "operator/admin真实多轮并发与指代持出集",
       "case_ids": [
         "TPL-18399CD0A0FDD84D",
         "TPL-3482A8EE5B37D413"
@@ -300,8 +300,8 @@
       "priority": "P0",
       "title": "成功证据不能被生命周期异常清空",
       "state": "deployed_partial_verified",
-      "evidence": "V12晚期失败保留成功的可读有界证据，未知结构不伪装成事实，错误不输出原文",
-      "next_gate": "所有工具类型的追加证据账本",
+      "evidence": "V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回",
+      "next_gate": "全部工具成功证据恢复与追加账本",
       "case_ids": [
         "TPL-4CA73F09C24F631B"
       ],
@@ -357,7 +357,7 @@
       "priority": "P0",
       "title": "输出字段边界及完整性",
       "state": "deployed_partial_verified",
-      "evidence": "V15多章逐任务合同；V17既有原文合同归一化和实际最新工具事实复验，真实五题完成/缺项状态独立通过",
+      "evidence": "V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列",
       "next_gate": "全部工具及模型分支完成覆盖，不凭非空升级",
       "case_ids": [
         "TPL-0F1075D1C8967EA5"
@@ -386,8 +386,8 @@
       "priority": "P0",
       "title": "模型就绪与请求间竞态",
       "state": "production_dependency_open",
-      "evidence": "新部署器最多3次只读GET检查并保留失败状态；运行时仍出现批准模型未驻留",
-      "next_gate": "核对跨服务模型占槽/请求租约；不修改Ollama或8094配置",
+      "evidence": "V18首次启动因批准模型未驻留回滚，用户明确授权后重部署；V19两次题目发送前阻断，仅未发送题续跑",
+      "next_gate": "请求级模型驻留租约和跨服务占槽核查，不修改Ollama或8094配置",
       "case_ids": [
         "TPL-18F38D141C29CF15"
       ],
@@ -513,8 +513,8 @@
       "priority": "P1",
       "title": "版本冻结、候选对比与受控发布",
       "state": "implemented_verified",
-      "evidence": "V3至V17密封/8093-only守卫/CAS/保护PID/一次POST闭环；V16三失败原样冻结，V17五通过独立审阅",
-      "next_gate": "后续版本保持冻结字节、精确基线和独立审查",
+      "evidence": "V3至V20受控切换/保护PID/CAS；V18/V19失败冻结，V20新五题独立通过；实际适配器和续跑claim去重门保持",
+      "next_gate": "后续版本保持冻结字节与独立最终答案审查",
       "case_ids": [],
       "depends_on": [
         "QAOPT-T04",

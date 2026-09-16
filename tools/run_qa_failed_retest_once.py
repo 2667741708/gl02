@@ -65,13 +65,16 @@ def status_ready(url: str, timeout: int, evidence: list | None = None, need_mode
     return False
 
 
-def request_once(url: str, question: str, timeout: int, case_id: str) -> dict:
+def request_once(url: str, question: str, timeout: int, case_id: str, conversation_id=None) -> dict:
     parsed = urlparse(url)
     connection_type = http.client.HTTPSConnection if parsed.scheme == "https" else http.client.HTTPConnection
     path = parsed.path or "/"
     if parsed.query:
         path += f"?{parsed.query}"
-    body = json.dumps({"message": question, "stream": True, "response_projection": "turn"}, ensure_ascii=False).encode("utf-8")
+    payload = {"message": question, "stream": True, "response_projection": "turn"}
+    if conversation_id is not None:
+        payload['conversation_id'] = conversation_id
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     connection = connection_type(parsed.hostname, parsed.port, timeout=timeout)
     started = time.perf_counter()
     connection.request(
@@ -159,6 +162,7 @@ def main() -> int:
     parser.add_argument("--status-url", default="http://10.30.220.12:8093/api/ollama/status")
     parser.add_argument("--timeout", type=int, default=240)
     parser.add_argument("--skip-case", action="append", default=[])
+    parser.add_argument("--prior-round", type=Path, action="append", default=[], help="Read completed dependencies; never resend an existing claim")
     parser.add_argument("--execute", action="store_true")
     args = parser.parse_args()
     if not args.execute:
@@ -168,6 +172,33 @@ def main() -> int:
     cases = [case for case in source["reviews"] if case["case_id"] not in skipped]
     if len(cases) != len({case["case_id"] for case in cases}):
         raise RuntimeError("duplicate case IDs")
+    completed_results = {}
+    prior_claims = set()
+    source_hash = hashlib.sha256(args.failures.read_bytes()).hexdigest()
+    questions = {case['case_id']: case['question'] for case in source['reviews']}
+    for directory in args.prior_round:
+        previous_progress = load(directory / 'progress.json')
+        paths = list(directory.glob('*.claim'))
+        if (previous_progress.get('source_sha256') != source_hash
+                or previous_progress.get('automatic_retries') != 0
+                or previous_progress.get('requests') != len(paths)):
+            raise RuntimeError('prior round audit mismatch; no request sent')
+        for path in paths:
+            case_id = path.stem
+            if case_id in prior_claims or case_id not in questions:
+                raise RuntimeError('duplicate or unknown prior claim; no request sent')
+            prior_claims.add(case_id)
+            claim = load(path)
+            if claim.get('prompt_sha256') != hashlib.sha256(questions[case_id].encode('utf-8')).hexdigest():
+                raise RuntimeError('prior question hash mismatch; no request sent')
+            result_path = directory / f'{case_id}.json'
+            if result_path.exists():
+                result = load(result_path)
+                if result.get('case_id') != case_id or result.get('request_count') != 1:
+                    raise RuntimeError('prior result audit mismatch; no request sent')
+                completed_results[case_id] = result
+    if prior_claims.intersection(case['case_id'] for case in cases):
+        raise RuntimeError('existing POST claim cannot be replayed; no request sent')
     for case in cases:
         if not isinstance(case.get("question"), str) or not case["question"].strip():
             raise RuntimeError("invalid case question before request")
@@ -194,6 +225,16 @@ def main() -> int:
             case_id = case["case_id"]
             progress["active_case"] = case_id
             write(progress_path, progress)
+            conversation_id = None
+            if case.get('conversation_from'):
+                previous = completed_results.get(case['conversation_from']) or {}
+                final = previous.get('final') or {}
+                conversation = final.get('conversation') or {}
+                conversation_id = conversation.get('id')
+                valid_id = ((isinstance(conversation_id, str) and bool(conversation_id.strip()))
+                            or (isinstance(conversation_id, int) and not isinstance(conversation_id, bool) and conversation_id > 0))
+                if not previous.get('determinate') or not previous.get('terminated') or final.get('ok') is not True or not valid_id:
+                    raise RuntimeError('prior conversation dependency unavailable before POST; no request sent')
             readiness = []
             need_model = model_required(case["question"])
             progress["model_required"] = need_model
@@ -215,7 +256,7 @@ def main() -> int:
                 )
             progress["requests"] += 1
             write(progress_path, progress)
-            result = request_once(args.url, case["question"], args.timeout, case_id)
+            result = request_once(args.url, case["question"], args.timeout, case_id, conversation_id)
             private = {
                 "case_id": case_id,
                 "question": case["question"],
@@ -225,6 +266,7 @@ def main() -> int:
                 **result,
             }
             write(args.output / f"{case_id}.json", private)
+            completed_results[case_id] = result
             final = result.get("final") or {}
             progress["results"].append(
                 {

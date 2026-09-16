@@ -110,6 +110,22 @@ STATUS.update({
 })
 
 
+STATUS.update({
+    'QAOPT-R10': ('deployed_partial_verified', 'V19服务端对象/窗口来源ID与owner user ancestry生产只读6/6通过；真实六题五通过一失败，旧窗口清除/换题/用户数据通过', '30分钟指代趋势答案失败需修复；operator/admin多轮并发矩阵'),
+    'QAOPT-E01': ('deployed_partial_verified', 'V19实际CursorAdapter RETURNING绑定修复，真实适配器回归通过；WINDOW生命周期失败仅保留时间范围尚不满足答案', '成功工具结果的完整可读恢复与所有工具追加证据账本'),
+    'QAOPT-O01': ('production_dependency_open', 'V18首次启动因批准模型未驻留回滚，用户明确授权后重部署；V19两次题目发送前阻断，仅未发送题续跑', '请求级模型驻留租约和跨服务占槽核查，不修改Ollama或8094配置'),
+    'QAOPT-T05': ('implemented_verified', 'V3至V19受控切换/保护PID/CAS；回滚不自动重试，V18失败与V19五通过一失败分别冻结；续跑claim严格去重', '后续版本保持冻结字节、实际适配器测试及独立答案审查'),
+})
+
+
+STATUS.update({
+    'QAOPT-R10': ('deployed_partial_verified', 'V19来源绑定生产6/6通过；V20修正规划器指代词，真实30分钟追问/最新/换题/用户分析5/5及数据库来源5/5通过', 'operator/admin真实多轮并发与指代持出集'),
+    'QAOPT-E01': ('deployed_partial_verified', 'V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回', '全部工具成功证据恢复与追加账本'),
+    'QAOPT-E05': ('deployed_partial_verified', 'V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列', '全部工具及模型分支完成覆盖，不凭非空升级'),
+    'QAOPT-T05': ('implemented_verified', 'V3至V20受控切换/保护PID/CAS；V18/V19失败冻结，V20新五题独立通过；实际适配器和续跑claim去重门保持', '后续版本保持冻结字节与独立最终答案审查'),
+})
+
+
 def main() -> int:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     issues = catalog["issues"]
@@ -134,9 +150,9 @@ def main() -> int:
         "schema": "bf.qa.optimization-execution-ledger.v1",
         "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
         "checked_at": "2026-09-16",
-        "production_commit": "ab0dafa3f2008b819ed40211b43a17858ecf654c",
+        "production_commit": "4304243a1e53cee2ed35c8f541b38be2d359f55e",
         "production_retest": {"passed": 2, "partial": 6, "failed": 7, "blocked_client_contract": 1},
-        "latest_production_retest": {"version": "routing-v17", "requests": 5, "sse_done": 5, "passed": 5, "failed": 0, "expected_partial": 2, "automatic_post_retries": 0},
+        "latest_production_retest": {"version": "routing-v20", "requests": 5, "sse_done": 5, "passed": 5, "failed": 0, "provenance_readonly_passed": 5, "automatic_post_retries": 0},
         "knowledge_collection": {"source": 833, "valid_once_only_requests": 803, "original_coverage_contract_verified": 803, "oracle_conflicts_blocked": 30, "full_semantic_pass_inferred": False},
         "current_local_candidate": {"version": "next", "issues": ["QAOPT-K06", "QAOPT-R02", "QAOPT-R10", "QAOPT-O04", "QAOPT-T02", "QAOPT-T04"], "state": "remaining_items_in_progress"},
         "rows": rows,

@@ -1,0 +1,70 @@
+{
+  "schema": "bf.qa.routing-production-review.v1",
+  "checked_at": "2026-09-16",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version": "v18",
+  "production_commit": "32388025eeb33b74000b865b743c0ec1c13fb899",
+  "focused_tests_passed": 104,
+  "requests": 1,
+  "automatic_post_retries": 0,
+  "counts": {
+    "answer_contract_failed": 1
+  },
+  "review_method": "Explicit independent post-release semantic review; nonempty and SSE done do not imply passing.",
+  "results": [
+    {
+      "case_id": "TPL-V18-SEED",
+      "state": "answer_contract_failed",
+      "answer_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "answer_chars": 0,
+      "request_count": 1,
+      "sse_done": false,
+      "route": null,
+      "terminal_state": null,
+      "model_request_count": null,
+      "tool_start_count": 0,
+      "message_count": 0,
+      "messages_projection": null
+    }
+  ],
+  "deployment": {
+    "ok": true,
+    "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+    "backup": "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\backups\\qa-routing-v18-20260916-r1-20260916-214901",
+    "rollback_applied": false,
+    "guard_paused": true,
+    "guard_restored": true,
+    "readiness_checks": [
+      {
+        "attempt": 1,
+        "proxy_ok": true,
+        "ollama_ok": true,
+        "model_ok": true
+      }
+    ],
+    "old_8093_pid": 11812,
+    "new_8093_pid": 11444,
+    "protected_before": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "protected_after": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "http_8093": 200,
+    "installed_hashes": {
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/ollama_proxy_server.py": "C8B2C1AFEBF921715D5B588540A0B727C69CE983AE0870DEE2C3D5551A9711F0",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/mcp_conversation_context.py": "D38BAACB6B7EF1D52201222E987F19F8CD55E6EEDD3C5E7631BBFB4F1AD59090"
+    }
+  },
+  "privacy": "No raw answers, conversation payloads, production measurements or identities."
+}

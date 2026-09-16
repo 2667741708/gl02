@@ -1,0 +1,81 @@
+{
+  "schema": "bf.qa.context-provenance-readonly.v1",
+  "total": 5,
+  "passed": 5,
+  "results": [
+    {
+      "case_id": "TPL-V20-SEED",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V20-WINDOW",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V20-LATEST",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V20-SWITCH",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V20-USER",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    }
+  ],
+  "database_writes": 0,
+  "question_posts": 0,
+  "model_calls": 0,
+  "scope": "Known guest test turns only; operator/admin concurrency is not inferred."
+}

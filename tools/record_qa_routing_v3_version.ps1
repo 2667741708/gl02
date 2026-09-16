@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17')][string]$Version = 'V3')
+param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -137,6 +137,33 @@ if ($Version -eq 'V17') {
     $ExecutionId = 'qa-routing-v17-20260916-r1'
     $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v17-20260916-r1'
     $CommitMessage = 'fix: validate mixed history subtask completion [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v17-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V18') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v18-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v18-20260916-r1'
+    $CommitMessage = 'fix: bind owner checked routing message ancestry [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v18-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V19') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v19-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v19-20260916-r1'
+    $CommitMessage = 'fix: use adapter supported returned IDs for context binding [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v19-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V20') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v20-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v20-20260916-r1'
+    $CommitMessage = 'fix: preserve server owned referential planning context [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v20-20260916-r1]'
     $Guard = Join-Path $StageRoot 'git_record_guard.py'
     $OperationPath = Join-Path $StageRoot 'operation.json'
     $PlanPath = Join-Path $StageRoot 'record-plan.json'

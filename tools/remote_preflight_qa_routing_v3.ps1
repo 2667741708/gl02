@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17')][string]$Version = 'V3')
+param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -28,6 +28,9 @@ if ($Version -eq 'V14') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Tem
 if ($Version -eq 'V15') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v15-20260916-r1' }
 if ($Version -eq 'V16') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v16-20260916-r1' }
 if ($Version -eq 'V17') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v17-20260916-r1' }
+if ($Version -eq 'V18') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v18-20260916-r1' }
+if ($Version -eq 'V19') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v19-20260916-r1' }
+if ($Version -eq 'V20') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v20-20260916-r1' }
 $Python = 'C:\Program Files\Python311\python.exe'
 $Guard = Join-Path $StageRoot 'git_record_guard.py'
 $Expectation = Join-Path $StageRoot 'recordability-expectation.json'

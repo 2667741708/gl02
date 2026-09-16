@@ -234,10 +234,228 @@
         "evidence": "133 focused tests including 21 legacy-completion and typed latest-result counterexamples"
       },
       {
-          "id": "remote-readonly-preflight",
-          "kind": "readonly_remote",
-          "status": "passed",
-          "evidence": "Exact HEAD19952490, all26 dependency hashes and scoped Git clean; staged3.11 compile/hash pass; recordable61 raw/61 semantic lines, no EOL migration"
+        "id": "remote-readonly-preflight",
+        "kind": "readonly_remote",
+        "status": "passed",
+        "evidence": "Exact HEAD19952490, all26 dependency hashes and scoped Git clean; staged3.11 compile/hash pass; recordable61 raw/61 semantic lines, no EOL migration"
+      }
+    ]
+  },
+  "v18": {
+    "artifacts": {
+      "ollama_proxy_server.py": {
+        "baseline": [
+          "3e535565e7579b4f33a29faf5938092d4b2b84708fa3dd410ff4ba8d4c6d50b6"
+        ],
+        "markers": [
+          "qa_context_state.persist_owned_context_binding",
+          "owner_subject, user_message_id"
+        ],
+        "allow_create": false
+      },
+      "mcp_conversation_context.py": {
+        "baseline": [
+          "e7f580c71eb334dde67343c5afc3a91e3e508408fd1a252f9e4a48f74f8d8507"
+        ],
+        "markers": [
+          "def load_owned_tool_context",
+          "def persist_owned_context_binding",
+          "def _owned_ancestry"
+        ],
+        "allow_create": false
+      }
+    },
+    "read_files": {
+      "高炉前端数据/智能助手/backend/bf_knowledge_rag.py": "3f9fc5347fd0ad8927be66d6c19d1024d82b105bab755991257d4a7551286da4",
+      "高炉前端数据/智能助手/backend/qa_evidence_claims.py": "73b077850d710301473f0ff2d37f3e0521d15c96895232c4443630050ec51c5a",
+      "高炉前端数据/智能助手/backend/qa_request_control.py": "0853b77655247030436f0a55a9c973503dc6a853280f3f9aa09d28be6cbeb901",
+      "高炉前端数据/智能助手/backend/qa_entity_resolution.py": "46c49bb5020425134133af14c51dd902b9e9c5a3787074012b03dd094a500c7a",
+      "高炉前端数据/智能助手/mcp/business_object_catalog.py": "a746a7a057ac0e689d376feb321854c1889a4da79e2857dee00188de6061bcdf",
+      "高炉前端数据/智能助手/backend/qa_time_window_plan.py": "7c54df55a8c7042b8c8b623d8caed0872da948972ac803d8f899b5e520853720",
+      "高炉前端数据/智能助手/backend/qa_report_workflow.py": "0fe0282c4dee4b5ecc108835b225e8d26232cb61298eb5f04ac6c5c6401ea1c8",
+      "高炉前端数据/智能助手/backend/qa_model_readiness.py": "65e9fb9600230431de11ba7142ff3100205841117b5cf6df17d3f8d20fa3211c",
+      "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "9dd1999e40e0a4648c25e4ae626b5e290269e68cab0e707bc4561fac4f9a3e95",
+      "高炉前端数据/智能助手/backend/assistant_pg.py": "6f6fd528e9dd0391c206d38727d468b6f2eb727e4194ee13c636726782cadf34",
+      "高炉前端数据/智能助手/backend/qa_completion.py": "bceb29c3e310a73526bb3cc6504fe877fd516ad4fd9d261804b4f7ebd873c47f",
+      "高炉前端数据/智能助手/backend/qa_history_projection.py": "56f82b925c6877909eddd3f91847cbdf1de3784de60d025c366ab154e7942a1a",
+      "高炉前端数据/智能助手/backend/qa_task_plan.py": "8b9fa2eec70c9fc6ce5d33e2ff1613231ef83072595fd99a94f1e1c700fc1fb1",
+      "高炉前端数据/智能助手/backend/qa_prompt_sources.py": "14a175a44eb7dde107668ab78e803a56f305bdcfb10fc7c7fbfc820dbe258b3a",
+      "高炉前端数据/智能助手/backend/mcp_host/cross_source_executor.py": "a99cf6e4fd73f11cedbec01f254ff649615c96feb55827f92c57853021d55033",
+      "高炉前端数据/智能助手/backend/qa_response_projection.py": "60e8db0edfab036f17bc9c201d096d652c75b457570ce4eb07fdb9dcb2caa693",
+      "高炉前端数据/智能助手/backend/qa_evidence_policy.py": "9ec4132ca8075ee9757663eedbab99aa793f330ebb0133880d57ece4fec7fe26",
+      "高炉前端数据/智能助手/backend/mcp_tool_selection.py": "2a0b8c8cc33444ef4f5138b23571a736a558229d9f7f09f0d88b735887235111",
+      "高炉前端数据/智能助手/backend/qa_tool_fallback.py": "8d5c3737d463aa5990f844655d0925314eb77fc67a83c066e2a4bfd51c3043ab",
+      "高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py": "c55458a75a362aaeb4eb91ac99d19dcbe130897779fb800b498bedf760bf92e1",
+      "高炉前端数据/智能助手/backend/qa_document_compound.py": "bfcefd214fae105e1c137ec8f516df8c84c749f04331b6b65077db3ab80d8301",
+      "高炉前端数据/智能助手/backend/qa_verified_facts.py": "461364b60dc6f4e987d0f997f9e3f1e973cd07ea503a44d8ea3760b681bd63fa",
+      "高炉前端数据/智能助手/backend/qa_document_knowledge.py": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9",
+      "高炉前端数据/智能助手/backend/qa_document_integrity.py": "b616e3f01e940e372fc398af9535ad399c24df8134d29f19319f1fe33efd9be6",
+      "高炉前端数据/智能助手/backend/qa_history_compound.py": "a7b1cd2cde3b9ce53df5e6611164e3330dae7af0c604e6f627a191072e99ab9a"
+    },
+    "sources": [
+      "tools/qa_routing_release_extensions.json",
+      "tools/extend_qa_release_v17.py",
+      "tools/build_qa_routing_v18_candidate.py",
+      "tools/prepare_qa_routing_v3_release.py",
+      "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1",
+      "tools/record_qa_routing_v3_version.ps1",
+      "tools/remote_preflight_qa_routing_v3.ps1",
+      "tools/verify_qa_routing_release.ps1",
+      "高炉前端数据/智能助手/backend/mcp_conversation_context.py",
+      "tests/test_qa_context_provenance.py",
+      "tests/test_qa_context_provenance_seams.py"
+    ],
+    "validations": [
+      {
+        "id": "focused-pytest",
+        "kind": "deterministic",
+        "status": "passed",
+        "evidence": "104 focused tests including actual owner/role SQL, per-field message ancestry and actual accepted proxy persistence seams"
+      },
+      {
+        "id": "remote-readonly-preflight",
+        "kind": "readonly_remote",
+        "status": "passed",
+        "evidence": "Exact HEADab0dafa3;25 dependency hashes and scoped Git clean; staged3.11 compile/hash pass; recordable124 raw/124 semantic lines,no EOL migration"
+      }
+    ]
+  },
+  "v19": {
+    "artifacts": {
+      "mcp_conversation_context.py": {
+        "baseline": [
+          "d38baacb6b7ef1d52201222e987f19f8cd55e6eedd3c5e7631bbfb4f1ad59090"
+        ],
+        "markers": [
+          "RETURNING id",
+          "rows = cursor.fetchall()",
+          "def _owned_ancestry"
+        ],
+        "allow_create": false
+      }
+    },
+    "read_files": {
+      "高炉前端数据/智能助手/backend/bf_knowledge_rag.py": "3f9fc5347fd0ad8927be66d6c19d1024d82b105bab755991257d4a7551286da4",
+      "高炉前端数据/智能助手/backend/qa_evidence_claims.py": "73b077850d710301473f0ff2d37f3e0521d15c96895232c4443630050ec51c5a",
+      "高炉前端数据/智能助手/backend/qa_request_control.py": "0853b77655247030436f0a55a9c973503dc6a853280f3f9aa09d28be6cbeb901",
+      "高炉前端数据/智能助手/backend/qa_entity_resolution.py": "46c49bb5020425134133af14c51dd902b9e9c5a3787074012b03dd094a500c7a",
+      "高炉前端数据/智能助手/mcp/business_object_catalog.py": "a746a7a057ac0e689d376feb321854c1889a4da79e2857dee00188de6061bcdf",
+      "高炉前端数据/智能助手/backend/qa_time_window_plan.py": "7c54df55a8c7042b8c8b623d8caed0872da948972ac803d8f899b5e520853720",
+      "高炉前端数据/智能助手/backend/qa_report_workflow.py": "0fe0282c4dee4b5ecc108835b225e8d26232cb61298eb5f04ac6c5c6401ea1c8",
+      "高炉前端数据/智能助手/backend/qa_model_readiness.py": "65e9fb9600230431de11ba7142ff3100205841117b5cf6df17d3f8d20fa3211c",
+      "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "9dd1999e40e0a4648c25e4ae626b5e290269e68cab0e707bc4561fac4f9a3e95",
+      "高炉前端数据/智能助手/backend/assistant_pg.py": "6f6fd528e9dd0391c206d38727d468b6f2eb727e4194ee13c636726782cadf34",
+      "高炉前端数据/智能助手/backend/qa_completion.py": "bceb29c3e310a73526bb3cc6504fe877fd516ad4fd9d261804b4f7ebd873c47f",
+      "高炉前端数据/智能助手/backend/qa_history_projection.py": "56f82b925c6877909eddd3f91847cbdf1de3784de60d025c366ab154e7942a1a",
+      "高炉前端数据/智能助手/backend/qa_task_plan.py": "8b9fa2eec70c9fc6ce5d33e2ff1613231ef83072595fd99a94f1e1c700fc1fb1",
+      "高炉前端数据/智能助手/backend/qa_prompt_sources.py": "14a175a44eb7dde107668ab78e803a56f305bdcfb10fc7c7fbfc820dbe258b3a",
+      "高炉前端数据/智能助手/backend/mcp_host/cross_source_executor.py": "a99cf6e4fd73f11cedbec01f254ff649615c96feb55827f92c57853021d55033",
+      "高炉前端数据/智能助手/backend/qa_response_projection.py": "60e8db0edfab036f17bc9c201d096d652c75b457570ce4eb07fdb9dcb2caa693",
+      "高炉前端数据/智能助手/backend/qa_evidence_policy.py": "9ec4132ca8075ee9757663eedbab99aa793f330ebb0133880d57ece4fec7fe26",
+      "高炉前端数据/智能助手/backend/mcp_tool_selection.py": "2a0b8c8cc33444ef4f5138b23571a736a558229d9f7f09f0d88b735887235111",
+      "高炉前端数据/智能助手/backend/qa_tool_fallback.py": "8d5c3737d463aa5990f844655d0925314eb77fc67a83c066e2a4bfd51c3043ab",
+      "高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py": "c55458a75a362aaeb4eb91ac99d19dcbe130897779fb800b498bedf760bf92e1",
+      "高炉前端数据/智能助手/backend/qa_document_compound.py": "bfcefd214fae105e1c137ec8f516df8c84c749f04331b6b65077db3ab80d8301",
+      "高炉前端数据/智能助手/backend/qa_verified_facts.py": "461364b60dc6f4e987d0f997f9e3f1e973cd07ea503a44d8ea3760b681bd63fa",
+      "高炉前端数据/智能助手/backend/qa_document_knowledge.py": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9",
+      "高炉前端数据/智能助手/backend/qa_document_integrity.py": "b616e3f01e940e372fc398af9535ad399c24df8134d29f19319f1fe33efd9be6",
+      "高炉前端数据/智能助手/backend/qa_history_compound.py": "a7b1cd2cde3b9ce53df5e6611164e3330dae7af0c604e6f627a191072e99ab9a",
+      "高炉前端数据/智能助手/backend/ollama_proxy_server.py": "c8b2c1afebf921715d5b588540a0b727c69ce983ae0870dee2c3d5551a9711f0"
+    },
+    "sources": [
+      "tools/qa_routing_release_extensions.json",
+      "tools/extend_qa_release_v17.py",
+      "tools/prepare_qa_routing_v3_release.py",
+      "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1",
+      "tools/record_qa_routing_v3_version.ps1",
+      "tools/remote_preflight_qa_routing_v3.ps1",
+      "tools/verify_qa_routing_release.ps1",
+      "高炉前端数据/智能助手/backend/mcp_conversation_context.py",
+      "tests/test_qa_context_provenance.py",
+      "tests/test_qa_context_provenance_seams.py"
+    ],
+    "validations": [
+      {
+        "id": "focused-pytest",
+        "kind": "deterministic",
+        "status": "passed",
+        "evidence": "107 distinct focused tests:106 combined plus1 actual production PgCompatConnection/CursorAdapter without rowcount;correct and unauthorized RETURNING paths checked"
+      },
+      {
+        "id": "remote-readonly-preflight",
+        "kind": "readonly_remote",
+        "status": "passed",
+        "evidence": "Exact HEAD32388025,26 dependency hashes and scoped Git clean;staged3.11 compile/hash pass;recordable6 raw/6 semantic lines,no EOL migration"
+      }
+    ]
+  },
+  "v20": {
+    "artifacts": {
+      "ollama_proxy_server.py": {
+        "baseline": [
+          "c8b2c1afebf921715d5b588540a0b727c69ce983ae0870dee2c3d5551a9711f0"
+        ],
+        "markers": [
+          "\"它们\", \"该变量\", \"这个\", \"那个\", \"这些\"",
+          "qa_context_state.persist_owned_context_binding"
+        ],
+        "allow_create": false
+      }
+    },
+    "read_files": {
+      "高炉前端数据/智能助手/backend/bf_knowledge_rag.py": "3f9fc5347fd0ad8927be66d6c19d1024d82b105bab755991257d4a7551286da4",
+      "高炉前端数据/智能助手/backend/qa_evidence_claims.py": "73b077850d710301473f0ff2d37f3e0521d15c96895232c4443630050ec51c5a",
+      "高炉前端数据/智能助手/backend/qa_request_control.py": "0853b77655247030436f0a55a9c973503dc6a853280f3f9aa09d28be6cbeb901",
+      "高炉前端数据/智能助手/backend/qa_entity_resolution.py": "46c49bb5020425134133af14c51dd902b9e9c5a3787074012b03dd094a500c7a",
+      "高炉前端数据/智能助手/mcp/business_object_catalog.py": "a746a7a057ac0e689d376feb321854c1889a4da79e2857dee00188de6061bcdf",
+      "高炉前端数据/智能助手/backend/qa_time_window_plan.py": "7c54df55a8c7042b8c8b623d8caed0872da948972ac803d8f899b5e520853720",
+      "高炉前端数据/智能助手/backend/qa_report_workflow.py": "0fe0282c4dee4b5ecc108835b225e8d26232cb61298eb5f04ac6c5c6401ea1c8",
+      "高炉前端数据/智能助手/backend/qa_model_readiness.py": "65e9fb9600230431de11ba7142ff3100205841117b5cf6df17d3f8d20fa3211c",
+      "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "9dd1999e40e0a4648c25e4ae626b5e290269e68cab0e707bc4561fac4f9a3e95",
+      "高炉前端数据/智能助手/backend/assistant_pg.py": "6f6fd528e9dd0391c206d38727d468b6f2eb727e4194ee13c636726782cadf34",
+      "高炉前端数据/智能助手/backend/qa_completion.py": "bceb29c3e310a73526bb3cc6504fe877fd516ad4fd9d261804b4f7ebd873c47f",
+      "高炉前端数据/智能助手/backend/qa_history_projection.py": "56f82b925c6877909eddd3f91847cbdf1de3784de60d025c366ab154e7942a1a",
+      "高炉前端数据/智能助手/backend/qa_task_plan.py": "8b9fa2eec70c9fc6ce5d33e2ff1613231ef83072595fd99a94f1e1c700fc1fb1",
+      "高炉前端数据/智能助手/backend/qa_prompt_sources.py": "14a175a44eb7dde107668ab78e803a56f305bdcfb10fc7c7fbfc820dbe258b3a",
+      "高炉前端数据/智能助手/backend/mcp_host/cross_source_executor.py": "a99cf6e4fd73f11cedbec01f254ff649615c96feb55827f92c57853021d55033",
+      "高炉前端数据/智能助手/backend/qa_response_projection.py": "60e8db0edfab036f17bc9c201d096d652c75b457570ce4eb07fdb9dcb2caa693",
+      "高炉前端数据/智能助手/backend/qa_evidence_policy.py": "9ec4132ca8075ee9757663eedbab99aa793f330ebb0133880d57ece4fec7fe26",
+      "高炉前端数据/智能助手/backend/mcp_tool_selection.py": "2a0b8c8cc33444ef4f5138b23571a736a558229d9f7f09f0d88b735887235111",
+      "高炉前端数据/智能助手/backend/qa_tool_fallback.py": "8d5c3737d463aa5990f844655d0925314eb77fc67a83c066e2a4bfd51c3043ab",
+      "高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py": "c55458a75a362aaeb4eb91ac99d19dcbe130897779fb800b498bedf760bf92e1",
+      "高炉前端数据/智能助手/backend/qa_document_compound.py": "bfcefd214fae105e1c137ec8f516df8c84c749f04331b6b65077db3ab80d8301",
+      "高炉前端数据/智能助手/backend/qa_verified_facts.py": "461364b60dc6f4e987d0f997f9e3f1e973cd07ea503a44d8ea3760b681bd63fa",
+      "高炉前端数据/智能助手/backend/qa_document_knowledge.py": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9",
+      "高炉前端数据/智能助手/backend/qa_document_integrity.py": "b616e3f01e940e372fc398af9535ad399c24df8134d29f19319f1fe33efd9be6",
+      "高炉前端数据/智能助手/backend/qa_history_compound.py": "a7b1cd2cde3b9ce53df5e6611164e3330dae7af0c604e6f627a191072e99ab9a",
+      "高炉前端数据/智能助手/backend/mcp_conversation_context.py": "98fb56b92135df039e22dd0eac812fda24071a07f188e997f7e5a1094158fbd5"
+    },
+    "sources": [
+      "tools/qa_routing_release_extensions.json",
+      "tools/extend_qa_release_v17.py",
+      "tools/prepare_qa_routing_v3_release.py",
+      "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1",
+      "tools/record_qa_routing_v3_version.ps1",
+      "tools/remote_preflight_qa_routing_v3.ps1",
+      "tools/verify_qa_routing_release.ps1",
+      "高炉前端数据/智能助手/backend/mcp_conversation_context.py",
+      "tests/test_qa_context_provenance.py",
+      "tests/test_qa_context_provenance_seams.py",
+      "tools/build_qa_routing_v20_candidate.py",
+      "tests/test_qa_followup_planning.py"
+    ],
+    "validations": [
+      {
+        "id": "focused-pytest",
+        "kind": "deterministic",
+        "status": "passed",
+        "evidence": "100 focused tests including12 actual accepted planner/sensor seams and referential/explicit-object counterexamples"
+      },
+      {
+        "id": "remote-readonly-preflight",
+        "kind": "readonly_remote",
+        "status": "passed",
+        "evidence": "Exact HEAD50185321,26 dependency hashes and scoped Git clean;staged3.11 compile/hash pass;recordable2 raw/2 semantic lines,no EOL migration"
       }
     ]
   }
