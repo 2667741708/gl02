@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import re
 from typing import Any
+import qa_document_integrity
 
 VERSION = "qa-document-knowledge-v1"
 THREE_RULES = "bf_three_rules_two_systems_20260712"
@@ -214,6 +215,15 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     manifest = _manifest(doc)
     intro = f"来源：《{doc['title']}》；版本 {manifest['version']}；更新 {manifest['updated_at']}。\n"
     if doc_id == THREE_RULES:
+        indexed = conn.execute(
+            "SELECT chunk_type, content, content_hash, authority_level, enriched_content FROM rag_chunk "
+            "WHERE doc_id = ? AND chunk_type IN (?, ?, ?) ORDER BY chunk_id LIMIT 15001",
+            (doc_id, 'three_rules_atomic', 'three_rules_section', 'three_rules_topic'),
+        ).fetchall()
+        gate = qa_document_integrity.inspect(str(doc.get('full_text') or ''), [dict(row) for row in indexed])
+        if not gate['verified']:
+            return _outcome(intro + "权威原文与章节索引的独立完整性核验未通过，可能有缺失或来源不一致；未将现有片段当作完整正式制度。",
+                            'dependency_blocked', gate['reason'], [manifest], {'authority_index': gate})
         atomic_result = _original_atomic(conn, question, intro, manifest)
         if atomic_result is not None:
             return atomic_result
@@ -277,6 +287,10 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     if any(parts != list(range(1, len(parts) + 1)) for parts in groups.values()):
         return _outcome(intro + "所选章节存在缺页或重复片段，未把拼接结果标为完整。",
                         "dependency_blocked", "section_parts_not_contiguous", [manifest])
+    scope_gate = qa_document_integrity.inspect_selected_scope(selected, [dict(row) for row in indexed])
+    if not scope_gate['verified']:
+        return _outcome(intro + "所选岗位/规程的章节内容与其他已核验原文索引不一致，可能缺少条款；未将当前片段标为完整。",
+                        'dependency_blocked', scope_gate['reason'], [manifest], {'selected_scope': scope_gate})
     reference = _reference(question)
     if reference is not None:
         return _original_subsection(selected, reference, intro, manifest)

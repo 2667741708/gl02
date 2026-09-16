@@ -1,5 +1,11 @@
 # 测试参考
 
+## BUG-QA-SELECTED-SCOPE-TAIL-20260916
+
+- 本机候选：完整原子索引不能掩盖所选章节索引的末页缺失；新增同岗位/规程跨索引覆盖门。
+- 命令：python -X utf8 -m pytest tests/test_qa_document_integrity.py tests/test_qa_document_knowledge.py -q；38 passed。
+- [反例、修复及远端阻断](handoffs/2026-09-16-qa-document-scope-tail-local.md)。尚未部署；真实索引兼容性、原子条款边界及scope元数据独立核验待做。
+
 ## TEST-QA-FULL-ISSUE-INVENTORY-20260916：V10–V14
 
 本轮V14针对性35项及实际PowerShell GET就绪故障4项通过，真实定向3题独立语义通过，0自动POST重放。V12/V13分别保留2个失败答案的阶段报告，V14解决压力单位/额外指标问题。
