@@ -163,5 +163,3 @@
 验证本次文档：分母算术与进度一致；代表用例存在于模板索引；代码位置依据已核验V2；链接可解析；Git差异无原始回答/生产数值/身份/凭据。运行行为仍待实施及回归，不用文档检查声称功能通过。
 
 设计参考：[明确工作流与有界路由](https://www.anthropic.com/engineering/building-effective-agents)、[按实际结果与完整轨迹评测](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)。具体修改依据本项目失败证据，不要求更换模型或引入多智能体。
-
-
