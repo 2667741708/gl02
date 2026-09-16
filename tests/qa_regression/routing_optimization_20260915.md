@@ -1,5 +1,7 @@
 # 线上测试结果复核与路由优化方案
 
+> 本文保留2026-09-15历史快照。后续实施顺序、知识题分母及知识问答新增缺陷以[2026-09-16完善计划](assistant_improvement_plan_20260916.md)为准；必须完成全量收集与审阅冻结后再开始路由修复。
+
 - 状态：reviewed / proposed；本次只读检查生产，未修改路由、模型、服务或重发问题。
 - 最后核对：2026-09-15 20:18（Asia/Shanghai，后续文档整理不改变该运行快照）。
 - 事项：Q-QA-ROUTING-RESULT-REVIEW-20260915；关联 REQ-QA-NO-CODE-EVIDENCE-BASELINE-20260915、REQ-QA-ALL-LOCAL-TEMPLATES-20260915。
