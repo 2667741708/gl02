@@ -1,5 +1,9 @@
 # 程序索引
 
+## REQ-QA-LATEST-PREFETCH-REUSE-20260917 / V24
+
+[qa_verified_facts.py](../高炉前端数据/智能助手/backend/qa_verified_facts.py)新增`reusable_latest_read`；[qa_evidence_policy.py](../高炉前端数据/智能助手/backend/qa_evidence_policy.py)补代码承诺清理；[候选构建器](../tools/build_qa_v24_latest_candidate.py)从当前生产字节只修改代理`qa_mcp_should_use_tools`，其他497节点保留，本机旧代理不能覆盖生产。[3写/24读与生产版本证据](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。行号TODO-LINES。
+
 ## REQ-QA-STATISTICAL-SCOPE-20260917 / REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
 
 [qa_verified_facts.py](../高炉前端数据/智能助手/backend/qa_verified_facts.py)的`cv_contract/render_cv/trend_context`校验统计适用性并限定时间尺度；[qa_task_plan.py](../高炉前端数据/智能助手/backend/qa_task_plan.py)的`_explicit_live_request`补单窗观察且保留说明/用户数据边界。代理候选从当前生产字节确定性构建，497其他AST节点不变；本机旧代理不得直接覆盖生产。[V22/V23实施与作用域](handoffs/2026-09-17-qa-v23-single-window-routing.md)。行号TODO-LINES。

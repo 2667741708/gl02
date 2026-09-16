@@ -1,5 +1,9 @@
 # 测试参考
 
+## REQ-QA-LATEST-PREFETCH-REUSE-20260917 / V24
+
+[最新值复用与禁代码承诺回归](../tests/test_qa_latest_reuse_and_code_offers.py)连同证据策略/统计范围共76项通过。5道原题真实发送后独立全文审核1通过/3部分/1失败，传输5/5；身份稳定4题完整1题，仅小样本。402题逐条依赖阻断，已发送不重放。[复现、结果哈希和剩余方案](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。
+
 ## REQ-QA-STATISTICAL-SCOPE-20260917 / REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
 
 新增[test_qa_statistical_scope.py](../tests/test_qa_statistical_scope.py)、[test_qa_single_window_routing.py](../tests/test_qa_single_window_routing.py)、[test_qa_batch_identity.py](../tests/test_qa_batch_identity.py)，覆盖总体标准差独立复算、CV无效域、趋势双信号范围、实际生产渲染前后对比、单窗观察正反例和模型标签/驻留不一致。最终105项通过，真实V22六题单列全文审阅，V23的407失败题复测进行中；正确率与传输率不混用。[复現与验收](handoffs/2026-09-17-qa-v23-single-window-routing.md)。

@@ -1,5 +1,9 @@
 # API 参考
 
+## V24 核验最新值与完成状态（2026-09-17）
+
+QA/SSE接口、owner与同源权限不变。简单最新值对象全覆盖时返回`verified_prefetch_facts`，缺单位仍`partial`；`model_request_count=0`不表示没有预取数据库。强制指定工具仍沿用原路径。图表返回`completed`但语义失败的实例已记录，不能用终态或非空判断成功。[合同与生产复测](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。
+
 ## REQ-QA-STATISTICAL-SCOPE-20260917：问答统计输出范围
 
 V22保留现有QA/SSE接口和原统计字段；描述性CV仅在满足基本计算条件时展示，温标/缺单位/非正或近零均值明确限制，原均值与标准差仍保留。`trend_consistency`上游语义仅首末与回归，答案明示该范围并另列最近15分钟，不更改原工具合同。V23只调整正常单窗观察的只读路由，无新增写接口或匿名权限。[证据](handoffs/2026-09-17-qa-v23-single-window-routing.md)。

@@ -7,7 +7,7 @@ import math
 import re
 from typing import Any
 
-VERSION = 'qa-verified-facts-v2-statistical-scope'
+VERSION = 'qa-verified-facts-v3-latest-reuse'
 
 
 def finite(value: Any) -> bool:
@@ -129,6 +129,25 @@ def prefetch_outcome(prefetch: dict, plan: dict) -> dict | None:
             'grounding_status': 'verified_facts' if facts else 'no_verified_evidence',
             'completion': {'schema': 'qa-completion-v1', 'terminal_state': 'completed' if complete else 'partial', 'complete': complete, 'requested_objects': expected, 'covered_objects': [item.object_id for item in facts], 'missing_objects': missing, 'missing_unit_objects': missing_units,
                            'unit_sources': {item.object_id: item.unit_source for item in facts}}}
+
+
+def reusable_latest_read(question: str, prefetch: dict, plan: dict) -> bool:
+    """Reuse all requested latest facts; never complete an analysis from points.
+
+    Missing units remain an explicit partial result. A model cannot repair a
+    missing physical unit, and the UI enable-tools flag is not a forced tool.
+    """
+    if (plan.get('intents') != ['live_data'] or plan.get('no_live_lookup')
+            or plan.get('unresolved_entities') or plan.get('unresolved_entity_count')):
+        return False
+    text = str(question or '').split('\n[服务端对话状态：', 1)[0]
+    if re.search(r'分析|判断|是否|正常|异常|风险|趋势|走势|变化|波动|稳不稳|高不高|低不低|大不大|温差|差值|分布|梯度|匹配|对比|比较|原理|原因|为什么|解释|含义|作用|功能|是什么|如何|怎么|说明|介绍|建议|历史|最近|过去|今天|今日|昨天|昨日|昨晚|前天|上午|下午|夜里|凌晨|小时|分钟|统计|平均|均值|最高|最低|标准差|极差|画|图|导出|报告|报表|预测|设定|调节|(?:\d{1,2}|[零一二两三四五六七八九十]{1,3})\s*(?:点|时|:)', text):
+        return False
+    outcome = prefetch_outcome(prefetch, plan)
+    if outcome is None:
+        return False
+    contract = outcome['completion']
+    return bool(contract['covered_objects'] and not contract['missing_objects'])
 
 
 def temperature_comparison(payload: dict, question: str, arguments: dict) -> dict | None:

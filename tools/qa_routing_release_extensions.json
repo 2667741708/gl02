@@ -684,5 +684,104 @@
         "evidence": "Exact HEAD/dependency hashes/scoped clean and staged Python3.11 compile; candidate recordability verified; no EOL migration"
       }
     ]
+  },
+  "v24": {
+    "artifacts": {
+      "ollama_proxy_server.py": {
+        "baseline": [
+          "c90f82cf2466bf4004efed330d21a252fdd8c847605f966909102a9c7653aefc"
+        ],
+        "markers": [
+          "REQ-QA-LATEST-PREFETCH-REUSE-20260917",
+          "qa_verified_facts.reusable_latest_read"
+        ],
+        "allow_create": false
+      },
+      "qa_verified_facts.py": {
+        "baseline": [
+          "51112c7f8b7de36dab6ce49046968921ce3194adc1348005f4a8c09d73dbcde6"
+        ],
+        "markers": [
+          "qa-verified-facts-v3-latest-reuse",
+          "def reusable_latest_read",
+          "def prefetch_outcome"
+        ],
+        "allow_create": false
+      },
+      "qa_evidence_policy.py": {
+        "baseline": [
+          "d4e44deda3df4740620a9baa6c880023f28fe8683b228015c519ae240c3d769d"
+        ],
+        "markers": [
+          "qa-evidence-no-code-v6-offer-boundary",
+          "def enforce_no_code"
+        ],
+        "allow_create": false
+      }
+    },
+    "read_files": {
+      "高炉前端数据/智能助手/backend/bf_knowledge_rag.py": "3f9fc5347fd0ad8927be66d6c19d1024d82b105bab755991257d4a7551286da4",
+      "高炉前端数据/智能助手/backend/qa_evidence_claims.py": "73b077850d710301473f0ff2d37f3e0521d15c96895232c4443630050ec51c5a",
+      "高炉前端数据/智能助手/backend/qa_entity_resolution.py": "46c49bb5020425134133af14c51dd902b9e9c5a3787074012b03dd094a500c7a",
+      "高炉前端数据/智能助手/mcp/business_object_catalog.py": "a746a7a057ac0e689d376feb321854c1889a4da79e2857dee00188de6061bcdf",
+      "高炉前端数据/智能助手/backend/qa_time_window_plan.py": "7c54df55a8c7042b8c8b623d8caed0872da948972ac803d8f899b5e520853720",
+      "高炉前端数据/智能助手/backend/qa_report_workflow.py": "0fe0282c4dee4b5ecc108835b225e8d26232cb61298eb5f04ac6c5c6401ea1c8",
+      "高炉前端数据/智能助手/backend/qa_model_readiness.py": "65e9fb9600230431de11ba7142ff3100205841117b5cf6df17d3f8d20fa3211c",
+      "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "9dd1999e40e0a4648c25e4ae626b5e290269e68cab0e707bc4561fac4f9a3e95",
+      "高炉前端数据/智能助手/backend/assistant_pg.py": "6f6fd528e9dd0391c206d38727d468b6f2eb727e4194ee13c636726782cadf34",
+      "高炉前端数据/智能助手/backend/qa_completion.py": "bceb29c3e310a73526bb3cc6504fe877fd516ad4fd9d261804b4f7ebd873c47f",
+      "高炉前端数据/智能助手/backend/qa_history_projection.py": "56f82b925c6877909eddd3f91847cbdf1de3784de60d025c366ab154e7942a1a",
+      "高炉前端数据/智能助手/backend/qa_prompt_sources.py": "14a175a44eb7dde107668ab78e803a56f305bdcfb10fc7c7fbfc820dbe258b3a",
+      "高炉前端数据/智能助手/backend/mcp_host/cross_source_executor.py": "a99cf6e4fd73f11cedbec01f254ff649615c96feb55827f92c57853021d55033",
+      "高炉前端数据/智能助手/backend/qa_response_projection.py": "60e8db0edfab036f17bc9c201d096d652c75b457570ce4eb07fdb9dcb2caa693",
+      "高炉前端数据/智能助手/backend/mcp_tool_selection.py": "2a0b8c8cc33444ef4f5138b23571a736a558229d9f7f09f0d88b735887235111",
+      "高炉前端数据/智能助手/backend/qa_tool_fallback.py": "8d5c3737d463aa5990f844655d0925314eb77fc67a83c066e2a4bfd51c3043ab",
+      "高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py": "c55458a75a362aaeb4eb91ac99d19dcbe130897779fb800b498bedf760bf92e1",
+      "高炉前端数据/智能助手/backend/qa_document_compound.py": "bfcefd214fae105e1c137ec8f516df8c84c749f04331b6b65077db3ab80d8301",
+      "高炉前端数据/智能助手/backend/qa_document_knowledge.py": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9",
+      "高炉前端数据/智能助手/backend/qa_document_integrity.py": "b616e3f01e940e372fc398af9535ad399c24df8134d29f19319f1fe33efd9be6",
+      "高炉前端数据/智能助手/backend/qa_history_compound.py": "a7b1cd2cde3b9ce53df5e6611164e3330dae7af0c604e6f627a191072e99ab9a",
+      "高炉前端数据/智能助手/backend/mcp_conversation_context.py": "98fb56b92135df039e22dd0eac812fda24071a07f188e997f7e5a1094158fbd5",
+      "高炉前端数据/智能助手/backend/qa_request_control.py": "3a377273d67767727432744a1e2077df42a6516a4801042f02f6df34fbbd41ca",
+      "高炉前端数据/智能助手/backend/qa_task_plan.py": "0a1b950f221dcf90c03e1e623fe17453e7d3551ae2d9cf5bb789d9fd9c952d64"
+    },
+    "sources": [
+      "tools/extend_qa_release_v24.py",
+      "tools/build_qa_v24_latest_candidate.py",
+      "tools/qa_routing_release_extensions.json",
+      "tools/prepare_qa_routing_v3_release.py",
+      "tools/stage_qa_release.py",
+      "tools/prepare_qa_v9_invocations.py",
+      "tools/record_qa_release_preflight.py",
+      "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1",
+      "tools/record_qa_routing_v3_version.ps1",
+      "tools/remote_preflight_qa_routing_v3.ps1",
+      "tools/verify_qa_routing_release.ps1",
+      "高炉前端数据/智能助手/backend/qa_verified_facts.py",
+      "高炉前端数据/智能助手/backend/qa_evidence_policy.py",
+      "tests/test_qa_latest_reuse_and_code_offers.py",
+      "tests/test_qa_evidence_policy.py",
+      "tests/test_qa_statistical_scope.py"
+    ],
+    "validations": [
+      {
+        "id": "focused-pytest",
+        "kind": "deterministic",
+        "status": "passed",
+        "evidence": "76 passed; latest read coverage, historical/analysis negatives, actual proxy seam, no-code offers and legal arithmetic"
+      },
+      {
+        "id": "final-luna-diff-review",
+        "kind": "semantic",
+        "status": "passed",
+        "evidence": "gpt-5.6-luna low reviewed final helper exclusion expansion and candidate-required fail-closed gate"
+      },
+      {
+        "id": "remote-readonly-preflight",
+        "kind": "readonly_remote",
+        "status": "passed",
+        "evidence": "Exact HEAD/dependency hashes/scoped clean and staged Python3.11 compile; candidate recordability verified; no EOL migration"
+      }
+    ]
   }
 }

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version', choices=('v18', 'v19', 'v20', 'v21', 'v22', 'v23'), required=True)
+    parser.add_argument('--version', choices=('v18', 'v19', 'v20', 'v21', 'v22', 'v23', 'v24'), required=True)
     parser.add_argument('--phase', choices=('preflight', 'activation'), required=True)
     args = parser.parse_args()
     recipe = json.loads((ROOT/'tools/qa_routing_release_extensions.json').read_text(encoding='utf-8'))[args.version]

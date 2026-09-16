@@ -1,5 +1,9 @@
 # 配置参考
 
+## V24 配置边界（2026-09-17）
+
+V24不调整模型、keyword检索、单模型限制、11434或计划任务。批准Qwen可驻留；批准:0/:1均合法，但已冻结复测digest不得混合。模型恢复健康不等于原版本对照可继续，须核对标签与实际驻留；独立固定窗口需要单独授权。[证据与剩余方案](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。
+
 ## REQ-QA-STATISTICAL-SCOPE-20260917：发布与评测配置
 
 V22/V23不修改生产模型、keyword检索、单模型驻留或计划任务配置。复测冻结程序/语义目录哈希，批准Qwen两个digest发送前后分层采样；采样不一致停止并保留已发送记录。`BF_QA_RELEASE_CANDIDATE_REQUIRED=1`仅为本机测试门，候选缺失立即失败，不是生产开关。[范围](handoffs/2026-09-17-qa-v23-single-window-routing.md)。

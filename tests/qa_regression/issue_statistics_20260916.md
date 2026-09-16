@@ -1,6 +1,6 @@
 # 全来源问题统计与逐题台账
 
-- 状态：collection_accounted_pending_answer_review；仅统计与方案，未修改生产路由。
+- 状态：首次采集历史快照（collection_accounted_pending_answer_review），以下分母和信号冻结保留，不能当成当前生产修复状态。当前更新、语义审核进度与原题复测见[逐项执行台账](optimization_execution_ledger_20260916.md)及[V24报告](../../docs/handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。
 - 核对时间：2026-09-16T11:26:31.313656（Asia/Shanghai）。
 - 需求：REQ-QA-FULL-ISSUE-INVENTORY-20260916。
 - 权威来源：只读提取的线上结果、模板索引及定向答案审阅；原始回答与参数留在私有目录。

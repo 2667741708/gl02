@@ -1,5 +1,9 @@
 # 需求追踪
 
+## REQ-QA-LATEST-PREFETCH-REUSE-20260917 / V24
+
+V24已受控部署，简单最新值读取复用核验预取，并补禁代码承诺边界。76项回归及独立审查通过；原压力题partial→passed，温度failed→partial，图表仍failed。5次实际发送后模型身份无法核实停止，402题逐题未发送阻断；没有全量准确率。[统计、生产证据和逐项剩余方案](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。
+
 ## REQ-QA-STATISTICAL-SCOPE-20260917 / REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
 
 V22已发布CV适用条件/趋势范围/MCP责任说明；其复测两题工具0次而误称未连接系统，V23据真实原题修复单窗对比与单点稳定性路由，保留无工具/禁现场/文档边界。105项关联回归通过，V23生产字节/PID/CAS验收通过，407题上线复测进行中，未称全量解决。[统计与完整方案](handoffs/2026-09-17-qa-v22-optimization-and-paired-retest.md)、[V23验收](handoffs/2026-09-17-qa-v23-single-window-routing.md)。

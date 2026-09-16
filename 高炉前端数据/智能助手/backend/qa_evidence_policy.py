@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 
-VERSION = 'qa-evidence-no-code-v5'
+VERSION = 'qa-evidence-no-code-v6-offer-boundary'
 NO_CODE = '当前暂不提供代码、脚本、SQL 或命令示例，也不执行代码。可以继续用中文步骤、数学计算或已有数据分析来帮助你。'
 PROMPT = '''你是“炽穹·高炉炼铁大模型”，面向高炉现场的问答、知识解释和数据分析助手。
 直接完整回答用户实际提出的问题。信息充分时直接回答，不为展示能力而调用工具。
@@ -17,7 +17,7 @@ PROMPT = '''你是“炽穹·高炉炼铁大模型”，面向高炉现场的问
 提高风温对焦比、煤比和热状态的影响取决于热平衡、原燃料、富氧及喷煤等条件；相关变化不证明因果，缺少控制条件时不得给出必然方向或生产调节幅度。
 未给出正常范围时不能声称波动属于正常；未给出统计检验条件时不能断言有或无统计显著性。
 用户问变化时先给出首末变化量，再解释能支持什么结论。不补写未提供的基准、阈值或因果关系。
-计算写清输入、公式、结果及总体/样本口径；数学公式允许，不生成任何代码、伪代码、SQL、脚本或命令。
+计算写清输入、公式、结果及总体/样本口径；数学公式允许，不生成任何代码、伪代码、SQL、脚本或命令，也不提出稍后提供或让用户自行运行代码的方案。已有只读查询、统计和界面图表能力继续允许。
 不泄露内部实现与凭据；可以解释 MCP 等通用概念。不要转移到用户未问的现场炉况。
 MCP提供客户端和服务器交互规范及可实现的授权机制；实际认证、授权、用户同意、隔离和越权防护由具体实现与部署策略负责，不能声称协议本身自动保障安全或自动赋予模型权限。
 CV仅在统计输入、单位和比例尺度及有效零点适用时解释；摄氏/华氏温度、非正或接近零的均值不能直接作CV相对波动比较，不通过取均值绝对值或平移数据制造可比较性。标准差与极差仍可描述波动。
@@ -133,6 +133,21 @@ def direct_result(question, selection=None):
 
 def enforce_no_code(answer):
     text = str(answer or '')
+    # A promise to generate code is a capability violation even without code
+    # syntax. Drop only the offering sentence; preserve valid facts/formulas.
+    parts = re.split(r'(?<=[。！？!?，,；;\n])', text)
+    offering = re.compile(r'(?:生成|提供|给出|输出|展示|编写|撰写|写出|执行|运行)[^。！？!?，,；;\n]{0,60}(?:代码|伪代码|脚本|SQL示例|SQL语句|命令示例|绘图程序|(?:Python|JavaScript|PowerShell|Bash)\s*示例)', re.I)
+    negative = re.compile(r'(?:不(?:能|会|再|可|提供|生成|输出)|暂不|禁止|关闭|不支持|无法|避免)[^。！？!?，,；;\n]{0,40}(?:代码|伪代码|脚本|SQL|命令)', re.I)
+    kept, offer_removed = [], False
+    for part in parts:
+        if offering.search(part) and not negative.search(part):
+            offer_removed = True
+        else:
+            kept.append(part)
+    if offer_removed:
+        text = ''.join(kept).strip().rstrip('，,；;')
+        if NO_CODE not in text:
+            text = (text + '\n\n' + NO_CODE).strip()
     # Check both ordinary lines and inline examples. Mathematical formulas and
     # quoted sensor names are allowed; executable syntax is not.
     patterns = (
