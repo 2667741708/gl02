@@ -23,12 +23,13 @@ def main():
     plan = load(runtime / 'failure-round.plan.private.json')
     progress = load(runtime / 'snapshots/progress.json')
     recovery = load(runtime / 'release/readonly-recovery.json')
+    remote_hashes = {row['case_id']: row for row in load(runtime / 'release/original-result-hashes.json')['rows']}
     if progress['state'] != 'blocked' or progress['automatic_retries'] != 0:
         raise ValueError('Expected stopped no-replay round')
     cases = {row['case_id']: row for row in plan['cases']}
     claims = {row['case_id']: row for row in recovery['claims']}
     observed = {row['case_id']: row for row in progress['results']}
-    if len(cases) != 407 or set(claims) != set(observed) or set(observed) != set(DECISIONS):
+    if len(cases) != 407 or set(claims) != set(observed) or set(observed) != set(DECISIONS) or set(remote_hashes) != set(observed):
         raise ValueError('Every send must have exactly one observation and manual decision')
     if recovery['head'] != plan['production_commit'] or '10388' in recovery['process']:
         raise ValueError('Recovery must prove the old batch has exited without version drift')
@@ -36,6 +37,9 @@ def main():
     for caseid, entry in observed.items():
         path = runtime / 'snapshots' / (caseid + '.json')
         row = load(path)
+        canonical = json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf-8')
+        if hashlib.sha256(canonical).hexdigest() != remote_hashes[caseid]['canonical_content_sha256']:
+            raise ValueError('Private snapshot differs from the original remote result')
         original_hash = hashlib.sha256(cases[caseid]['prompt'].encode('utf-8')).hexdigest()
         if row['case_id'] != caseid or row['request_count'] != 1 or not row['terminated'] or row.get('transport_error'):
             raise ValueError('Uncertain or duplicate result')
@@ -44,7 +48,8 @@ def main():
         final = row['final']
         state, reason = DECISIONS[caseid]
         rows.append({'case_id': caseid, 'review_state': state, 'review_reason': reason,
-            'original_prompt_sha256': original_hash, 'result_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+            'original_prompt_sha256': original_hash, 'result_sha256': remote_hashes[caseid]['result_sha256'],
+            'canonical_content_sha256': remote_hashes[caseid]['canonical_content_sha256'],
             'answer_sha256': hashlib.sha256(row['answer'].encode('utf-8')).hexdigest(),
             'request_count': 1, 'sse_done': True, 'seconds': row['elapsed_seconds'],
             'answer_route': final.get('answer_route'), 'model_request_count': final.get('model_request_count'),
