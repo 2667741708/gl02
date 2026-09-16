@@ -1,5 +1,9 @@
 # 测试参考
 
+## REQ-QA-INITIAL-828-SEMANTIC-REVIEW-20260916：待审全集一致性门
+
+限定`gpt-5.6-luna`逐题离线审阅828份首次已有答复，进行中，无生产POST。完成后运行`python -X utf8 tools/validate_qa_initial_828_review.py --report tests/qa_regression/initial_828_semantic_review_20260916.json`，预期`ok=true`、`reviewed=828`、`remaining=0`及首次结果哈希一致。此命令只验证范围与隐私字段，不重新判语义，不代表已通过全量审核或准确率。
+
 ## REQ-QA-PAIRED-FAILURE-RETEST-20260916：原题复测观察
 
 首次405确认失败题加原8题的新轮413题计划已冻结；4题有确定结果，内容独立审核3通过/1部分正确，观察内容准确率75%、传输完成率100%，不能外推全集或称固定模型评测完成。模型digest漂移在第5题发送前阻断；409题未发送。前后模型身份核验仍需补强，真实双角色/取消验收待测。[脱敏逐题报告](../tests/qa_regression/routing_v21_paired_observations_20260916.json)、[复核与阻断证据](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。

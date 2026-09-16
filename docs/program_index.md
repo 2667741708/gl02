@@ -1,5 +1,9 @@
 # 程序索引
 
+## REQ-QA-INITIAL-828-SEMANTIC-REVIEW-20260916：审阅结果验收
+
+[validate_qa_initial_828_review.py](../tools/validate_qa_initial_828_review.py)仅核对完成报告是否覆盖原待审828唯一题、首次result_sha256、五类语义状态及禁公开字段。实际语义审阅由用户指定的单个`gpt-5.6-luna`子智能体完成，不调用生产，不以关键词规则替代语义判断；当前审阅进行中。
+
 ## REQ-QA-PAIRED-FAILURE-RETEST-20260916：失败题复测工具
 
 `prepare_qa_paired_failure_retest.py`冻结原题与模型/目录/程序身份；`start_qa_paired_failure_batch.ps1`复用独立启动器；`run_qa_template_batch.py`串行单发送claim与发送前版本门。`export_qa_paired_round_readonly.py`和`assemble_qa_paired_snapshots.py`有界导出/验证私有证据；`record_qa_v21_observations.py`冻结已独立审核的4题脱敏报告。现有报告拒绝覆盖，当前409题未发送；[权威范围与命令](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。
