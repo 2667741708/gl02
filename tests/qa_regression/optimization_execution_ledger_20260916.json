@@ -2,7 +2,7 @@
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
   "checked_at": "2026-09-16",
-  "production_commit": "4304243a1e53cee2ed35c8f541b38be2d359f55e",
+  "production_commit": "cdb69f5ba233475fdcad989fc2442e64a01aaa8d",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -10,13 +10,17 @@
     "blocked_client_contract": 1
   },
   "latest_production_retest": {
-    "version": "routing-v20",
-    "requests": 5,
-    "sse_done": 5,
-    "passed": 5,
+    "version": "routing-v21",
+    "requests": 4,
+    "sse_done": 4,
+    "passed": 3,
+    "partial": 1,
     "failed": 0,
-    "provenance_readonly_passed": 5,
-    "automatic_post_retries": 0
+    "planned": 413,
+    "not_sent": 409,
+    "model_identity_drift": true,
+    "automatic_post_retries": 0,
+    "full_dataset_accuracy_available": false
   },
   "knowledge_collection": {
     "source": 833,
@@ -386,8 +390,8 @@
       "priority": "P0",
       "title": "模型就绪与请求间竞态",
       "state": "production_dependency_open",
-      "evidence": "前轮model_ok临时false和启动失败已记录；本轮确认批准业务模型为已驻留Qwen，吞查询异常为空列表不足以证明卸载",
-      "next_gate": "先细分就绪检查失败/成功查询缺席，再按执行能力依赖门与Qwen驻留/调度方案验证",
+      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本",
+      "next_gate": "单一模型状态控制者、测试期间固定digest且标签/驻留一致；模型任务变更须独立授权，仅续跑已证明未发送409题",
       "case_ids": [
         "TPL-18F38D141C29CF15"
       ],
@@ -442,9 +446,9 @@
       "issue_id": "QAOPT-O05",
       "priority": "P1",
       "title": "并发与角色边界",
-      "state": "implemented_local_verified_production_pending",
-      "evidence": "用户限定所有角色同一时间一个活动问答；本机全局注册门与9项生命周期测试及独立审查通过，关联35项通过；生产未更新",
-      "next_gate": "受控发布后验证真实角色独占409、取消实际停止后释放与owner隔离；不排队、不自动重放",
+      "state": "deployed_partial_verified",
+      "evidence": "V21已受控发布：精确控制模块、受保护PID及生产CAS通过；独占9项和关联35项本机通过；真实双角色409/取消验收待测",
+      "next_gate": "固定模型版本后完成真实双角色409、取消实际停止释放与owner隔离；不排队、不重放",
       "case_ids": [],
       "depends_on": [
         "QAOPT-O03",
@@ -535,5 +539,14 @@
         "QAOPT-O04"
       ]
     }
-  ]
+  ],
+  "previous_targeted_retest": {
+    "version": "routing-v20",
+    "requests": 5,
+    "sse_done": 5,
+    "passed": 5,
+    "failed": 0,
+    "provenance_readonly_passed": 5,
+    "automatic_post_retries": 0
+  }
 }

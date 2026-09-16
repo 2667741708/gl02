@@ -3,8 +3,8 @@
 - 状态：执行中；最后核对：2026-09-16。
 - 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。
 - 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。
-- 生产修复版本：`ab0dafa3f2008b819ed40211b43a17858ecf654c`；V16发现三项完成合同失败，V17新轮五题单发送并独立通过，缺章及禁工具历史按预期partial。有效803知识题已核验原文覆盖，30题标准答案冲突阻断；剩余项继续修复，非空不算通过。
-- 最新权威实施：[V17生产修复交接](../../docs/handoffs/2026-09-16-qa-routing-v17-production.md)。旧阶段记录保留为历史证据。
+- 生产修复版本：`cdb69f5ba233475fdcad989fc2442e64a01aaa8d`（V21全角色一个活动问答）；字节/PID/CAS验收通过，真实角色409/取消验收待测。新轮计划413题，已发送4题：3通过、1部分正确；模型digest漂移阻断，409题未发送。有效803知识题原文覆盖是先前阶段合同核验，不能混入本轮准确率。
+- 最新权威实施：[V21生产与原失败题复测](../../docs/handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。旧阶段记录保留为历史证据。
 
 ## 借鉴 DSH 与 Codex 的实施边界
 
@@ -42,11 +42,11 @@
 |20|`QAOPT-E04` 固定计算与统计定义|P1|deployed_partial_verified|V5相邻两窗/V6确定性统计及公式样本数质量限制|统一跨工具派生计算与冲突|
 |21|`QAOPT-E05` 输出字段边界及完整性|P0|deployed_partial_verified|V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列|全部工具及模型分支完成覆盖，不凭非空升级|
 |22|`QAOPT-E06` 多源证据冲突与分析深度|P1|deployed_partial_verified|单点不推趋势、窗口均值不冒充同步温差、V12控制与热平衡条件性因果通过|跨源冲突和时效矩阵|
-|23|`QAOPT-O01` 模型就绪与请求间竞态|P0|production_dependency_open|前轮model_ok临时false和启动失败已记录；本轮确认批准业务模型为已驻留Qwen，吞查询异常为空列表不足以证明卸载|先细分就绪检查失败/成功查询缺席，再按执行能力依赖门与Qwen驻留/调度方案验证|
+|23|`QAOPT-O01` 模型就绪与请求间竞态|P0|production_dependency_open|V21复测4题后latest digest漂移；自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致|模型控制单一来源、固定digest；独立授权后仅续跑未发送409题|
 |24|`QAOPT-O02` 工具超时和故障域隔离|P1|deployed_partial_verified|执行器已有独立超时/每服务预算；V12成功证据保留和失败不扩散合同通过|MCP注册/会话/流式故障矩阵|
 |25|`QAOPT-O03` 工具参数schema及步骤依赖|P1|deployed_contract_verified|V12实际部署StepPlan依赖绑定、声明上游和环检查；67项DAG/完整性测试通过|全部工具输入输出类型化及实际故障矩阵|
 |26|`QAOPT-O04` 状态、耗时与可观测性|P1|deployed_partial_verified|V11受控turn投影实际803题和定向题均仅返回当前2条消息；浏览器默认全历史兼容保留|浏览器有界消息合并与历史分页，现场UI验收|
-|27|`QAOPT-O05` 并发与角色边界|P1|implemented_local_verified_production_pending|用户限定所有角色同一时间一个活动问答；本机全局注册门与9项生命周期测试及独立审查通过，关联35项通过；生产未更新|受控发布后验证真实角色独占409、取消实际停止后释放与owner隔离；不排队、不自动重放|
+|27|`QAOPT-O05` 并发与角色边界|P1|deployed_partial_verified|V21单控制模块已受控发布，哈希/CAS/受保护PID通过；独占9项、关联35项本机通过|固定模型后完成真实双角色409、取消实际停止释放和owner隔离；不排队、不重放|
 |28|`QAOPT-T01` 题目状态、分母与未知发送隔离|P0|implemented_verified|1418行分母、1259已收集和1条不确定发送已独立记录|保持不确定发送永不自动重放|
 |29|`QAOPT-T02` 导入错误与评测污染|P0|implemented_partial_verified|原分母保留；833知识源明确30个编号/同问不同标准答案冲突，禁止当失败重发或自动改标准|版本化修正经原文独立审核|
 |30|`QAOPT-T03` 系统Prompt绑定与故障夹具|P1|partial|TaskPlan/故障夹具已建立；系统Prompt版本绑定仍需全链路证明|记录prompt_hash并覆盖工具/模型/流式故障|

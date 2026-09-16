@@ -1,8 +1,8 @@
 # API 参考
 
-## REQ-QA-EXCLUSIVE-USE-20260916：使用中拒绝（本机候选）
+## REQ-QA-EXCLUSIVE-USE-20260916：使用中拒绝（V21已发布）
 
-8093问答生成入口共用一个活动名额；注册时已有未完成请求，则HTTP409返回`ok=false`、`error=assistant_in_use`、`message=智能助手正在使用中，请等待当前请求结束后手动发送。`、`retryable=true`、`automatic_replay=false`。不返回占用者身份或会话/请求ID，不进入工具或模型调用。取消信号不立即释放，实际停止后才允许新人工发送。既有鉴权、owner隔离与同源合同保留。生产尚未更新；[范围与验收](handoffs/2026-09-16-qa-exclusive-use-local.md)。
+8093问答生成入口共用一个活动名额；注册时已有未完成请求，则HTTP409返回`ok=false`、`error=assistant_in_use`、`message=智能助手正在使用中，请等待当前请求结束后手动发送。`、`retryable=true`、`automatic_replay=false`。不返回占用者身份或会话/请求ID，不进入工具或模型调用。取消信号不立即释放，实际停止后才允许新人工发送。既有鉴权、owner隔离与同源合同保留。V21已受控发布，真实双角色/取消现场验收待测；[范围与验收](handoffs/2026-09-16-qa-exclusive-use-local.md)。
 
 ## V20 指代趋势追问（2026-09-16）
 

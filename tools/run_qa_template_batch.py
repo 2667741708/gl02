@@ -23,6 +23,13 @@ def verify(plan,root,collector):
         raise RuntimeError('catalog hash changed')
     for relative,sha in plan['runtime_hashes'].items():
         if digest(root/relative)!=sha: raise RuntimeError('runtime version changed: '+relative)
+    if plan.get('model_identity'):
+        identity=plan['model_identity']
+        with urllib.request.urlopen('http://127.0.0.1:11434/api/tags',timeout=6) as response:
+            tags=json.load(response)
+        matches=[row for row in tags.get('models',[]) if row.get('name')==identity['name']]
+        if len(matches)!=1 or matches[0].get('digest')!=identity['digest']:
+            raise RuntimeError('model identity changed; no next request sent')
 
 def model_ready():
     try:

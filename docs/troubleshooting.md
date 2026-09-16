@@ -1,5 +1,9 @@
 # 排障手册
 
+## ERR-QA-MODEL-ALIAS-DRIFT-20260916：健康但模型版本不断变化
+
+先只读比较11434的tags与ps digest、模型active-state及恢复事件，而不是仅比较latest名称。`BFOllamaModelSelectionRecovery`可在候选失败后覆盖公共别名，另行暂停/恢复`BFOllama11434HealthCheck`；二者不能混淆。V21程序已发布，复测4题后在第5题发送前阻断。已发送题不得重放；模型任务维护须独立授权，再续跑未发送409题。[具体证据与恢复边界](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。
+
 ## 模型检查失败不等于模型卸载（2026-09-16）
 
 Q-QA-QWEN-READINESS-CONCURRENCY-ORACLE-20260916：先区分成功读取/api/ps但批准模型缺席，与查询超时/HTTP失败/异常结构。当前resolve_resident吞fetch异常为空列表，model_ok=false原因不充分。本轮业务模型确认是允许且驻留的Qwen系列。[诊断证据与解决方案](handoffs/2026-09-16-qa-qwen-readiness-concurrency-oracle-plan.md)。旧冻结报告保留，后续按更细原因判定。

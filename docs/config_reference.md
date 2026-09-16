@@ -1,5 +1,9 @@
 # 配置参考
 
+## ERR-QA-MODEL-ALIAS-DRIFT-20260916：同名模型的权重漂移
+
+V21未修改生产模型配置。只读确认`BFOllamaModelSelectionRecovery`自动Repair尝试两个版本并反复改写latest别名；曾出现tags与实际驻留digest不一致。两版本都是允许驻留的Qwen，检查模型名称/就绪布尔值不足以冻结实际版本。共享模型与任务控制须独立授权；[最小维护与恢复方案](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。
+
 ## Qwen驻留核对与诊断更正（2026-09-16）
 
 本轮只读核对8093业务别名实际family=qwen35，已在BF_LLM_MODEL/BF_ALLOWED_LOADED_MODELS内并实际驻留；单加载槽允许该Qwen驻留，不等于禁止Qwen。前轮model_ok=false仅证明就绪检查失败，不能直接证明卸载；异常空列表需要与成功查询缺席分开。[方案与验收](handoffs/2026-09-16-qa-qwen-readiness-concurrency-oracle-plan.md)。本轮未修改生产配置。

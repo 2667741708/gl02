@@ -1,8 +1,12 @@
 # 测试参考
 
+## REQ-QA-PAIRED-FAILURE-RETEST-20260916：原题复测观察
+
+首次405确认失败题加原8题的新轮413题计划已冻结；4题有确定结果，内容独立审核3通过/1部分正确，观察内容准确率75%、传输完成率100%，不能外推全集或称固定模型评测完成。模型digest漂移在第5题发送前阻断；409题未发送。前后模型身份核验仍需补强，真实双角色/取消验收待测。[脱敏逐题报告](../tests/qa_regression/routing_v21_paired_observations_20260916.json)、[复核与阻断证据](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。
+
 ## REQ-QA-EXCLUSIVE-USE-20260916：全角色独占回归
 
-[test_qa_exclusive_use.py](../tests/test_qa_exclusive_use.py)以真实控制模块、合成身份验证6组角色对、取消保持占用、失败释放和同时注册竞态，共9项通过；关联来源绑定与测试持久化共35项通过，独立应用审查通过。命令：`python -X utf8 -m pytest tests/test_qa_exclusive_use.py tests/test_qa_context_provenance.py tests/test_qa_retest_persistence.py -q --basetemp .codex_runtime/pytest-exclusive-new-run`。0生产POST、0模型调用；真实角色/浏览器与生产独占验收仍待受控发布。[证据](handoffs/2026-09-16-qa-exclusive-use-local.md)。
+[test_qa_exclusive_use.py](../tests/test_qa_exclusive_use.py)以真实控制模块、合成身份验证6组角色对、取消保持占用、失败释放和同时注册竞态，共9项通过；关联来源绑定与测试持久化共35项通过，独立应用审查通过。命令：`python -X utf8 -m pytest tests/test_qa_exclusive_use.py tests/test_qa_context_provenance.py tests/test_qa_retest_persistence.py -q --basetemp .codex_runtime/pytest-exclusive-new-run`。0生产POST、0模型调用；V21已受控发布并通过字节/PID/CAS验收；真实角色409与取消现场行为仍待测。[证据](handoffs/2026-09-16-qa-exclusive-use-local.md)。
 
 ## V20 指代趋势追问（2026-09-16）
 

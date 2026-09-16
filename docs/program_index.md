@@ -1,8 +1,12 @@
 # 程序索引
 
-## REQ-QA-EXCLUSIVE-USE-20260916：问答独占门（本机）
+## REQ-QA-PAIRED-FAILURE-RETEST-20260916：失败题复测工具
 
-[qa_request_control.py](../高炉前端数据/智能助手/backend/qa_request_control.py#L135)在现有注册锁内检查所有未完成请求，先拒绝其他发送，再进入原问答。锁不覆盖模型等待；取消保持占用直到实际finally结束。[生命周期测试](../tests/test_qa_exclusive_use.py)与[实施记录](handoffs/2026-09-16-qa-exclusive-use-local.md)。生产尚未更新。
+`prepare_qa_paired_failure_retest.py`冻结原题与模型/目录/程序身份；`start_qa_paired_failure_batch.ps1`复用独立启动器；`run_qa_template_batch.py`串行单发送claim与发送前版本门。`export_qa_paired_round_readonly.py`和`assemble_qa_paired_snapshots.py`有界导出/验证私有证据；`record_qa_v21_observations.py`冻结已独立审核的4题脱敏报告。现有报告拒绝覆盖，当前409题未发送；[权威范围与命令](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。
+
+## REQ-QA-EXCLUSIVE-USE-20260916：问答独占门（V21已发布）
+
+[qa_request_control.py](../高炉前端数据/智能助手/backend/qa_request_control.py#L135)在现有注册锁内检查所有未完成请求，先拒绝其他发送，再进入原问答。锁不覆盖模型等待；取消保持占用直到实际finally结束。[生命周期测试](../tests/test_qa_exclusive_use.py)与[实施记录](handoffs/2026-09-16-qa-exclusive-use-local.md)。V21生产字节/PID/CAS验收通过，真实角色与取消现场行为待测。
 
 ## V20 指代趋势追问（2026-09-16）
 

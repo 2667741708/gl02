@@ -121,7 +121,8 @@ def run(args):
     full_stream_content = None
     final_answer = None
     try:
-        payload = {'conversation_id': conversation_id, 'message': question, 'stream': True, 'use_mcp_tools': True}
+        payload = {'conversation_id': conversation_id, 'message': question, 'stream': True,
+                   'use_mcp_tools': True, 'response_projection': 'turn'}
         headers = {'Content-Type': 'application/json', 'Accept': 'text/event-stream',
                    'Origin': 'http://127.0.0.1:8093', 'Cookie': cookie,
                    'X-BF-Controlled-Client': '1', 'X-BF-Acceptance-ID': case['case_id']}
@@ -156,7 +157,8 @@ def run(args):
                 elif event == 'final':
                     final_answer = data.get('answer')
                     keys = ('ok', 'answer_route', 'grounding_status', 'model_request_count', 'mcp_tool_trace',
-                            'termination_reason', 'request_id', 'qa_request_id', 'mcp_request_budget', 'metrics')
+                            'termination_reason', 'request_id', 'qa_request_id', 'mcp_request_budget', 'metrics',
+                            'completion', 'knowledge_manifest', 'messages_projection', 'messages', 'task_plan')
                     result['final'] = {k: data[k] for k in keys if k in data}
                 elif event == 'error':
                     result['error_code'] = data.get('error') or data.get('code') or 'sse_error'
