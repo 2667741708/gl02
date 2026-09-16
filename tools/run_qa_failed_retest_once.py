@@ -8,6 +8,7 @@ import http.client
 import json
 from pathlib import Path
 import time
+import sys
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
@@ -26,7 +27,25 @@ def write(path: Path, value: dict) -> None:
     temporary.replace(path)
 
 
-def status_ready(url: str, timeout: int, evidence: list | None = None) -> bool:
+def model_required(question: str) -> bool:
+    backend = Path(__file__).resolve().parents[1] / "高炉前端数据/智能助手/backend"
+    sys.path.insert(0, str(backend))
+    import qa_task_plan
+    plan = qa_task_plan.build_task_plan(question)
+    if "document_knowledge" in plan.get("intents", []) and len(plan["intents"]) > 1:
+        import qa_document_compound
+        remaining = [part for part in qa_document_compound.clauses(question)
+                     if "document_knowledge" not in qa_task_plan.build_task_plan(part)["intents"]]
+        if remaining:
+            prepared = {"hidden_context": {"qa_task_plan": plan},
+                        "document_compound": {"remainder_question": "；".join(remaining)}}
+            child = qa_document_compound.prefetch_plan(prepared)
+            if child.get("intents") == ["live_data"]:
+                return False
+    return not (plan.get("intents") == ["document_knowledge"] and not plan.get("allow_mcp_tools") and not plan.get("allow_prefetch"))
+
+
+def status_ready(url: str, timeout: int, evidence: list | None = None, need_model: bool = True) -> bool:
     # Only GET readiness is retried, before creating the durable POST claim.
     # Never retry a question or infer request completion from readiness.
     for attempt in range(3):
@@ -38,7 +57,8 @@ def status_ready(url: str, timeout: int, evidence: list | None = None) -> bool:
             observed = {"error_type": type(exc).__name__}
         if evidence is not None:
             evidence.append({"attempt": attempt + 1, **observed})
-        if all(observed.get(key) for key in ("ok", "proxy_ok", "ollama_ok", "model_ok")):
+        required = ("ok", "proxy_ok", "ollama_ok", "model_ok") if need_model else ("proxy_ok",)
+        if all(observed.get(key) for key in required):
             return True
         if attempt < 2:
             time.sleep(0.25)
@@ -51,7 +71,7 @@ def request_once(url: str, question: str, timeout: int, case_id: str) -> dict:
     path = parsed.path or "/"
     if parsed.query:
         path += f"?{parsed.query}"
-    body = json.dumps({"message": question, "stream": True}, ensure_ascii=False).encode("utf-8")
+    body = json.dumps({"message": question, "stream": True, "response_projection": "turn"}, ensure_ascii=False).encode("utf-8")
     connection = connection_type(parsed.hostname, parsed.port, timeout=timeout)
     started = time.perf_counter()
     connection.request(
@@ -175,7 +195,9 @@ def main() -> int:
             progress["active_case"] = case_id
             write(progress_path, progress)
             readiness = []
-            ready = status_ready(args.status_url, 6, readiness)
+            need_model = model_required(case["question"])
+            progress["model_required"] = need_model
+            ready = status_ready(args.status_url, 6, readiness, need_model)
             progress["readiness_checks"] = readiness
             write(progress_path, progress)
             if not ready:

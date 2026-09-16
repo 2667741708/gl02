@@ -91,6 +91,24 @@ V9_ARTIFACTS = {
     "qa_evidence_policy.py": {"baseline": ["0724e66578f521ba272867c06436da836111669d38356df9d939186cdb2e62e3"], "markers": ["def apply_request_boundary", "def boundary_result"], "allow_create": False},
 }
 
+V10_ARTIFACTS = {
+    "qa_document_knowledge.py": {"baseline": ["cfa553208c8a6e408e09c969140b8795ae852314a0abe058a187fd4fbb65a3f4"], "markers": ["verified_original_atomic", "atomic_reference_ambiguous"], "allow_create": False},
+}
+V11_ARTIFACTS = {
+    "ollama_proxy_server.py": {"baseline": ["0d8698ffb39a5c319c44f4c21ae0235c1f8b8b4a573f004dbbbb495aedc650ec"], "markers": ["import qa_response_projection", "messages_projection"], "allow_create": False},
+    "qa_response_projection.py": {"baseline": [], "markers": ["qa-response-projection-v1", "c.owner_subject = ?", "turn messages do not match owner and role"], "allow_create": True},
+}
+
+V12_ARTIFACTS = {'ollama_proxy_server.py': {'baseline': ['2431a7a78e46f7c693343f333740cfa1aa8b4ae697a86c31c6e21cd29236a593'], 'markers': ['import qa_document_compound', 'qa_document_compound.compose'], 'allow_create': False}, 'mcp_tool_selection.py': {'baseline': ['f986ec49226593befe064763622821fc6bf738a66649b3a23bca17eb6f00c4e4'], 'markers': ['qa_tool_fallback.summarize'], 'allow_create': False}, 'qa_document_compound.py': {'baseline': [], 'markers': ['qa-document-compound-v1', 'missing_document_subtasks'], 'allow_create': True}, 'qa_tool_fallback.py': {'baseline': [], 'markers': ['qa-tool-fallback-v1', 'def summarize'], 'allow_create': True}, 'qa_evidence_policy.py': {'baseline': ['05cb372361038f82245cb122f768cafbad01b2bcd2f24917968f822eeac2ad23'], 'markers': ['调压阀', '热平衡'], 'allow_create': False}, 'qa_document_knowledge.py': {'baseline': ['87c4caea1107710adf3ac277338669d21f72b6b1a99d1ce565f55f300dfe6919'], 'markers': ['verified_original_atomic', '"model_request_count": 0'], 'allow_create': False}, 'cross_source_plan.py': {'relative': '高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py', 'baseline': ['f3c7c1e95a66ad334b5752a8878c83d7397fab247e375c96a42712d7358f5f35'], 'markers': ['declared dependency', 'Cyclic dependency in plan'], 'allow_create': False}}
+
+V13_ARTIFACTS = {
+    "ollama_proxy_server.py": {"baseline":["8079f738da99e07332d8db8d9d536d87f5dac46dcee2c7cd1505f9a7cf8a5a66"],"markers":["qa_document_compound.prefetch_plan(prepared)"],"allow_create":False},
+    "qa_document_compound.py": {"baseline":["eb4fb12d8bfe9d6e1c378bf1f41cce5688d6eb33fc879ff4657e382d83213ac6"],"markers":["qa-document-compound-v2", "def prefetch_plan"],"allow_create":False},
+}
+
+V14_ARTIFACTS = {
+    "qa_verified_facts.py": {"baseline":["7278f7a4437ea4cdf573a193698a35ad22b86460dd5194a03956d01890028e9b"], "markers":["canonical_gl02_contract", "missing_unit_objects"], "allow_create":False},
+}
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -106,25 +124,25 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-head", required=True)
     parser.add_argument("--semantic-review", choices=("passed", "pending"), default="pending")
-    parser.add_argument("--version", choices=("v3", "v4", "v5", "v6", "v7", "v8", "v9"), default="v3")
+    parser.add_argument("--version", choices=("v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"), default="v3")
     args = parser.parse_args()
-    if args.version in ("v4", "v5", "v6", "v7", "v8", "v9"):
+    if args.version in ("v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"):
         REQ = "REQ-QA-FULL-ISSUE-INVENTORY-20260916"
         EXECUTION = f"qa-routing-{args.version}-20260916-r1"
         STAGE = Path("C:/Users/Administrator/AppData/Local/Temp") / EXECUTION
-        ARTIFACTS = {"v4": V4_ARTIFACTS, "v5": V5_ARTIFACTS, "v6": V6_ARTIFACTS, "v7": V7_ARTIFACTS, "v8": V8_ARTIFACTS, "v9": V9_ARTIFACTS}[args.version]
+        ARTIFACTS = {"v4": V4_ARTIFACTS, "v5": V5_ARTIFACTS, "v6": V6_ARTIFACTS, "v7": V7_ARTIFACTS, "v8": V8_ARTIFACTS, "v9": V9_ARTIFACTS, "v10": V10_ARTIFACTS, "v11": V11_ARTIFACTS, "v12": V12_ARTIFACTS, "v13": V13_ARTIFACTS, "v14": V14_ARTIFACTS}[args.version]
         READ_SET = {**READ_SET,
             "高炉前端数据/智能助手/backend/mcp_tool_selection.py": "f986ec49226593befe064763622821fc6bf738a66649b3a23bca17eb6f00c4e4",
             "高炉前端数据/智能助手/backend/qa_evidence_policy.py": "0724e66578f521ba272867c06436da836111669d38356df9d939186cdb2e62e3",
             "高炉前端数据/智能助手/backend/qa_evidence_claims.py": "73b077850d710301473f0ff2d37f3e0521d15c96895232c4443630050ec51c5a",
             "高炉前端数据/智能助手/backend/qa_request_control.py": "0853b77655247030436f0a55a9c973503dc6a853280f3f9aa09d28be6cbeb901",
         }
-        if args.version in ("v5", "v6", "v7", "v8", "v9"):
+        if args.version in ("v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"):
             READ_SET.update({
                 "高炉前端数据/智能助手/backend/qa_entity_resolution.py": "46c49bb5020425134133af14c51dd902b9e9c5a3787074012b03dd094a500c7a",
                 "高炉前端数据/智能助手/mcp/business_object_catalog.py": "a746a7a057ac0e689d376feb321854c1889a4da79e2857dee00188de6061bcdf",
             })
-        if args.version in ("v6", "v7", "v8", "v9"):
+        if args.version in ("v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"):
             READ_SET.pop("高炉前端数据/智能助手/backend/mcp_conversation_context.py")
             READ_SET.update({
                 "高炉前端数据/智能助手/backend/qa_task_plan.py": "f202316a1fce64c4f1648bd2b9919967fd7973e4c1bb361d6528ce7234be953e",
@@ -133,7 +151,7 @@ def main() -> int:
                 "高炉前端数据/智能助手/backend/qa_model_readiness.py": "65e9fb9600230431de11ba7142ff3100205841117b5cf6df17d3f8d20fa3211c",
                 "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "9dd1999e40e0a4648c25e4ae626b5e290269e68cab0e707bc4561fac4f9a3e95",
             })
-        if args.version in ("v7", "v8", "v9"):
+        if args.version in ("v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"):
             READ_SET.update({
                 "高炉前端数据/智能助手/backend/assistant_pg.py": "6f6fd528e9dd0391c206d38727d468b6f2eb727e4194ee13c636726782cadf34",
                 "高炉前端数据/智能助手/backend/mcp_conversation_context.py": "94aa5a09c54652f94776aefeb78f746acf1c587037918a881bf07d3a1fb9d38c",
@@ -141,15 +159,43 @@ def main() -> int:
                 "高炉前端数据/智能助手/backend/qa_completion.py": "bceb29c3e310a73526bb3cc6504fe877fd516ad4fd9d261804b4f7ebd873c47f",
                 "高炉前端数据/智能助手/backend/qa_verified_facts.py": "7278f7a4437ea4cdf573a193698a35ad22b86460dd5194a03956d01890028e9b",
             })
-        if args.version in ("v8", "v9"):
+        if args.version in ("v8", "v9", "v10", "v11", "v12", "v13", "v14"):
             READ_SET.pop("高炉前端数据/智能助手/backend/ollama_proxy_server.py")
             READ_SET.pop("高炉前端数据/智能助手/backend/qa_task_plan.py")
             READ_SET["高炉前端数据/智能助手/backend/qa_history_projection.py"] = "56f82b925c6877909eddd3f91847cbdf1de3784de60d025c366ab154e7942a1a"
-        if args.version == "v9":
+        if args.version in ("v9", "v10", "v11", "v12", "v13", "v14"):
             READ_SET.pop("高炉前端数据/智能助手/backend/qa_evidence_policy.py")
             READ_SET.update({
                 "高炉前端数据/智能助手/backend/qa_task_plan.py": "8b9fa2eec70c9fc6ce5d33e2ff1613231ef83072595fd99a94f1e1c700fc1fb1",
                 "高炉前端数据/智能助手/backend/qa_prompt_sources.py": "14a175a44eb7dde107668ab78e803a56f305bdcfb10fc7c7fbfc820dbe258b3a",
+            })
+        if args.version in ("v10", "v11", "v12", "v13", "v14"):
+            READ_SET.update({
+                "高炉前端数据/智能助手/backend/ollama_proxy_server.py": "0d8698ffb39a5c319c44f4c21ae0235c1f8b8b4a573f004dbbbb495aedc650ec",
+                "高炉前端数据/智能助手/backend/qa_evidence_policy.py": "05cb372361038f82245cb122f768cafbad01b2bcd2f24917968f822eeac2ad23",
+            })
+        if args.version == "v11":
+            READ_SET.pop("高炉前端数据/智能助手/backend/ollama_proxy_server.py")
+            READ_SET["高炉前端数据/智能助手/backend/qa_document_knowledge.py"] = "87c4caea1107710adf3ac277338669d21f72b6b1a99d1ce565f55f300dfe6919"
+        if args.version in ("v12", "v13", "v14"):
+            READ_SET.pop("高炉前端数据/智能助手/backend/ollama_proxy_server.py", None)
+            READ_SET.pop("高炉前端数据/智能助手/backend/qa_evidence_policy.py", None)
+            READ_SET.pop("高炉前端数据/智能助手/backend/mcp_tool_selection.py", None)
+            READ_SET["高炉前端数据/智能助手/backend/mcp_host/cross_source_executor.py"] = "a99cf6e4fd73f11cedbec01f254ff649615c96feb55827f92c57853021d55033"
+            READ_SET["高炉前端数据/智能助手/backend/qa_response_projection.py"] = "60e8db0edfab036f17bc9c201d096d652c75b457570ce4eb07fdb9dcb2caa693"
+        if args.version in ("v13", "v14"):
+            READ_SET.update({
+                "高炉前端数据/智能助手/backend/qa_document_knowledge.py":"89109c1230a161064259bc9c98ee76e0a2dc2fca1461880fe3a45e86d95cd30b",
+                "高炉前端数据/智能助手/backend/qa_evidence_policy.py":"9ec4132ca8075ee9757663eedbab99aa793f330ebb0133880d57ece4fec7fe26",
+                "高炉前端数据/智能助手/backend/mcp_tool_selection.py":"2a0b8c8cc33444ef4f5138b23571a736a558229d9f7f09f0d88b735887235111",
+                "高炉前端数据/智能助手/backend/qa_tool_fallback.py":"8d5c3737d463aa5990f844655d0925314eb77fc67a83c066e2a4bfd51c3043ab",
+                "高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py":"c55458a75a362aaeb4eb91ac99d19dcbe130897779fb800b498bedf760bf92e1",
+            })
+        if args.version == "v14":
+            READ_SET.pop("高炉前端数据/智能助手/backend/qa_verified_facts.py", None)
+            READ_SET.update({
+                "高炉前端数据/智能助手/backend/ollama_proxy_server.py":"9a942b2fe73ddb34d0bff8d18beea14047ef898bb6596570d0c1d9509a34e81b",
+                "高炉前端数据/智能助手/backend/qa_document_compound.py":"bfcefd214fae105e1c137ec8f516df8c84c749f04331b6b65077db3ab80d8301",
             })
     base_head = args.base_head.lower()
     if len(base_head) != 40:
@@ -218,7 +264,7 @@ def main() -> int:
             {"id": "mcp-gold", "kind": "deterministic", "status": "passed", "evidence": "14/14"},
             {"id": "shared-feature-preservation", "kind": "deterministic", "status": "passed", "evidence": "accepted proxy markers preserved"},
         ]
-        if args.version in ("v4", "v5", "v6", "v7", "v8", "v9"):
+        if args.version in ("v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14"):
             validations = [{"id": "focused-pytest", "kind": "deterministic", "status": "passed", "evidence": "103 passed including exact proxy/MCP seams, owner SQL isolation and missing-summary terminal" if args.version == "v5" else "98 passed plus final adapter 4 passed"},
                 {"id": "task-plan-contracts", "kind": "deterministic", "status": "passed", "evidence": "15/15"},
                 {"id": "mcp-gold-structure", "kind": "deterministic", "status": "passed", "evidence": "14/14; structure only"},
@@ -297,6 +343,50 @@ def main() -> int:
                 "tools/remote_preflight_qa_routing_v3.ps1", "tools/verify_qa_routing_release.ps1",
                 "高炉前端数据/智能助手/backend/qa_document_knowledge.py", "高炉前端数据/智能助手/backend/qa_evidence_policy.py",
                 "tests/test_qa_document_knowledge.py", "tests/test_qa_routing_v9_seams.py")]
+        if args.version == "v10":
+            spec["sources"] = [str(root / path) for path in (
+                "tools/prepare_qa_routing_v3_release.py", "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1",
+                "tools/record_qa_routing_v3_version.ps1", "tools/remote_preflight_qa_routing_v3.ps1",
+                "tools/verify_qa_routing_release.ps1", "高炉前端数据/智能助手/backend/qa_document_knowledge.py",
+                "tests/test_qa_document_knowledge.py", "tools/check_qa_knowledge_candidate_readonly.py")]
+            validations[0]["evidence"] = "79 focused tests; atomic full-original, prefix and ambiguity, scope, table boundary, existing route/history/evidence/completion contracts"
+            validations.append({"id":"knowledge-all-readonly", "kind":"readonly_remote", "status":"passed", "evidence":"833 real stored KB checks: 803 expected-text coverage candidates, 30 oracle conflicts; no semantic pass inferred; zero model calls, POSTs and DB writes"})
+        if args.version == "v11":
+            spec["sources"] = [str(root / path) for path in (
+                "tools/build_qa_routing_v11_candidate.py", "tools/prepare_qa_routing_v3_release.py",
+                "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1", "tools/record_qa_routing_v3_version.ps1",
+                "tools/remote_preflight_qa_routing_v3.ps1", "tools/verify_qa_routing_release.ps1",
+                "高炉前端数据/智能助手/backend/qa_response_projection.py", "tests/test_qa_response_projection.py",
+                "tools/run_qa_failed_retest_once.py", "tests/test_qa_retest_persistence.py")]
+            validations[0]["evidence"] = "88 focused tests: exact owner/role/turn projection, history-free controlled payload and model-independent document readiness plus all V10 focused contracts"
+        if args.version == "v12":
+            spec["sources"] = [str(root / path) for path in (
+                "tools/build_qa_routing_v12_candidate.py", "tools/prepare_qa_routing_v3_release.py",
+                "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1", "tools/record_qa_routing_v3_version.ps1",
+                "tools/remote_preflight_qa_routing_v3.ps1", "tools/verify_qa_routing_release.ps1",
+                "高炉前端数据/智能助手/backend/qa_document_compound.py",
+                "高炉前端数据/智能助手/backend/qa_tool_fallback.py",
+                "高炉前端数据/智能助手/backend/qa_evidence_policy.py",
+                "高炉前端数据/智能助手/backend/qa_document_knowledge.py",
+                "高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py",
+                "tests/test_qa_v12_safety.py", "tests/test_qa_step_plan_integrity.py")]
+            validations[0]["evidence"] = "137 focused tests: compound formal isolation, success retention and secret exclusion, early DAG/schema gates, original coverage, code boundary and owner turn projection"
+        if args.version == "v13":
+            spec["sources"] = [str(root / path) for path in (
+                "tools/build_qa_routing_v13_candidate.py", "tools/prepare_qa_routing_v3_release.py",
+                "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1", "tools/record_qa_routing_v3_version.ps1",
+                "tools/remote_preflight_qa_routing_v3.ps1", "tools/verify_qa_routing_release.ps1",
+                "高炉前端数据/智能助手/backend/qa_document_compound.py", "tests/test_qa_v12_safety.py", "tests/test_qa_release_readiness.py")]
+            validations[0]["evidence"] = "63 focused tests: compound typed current reads, risk/analysis negative gates, units/time/source/object identity and existing document/owner contracts"
+            validations.append({"id":"release-get-readiness-faults","kind":"deterministic","status":"passed","evidence":"4 actual PowerShell gate tests: immediate/delayed/persistent/exception, maximum 3 GETs, no POST, no secret output"})
+        if args.version == "v14":
+            spec["sources"] = [str(root / path) for path in (
+                "tools/prepare_qa_routing_v3_release.py", "tools/extend_qa_release_v14.py",
+                "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1", "tools/record_qa_routing_v3_version.ps1",
+                "tools/remote_preflight_qa_routing_v3.ps1", "tools/verify_qa_routing_release.ps1",
+                "高炉前端数据/智能助手/backend/qa_verified_facts.py", "tests/test_qa_v6_contracts.py", "tests/test_qa_release_readiness.py")]
+            validations[0]["evidence"] = "35 focused tests: registered-unit provenance, unknown-unit partial, no alias guessing or value conversion, compound source isolation and durable once-only claims"
+            validations.append({"id":"release-get-readiness-faults","kind":"deterministic","status":"passed","evidence":"4 actual PowerShell readiness fault tests, at most 3 GETs, no POST"})
         write_json(release / "release-spec.json", spec)
     print(json.dumps({"ok": True, "release": str(release), "artifacts": len(artifact_rows), "recordability_present": evidence.exists()}, ensure_ascii=False))
     return 0

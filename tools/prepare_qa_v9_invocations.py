@@ -1,12 +1,17 @@
 """Bind V9 invocations to reviewed file hashes; does not execute them."""
 from pathlib import Path
 import hashlib
+import argparse
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE = ROOT / ".codex_runtime/qa-routing-v9/release"
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--version", choices=("v9", "v10", "v11", "v12", "v13", "v14"), default="v9")
+    args = parser.parse_args()
+    RELEASE = ROOT / f".codex_runtime/qa-routing-{args.version}/release"
     text = (ROOT / ".codex_runtime/qa-routing-v8/release/invoke-deployment.ps1").read_text(encoding="utf-8")
     replacements = {
         "15D44FCDBD1B48370CA0B9A536B8A1C379DFF1830CF7C449FF943D21F451D4B1": sha(ROOT / "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1"),
@@ -17,6 +22,6 @@ if __name__ == "__main__":
         if text.count(old) != 1:
             raise ValueError("Invocation binding seam changed")
         text = text.replace(old, new)
-    (RELEASE / "invoke-deployment.ps1").write_text(text.replace("v8", "v9").replace("V8", "V9"), encoding="utf-8", newline="\n")
+    (RELEASE / "invoke-deployment.ps1").write_text(text.replace("v8", args.version).replace("V8", args.version.upper()), encoding="utf-8", newline="\n")
     record = (ROOT / ".codex_runtime/qa-routing-v8/release/invoke-record.ps1").read_text(encoding="utf-8")
-    (RELEASE / "invoke-record.ps1").write_text(record.replace("v8", "v9").replace("V8", "V9"), encoding="utf-8", newline="\n")
+    (RELEASE / "invoke-record.ps1").write_text(record.replace("v8", args.version).replace("V8", args.version.upper()), encoding="utf-8", newline="\n")

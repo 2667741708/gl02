@@ -1,5 +1,11 @@
 # 需求追踪
 
+## REQ-QA-FULL-ISSUE-INVENTORY-20260916：V10–V14当前进度
+
+状态：本轮部署复核完成，33项整体仍执行中；最后核对2026-09-16。
+V14三题独立语义通过；有效803知识题原文覆盖与来源合同核验通过，30个oracle冲突阻断单列。
+最新权威证据见[V10–V14交接](handoffs/2026-09-16-qa-routing-v10-v14-production.md)与[33项台账](../tests/qa_regression/optimization_execution_ledger_20260916.md)。较早V3–V9计数为历史阶段，不代表当前剩余数。
+
 ## REQ-QA-EVIDENCE-FIRST-REGRESSION-20260915
 
 - 需求：持续积累综合问答回归，覆盖不需工具、已有数据足够分析、必要补查和部分失败；上传公开仓库的用例只含合成数据。

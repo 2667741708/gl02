@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('V3','V4','V5','V6','V7','V8','V9')][string]$Version = 'V3')
+param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -65,6 +65,51 @@ if ($Version -eq 'V9') {
     $ExecutionId = 'qa-routing-v9-20260916-r1'
     $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v9-20260916-r1'
     $CommitMessage = 'fix: resolve original subsections and preserve safe mixed queries [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v9-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V10') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v10-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v10-20260916-r1'
+    $CommitMessage = 'fix: resolve unique original atomic clauses and complete table boundaries [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v10-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V11') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v11-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v11-20260916-r1'
+    $CommitMessage = 'fix: bound controlled responses to exact owner checked turn messages [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v11-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V12') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v12-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v12-20260916-r1'
+    $CommitMessage = 'fix: isolate formal subtasks and preserve readable facts through tool failures [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v12-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V13') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v13-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v13-20260916-r1'
+    $CommitMessage = 'fix: render typed current readings in isolated formal compounds [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v13-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V14') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v14-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v14-20260916-r1'
+    $CommitMessage = 'fix: bind canonical public units and expose missing-unit completion [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v14-20260916-r1]'
     $Guard = Join-Path $StageRoot 'git_record_guard.py'
     $OperationPath = Join-Path $StageRoot 'operation.json'
     $PlanPath = Join-Path $StageRoot 'record-plan.json'

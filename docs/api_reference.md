@@ -1,5 +1,12 @@
 # API 参考
 
+## QA当前复合完成合同与消息投影（2026-09-16）
+
+`POST /api/qa/chat`可选`response_projection: "turn"`只返回当前精确user/assistant两条消息，`messages_projection`明确投影方式；省略字段保留默认会话合同。owner、同源和角色边界不变。
+制度复合回答包含独立`document_subtasks`与`knowledge_manifest`；未知原文或缺项令整体partial。规范实时事实完成合同包含`unit_sources`及`missing_unit_objects`，单位未登记不能声称完成。
+工具/模型失败保留有界可读成功证据；不输出原始错误或将未知结构当事实。`SSE done`/答案非空不是语义通过。
+实现及生产证据：[V10–V14交接](handoffs/2026-09-16-qa-routing-v10-v14-production.md)。
+
 ## MCP：2# 高炉作业日志报表
 
 追踪编号：`REQ-SI-FUELRATIO-MES-REPORT-PERSISTENCE-20260808`。

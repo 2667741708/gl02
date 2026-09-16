@@ -46,7 +46,8 @@ class CrossSourceStep:
             raise ValueError("tool must be non-empty")
         # Validate argument_bindings paths are well-formed
         for key, path in self.argument_bindings.items():
-            if not path.startswith("steps."):
+            parts = path.split(".") if isinstance(path, str) else []
+            if not isinstance(key, str) or not key.strip() or len(parts) < 3 or parts[0] != "steps" or any(not part.strip() for part in parts):
                 raise ValueError(
                     f"argument_binding path must start with 'steps.', got {path!r}"
                 )
@@ -101,11 +102,25 @@ class CrossSourcePlan:
 
         # Verify depends_on references exist
         for step in self.steps:
+            if len(set(step.depends_on)) != len(step.depends_on):
+                raise ValueError(f"Duplicate dependency in step {step.step_id!r}")
             for dep in step.depends_on:
                 if dep not in step_ids:
                     raise ValueError(
                         f"Step {step.step_id!r} depends on unknown step {dep!r}"
                     )
+            for path in step.argument_bindings.values():
+                upstream = path.split(".")[1]
+                if upstream not in step.depends_on:
+                    raise ValueError(f"Binding upstream {upstream!r} must be a declared dependency of {step.step_id!r}")
+
+        # Reject execution graph cycles before any independent tool can run.
+        remaining = {step.step_id: set(step.depends_on) for step in self.steps}
+        while remaining:
+            ready = {key for key, deps in remaining.items() if not deps}
+            if not ready:
+                raise ValueError("Cyclic dependency in plan")
+            remaining = {key: deps - ready for key, deps in remaining.items() if key not in ready}
 
         # Verify produces_fact_ids are unique across steps
         all_facts: list[str] = []

@@ -1,0 +1,124 @@
+{
+  "schema": "bf.qa.routing-production-review.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "checked_at": "2026-09-16",
+  "version": "v10",
+  "production_commit": "6d2a47aeb16e24cf71e228c0c355b4931b6c6a27",
+  "focused_tests_passed": 79,
+  "round": "retest-routing-v10-20260916-r2",
+  "requests": 5,
+  "automatic_post_retries": 0,
+  "counts": {
+    "passed": 5,
+    "failed": 0
+  },
+  "deployment": {
+    "ok": true,
+    "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+    "backup": "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\backups\\qa-routing-v10-20260916-r1-20260916-185531",
+    "rollback_applied": false,
+    "guard_paused": true,
+    "guard_restored": true,
+    "old_8093_pid": 13300,
+    "new_8093_pid": 3708,
+    "protected_before": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "protected_after": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "http_8093": 200,
+    "installed_hashes": {
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_document_knowledge.py": "87C4CAEA1107710ADF3AC277338669D21F72B6B1A99D1CE565F55F300DFE6919"
+    }
+  },
+  "review_method": "Original-text and expected behavior inspected; V12 independently reviewed after release. Nonempty and SSE done alone are not passing signals.",
+  "results": [
+    {
+      "case_id": "TPL-V10-ATOMIC",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 129,
+      "answer_sha256": "269ab83de445495b224ef2022bf33ccf22bd89db4ea247782eff04890d186c1f",
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "messages_projection": null,
+      "message_count": 798,
+      "tool_start_count": 0,
+      "model_request_count": null
+    },
+    {
+      "case_id": "TPL-V10-PREVIEW",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 184,
+      "answer_sha256": "7867f5858d84d1b93b008e1c7fe27c736aa703e357d578655d57d3b7fc913f1e",
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "messages_projection": null,
+      "message_count": 800,
+      "tool_start_count": 0,
+      "model_request_count": null
+    },
+    {
+      "case_id": "TPL-V10-SHORT",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 143,
+      "answer_sha256": "51e442ae1d8d5a4fb3e533438062786d46a61207e1c7fca884960334b5e8047a",
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "messages_projection": null,
+      "message_count": 802,
+      "tool_start_count": 0,
+      "model_request_count": null
+    },
+    {
+      "case_id": "TPL-V10-TABLE",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 758,
+      "answer_sha256": "0ccf616343d853cf945b9ab9439f6aaa82d896eee642afa5561b2c696f3fe3c7",
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "messages_projection": null,
+      "message_count": 796,
+      "tool_start_count": 0,
+      "model_request_count": null
+    },
+    {
+      "case_id": "TPL-V10-UNKNOWN",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 102,
+      "answer_sha256": "4ef7d2a4f5baae813c09852f263c6dfb0db34c37c698f904cc1dfcfde6d6008c",
+      "route": "verified_document_knowledge",
+      "terminal_state": "needs_clarification",
+      "messages_projection": null,
+      "message_count": 804,
+      "tool_start_count": 0,
+      "model_request_count": null
+    }
+  ],
+  "privacy": "No raw answers, conversation payloads, production measurements or identities."
+}

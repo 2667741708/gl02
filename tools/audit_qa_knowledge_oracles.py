@@ -15,7 +15,8 @@ def parse_cases(text):
         expected = re.search(r"^- 标准答案：(.+)$", body, re.M)
         section = re.search(r"^- 原文章节：`([^`]+)`", body, re.M)
         ref = re.search(r"^- 期望知识块：`([^`]+)`", body, re.M)
-        rows.append({"oracle_id": case_id, "title": title.strip(), "question": question.group(1).strip() if question else "", "expected": expected.group(1).strip() if expected else "", "section_code": section.group(1) if section else "", "reference_id": ref.group(1) if ref else ""})
+        path = re.search(r"路径：`([^`]+)`", body)
+        rows.append({"oracle_id": case_id, "title": title.strip(), "question": question.group(1).strip() if question else "", "expected": expected.group(1).strip() if expected else "", "section_code": section.group(1) if section else "", "reference_id": ref.group(1) if ref else "", "section_path": path.group(1) if path else ""})
     return rows
 
 def inspect(rows):
@@ -35,6 +36,10 @@ def inspect(rows):
         code_consistent = bool(code and (code.group(1) == expected_code or (parent_reference and expected_code.startswith(code.group(1) + "."))))
         if code and re.fullmatch(r"\d+(?:\.\d+)*", expected_code) and not code_consistent:
             reasons.append("question_section_code_conflict")
+        path_leaf = row.get("section_path", "").split(">")[-1].strip()
+        path_code = re.match(r"(\d+(?:\.\d+)*)", path_leaf)
+        if parent_reference and code and path_code and not (path_code.group(1) == code.group(1) or path_code.group(1).startswith(code.group(1) + ".")):
+            reasons.append("question_parent_and_original_path_conflict")
         duplicates = groups.get(re.sub(r"\s+", "", row["question"]), [])
         if len({(item["expected"], item["section_code"]) for item in duplicates}) > 1:
             reasons.append("same_question_conflicting_expected_answers")

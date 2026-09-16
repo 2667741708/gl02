@@ -37,6 +37,56 @@ def run(conn, question):
     return doc.execute_document_question(conn, question, qa_task_plan.build_task_plan(question))
 
 
+def add_atomic(conn, content, path="1 工作前", chunk_id="atomic1", regulation="安全操作规程"):
+    header = f"【岗位/制度】1. 高炉工长\n【规程类型】{regulation}\n【层级路径】{path}\n【原文】\n{content}"
+    conn.execute("INSERT INTO rag_chunk VALUES(?,?,?,?,?,?,?,?)", (chunk_id, doc.THREE_RULES, chunk_id, content, header, digest(content), "knowledge_doc", "three_rules_atomic"))
+
+
+def test_atomic_reference_without_book_uses_unique_original_full_clause(connection):
+    clause = "1.1 上班前必须佩戴好劳保用品，严禁酒后上岗。"
+    add_atomic(connection, clause)
+    result = run(connection, "高炉工长在“1 工作前”中，关于“上班前必须佩戴好劳保用品，严禁酒后上岗”需要记住什么？请按原文回答。")
+    assert result["completion"]["reason"] == "verified_original_atomic"
+    assert clause in result["answer"]
+
+
+def test_atomic_preview_returns_full_original_and_not_neighbor(connection):
+    clause = "科学合理组织高炉生产，对炉内各参数进行精细调剂和合理管控，完成全部任务。"
+    add_atomic(connection, clause, path="1 岗位描述")
+    result = run(connection, "高炉工长在“1 岗位描述”中，关于“科学合理组织高炉生产，对炉内各参数进行精细调”需要记住什么？请按原文回答。")
+    assert clause in result["answer"]
+    assert "设备 |" not in result["answer"]
+
+
+def test_atomic_same_wording_other_path_is_not_substituted(connection):
+    add_atomic(connection, "1.1 上班前必须佩戴好劳保用品。", path="1 工作前")
+    result = run(connection, "高炉工长在“2 工作中”中，关于“上班前必须佩戴好劳保用品”需要记住什么？请按原文回答。")
+    assert result["completion"]["reason"] == "atomic_reference_not_found"
+
+
+def test_short_named_term_prefers_exact_colon_boundary_over_shared_prefix(connection):
+    add_atomic(connection, "1.1 煤粉：需要按工艺要求核对。")
+    add_atomic(connection, "1.2 煤粉灰分：另一个参数。", chunk_id="atomic2")
+    result = run(connection, "高炉工长在“1 工作前”中，关于“煤粉”需要记住什么？请按原文回答。")
+    assert "1.1 煤粉：" in result["answer"]
+    assert "煤粉灰分" not in result["answer"]
+
+
+def test_ambiguous_equal_rank_terms_require_clarification(connection):
+    add_atomic(connection, "1.1 煤粉：第一条。")
+    add_atomic(connection, "1.2 煤粉：第二条。", chunk_id="atomic2")
+    result = run(connection, "高炉工长在“1 工作前”中，关于“煤粉”需要记住什么？请按原文回答。")
+    assert result["completion"]["reason"] == "atomic_reference_ambiguous"
+
+
+def test_section_ten_excludes_verified_unnumbered_next_heading(connection):
+    connection.execute("DELETE FROM rag_chunk")
+    add_piece(connection, 1, "10. 工艺影响因素表\n10.1 参数\n名称 | 影响\n风温 | 变化\n生铁与原燃料标准\n11.1 生铁标准")
+    result = run(connection, "请完整说明《三规二制》中高炉工长“10工艺影响因素表”的全部规定。")
+    assert "风温 | 变化" in result["answer"]
+    assert "生铁与原燃料标准" not in result["answer"]
+
+
 def test_preserves_original_prohibitions_and_whole_table(connection):
     result = run(connection, "完整列出高炉工长安全操作规程原文")
     assert "设备 | 要求\n阀门 | 确认关闭" in result["answer"]

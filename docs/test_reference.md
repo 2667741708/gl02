@@ -1,5 +1,11 @@
 # 测试参考
 
+## TEST-QA-FULL-ISSUE-INVENTORY-20260916：V10–V14
+
+本轮V14针对性35项及实际PowerShell GET就绪故障4项通过，真实定向3题独立语义通过，0自动POST重放。V12/V13分别保留2个失败答案的阶段报告，V14解决压力单位/额外指标问题。
+833知识源中有效803题完成一次POST并核验原文覆盖/来源/版本合同；30个oracle冲突阻断，不声称833题全部语义通过。当前数值取[逐项台账](../tests/qa_regression/optimization_execution_ledger_20260916.md)，历史828待审不能直接当当前剩余分母。
+命令、独立审查与脱敏报告见[V10–V14交接](handoffs/2026-09-16-qa-routing-v10-v14-production.md)。
+
 ## TEST-QA-EVIDENCE-FIRST-REGRESSION-20260915
 
 ```powershell

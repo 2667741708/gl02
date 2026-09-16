@@ -32,6 +32,7 @@ class EvidenceItem:
     sample_count: int | None = None
     start_time: str | None = None
     end_time: str | None = None
+    unit_source: str = 'tool_metadata'
 
 
 def latest_item(object_id: str, result: dict) -> EvidenceItem | None:
@@ -45,7 +46,15 @@ def latest_item(object_id: str, result: dict) -> EvidenceItem | None:
     source_name = source.get('profile') or source.get('engine') or source.get('service')
     if not source_name or source.get('read_policy') not in (None, 'readonly'):
         return None
-    return EvidenceItem(object_id, 'sensor_latest', float(latest['value']), str(variable.get('unit') or ''), str(latest['ts']), str(source_name))
+    unit = str(variable.get('unit') or '').strip()
+    unit_source = 'tool_metadata'
+    if not unit:
+        # Reuse the existing production public-unit contract. Never infer a
+        # unit from a value, a display label, or a similar variable name.
+        from mcp_host.cross_source_executor import _CANONICAL_UNIT_FALLBACKS
+        unit = _CANONICAL_UNIT_FALLBACKS.get(object_id, '')
+        unit_source = 'canonical_gl02_contract' if unit else 'missing'
+    return EvidenceItem(object_id, 'sensor_latest', float(latest['value']), unit, str(latest['ts']), str(source_name), unit_source=unit_source)
 
 
 def prefetch_outcome(prefetch: dict, plan: dict) -> dict | None:
@@ -58,13 +67,21 @@ def prefetch_outcome(prefetch: dict, plan: dict) -> dict | None:
     expected = list(plan.get('entities') or []) or list(values)
     facts = [item for name in expected if (item := latest_item(name, values.get(name))) is not None]
     missing = [name for name in expected if name not in {item.object_id for item in facts}]
+    missing_units = [item.object_id for item in facts if not item.unit]
+    complete = not missing and not missing_units
     lines = [f'{item.object_id}：最近一次已保存值 {item.value:.6g}{item.unit or "（单位未登记）"}；数据时间 {item.data_time}；来源 {item.source} / readonly。' for item in facts]
+    inherited_units = [item.object_id for item in facts if item.unit_source == 'canonical_gl02_contract']
+    if inherited_units:
+        lines.append('单位来源：' + '、'.join(inherited_units) + '沿用已登记的GL02规范变量单位合同，原始工具未提供单位字段；未换算原始数值。')
+    if missing_units:
+        lines.append('单位尚未核实的对象：' + '、'.join(missing_units) + '；本次读取未完整完成，未推测单位或用于正式跨量比较。')
     if missing:
         lines.append('未取得有效证据的对象：' + '、'.join(missing) + '。')
     lines.append('这些是上述采集时刻的单点读数，不能据此确认当前无异常、历史趋势、参数匹配或因果关系；未核实生产正常范围。')
     return {'ok': True, 'answer': '\n'.join(lines), 'answer_route': 'verified_prefetch_facts', 'model_request_count': 0,
             'grounding_status': 'verified_facts' if facts else 'no_verified_evidence',
-            'completion': {'schema': 'qa-completion-v1', 'terminal_state': 'completed' if not missing else 'partial', 'complete': not missing, 'requested_objects': expected, 'covered_objects': [item.object_id for item in facts], 'missing_objects': missing}}
+            'completion': {'schema': 'qa-completion-v1', 'terminal_state': 'completed' if complete else 'partial', 'complete': complete, 'requested_objects': expected, 'covered_objects': [item.object_id for item in facts], 'missing_objects': missing, 'missing_unit_objects': missing_units,
+                           'unit_sources': {item.object_id: item.unit_source for item in facts}}}
 
 
 def temperature_comparison(payload: dict, question: str, arguments: dict) -> dict | None:

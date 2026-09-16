@@ -71,6 +71,29 @@ STATUS.update({
 })
 
 
+STATUS.update({
+    'QAOPT-R01': ('deployed_partial_verified', 'V12制度子任务隔离、未知来源澄清；V13简单读取独立完成', '结构未知与全部复合子任务覆盖门'),
+    'QAOPT-R07': ('production_verified', 'V12顶压调节控制和风温/焦比/喷煤条件性因果两题独立语义通过，0外部工具', '扩展工艺持出集和稳定性'),
+    'QAOPT-R08': ('production_verified', 'V9/V12正常数据查询保留，代码子请求独立拒绝并标策略部分完成', '保留禁执行和禁生成代码，扩展混合类型'),
+    'QAOPT-K01': ('production_coverage_verified_semantic_partial', 'V11有效803题真实单发送全部原文覆盖和来源/版本合同通过；30源标准答案冲突阻断', '独立语义持出审查与版本化修正30个oracle'),
+    'QAOPT-K02': ('deployed_partial_verified', 'V12制度原文与实时/用户数据子任务隔离，原文由独立执行器完成', '扩展多书名、多章节及不可分复合问题'),
+    'QAOPT-K03': ('deployed_partial_verified', 'V10完整表格、短术语、长原句和小节边界真实通过；V11有效803题原文覆盖', '索引独立末尾完整性门及多引用聚合'),
+    'QAOPT-K04': ('production_verified', '纯制度及V12/V13未知制度复合题均明确澄清，不补写条款', '扩展未知标题持出集'),
+    'QAOPT-K05': ('deployed_partial_verified', '纯制度绕开报表/聊天；复合分支过滤正式原文问题与旧聊天，独立原文合成', '全部来源组合持出回归'),
+    'QAOPT-K06': ('deployed_partial_verified', '版本/哈希已公开；只读独立审计5897源非空行在原子索引中无缺行，聚合片段所有原文行属于权威源', '执行器独立缺失末尾门，不能仅凭连续片段编号推完整'),
+    'QAOPT-E01': ('deployed_partial_verified', 'V12晚期失败保留成功的可读有界证据，未知结构不伪装成事实，错误不输出原文', '所有工具类型的追加证据账本'),
+    'QAOPT-E03': ('deployed_partial_verified', 'V14实际压力单位/时间/来源及规范单位血缘独立通过，未知制度partial；未登记单位partial合同通过', '全部工具单位/派生量血缘'),
+    'QAOPT-E06': ('deployed_partial_verified', '单点不推趋势、窗口均值不冒充同步温差、V12控制与热平衡条件性因果通过', '跨源冲突和时效矩阵'),
+    'QAOPT-O01': ('production_dependency_open', '新部署器最多3次只读GET检查并保留失败状态；运行时仍出现批准模型未驻留', '核对跨服务模型占槽/请求租约；不修改Ollama或8094配置'),
+    'QAOPT-O02': ('deployed_partial_verified', '执行器已有独立超时/每服务预算；V12成功证据保留和失败不扩散合同通过', 'MCP注册/会话/流式故障矩阵'),
+    'QAOPT-O03': ('deployed_contract_verified', 'V12实际部署StepPlan依赖绑定、声明上游和环检查；67项DAG/完整性测试通过', '全部工具输入输出类型化及实际故障矩阵'),
+    'QAOPT-O04': ('deployed_partial_verified', 'V11受控turn投影实际803题和定向题均仅返回当前2条消息；浏览器默认全历史兼容保留', '浏览器有界消息合并与历史分页，现场UI验收'),
+    'QAOPT-T02': ('implemented_partial_verified', '原分母保留；833知识源明确30个编号/同问不同标准答案冲突，禁止当失败重发或自动改标准', '版本化修正经原文独立审核'),
+    'QAOPT-T04': ('in_progress', '历史828待语义审查为旧快照；新有效803题原文覆盖已核验，30oracle阻断单列，不称833全通过', '旧case_id逐条对齐新覆盖结果及独立语义持出审查'),
+    'QAOPT-T05': ('implemented_verified', 'V3至V14受控部署/CAS/保护PID/一次发送闭环；V12/V13启动健康失败先回滚只读恢复', '后续版本保持冻结字节与短阶段执行'),
+})
+
+
 def main() -> int:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     issues = catalog["issues"]
@@ -95,10 +118,11 @@ def main() -> int:
         "schema": "bf.qa.optimization-execution-ledger.v1",
         "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
         "checked_at": "2026-09-16",
-        "production_commit": "36b8d938f23923fca81026d7d668891bbf928dfb",
+        "production_commit": "06db3d6db6371af381816cc1523cc294c0981a18",
         "production_retest": {"passed": 2, "partial": 6, "failed": 7, "blocked_client_contract": 1},
-        "latest_production_retest": {"version": "routing-v9", "requests": 5, "sse_done": 5, "passed": 3, "partial": 2, "failed": 0, "automatic_post_retries": 0},
-        "current_local_candidate": {"version": "routing-v10", "issues": ["QAOPT-K01", "QAOPT-K03", "QAOPT-O04", "QAOPT-T02", "QAOPT-T04"], "state": "in_progress_not_deployed"},
+        "latest_production_retest": {"version": "routing-v14", "requests": 3, "sse_done": 3, "passed": 3, "failed": 0, "expected_partial": 1, "automatic_post_retries": 0},
+        "knowledge_collection": {"source": 833, "valid_once_only_requests": 803, "original_coverage_contract_verified": 803, "oracle_conflicts_blocked": 30, "full_semantic_pass_inferred": False},
+        "current_local_candidate": {"version": "next", "issues": ["QAOPT-K06", "QAOPT-R02", "QAOPT-R10", "QAOPT-O04", "QAOPT-T02", "QAOPT-T04"], "state": "remaining_items_in_progress"},
         "rows": rows,
     }
     OUT_JSON.write_bytes((json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
@@ -109,7 +133,8 @@ def main() -> int:
         "- 状态：执行中；最后核对：2026-09-16。",
         "- 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。",
         "- 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。",
-        "- 生产基线：`36b8d938f23923fca81026d7d668891bbf928dfb`；V9五题3通过/2部分/0失败，73项针对性回归通过；剩余项继续核对，非空不算通过。",
+        "- 生产修复版本：`06db3d6db6371af381816cc1523cc294c0981a18`；V14三题完成单发送并独立语义通过，其中未知制度按预期partial。新有效803知识题已核验原文覆盖，30题标准答案冲突阻断；剩余项继续修复，非空不算通过。",
+        "- 最新权威实施：[V10–V14生产修复交接](../../docs/handoffs/2026-09-16-qa-routing-v10-v14-production.md)。旧阶段记录保留为历史证据。",
         "",
         "## 借鉴 DSH 与 Codex 的实施边界",
         "",

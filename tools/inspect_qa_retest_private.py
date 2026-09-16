@@ -21,6 +21,8 @@ def main():
             "error": row.get("error"), "route": final.get("answer_route"),
             "completion": final.get("completion"), "model_requests": final.get("model_request_count"),
             "terminated": row.get("terminated"),
+            "messages_projection": final.get("messages_projection"),
+            "message_count": len(final.get("messages") or []),
             "tools": [{key: item.get(key) for key in ("tool", "name", "ok", "error", "arguments")} for item in row.get("tool_starts", [])],
             "results": [{key: item.get(key) for key in ("tool", "name", "ok", "error")} for item in row.get("tool_results", [])],
         }, ensure_ascii=False))

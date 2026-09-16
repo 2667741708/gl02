@@ -1,0 +1,10 @@
+{
+ "schema":"bf.qa.targeted-cases.v1","requirement_id":"REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+ "reviews":[
+  {"case_id":"TPL-V10-TABLE","question":"请完整说明《三规二制》中高炉工长“10 工艺影响因素表”的全部规定。","expected":{"criteria":["complete original tables","no next unnumbered heading"]}},
+  {"case_id":"TPL-V10-ATOMIC","question":"高炉工长在“1 工作前”中，关于“上班前必须佩戴好劳保用品，严禁酒后上岗”需要记住什么？请按原文回答。","expected":{"criteria":["single full original clause","no neighboring sections"]}},
+  {"case_id":"TPL-V10-PREVIEW","question":"高炉工长在“1 岗位描述”中，关于“根据原燃料条件和设备状况科学合理组织高炉生产，对炉内各参数进行精细调”需要记住什么？请按原文回答。","expected":{"criteria":["full original beyond short preview","no invented provision"]}},
+  {"case_id":"TPL-V10-SHORT","question":"高炉工长在“5 操作指南 > 5.3 炉况调剂方法 > 5.3.5 喷吹物质量要求与调剂 > 5.3.5.2 煤的质量及工艺要求”中，关于“煤粉”需要记住什么？请按原文回答。","expected":{"criteria":["named-term colon boundary","only intended original clause"]}},
+  {"case_id":"TPL-V10-UNKNOWN","question":"高炉工长在“1 工作前”中，关于“这里没有的条款内容”需要记住什么？请按原文回答。","expected":{"criteria":["clarification","no fabricated original"]}}
+ ]
+}

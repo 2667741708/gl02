@@ -1,5 +1,11 @@
 # 程序索引
 
+## 智能助手V10–V14当前实现（2026-09-16）
+
+`REQ-QA-FULL-ISSUE-INVENTORY-20260916`：制度原文复合隔离`qa_document_compound`、可读失败证据`qa_tool_fallback`、两条消息投影`qa_response_projection`、已登记单位血缘/缺项终态`qa_verified_facts`、DAG依赖完整性`CrossSourcePlan`。符号行号TODO-LINES。
+生产代理差分必须复用`build_qa_routing_v11/v12/v13_candidate.py`及已接受生产快照，不能上传本机旧完整代理。
+当前合同及验证见[V10–V14交接](handoffs/2026-09-16-qa-routing-v10-v14-production.md)。
+
 ## 智能助手证据优先回归集
 
 - `tools/qa_regression.py`：只读校验用例和合成夹具，生成规范用例列表，评分由可信收集器提供的候选运行记录；不连接模型、生产接口或数据库。

@@ -42,6 +42,33 @@ def spatial():
     return args, {'ok': True, 'items': rows}
 
 
+def test_missing_registered_unit_reuses_production_contract_without_value_conversion():
+    item = latest(value=42.5)
+    item['variable']['unit'] = ''
+    result = facts.prefetch_outcome({'used': True, 'kind': 'latest', 'variable': 'P_top', 'latest': item}, {'intents': ['live_data'], 'entities': ['P_top']})
+    assert '42.5kPa' in result['answer'] and result['completion']['complete']
+    assert result['completion']['unit_sources'] == {'P_top': 'canonical_gl02_contract'}
+    assert '原始工具未提供单位字段' in result['answer'] and result['model_request_count'] == 0
+
+
+def test_unknown_unit_preserves_fact_but_cannot_complete_or_guess_from_alias():
+    for name in ('T_throat_A', 'P_top_unknown', 'unknown'):
+        item = latest(name=name)
+        item['variable']['unit'] = None
+        result = facts.prefetch_outcome({'used': True, 'kind': 'latest', 'variable': name, 'latest': item}, {'intents': ['live_data'], 'entities': [name]})
+        assert result['completion']['terminal_state'] == 'partial'
+        assert result['completion']['missing_unit_objects'] == [name]
+        assert result['completion']['covered_objects'] == [name]
+        assert '单位未登记' in result['answer'] and not result['completion']['complete']
+
+
+def test_tool_unit_wins_and_is_never_silently_converted():
+    item = latest(value=0.26)
+    item['variable']['unit'] = 'MPa'
+    result = facts.latest_item('P_top', item)
+    assert result.value == 0.26 and result.unit == 'MPa' and result.unit_source == 'tool_metadata'
+
+
 def test_spatial_mean_difference_formula_and_quality_boundaries():
     args, payload = spatial()
     result = facts.temperature_comparison(payload, '炉喉温度A-D最近半小时温差大不大？', args)
