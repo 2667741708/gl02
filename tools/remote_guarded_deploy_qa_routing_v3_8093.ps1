@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('V3','V4','V5','V6','V7','V8')][string]$Version = 'V3',
+    [ValidateSet('V3','V4','V5','V6','V7','V8','V9')][string]$Version = 'V3',
     [Parameter(Mandatory)][string]$StageRoot,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$PlanHash,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$GateHash
@@ -73,6 +73,14 @@ if ($Version -eq 'V8') {
         '高炉前端数据/智能助手/backend/qa_task_plan.py',
         '高炉前端数据/智能助手/backend/qa_document_knowledge.py',
         '高炉前端数据/智能助手/backend/qa_prompt_sources.py'
+    )
+}
+if ($Version -eq 'V9') {
+    $Req = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $Allowed = @(
+        '高炉前端数据/智能助手/backend/ollama_proxy_server.py',
+        '高炉前端数据/智能助手/backend/qa_document_knowledge.py',
+        '高炉前端数据/智能助手/backend/qa_evidence_policy.py'
     )
 }
 if ($StageRoot -ne $ExpectedStage) { throw 'Stage identity mismatch' }

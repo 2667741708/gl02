@@ -59,12 +59,37 @@ def code_requested(question):
                 or re.search(r'```(?:python|sql|javascript|bash|powershell)', text))
 
 
+def _request_clauses(question):
+    text = current_text(question)
+    text = re.sub(r'(?:并且|同时|另外|然后|并)(?=\s*(?:写|生成|展示|给出|提供|输出|执行|运行)[^，。；;\n]{0,32}(?:代码|脚本|sql|python|命令))', '；', text, flags=re.I)
+    return [part.strip() for part in re.split(r'[，,。；;？?！!\n]+', text) if part.strip()]
+
+
 def code_request_only(question):
     """Return true when every substantive clause is asking for disabled code."""
-    clauses = [part.strip() for part in re.split(r'[，,。；;？?！!\n]+', current_text(question)) if part.strip()]
+    clauses = _request_clauses(question)
     connectors = {'并且', '然后', '另外', '以及', '同时', '再'}
     substantive = [part for part in clauses if part not in connectors]
     return bool(substantive) and all(code_requested(part) for part in substantive)
+
+
+def apply_request_boundary(question, answer):
+    text = enforce_no_code(answer)
+    if code_requested(question) and not code_request_only(question):
+        if NO_CODE not in text and not ('代码' in text and '关闭' in text):
+            text += '\n\n' + NO_CODE
+    return text
+
+
+def boundary_result(question, result):
+    if not code_requested(question) or code_request_only(question):
+        return result
+    out = dict(result or {})
+    contract = dict(out.get('completion') or {})
+    contract.update(terminal_state='partial', complete=False, policy_limited=True,
+                    blocked_subtasks=['code_generation_or_execution'], semantic_review_required=True)
+    out['completion'] = contract
+    return out
 
 
 def capability_intro_only(question):

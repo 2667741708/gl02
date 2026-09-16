@@ -1302,6 +1302,10 @@ GLB 各有四条本机绝对路径 extras；解码内存/真机性能、R1/R5 AO
 Edge、P50/P60/P70/QA-70、长稳和 Blender/Three 数值光度等价仍待。不得把本测试的 isolated illustrative
 PASS 写成正式 GLB、生产页或阶段批准。
 
+## QA V8/V9 当前验收增量（2026-09-16）
+
+V9验证：`python -X utf8 -m pytest tests/test_qa_document_knowledge.py tests/test_qa_routing_v9_seams.py tests/test_qa_evidence_policy.py tests/test_qa_history_projection.py tests/test_qa_task_plan.py tests/test_qa_v6_contracts.py -q`预期73passed。真实5次POST/5done/零自动重放，3通过/2部分/0失败；混合请求正常子任务通过仍因代码策略partial。833题库一致性审计不等于语义通过，原始生产答案禁止提交。见[V8/V9交接](handoffs/2026-09-16-qa-routing-v8-v9-production.md)。
+
 ## TEST-BF3D-R2V-V5-PORTABILITY-WEB-20260720
 
 | 项目 | 受控值 |

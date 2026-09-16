@@ -2,7 +2,7 @@
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
   "checked_at": "2026-09-16",
-  "production_commit": "312085a88ae95027728d5b8b72c4293af834d055",
+  "production_commit": "36b8d938f23923fca81026d7d668891bbf928dfb",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -10,29 +10,24 @@
     "blocked_client_contract": 1
   },
   "latest_production_retest": {
-    "version": "routing-v5",
-    "requests": 8,
-    "sse_done": 7,
-    "answer_recovered_readonly": 1,
-    "passed": 2,
-    "partial": 4,
-    "failed": 2,
+    "version": "routing-v9",
+    "requests": 5,
+    "sse_done": 5,
+    "passed": 3,
+    "partial": 2,
+    "failed": 0,
     "automatic_post_retries": 0
   },
   "current_local_candidate": {
-    "version": "routing-v6",
+    "version": "routing-v10",
     "issues": [
-      "QAOPT-R02",
-      "QAOPT-R03",
-      "QAOPT-R07",
-      "QAOPT-R10",
-      "QAOPT-E02",
-      "QAOPT-E04",
-      "QAOPT-E05",
-      "QAOPT-E06",
-      "QAOPT-O04"
+      "QAOPT-K01",
+      "QAOPT-K03",
+      "QAOPT-O04",
+      "QAOPT-T02",
+      "QAOPT-T04"
     ],
-    "state": "verified_not_deployed"
+    "state": "in_progress_not_deployed"
   },
   "rows": [
     {
@@ -54,9 +49,9 @@
       "issue_id": "QAOPT-R02",
       "priority": "P0",
       "title": "历史问答与业务证据分离",
-      "state": "deployed_partial_verified",
-      "evidence": "V5三条历史检索均中文回答且owner受限；生成历史摘录再次被检索",
-      "next_gate": "V6排除生成摘录、回答角色过滤并复测",
+      "state": "production_verified",
+      "evidence": "V7三条owner隔离历史题通过，实际PostgreSQL占位符正确，生成摘录排除",
+      "next_gate": "补历史与当前数据复合任务",
       "case_ids": [
         "TPL-FD3912331A49B991",
         "TPL-3877C5B34E972AA0",
@@ -72,8 +67,8 @@
       "priority": "P1",
       "title": "完整解析多对象及范围",
       "state": "deployed_partial_verified",
-      "evidence": "V4三条代表题中CO/CO2/H2及南北探尺通过；A-D温差问句未过动作门",
-      "next_gate": "V5修复观测式问句并复测四点实际统计",
+      "evidence": "V6实际A-D统计已返回；缺单位、零值和稀疏覆盖已明确标记",
+      "next_gate": "核对数据依赖后扩展多对象质量回归",
       "case_ids": [
         "TPL-61F40958498914A0",
         "TPL-933773C8C24B2E93",
@@ -139,8 +134,8 @@
       "priority": "P1",
       "title": "无工具、用户数据与已有证据优先",
       "state": "deployed_partial_verified",
-      "evidence": "无工具题正确保持0调用，但答案因长度截断",
-      "next_gate": "加入无工具完成度检查和长度续写/压缩策略",
+      "evidence": "V7无工具题完整回复且0调用；因果方向仍需控制系统限定",
+      "next_gate": "修正工艺因果限定并复测",
       "case_ids": [],
       "depends_on": [
         "QAOPT-R01",
@@ -152,9 +147,9 @@
       "issue_id": "QAOPT-R08",
       "priority": "P0",
       "title": "禁代码策略不误伤正常回答",
-      "state": "deployed_partial_verified",
-      "evidence": "禁代码未再吞掉正常压力回答；1条因Origin合同未发送",
-      "next_gate": "用合规同源客户端复测并补混合请求部分拒绝",
+      "state": "production_verified",
+      "evidence": "V9混合请求正常查询子任务通过，代码单独拒绝；纯代码不查询；全流式禁代码边界通过",
+      "next_gate": "扩展混合请求持出集，整体保持policy-limited partial",
       "case_ids": [
         "TPL-00F9E60C73D8BE83",
         "TPL-A60B0CD794D49E48"
@@ -168,9 +163,9 @@
       "issue_id": "QAOPT-R09",
       "priority": "P1",
       "title": "统一能力说明与Prompt目标",
-      "state": "deployed_contract_verified",
-      "evidence": "能力目标与工具域已进入V3 TaskPlan合同",
-      "next_gate": "统一所有分支的能力说明与终态文案",
+      "state": "deployed_partial_verified",
+      "evidence": "V8统一能力目标与允许证据，禁实时不抹掉允许的原文知识",
+      "next_gate": "核对所有复合与降级分支",
       "case_ids": [
         "TPL-00D19D36ED184B7C"
       ],
@@ -184,9 +179,9 @@
       "issue_id": "QAOPT-R10",
       "priority": "P1",
       "title": "多轮范围继承与主题切换",
-      "state": "planned",
-      "evidence": "多轮上下文仍可能把旧对象/窗口带入新主题",
-      "next_gate": "给继承字段加来源回合、置信度和主题切换清空",
+      "state": "deployed_contract_verified",
+      "evidence": "V6上下文主题/窗口/对象重置、600秒失效与禁止旧证据复用通过",
+      "next_gate": "真实多轮角色矩阵",
       "case_ids": [
         "TPL-18399CD0A0FDD84D",
         "TPL-3482A8EE5B37D413"
@@ -201,9 +196,9 @@
       "issue_id": "QAOPT-K01",
       "priority": "P0",
       "title": "原文知识路由独立于现场数据",
-      "state": "deployed_contract_verified_semantic_pending",
-      "evidence": "文档意图已独立于现场数据；833知识题尚未逐条语义通过",
-      "next_gate": "分层抽样后补全文知识专用执行器",
+      "state": "deployed_partial_verified",
+      "evidence": "V8正式原文/目录；V9指定小节代表题通过；833未全语义通过",
+      "next_gate": "原子条款与题库源冲突核对",
       "case_ids": [
         "TPL-48827B99541672E2",
         "TPL-9AB9414BFC82E504"
@@ -217,9 +212,9 @@
       "issue_id": "QAOPT-K02",
       "priority": "P0",
       "title": "禁止用聊天或回归记录替代权威知识",
-      "state": "planned",
-      "evidence": "仍需证明聊天、测试结果和报表不会替代权威文档",
-      "next_gate": "实施EvidenceSource类型和来源优先级硬门",
+      "state": "deployed_partial_verified",
+      "evidence": "V8纯制度任务严格knowledge_doc与原文哈希，不用聊天/报表替代",
+      "next_gate": "复合制度任务补相同来源硬门",
       "case_ids": [
         "TPL-2941ED6E73448D66"
       ],
@@ -233,9 +228,9 @@
       "issue_id": "QAOPT-K03",
       "priority": "P1",
       "title": "完整章节及表格读取",
-      "state": "planned",
-      "evidence": "长章节和表格完整性尚无通过证据",
-      "next_gate": "章节树检索、分页聚合、表格行完整性校验",
+      "state": "deployed_partial_verified",
+      "evidence": "V8完整块分页；V9完整表格但多带下一节未编号标题",
+      "next_gate": "独立源标题边界与末尾覆盖核对",
       "case_ids": [
         "TPL-B1DDFC78E40D26DD",
         "TPL-81261F34B14214DC"
@@ -249,9 +244,9 @@
       "issue_id": "QAOPT-K04",
       "priority": "P0",
       "title": "避免通用知识补写正式制度",
-      "state": "planned",
-      "evidence": "正式制度仍可能被通用知识补写",
-      "next_gate": "正式制度答案只允许权威文档事实并逐段标来源",
+      "state": "deployed_partial_verified",
+      "evidence": "V8未知正式制度明确澄清；确定性原文不生成条款",
+      "next_gate": "复合模型分支同样禁止补写",
       "case_ids": [
         "TPL-3FE672D48EEF6AA0",
         "TPL-740647EE648698B0"
@@ -266,9 +261,9 @@
       "issue_id": "QAOPT-K05",
       "priority": "P1",
       "title": "报表目录不能回答制度问题",
-      "state": "planned",
-      "evidence": "报表目录与制度知识的证据域仍需彻底隔离",
-      "next_gate": "制度任务禁用report域并加配对回归",
+      "state": "deployed_partial_verified",
+      "evidence": "V8纯制度绕开报表/聊天及跨文档top-k",
+      "next_gate": "复合双来源标签与独立覆盖",
       "case_ids": [
         "TPL-0EDF300C940987EB",
         "TPL-D557F64791BE6C42"
@@ -283,9 +278,9 @@
       "issue_id": "QAOPT-K06",
       "priority": "P1",
       "title": "知识数据质量和更新可追踪",
-      "state": "planned",
-      "evidence": "知识版本、更新时间和缺章状态未统一暴露",
-      "next_gate": "建立KnowledgeManifest、版本哈希和缺口状态",
+      "state": "deployed_partial_verified",
+      "evidence": "V8原文版本/更新/哈希、缺页和分页状态公开",
+      "next_gate": "独立章节末尾与源索引完整性",
       "case_ids": [],
       "depends_on": [
         "QAOPT-K03"
@@ -311,9 +306,9 @@
       "issue_id": "QAOPT-E02",
       "priority": "P1",
       "title": "有类型的证据与适用范围",
-      "state": "planned",
-      "evidence": "证据仍主要是字符串，适用对象/时间窗未完全类型化",
-      "next_gate": "建立EvidenceItem及适用范围schema",
+      "state": "deployed_partial_verified",
+      "evidence": "V6当前对象及A-D统计EvidenceItem绑定对象/时间/单位/来源",
+      "next_gate": "全部工具证据追加账本",
       "case_ids": [],
       "depends_on": [
         "QAOPT-R01"
@@ -337,9 +332,9 @@
       "issue_id": "QAOPT-E04",
       "priority": "P1",
       "title": "固定计算与统计定义",
-      "state": "planned",
-      "evidence": "统计定义和窗口边界仍分散在各工具",
-      "next_gate": "集中确定性计算库并输出公式/样本数/缺失规则",
+      "state": "deployed_partial_verified",
+      "evidence": "V5相邻两窗/V6确定性统计及公式样本数质量限制",
+      "next_gate": "统一跨工具派生计算与冲突",
       "case_ids": [
         "TPL-496B774E90F8EA09"
       ],
@@ -353,9 +348,9 @@
       "issue_id": "QAOPT-E05",
       "priority": "P0",
       "title": "输出字段边界及完整性",
-      "state": "planned",
-      "evidence": "答案非空仍可能遗漏对象、步骤或末句",
-      "next_gate": "实现CompletionContract覆盖率和截断检测",
+      "state": "deployed_partial_verified",
+      "evidence": "V6长度中止一次内部压缩；V8分页/V9策略缺项终态公开",
+      "next_gate": "全部复合子任务覆盖检查",
       "case_ids": [
         "TPL-0F1075D1C8967EA5"
       ],
@@ -368,9 +363,9 @@
       "issue_id": "QAOPT-E06",
       "priority": "P1",
       "title": "多源证据冲突与分析深度",
-      "state": "planned",
-      "evidence": "多源冲突、时效差和分析深度没有统一裁决",
-      "next_gate": "建立冲突矩阵与事实/推断/建议分层",
+      "state": "deployed_partial_verified",
+      "evidence": "V6当前单点不推趋势；空间窗口均值不冒充同步温差",
+      "next_gate": "工艺因果限定与多源时效冲突",
       "case_ids": [],
       "depends_on": [
         "QAOPT-R06",
@@ -425,9 +420,9 @@
       "issue_id": "QAOPT-O04",
       "priority": "P1",
       "title": "状态、耗时与可观测性",
-      "state": "partial",
-      "evidence": "已有部分耗时和tool trace；缺统一终态和覆盖指标",
-      "next_gate": "统一turn/step/tool事件、terminal_state和覆盖率指标",
+      "state": "deployed_partial_verified",
+      "evidence": "耗时、completion、语义待审状态公开；shared guest最终载荷仍包含全历史",
+      "next_gate": "兼容消息窗口与有界客户端契约",
       "case_ids": [],
       "depends_on": [
         "QAOPT-E01",
@@ -466,9 +461,9 @@
       "issue_id": "QAOPT-T02",
       "priority": "P0",
       "title": "导入错误与评测污染",
-      "state": "implemented_verified",
-      "evidence": "重复、结构无效、fixture和导入错误已从有效分母分层",
-      "next_gate": "持续对新增来源运行导入校验",
+      "state": "implemented_partial_verified",
+      "evidence": "原分母保持；833源题库新增编号与同问不同标准答案冲突审计",
+      "next_gate": "原子未编号条款特殊合同与oracle修正审查",
       "case_ids": [
         "TPL-ED01B1D5ACB947E6",
         "TPL-2941ED6E73448D66"
@@ -510,8 +505,8 @@
       "priority": "P1",
       "title": "版本冻结、候选对比与受控发布",
       "state": "implemented_verified",
-      "evidence": "V3经密封候选、受控部署、生产提交和定向复测",
-      "next_gate": "V4继续使用精确基线、差分候选和CAS记录",
+      "evidence": "V3至V9密封/守卫/CAS/受保护PID/定向单发送复测闭环",
+      "next_gate": "后续版本同流程",
       "case_ids": [],
       "depends_on": [
         "QAOPT-T04",

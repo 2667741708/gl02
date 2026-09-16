@@ -1136,6 +1136,10 @@
 - R05：报表目录→限定相对路径→正文读取→摘要摘录；中文截断用字符数判定，不以目录代替正文。
 - 实现：[时间窗工作流](../高炉前端数据/智能助手/backend/qa_time_window_plan.py#L40)、[报表工作流](../高炉前端数据/智能助手/backend/qa_report_workflow.py#L73)、[精确候选构建器](../tools/build_qa_routing_v4_candidate.py#L35)。
 - 验证：98项相关回归通过；真实生产工具、答案及并发状态未计通过。无数据库迁移、鉴权放宽或其他服务修改。
+## QA V8/V9 当前验收增量（2026-09-16）
+
+REQ-QA-FULL-ISSUE-INVENTORY-20260916：当前生产已到V9，小节范围与混合代码请求已定向复测；V8九题5通过/3部分/1失败，V9五题3通过/2部分/0失败。下一节未编号标题仍为partial，33项不得一概标记resolved。权威状态见[逐项台账](../tests/qa_regression/optimization_execution_ledger_20260916.md)及[V8/V9交接](handoffs/2026-09-16-qa-routing-v8-v9-production.md)。
+
 ## QA V5 修复接缝（2026-09-16，候选状态）
 
 REQ-QA-FULL-ISSUE-INVENTORY-20260916：R02/R03/R04/R05/E01/O01/O05 的本轮代码及验收边界见

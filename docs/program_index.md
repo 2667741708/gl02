@@ -1061,6 +1061,10 @@
 | [qa_report_workflow.py](../高炉前端数据/智能助手/backend/qa_report_workflow.py#L73) | QAOPT-R05目录→选定→正文→摘要摘录 | 依赖失败停止；目录、历史报表及实时数据分开 |
 
 V4构建器新增准确生产MCP SHA-256绑定与字符截断差分。本机旧代理/MCP不作整文件生产候选，细节见[V4交接](handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md)。
+## QA V8/V9 当前验收增量（2026-09-16）
+
+`qa_document_knowledge.execute_document_question/_original_subsection`：核验正式文档、唯一编号/标题范围及完整块分页；`qa_prompt_sources.build_source_messages`：保留允许证据与原prompt目标；`qa_evidence_policy.apply_request_boundary/boundary_result`：混合请求仅代码受限。`tools/build_qa_routing_v9_candidate.py`仅从已接受V8字节构建；发布模板支持V3至V9。符号行号TODO-LINES。见[V8/V9交接](handoffs/2026-09-16-qa-routing-v8-v9-production.md)。
+
 ## QA V5 程序索引（2026-09-16，候选）
 
 - `backend/qa_history_projection.py::fetch_owned_history/history_outcome`：已认证owner限定SQL、排除当前消息、历史摘录投影。

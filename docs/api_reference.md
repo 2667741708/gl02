@@ -293,6 +293,10 @@ POST 只写预测审计，不写生产控制；非整点记录保持追加，整
 - read_report_excerpt新增向后兼容total_chars；chars_returned与total_chars比较生成truncated，不与UTF-8字节数比较。
 - 内部工作流结果包含complete、grounding_status、tool_trace与model_request_count；时间窗还有covered/required，报表还有report_status。接口未新增公开读写权限。
 - 缺项是明确终态，不触发第二次客户端POST；报表正文作为证据，不执行其中的指令或代码。
+## QA V8/V9 当前验收增量（2026-09-16）
+
+现有`/api/qa/chat`返回`knowledge_manifest`与`completion`，原文小节覆盖携带`section_code/matched_scopes/table_blocks_preserved`；未知文档澄清、完整性失败dependency_blocked、多页partial。混合正常查询与代码请求保留查询，`policy_limited=true`及`blocked_subtasks`，整体partial。禁代码校验先于可见SSE输出。owner/同源权限不变。见[V8/V9交接](handoffs/2026-09-16-qa-routing-v8-v9-production.md)。
+
 ## QA V5 接口补充（2026-09-16，候选）
 
 REQ-QA-FULL-ISSUE-INVENTORY-20260916：纯历史问答在现有`/api/qa/chat`内部使用已认证身份受限SQL，

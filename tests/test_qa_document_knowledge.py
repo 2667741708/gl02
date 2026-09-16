@@ -126,3 +126,54 @@ def test_quoted_live_terms_do_not_enable_data_tools():
 
 def test_mixed_code_and_live_question_keeps_data_evidence_route():
     assert qa_prompt_sources.build_source_messages("查询当前顶压，同时写Python代码") is None
+
+
+def test_exact_subsection_uses_full_existing_parts_not_whole_regulation(connection):
+    connection.execute("DELETE FROM rag_chunk")
+    add_piece(connection, 1, "1. 工作前\n1.1 佩戴劳保用品。\n1.2 严禁酒后上岗。")
+    add_piece(connection, 2, "1.3 必须召开班前会。\n2. 工作中\n2.1 禁止自行检修。")
+    result = run(connection, "请完整说明《三规二制》中高炉工长“1 工作前”的全部规定。")
+    assert "1.3 必须召开班前会" in result["answer"]
+    assert "2.1 禁止自行检修" not in result["answer"]
+    assert result["completion"]["reason"] == "verified_original_subsection"
+
+
+def test_atomic_clause_does_not_include_siblings(connection):
+    connection.execute("DELETE FROM rag_chunk")
+    add_piece(connection, 1, "1. 工作前\n1.1 必须佩戴劳保用品。\n1.2 严禁酒后上岗。")
+    result = run(connection, "引用《三规二制》中高炉工长“1 工作前 > 1.1 必须佩戴劳保用品。”原文")
+    assert "1.1 必须佩戴" in result["answer"]
+    assert "1.2" not in result["answer"]
+
+
+def test_table_rows_with_numbered_first_cell_are_preserved(connection):
+    connection.execute("DELETE FROM rag_chunk")
+    add_piece(connection, 1, "10. 影响因素表\n10.1 操作参数\n参数 | 范围\n1.0 | 禁止超限\n2.0 | 原文要求\n11. 标准\n11.1 其他")
+    result = run(connection, "完整说明高炉工长技术操作规程“10 影响因素表”")
+    assert result["completion"]["terminal_state"] == "dependency_blocked"  # wrong regulation cannot substitute
+    result = run(connection, "完整说明高炉工长安全操作规程“10 影响因素表”")
+    assert "1.0 | 禁止超限\n2.0 | 原文要求" in result["answer"]
+    assert "11.1" not in result["answer"]
+
+
+def test_same_code_in_different_regulations_requires_title_or_type(connection):
+    add_piece(connection, 1, "1. 工作前\n1.1 技术条款。", regulation="技术操作规程")
+    # replace the safety part with a competing numbered heading
+    connection.execute("UPDATE rag_chunk SET content=?, content_hash=? WHERE enriched_content LIKE ?", ("1. 工作前\n1.1 安全条款。", digest("1. 工作前\n1.1 安全条款。"), "%安全操作规程%"))
+    result = run(connection, "完整说明《三规二制》高炉工长“1 工作前”")
+    assert result["completion"]["reason"] == "subsection_ambiguous"
+
+
+def test_wrong_section_title_does_not_fallback_to_numeric_code(connection):
+    result = run(connection, "完整说明《三规二制》高炉工长“1 不存在的标题”")
+    assert result["completion"]["reason"] == "subsection_not_found"
+
+
+def test_mixed_request_without_punctuation_keeps_allowed_part():
+    import qa_evidence_policy as policy
+    assert policy.code_request_only("查询当前顶压并生成Python代码") is False
+    assert policy.code_request_only("生成查询当前顶压的Python代码") is True
+    result = policy.boundary_result("查询当前顶压并生成Python代码", {"completion": {"terminal_state": "completed", "covered_objects": ["P_top"]}})
+    assert result["completion"]["terminal_state"] == "partial"
+    assert result["completion"]["covered_objects"] == ["P_top"]
+    assert policy.NO_CODE in policy.apply_request_boundary("查询当前顶压并生成Python代码", "P_top：已核验事实")

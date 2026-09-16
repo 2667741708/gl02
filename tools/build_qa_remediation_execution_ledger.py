@@ -47,6 +47,29 @@ STATUS = {
     "QAOPT-T06": ("ongoing", "回归集已公开并可扩展，长期范围和SLO仍需运营", "按新故障自动归类并每版发布覆盖/SLO报告"),
 }
 
+# Current verified evidence supersedes earlier phase snapshots above.
+STATUS.update({
+    "QAOPT-R02": ("production_verified", "V7三条owner隔离历史题通过，实际PostgreSQL占位符正确，生成摘录排除", "补历史与当前数据复合任务"),
+    "QAOPT-R03": ("deployed_partial_verified", "V6实际A-D统计已返回；缺单位、零值和稀疏覆盖已明确标记", "核对数据依赖后扩展多对象质量回归"),
+    "QAOPT-R07": ("deployed_partial_verified", "V7无工具题完整回复且0调用；因果方向仍需控制系统限定", "修正工艺因果限定并复测"),
+    "QAOPT-R08": ("production_verified", "V9混合请求正常查询子任务通过，代码单独拒绝；纯代码不查询；全流式禁代码边界通过", "扩展混合请求持出集，整体保持policy-limited partial"),
+    "QAOPT-R09": ("deployed_partial_verified", "V8统一能力目标与允许证据，禁实时不抹掉允许的原文知识", "核对所有复合与降级分支"),
+    "QAOPT-R10": ("deployed_contract_verified", "V6上下文主题/窗口/对象重置、600秒失效与禁止旧证据复用通过", "真实多轮角色矩阵"),
+    "QAOPT-K01": ("deployed_partial_verified", "V8正式原文/目录；V9指定小节代表题通过；833未全语义通过", "原子条款与题库源冲突核对"),
+    "QAOPT-K02": ("deployed_partial_verified", "V8纯制度任务严格knowledge_doc与原文哈希，不用聊天/报表替代", "复合制度任务补相同来源硬门"),
+    "QAOPT-K03": ("deployed_partial_verified", "V8完整块分页；V9完整表格但多带下一节未编号标题", "独立源标题边界与末尾覆盖核对"),
+    "QAOPT-K04": ("deployed_partial_verified", "V8未知正式制度明确澄清；确定性原文不生成条款", "复合模型分支同样禁止补写"),
+    "QAOPT-K05": ("deployed_partial_verified", "V8纯制度绕开报表/聊天及跨文档top-k", "复合双来源标签与独立覆盖"),
+    "QAOPT-K06": ("deployed_partial_verified", "V8原文版本/更新/哈希、缺页和分页状态公开", "独立章节末尾与源索引完整性"),
+    "QAOPT-E02": ("deployed_partial_verified", "V6当前对象及A-D统计EvidenceItem绑定对象/时间/单位/来源", "全部工具证据追加账本"),
+    "QAOPT-E04": ("deployed_partial_verified", "V5相邻两窗/V6确定性统计及公式样本数质量限制", "统一跨工具派生计算与冲突"),
+    "QAOPT-E05": ("deployed_partial_verified", "V6长度中止一次内部压缩；V8分页/V9策略缺项终态公开", "全部复合子任务覆盖检查"),
+    "QAOPT-E06": ("deployed_partial_verified", "V6当前单点不推趋势；空间窗口均值不冒充同步温差", "工艺因果限定与多源时效冲突"),
+    "QAOPT-O04": ("deployed_partial_verified", "耗时、completion、语义待审状态公开；shared guest最终载荷仍包含全历史", "兼容消息窗口与有界客户端契约"),
+    "QAOPT-T02": ("implemented_partial_verified", "原分母保持；833源题库新增编号与同问不同标准答案冲突审计", "原子未编号条款特殊合同与oracle修正审查"),
+    "QAOPT-T05": ("implemented_verified", "V3至V9密封/守卫/CAS/受保护PID/定向单发送复测闭环", "后续版本同流程"),
+})
+
 
 def main() -> int:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
@@ -72,10 +95,10 @@ def main() -> int:
         "schema": "bf.qa.optimization-execution-ledger.v1",
         "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
         "checked_at": "2026-09-16",
-        "production_commit": "312085a88ae95027728d5b8b72c4293af834d055",
+        "production_commit": "36b8d938f23923fca81026d7d668891bbf928dfb",
         "production_retest": {"passed": 2, "partial": 6, "failed": 7, "blocked_client_contract": 1},
-        "latest_production_retest": {"version": "routing-v5", "requests": 8, "sse_done": 7, "answer_recovered_readonly": 1, "passed": 2, "partial": 4, "failed": 2, "automatic_post_retries": 0},
-        "current_local_candidate": {"version": "routing-v6", "issues": ["QAOPT-R02", "QAOPT-R03", "QAOPT-R07", "QAOPT-R10", "QAOPT-E02", "QAOPT-E04", "QAOPT-E05", "QAOPT-E06", "QAOPT-O04"], "state": "verified_not_deployed"},
+        "latest_production_retest": {"version": "routing-v9", "requests": 5, "sse_done": 5, "passed": 3, "partial": 2, "failed": 0, "automatic_post_retries": 0},
+        "current_local_candidate": {"version": "routing-v10", "issues": ["QAOPT-K01", "QAOPT-K03", "QAOPT-O04", "QAOPT-T02", "QAOPT-T04"], "state": "in_progress_not_deployed"},
         "rows": rows,
     }
     OUT_JSON.write_bytes((json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
@@ -86,7 +109,7 @@ def main() -> int:
         "- 状态：执行中；最后核对：2026-09-16。",
         "- 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。",
         "- 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。",
-        "- 生产基线：`312085a88ae95027728d5b8b72c4293af834d055`；V5已部署，八题复测2通过/4部分/2失败；V6候选106项回归通过。",
+        "- 生产基线：`36b8d938f23923fca81026d7d668891bbf928dfb`；V9五题3通过/2部分/0失败，73项针对性回归通过；剩余项继续核对，非空不算通过。",
         "",
         "## 借鉴 DSH 与 Codex 的实施边界",
         "",

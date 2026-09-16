@@ -75,6 +75,63 @@ def _doc_id(question: str) -> str | None:
     return None
 
 
+def _numbered_line(line: str):
+    if "|" in line:
+        return None  # a table row is never a section boundary
+    match = re.match(r"^\s*(\d+(?:[.．]\d+)*)(?:[.．、]\s*|\s*)(.*)$", line)
+    if not match:
+        return None
+    return match.group(1).replace("．", "."), match.group(2).strip()
+
+
+def _label(value: str) -> str:
+    return re.sub(r"[\s，,。；;：:‘’“”\"']", "", value)
+
+
+def _reference(question: str):
+    # The book title selects the source; a quoted numbered path selects its
+    # subsection. Neither is interpreted as a live-data instruction.
+    for match in re.finditer(r"“([^”]+)”|\"([^\"]+)\"", question):
+        path = (match.group(1) or match.group(2)).strip()
+        leaf = re.split(r"\s*[>＞]\s*", path)[-1]
+        ref = _numbered_line(leaf)
+        if ref:
+            return ref
+    return None
+
+
+def _original_subsection(selected, reference, intro, manifest):
+    code, label = reference
+    groups = {}
+    for item in selected:
+        groups.setdefault((item["chapter_code"], item["chapter"], item["regulation"]), []).append(item)
+    matches = []
+    for (_, chapter, regulation), pieces in groups.items():
+        lines = "\n".join(canonical_text(item["content"]) for item in pieces).split("\n")
+        for index, line in enumerate(lines):
+            parsed = _numbered_line(line)
+            if not parsed or parsed[0] != code or (label and _label(parsed[1]) != _label(label)):
+                continue
+            end = len(lines)
+            for next_index in range(index + 1, len(lines)):
+                next_parsed = _numbered_line(lines[next_index])
+                if next_parsed and not next_parsed[0].startswith(code + "."):
+                    end = next_index
+                    break
+            matches.append((chapter, regulation, "\n".join(lines[index:end]).strip()))
+    if len(matches) != 1:
+        reason = "subsection_ambiguous" if matches else "subsection_not_found"
+        return _outcome(intro + "尚未唯一确认该编号及标题的原文章节。请补充规程类型或核对章节路径；未用同编号的其他规程替代。",
+                        "needs_clarification", reason, [manifest])
+    chapter, regulation, content = matches[0]
+    if len(content) > MAX_BLOCK_CHARS:
+        return _outcome(intro + "所选章节含超长完整段落或表格，请按更细的子章节读取，未裁切原文。",
+                        "dependency_blocked", "subsection_exceeds_limit", [manifest])
+    return _outcome(intro + f"【{chapter} / {regulation} / {code}】\n以下为对应原文，未补写其他章节：\n\n" + content,
+                    "completed", "verified_original_subsection", [manifest],
+                    {"section_code": code, "matched_scopes": 1, "table_blocks_preserved": True})
+
+
 def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) -> dict[str, Any] | None:
     """Only pure document tasks; compound tasks stay in their source plan."""
     if plan.get("intents") != ["document_knowledge"]:
@@ -154,6 +211,9 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     if any(parts != list(range(1, len(parts) + 1)) for parts in groups.values()):
         return _outcome(intro + "所选章节存在缺页或重复片段，未把拼接结果标为完整。",
                         "dependency_blocked", "section_parts_not_contiguous", [manifest])
+    reference = _reference(question)
+    if reference is not None:
+        return _original_subsection(selected, reference, intro, manifest)
     pages: list[list[dict[str, Any]]] = [[]]
     chars = 0
     for item in selected:
