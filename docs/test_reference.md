@@ -3121,3 +3121,31 @@ pwsh.exe -NoLogo -NoProfile -File `
 
   本次成功信号：`legacy_rules=8`、`abc_rules=33`、`pdf_pages=55`，正常顺行在第2页、B4在第26页、
   C11在第54页；封面、B4和C11页面另外完成PNG视觉检查，中文与表格可读。
+
+## REQ-QA-ROUTING-ASSISTANT-UPDATE-20260916
+
+- 构建精确候选：
+
+  ```powershell
+  python tools/build_qa_routing_candidate.py --proxy-baseline <V2代理基线> --selection-baseline <V2工具选择基线> --output .codex_runtime/qa-routing-v3/candidate
+  ```
+
+  成功信号：两个基线 SHA-256 精确匹配；`syntax=passed`、`production_changed=false`。
+- 聚焦测试：
+
+  ```powershell
+  python -m pytest tests/test_qa_task_plan.py tests/test_qa_evidence_claims.py tests/test_qa_routing_candidate.py tests/test_qa_evidence_policy.py -q
+  ```
+
+  本次成功信号：`43 passed`。覆盖公开失败模板的文档/历史/实时三联路由、工具域隔离、JSON围栏、
+  混合代码问题、合理舍入、错对象和生命周期异常后的事实保留。
+- 回归合同与既有目录：
+
+  ```powershell
+  python tools/evaluate_qa_task_plan_contracts.py
+  python tools/qa_regression.py
+  python tools/evaluate_mcp_gold_tasks.py --validate
+  ```
+
+  本次成功信号：TaskPlan `ok=true checked=15`；合成问答 `corpus_valid case_count=32`；MCP 金标
+  `ok=true case_count=14`。这些信号只证明本机候选和合同，不表示真实模型或生产已通过。

@@ -1,9 +1,11 @@
 # 智能助手：先看证据、再决定工具的回归集
 
 - 需求：REQ-QA-EVIDENCE-FIRST-REGRESSION-20260915。
-- 状态：32 条合成用例；原 8 题完成三版线上测试。全量收集已恢复：[R3续跑记录](resume_r3_20260915.md)。保留前两批306条结果及1条不确定记录，继续953条未发送问题；完成收集后再优化路由。
-- 最后核对：2026-09-15。
-- 最新：[结果复核与路由优化](routing_optimization_20260915.md)、[机器统计](routing_review_20260915.json)、[16条失败合同](routing_failures_20260915.json)。833条知识题未执行，不提供总体正确率。
+- 状态：32 条合成用例；全量问题收集已冻结，1 条发送状态不确定并保持隔离、不自动重放；路由 V3 本机候选已进入聚焦回归，尚未部署生产。
+- 最后核对：2026-09-16。
+- 最新：[全量问题统计](issue_statistics_20260916.md)、[33项整改清单](optimization_checklist_20260916.md)、
+  [TaskPlan路由合同](task_plan_contracts_20260916.json)和
+  [V3本机候选交接](../../docs/handoffs/2026-09-16-qa-routing-v3-local-candidate.md)。
 - 机器权威：[cases.v1.json](cases.v1.json)、[fixtures.v1.json](fixtures.v1.json)。
 - 适用范围：普通问答的路由、已有证据利用、最终回答及恢复；不替代生产控制、ABC33 严格首问或线上数据验收。
 - 数据政策：核心 32 题使用合成数据；导入模板保留来源索引并对历史炉号、地址及凭据形态脱敏。禁止提交线上原始会话、真实炉号、身份、内部地址、Cookie、令牌、密码、连接串或生产环境文件。脱敏后的展示文本不是本次实际执行文本，使用 case_id 与受控原文证据关联。
@@ -32,10 +34,12 @@
 ```powershell
 python -X utf8 tools/qa_regression.py
 python -X utf8 tools/qa_regression.py --list
+python -X utf8 tools/evaluate_qa_task_plan_contracts.py
 python -X utf8 -m unittest discover -s tests -p test_qa_regression.py -v
 ```
 
 第一条输出 corpus_valid，表示用例引用、规则及合成算术夹具合法，不是模型回答通过。`--list` 从 JSON 生成列表并带 SHA-256，避免维护第二套手工金标。
+TaskPlan 验证器检查公开模板和合成反例的来源隔离、知识检索、预取及工具域合同；同样不调用模型或生产接口。
 
 ```powershell
 python -X utf8 tools/qa_regression.py --results tests/qa_regression/run.example.json

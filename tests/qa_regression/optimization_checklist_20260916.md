@@ -139,7 +139,7 @@
 
 ### QAOPT-R01 · 统一任务决策，阻止关键词抢路由
 
-- 优先级：P0；证据：confirmed；状态：planned_not_implemented。
+- 优先级：P0；证据：confirmed；状态：local_candidate_partial_verified_not_deployed（2026-09-16）。
 - 观察：制度引文中的风量/曲线触发实时查询；代码核实预取早于知识门禁。
 - 代表用例：TPL-11F6C2E3DDD207BC、TPL-DE3A348E8836BC03。
 - 修改入口：V2 proxy:4283 qa_answer_route、6548 qa_mcp_prefetch、9288 qa_should_search_knowledge、15405–15430请求准备。
@@ -147,8 +147,8 @@
 
 实施动作：
 
-- [ ] 在预取前建立TaskPlan，保留指令与引文跨度。
-- [ ] 各分支只消费同一任务计划；dispatcher硬执行来源/工具允许列表。
+- [x] 在预取前建立TaskPlan，保留指令与引文跨度。
+- [x] 预取、知识检索和MCP工具目录消费同一任务计划；dispatcher执行证据域允许列表。
 - [ ] 结构校验失败不得默认转实时查询。
 
 验收条件：
@@ -163,7 +163,7 @@
 
 ### QAOPT-R02 · 历史问答与业务证据分离
 
-- 优先级：P0；证据：confirmed；状态：planned_not_implemented。
+- 优先级：P0；证据：confirmed；状态：local_candidate_partial_verified_not_deployed（2026-09-16）。
 - 观察：历史问答题被传感器词截走。
 - 代表用例：TPL-FD3912331A49B991、TPL-3877C5B34E972AA0、TPL-4EB4CE7FC45519A5。
 - 修改入口：V2 proxy:4283、5884；search_qa_messages注册与owner过滤位置TODO-LINES。
@@ -171,7 +171,7 @@
 
 实施动作：
 
-- [ ] history为独立意图，只在用户要求回忆时允许。
+- [x] history为独立意图，只在用户要求回忆时允许；现场工具从可见目录移除。
 - [ ] 检索限当前owner；与制度知识来源隔离。
 
 验收条件：
@@ -304,7 +304,7 @@
 
 ### QAOPT-R08 · 禁代码策略不误伤正常回答
 
-- 优先级：P0；证据：confirmed；状态：planned_not_implemented。
+- 优先级：P0；证据：confirmed；状态：local_candidate_verified_not_deployed（2026-09-16）。
 - 观察：中文数据请求最终被禁代码固定提示替换。
 - 代表用例：TPL-00F9E60C73D8BE83、TPL-A60B0CD794D49E48。
 - 修改入口：qa_evidence_policy.py:95；mcp_tool_selection.py:164；V2 proxy:9146/15879。
@@ -312,9 +312,9 @@
 
 实施动作：
 
-- [ ] 内部JSON兜底改中文事实输出。
-- [ ] 代码意图与实际代码内容分别检查。
-- [ ] 混合请求仅拒绝代码子任务，保留允许部分。
+- [x] 内部JSON兜底取消代码围栏，以普通事实段输出。
+- [x] 代码意图与实际代码内容分别检查，JSON/text围栏不再自动判为代码。
+- [x] 混合请求仅拒绝代码子任务，保留允许部分。
 
 验收条件：
 
@@ -376,7 +376,7 @@
 
 ### QAOPT-K01 · 原文知识路由独立于现场数据
 
-- 优先级：P0；证据：confirmed；状态：planned_not_implemented。
+- 优先级：P0；证据：confirmed；状态：local_candidate_verified_not_deployed（2026-09-16）。
 - 观察：制度问题收到实时数据库未核实提示。
 - 代表用例：TPL-48827B99541672E2、TPL-9AB9414BFC82E504。
 - 修改入口：V2 proxy:9288/9382；bf_knowledge_rag.py search_knowledge（本机参考，生产行号TODO-LINES）。
@@ -384,8 +384,8 @@
 
 实施动作：
 
-- [ ] 文档原文任务只允许权威知识来源。
-- [ ] 移除预取已用就跳过知识的全局否决。
+- [x] 文档原文任务只允许知识来源，MCP工具目录为空。
+- [x] TaskPlan的文档判定先于“预取已用”否决。
 - [ ] 文档可用而现场工具故障时仍回答文档任务。
 
 验收条件：
@@ -400,7 +400,7 @@
 
 ### QAOPT-K02 · 禁止用聊天或回归记录替代权威知识
 
-- 优先级：P0；证据：confirmed；状态：planned_not_implemented。
+- 优先级：P0；证据：confirmed；状态：local_candidate_partial_verified_not_deployed（2026-09-16）。
 - 观察：制度题检索search_qa_messages，参数包含测试标记。
 - 代表用例：TPL-2941ED6E73448D66。
 - 修改入口：知识来源策略；search_qa_messages；回归会话标签及过滤（新增设计）。
@@ -408,8 +408,8 @@
 
 实施动作：
 
-- [ ] 区分document/chat/report/test证据域。
-- [ ] 只在history意图开放聊天检索。
+- [x] TaskPlan区分document/chat/report/live/user_data证据域。
+- [x] 只在history意图开放聊天检索；文档与实时问题均不能看到聊天检索工具。
 - [ ] 测试会话显式标记、默认排除；oracle不入模型。
 
 验收条件：
@@ -518,7 +518,7 @@
 
 ### QAOPT-E01 · 成功证据不能被生命周期异常清空
 
-- 优先级：P0；证据：confirmed；状态：planned_not_implemented。
+- 优先级：P0；证据：confirmed；状态：local_candidate_partial_verified_not_deployed（2026-09-16）。
 - 观察：快照成功后最终只剩MCP生命周期异常。
 - 代表用例：TPL-4CA73F09C24F631B。
 - 修改入口：V2 proxy:7768 qa_usable_tool_facts、7793 qa_mcp_final_fallback、9254 run_qa_mcp_tool_loop。
@@ -526,13 +526,13 @@
 
 实施动作：
 
-- [ ] 请求级EvidenceLedger独立于MCP会话清理。
+- [x] 普通、规划器和强制工具路径把结果同步写入请求级EvidenceLedger；外层生命周期异常使用成功事实降级。
 - [ ] 区分执行、生成和清理阶段异常。
 - [ ] 仅一次无工具最终降级；失败仍保留确定性事实。
 
 验收条件：
 
-- [ ] 成功工具事实在所有后续异常中保持可见。
+- [ ] 成功工具事实在所有后续异常中保持可见（普通/规划器/强制路径已通过；复合DAG仍待接入）。
 - [ ] 缺项明确，不能把成功标成全部无数据。
 
 回归范围：
@@ -566,7 +566,7 @@
 
 ### QAOPT-E03 · 字段级事实校验与合理舍入
 
-- 优先级：P0；证据：confirmed；状态：planned_not_implemented。
+- 优先级：P0；证据：confirmed；状态：local_candidate_partial_verified_not_deployed（2026-09-16）。
 - 观察：纯模块复现舍入误拒、相同数字换指标仍接受。
 - 代表用例：尚无独立线上失败金标；按设计/未测项处理。
 - 修改入口：mcp_tool_selection.py:138 answer_is_grounded；tools/reproduce_qa_v2_guard_conflict.py。
@@ -574,8 +574,8 @@
 
 实施动作：
 
-- [ ] 按断言对象、字段、单位、时间和来源逐项核对。
-- [ ] 数值容差来自显示精度/业务定义。
+- [ ] 按断言对象、字段、单位、时间和来源逐项核对（对象与统计字段已接入；单位、时间、来源待类型化证据）。
+- [x] 数值容差来自答案显示精度，覆盖42.500123→42.5。
 - [ ] 程序生成事实表；模型解释独立校验。
 
 验收条件：

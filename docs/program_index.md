@@ -1035,3 +1035,15 @@
 
 修改风险：ABC目录、因子公式或旧YAML变化后必须重新生成并验证；不得手工修改生成文件后不更新生成器。
 原8类历史实现缺失期间，禁止把硬门和Resolver语义从推测写成确定事实。
+
+## REQ-QA-ROUTING-ASSISTANT-UPDATE-20260916
+
+| 程序/合同 | 职责 | 修改风险 |
+|---|---|---|
+| [qa_task_plan.py](../高炉前端数据/智能助手/backend/qa_task_plan.py) | 在知识和工具路由前拆分指令/引文并生成来源、预取和工具域计划 | 新工具必须先归入证据域；未知写工具不得默认归为只读实时域 |
+| [qa_evidence_policy.py](../高炉前端数据/智能助手/backend/qa_evidence_policy.py) | 统一普通回答目标，保留数学和数据分析，阻止代码生成/执行 | 不能用任意 Markdown 围栏作为代码判据；混合回答不能整段抹除 |
+| [qa_evidence_claims.py](../高炉前端数据/智能助手/backend/qa_evidence_claims.py) | 对象/统计字段数值绑定和显示精度舍入 | 增加别名时要防同值跨对象误认；单位和时间尚未在此模块校验 |
+| [build_qa_routing_candidate.py](../tools/build_qa_routing_candidate.py) | 对精确 V2 生产基线应用可审查修改并输出本机 V3 候选 | 基线哈希变化必须停止并重新审查，不能放宽哈希门禁 |
+| [evaluate_qa_task_plan_contracts.py](../tools/evaluate_qa_task_plan_contracts.py) | 验证公开模板与合成反例的确定性路由合同 | 不得将线上原始答案、身份、生产数值或 oracle 传给模型 |
+
+完整边界见 [QA 路由 V3 本机候选交接](./handoffs/2026-09-16-qa-routing-v3-local-candidate.md)。

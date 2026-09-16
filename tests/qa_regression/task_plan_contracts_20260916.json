@@ -1,0 +1,22 @@
+{
+  "schema": "bf.qa.task-plan-contracts.v1",
+  "requirement_id": "REQ-QA-ROUTING-ASSISTANT-UPDATE-20260916",
+  "data_policy": "public_templates_and_synthetic_only",
+  "cases": [
+    {"case_id": "TPL-11F6C2E3DDD207BC", "prompt_from_ledger": true, "primary_intent": "document_knowledge", "search_knowledge": true, "allow_prefetch": false, "allowed_tool_domains": []},
+    {"case_id": "TPL-DE3A348E8836BC03", "prompt_from_ledger": true, "primary_intent": "document_knowledge", "search_knowledge": true, "allow_prefetch": false, "allowed_tool_domains": []},
+    {"case_id": "TPL-48827B99541672E2", "prompt_from_ledger": true, "primary_intent": "document_knowledge", "search_knowledge": true, "allow_prefetch": false, "allowed_tool_domains": []},
+    {"case_id": "TPL-9AB9414BFC82E504", "prompt_from_ledger": true, "primary_intent": "document_knowledge", "search_knowledge": true, "allow_prefetch": false, "allowed_tool_domains": []},
+    {"case_id": "TPL-2941ED6E73448D66", "prompt_from_ledger": true, "primary_intent": "document_knowledge", "search_knowledge": true, "allow_prefetch": false, "allowed_tool_domains": []},
+    {"case_id": "TPL-FD3912331A49B991", "prompt_from_ledger": true, "primary_intent": "conversation_history", "search_knowledge": false, "allow_prefetch": false, "allowed_tool_domains": ["conversation_history"]},
+    {"case_id": "TPL-3877C5B34E972AA0", "prompt_from_ledger": true, "primary_intent": "conversation_history", "search_knowledge": false, "allow_prefetch": false, "allowed_tool_domains": ["conversation_history"]},
+    {"case_id": "TPL-4EB4CE7FC45519A5", "prompt_from_ledger": true, "primary_intent": "conversation_history", "search_knowledge": false, "allow_prefetch": false, "allowed_tool_domains": ["conversation_history"]},
+    {"case_id": "TPL-00F9E60C73D8BE83", "prompt_from_ledger": true, "primary_intent": "live_data", "search_knowledge": false, "allow_prefetch": true, "allowed_tool_domains": ["live_readonly_data"]},
+    {"case_id": "TPL-A60B0CD794D49E48", "prompt_from_ledger": true, "primary_intent": "live_data", "search_knowledge": false, "allow_prefetch": true, "allowed_tool_domains": ["live_readonly_data"]},
+    {"case_id": "TPL-18F38D141C29CF15", "prompt_from_ledger": true, "primary_intent": "general_knowledge", "search_knowledge": true, "allow_prefetch": false, "allowed_tool_domains": []},
+    {"case_id": "ROUTE-SYN-001", "prompt": "只用我提供的风温数据分析趋势，不要查询现场数据库", "primary_intent": "user_supplied_data", "search_knowledge": false, "allow_prefetch": false, "allowed_tool_domains": []},
+    {"case_id": "ROUTE-SYN-002", "prompt": "为什么提高风温通常能够降低焦比？", "primary_intent": "general_knowledge", "search_knowledge": true, "allow_prefetch": false, "allowed_tool_domains": []},
+    {"case_id": "ROUTE-SYN-003", "prompt": "先按原文说明《炉顶压力制度》，再查询当前炉顶压力是多少", "primary_intent": "document_knowledge", "search_knowledge": true, "allow_prefetch": true, "allowed_tool_domains": ["live_readonly_data"]},
+    {"case_id": "ROUTE-SYN-004", "prompt": "请按原文完整说明《当前风量曲线操作规程》", "primary_intent": "document_knowledge", "search_knowledge": true, "allow_prefetch": false, "allowed_tool_domains": []}
+  ]
+}

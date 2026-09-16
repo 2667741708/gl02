@@ -1102,3 +1102,18 @@
   AND/OR、`hard_score_limit`或`column`最终聚合语义。
 - 状态：`generated_and_verified_locally`。Markdown包含8+33个规则章节；PDF共55页，中文、关键标题、
   B4和C11公式均可抽取，封面/B4/C11页面已经图像化人工检查。本轮不修改220.12或任何生产服务。
+
+## REQ-QA-ROUTING-ASSISTANT-UPDATE-20260916
+
+- 用户场景：普通解释、制度原文、历史问答、报表、给定数据和实时数据请求必须先按任务类型确定来源；
+  不能因引文中的“曲线/当前”等词误调现场工具，也不能因禁代码策略拒绝正常数据回答。
+- 实现：[确定性任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py)、
+  [统一回答与禁代码边界](../高炉前端数据/智能助手/backend/qa_evidence_policy.py)、
+  [字段级数值校验](../高炉前端数据/智能助手/backend/qa_evidence_claims.py)和
+  [哈希绑定候选构建器](../tools/build_qa_routing_candidate.py)。
+- 回归：[TaskPlan合同](../tests/qa_regression/task_plan_contracts_20260916.json)、
+  [候选集成测试](../tests/test_qa_routing_candidate.py)和
+  [聚焦策略测试](../tests/test_qa_evidence_policy.py)。
+- 状态：`local_candidate_verified_not_deployed`。聚焦测试 `43 passed`，TaskPlan `15/15`，合成问答目录
+  `32` 条有效，MCP 金标结构 `14/14`。生产 220.12 仍保持 V2；限制与复现步骤见
+  [本机候选交接](./handoffs/2026-09-16-qa-routing-v3-local-candidate.md)。
