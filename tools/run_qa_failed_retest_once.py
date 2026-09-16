@@ -148,6 +148,12 @@ def main() -> int:
     cases = [case for case in source["reviews"] if case["case_id"] not in skipped]
     if len(cases) != len({case["case_id"] for case in cases}):
         raise RuntimeError("duplicate case IDs")
+    for case in cases:
+        if not isinstance(case.get("question"), str) or not case["question"].strip():
+            raise RuntimeError("invalid case question before request")
+        # Metadata must never prevent persistence after a production POST.
+        case.setdefault("expected", "manual semantic review required")
+        case.setdefault("failure", "reviewed regression case")
     args.output.mkdir(parents=True, exist_ok=False)
     progress_path = args.output / "progress.json"
     progress = {
@@ -191,8 +197,8 @@ def main() -> int:
             private = {
                 "case_id": case_id,
                 "question": case["question"],
-                "expected": case["expected"],
-                "previous_failure": case["failure"],
+                "expected": case.get("expected"),
+                "previous_failure": case.get("failure"),
                 "request_count": 1,
                 **result,
             }

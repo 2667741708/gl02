@@ -2,7 +2,7 @@
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
   "checked_at": "2026-09-16",
-  "production_commit": "f79b13ccf79d3b522c5a7a253989c9915df74aa4",
+  "production_commit": "312085a88ae95027728d5b8b72c4293af834d055",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -10,25 +10,29 @@
     "blocked_client_contract": 1
   },
   "latest_production_retest": {
-    "version": "routing-v4",
-    "requests": 6,
-    "sse_done": 6,
-    "passed": 3,
-    "partial": 1,
+    "version": "routing-v5",
+    "requests": 8,
+    "sse_done": 7,
+    "answer_recovered_readonly": 1,
+    "passed": 2,
+    "partial": 4,
     "failed": 2,
     "automatic_post_retries": 0
   },
   "current_local_candidate": {
-    "version": "routing-v5",
+    "version": "routing-v6",
     "issues": [
-      "QAOPT-R03",
-      "QAOPT-R04",
-      "QAOPT-R05",
       "QAOPT-R02",
-      "QAOPT-O01",
-      "QAOPT-E01"
+      "QAOPT-R03",
+      "QAOPT-R07",
+      "QAOPT-R10",
+      "QAOPT-E02",
+      "QAOPT-E04",
+      "QAOPT-E05",
+      "QAOPT-E06",
+      "QAOPT-O04"
     ],
-    "state": "in_progress"
+    "state": "verified_not_deployed"
   },
   "rows": [
     {
@@ -51,8 +55,8 @@
       "priority": "P0",
       "title": "历史问答与业务证据分离",
       "state": "deployed_partial_verified",
-      "evidence": "3条生产复测中2条路由正确但渲染不佳，1条生命周期失败",
-      "next_gate": "完成历史结果中文投影、owner隔离和生命周期保全",
+      "evidence": "V5三条历史检索均中文回答且owner受限；生成历史摘录再次被检索",
+      "next_gate": "V6排除生成摘录、回答角色过滤并复测",
       "case_ids": [
         "TPL-FD3912331A49B991",
         "TPL-3877C5B34E972AA0",
@@ -84,9 +88,9 @@
       "issue_id": "QAOPT-R04",
       "priority": "P1",
       "title": "多时间窗与历史基线",
-      "state": "deployed_partial_verified",
-      "evidence": "V4真实30日基线通过；两窗查询成功但扁平items适配错误，误丢统计",
-      "next_gate": "V5按生产扁平结构验证两窗统计、差值与窗口边界",
+      "state": "production_verified",
+      "evidence": "V5真实相邻两窗统计、差值及相对变化通过；V4真实30日基线通过",
+      "next_gate": "扩展多对象、缺失数据及窗口覆盖回归",
       "case_ids": [
         "TPL-26CC8346013E1DEA",
         "TPL-E1C7A67C947531E9"
@@ -101,9 +105,9 @@
       "issue_id": "QAOPT-R05",
       "priority": "P1",
       "title": "报表工作流读取正文",
-      "state": "deployed_partial_verified",
-      "evidence": "V4已读取最新日报正文；漏识别行内摘要而退回长正文",
-      "next_gate": "V5支持摘要元数据行并证明不输出整份明细",
+      "state": "production_verified",
+      "evidence": "V5真实最新日报摘要提取通过；缺摘要单独partial合同已验证",
+      "next_gate": "扩大报表类型并保持正文依赖和权威边界",
       "case_ids": [
         "TPL-8DA6777B502376D4"
       ],

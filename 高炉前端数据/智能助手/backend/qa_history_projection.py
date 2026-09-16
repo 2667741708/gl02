@@ -9,7 +9,7 @@ import json
 import re
 from typing import Any
 
-VERSION = "qa-history-projection-v1"
+VERSION = "qa-history-projection-v2"
 
 
 def history_keyword(question: str) -> str:
@@ -30,9 +30,12 @@ def fetch_owned_history(conn: Any, *, owner: str, before_message_id: int, questi
         FROM qa_messages m JOIN qa_conversations c ON c.id = m.conversation_id
         WHERE c.owner_subject = ? AND m.id < ?
           AND m.role IN ('user', 'assistant')
+          AND m.content NOT LIKE '在当前会话身份可访问的历史中%'
+          AND m.content NOT LIKE '历史问答未完成受限范围检索%'
           AND lower(m.content) LIKE lower(?) ESCAPE '!'
+          AND (? = 0 OR m.role = 'assistant')
         ORDER BY m.created_at DESC, m.id DESC LIMIT 10
-    """, (owner, before_message_id, pattern)).fetchall()
+    """, (owner, before_message_id, pattern, int(bool(re.search(r"(?:的回答|回答摘录|历史回答)", question))))).fetchall()
     messages = []
     for row in rows:
         row = dict(row)

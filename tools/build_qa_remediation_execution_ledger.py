@@ -13,10 +13,10 @@ OUT_MD = ROOT / "tests" / "qa_regression" / "optimization_execution_ledger_20260
 
 STATUS = {
     "QAOPT-R01": ("deployed_partial_verified", "V3 TaskPlan已在预取前运行；结构未知任务终态仍未收紧", "补结构失败/歧义澄清门并做复合意图回归"),
-    "QAOPT-R02": ("deployed_partial_verified", "3条生产复测中2条路由正确但渲染不佳，1条生命周期失败", "完成历史结果中文投影、owner隔离和生命周期保全"),
+    "QAOPT-R02": ("deployed_partial_verified", "V5三条历史检索均中文回答且owner受限；生成历史摘录再次被检索", "V6排除生成摘录、回答角色过滤并复测"),
     "QAOPT-R03": ("deployed_partial_verified", "V4三条代表题中CO/CO2/H2及南北探尺通过；A-D温差问句未过动作门", "V5修复观测式问句并复测四点实际统计"),
-    "QAOPT-R04": ("deployed_partial_verified", "V4真实30日基线通过；两窗查询成功但扁平items适配错误，误丢统计", "V5按生产扁平结构验证两窗统计、差值与窗口边界"),
-    "QAOPT-R05": ("deployed_partial_verified", "V4已读取最新日报正文；漏识别行内摘要而退回长正文", "V5支持摘要元数据行并证明不输出整份明细"),
+    "QAOPT-R04": ("production_verified", "V5真实相邻两窗统计、差值及相对变化通过；V4真实30日基线通过", "扩展多对象、缺失数据及窗口覆盖回归"),
+    "QAOPT-R05": ("production_verified", "V5真实最新日报摘要提取通过；缺摘要单独partial合同已验证", "扩大报表类型并保持正文依赖和权威边界"),
     "QAOPT-R06": ("production_verified", "2条诊断/复合分析题均通过生产复测", "扩大持出集，保持每子任务完成合同"),
     "QAOPT-R07": ("deployed_partial_verified", "无工具题正确保持0调用，但答案因长度截断", "加入无工具完成度检查和长度续写/压缩策略"),
     "QAOPT-R08": ("deployed_partial_verified", "禁代码未再吞掉正常压力回答；1条因Origin合同未发送", "用合规同源客户端复测并补混合请求部分拒绝"),
@@ -72,10 +72,10 @@ def main() -> int:
         "schema": "bf.qa.optimization-execution-ledger.v1",
         "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
         "checked_at": "2026-09-16",
-        "production_commit": "f79b13ccf79d3b522c5a7a253989c9915df74aa4",
+        "production_commit": "312085a88ae95027728d5b8b72c4293af834d055",
         "production_retest": {"passed": 2, "partial": 6, "failed": 7, "blocked_client_contract": 1},
-        "latest_production_retest": {"version": "routing-v4", "requests": 6, "sse_done": 6, "passed": 3, "partial": 1, "failed": 2, "automatic_post_retries": 0},
-        "current_local_candidate": {"version": "routing-v5", "issues": ["QAOPT-R03", "QAOPT-R04", "QAOPT-R05", "QAOPT-R02", "QAOPT-O01", "QAOPT-E01"], "state": "in_progress"},
+        "latest_production_retest": {"version": "routing-v5", "requests": 8, "sse_done": 7, "answer_recovered_readonly": 1, "passed": 2, "partial": 4, "failed": 2, "automatic_post_retries": 0},
+        "current_local_candidate": {"version": "routing-v6", "issues": ["QAOPT-R02", "QAOPT-R03", "QAOPT-R07", "QAOPT-R10", "QAOPT-E02", "QAOPT-E04", "QAOPT-E05", "QAOPT-E06", "QAOPT-O04"], "state": "verified_not_deployed"},
         "rows": rows,
     }
     OUT_JSON.write_bytes((json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
@@ -86,7 +86,7 @@ def main() -> int:
         "- 状态：执行中；最后核对：2026-09-16。",
         "- 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。",
         "- 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。",
-        "- 生产基线：`f79b13ccf79d3b522c5a7a253989c9915df74aa4`；V4已部署，六题复测3通过/1部分/2失败，V5继续修复。",
+        "- 生产基线：`312085a88ae95027728d5b8b72c4293af834d055`；V5已部署，八题复测2通过/4部分/2失败；V6候选106项回归通过。",
         "",
         "## 借鉴 DSH 与 Codex 的实施边界",
         "",

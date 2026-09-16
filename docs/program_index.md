@@ -1069,3 +1069,11 @@ V4构建器新增准确生产MCP SHA-256绑定与字符截断差分。本机旧�
 - `prepare_qa_routing_v3_release.py`及三个受控发布脚本：兼容V3/V4/V5精确写集，不覆盖共享配置。
 
 以上backend路径相对`高炉前端数据/智能助手`；需求及测试见[V5交接](handoffs/2026-09-16-qa-routing-v5-local-candidate.md)。
+
+## QA V6程序索引（2026-09-16，候选）
+
+- `qa_verified_facts.py::EvidenceItem/prefetch_outcome/temperature_comparison`：对象/时间/来源/单位范围、确定性均值差及质量缺项。
+- `qa_completion.py::complete_model_response/public_completion`：JSON/SSE共用一次同请求压缩补答、独立完成状态。
+- `qa_history_projection.py::fetch_owned_history`：历史检索生成答案排除和回答角色过滤。
+- `mcp_conversation_context.py::update_tool_context`：明确追问继承、主题切换/过期重置、旧数值证据不复用。
+- `tools/build_qa_routing_v6_candidate.py`：精确V5生产代理补丁；发布脚本V6为五文件精确写集。上述backend路径相对`高炉前端数据/智能助手/backend`，定位行号TODO-LINES；[权威证据](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。

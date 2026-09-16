@@ -1141,3 +1141,7 @@
 REQ-QA-FULL-ISSUE-INVENTORY-20260916：R02/R03/R04/R05/E01/O01/O05 的本轮代码及验收边界见
 [V5本机交接](handoffs/2026-09-16-qa-routing-v5-local-candidate.md)。历史SQL只使用服务端已认证owner，
 旧无范围MCP入口关闭；线上非空答案不作为完成证据。生产状态由后续部署交接更新。
+
+## QA V5生产与V6接缝（2026-09-16）
+
+REQ-QA-FULL-ISSUE-INVENTORY-20260916：V5八题2通过/4部分/2失败；V6继续修复历史摘录递归、单点无证据推断、温差完整度、截断和多轮继承。106项聚焦回归通过，生产状态见[V5生产/V6候选交接](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。未计入828条知识语义待审题。

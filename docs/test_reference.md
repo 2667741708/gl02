@@ -3199,3 +3199,7 @@ REQ-QA-FULL-ISSUE-INVENTORY-20260916：六题各一次POST，3通过/1部分/2�
 超时、取消和真实报表摘要结构；TaskPlan15/15，MCP金标14/14仅结构验证。
 新增`test_qa_routing_v5_candidate.py`、`test_qa_history_projection.py`、`test_qa_model_readiness.py`。
 生产验收待受控部署；详细范围见[V5交接](handoffs/2026-09-16-qa-routing-v5-local-candidate.md)。
+
+## QA V5生产与V6回归（2026-09-16）
+
+V5真实八题2通过/4部分/2失败，七题SSE落盘，第八题只读恢复答案而未恢复事件。V6共106项聚焦回归通过；新增`test_qa_v6_contracts.py`检查有限值/来源/对象/单位/窗口、质量缺项、截断压缩和继承；`test_qa_retest_persistence.py`复现元数据缺少时已发送结果保全。生产Python3.11只编译不执行模型，临时索引原始/语义275行一致，没有换行迁移。[权威交接](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。

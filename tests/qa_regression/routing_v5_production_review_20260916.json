@@ -1,0 +1,23 @@
+{
+  "schema": "bf.qa.production-semantic-review.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version": "routing-v5",
+  "production_commit": "312085a88ae95027728d5b8b72c4293af834d055",
+  "requests": 8,
+  "persisted_sse_done": 7,
+  "recovered_answer_without_event_evidence": 1,
+  "automatic_post_retries": 0,
+  "passed": 2,
+  "partial": 4,
+  "failed": 2,
+  "reviews": [
+    {"case_id":"TPL-933773C8C24B2E93","status":"partial","issues":["QAOPT-R03","QAOPT-E04","QAOPT-E05"],"evidence":"四点真实统计已取得；复测器记录异常后通过单次题目/时间窗只读恢复答案。缺点间比较、单位/零值/覆盖率说明；原SSE事件证据未恢复，不计SSE通过。"},
+    {"case_id":"TPL-26CC8346013E1DEA","status":"passed","issues":["QAOPT-R04","QAOPT-E04"],"evidence":"两次查询、相邻互不重叠窗口、样本数/来源、均值差和相对变化均输出；未断言因果或异常。"},
+    {"case_id":"TPL-8DA6777B502376D4","status":"passed","issues":["QAOPT-R05"],"evidence":"列目录后读取正文并识别摘要元数据；只输出真实摘要，说明历史范围。"},
+    {"case_id":"TPL-FD3912331A49B991","status":"partial","issues":["QAOPT-R02","QAOPT-E01","QAOPT-O05"],"evidence":"可信身份限定检索、历史声明、结构化内容不展开；长摘录仍待精简。"},
+    {"case_id":"TPL-3877C5B34E972AA0","status":"partial","issues":["QAOPT-R02"],"evidence":"路由已正确，但新生成的历史检索答案再次进入检索，形成嵌套摘录。"},
+    {"case_id":"TPL-4EB4CE7FC45519A5","status":"partial","issues":["QAOPT-R02"],"evidence":"范围已受限，但回答筛选未区分历史提问与回答，生成摘录污染检索排序。"},
+    {"case_id":"TPL-18F38D141C29CF15","status":"failed","issues":["QAOPT-R07","QAOPT-E05"],"evidence":"0工具调用且区分一般知识与现场；答案句中截断，不满足完整性。"},
+    {"case_id":"TPL-A60B0CD794D49E48","status":"failed","issues":["QAOPT-E02","QAOPT-E05","QAOPT-E06"],"evidence":"预取未再发生兄弟模块导入失败；单点读数被自由模型扩写为正常范围、匹配及未波动，无对应证据。"}
+  ]
+}

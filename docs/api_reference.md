@@ -302,3 +302,7 @@ REQ-QA-FULL-ISSUE-INVENTORY-20260916：纯历史问答在现有`/api/qa/chat`内
 `terminal_state=dependency_blocked`和`automatic_replay=false`；前端仍须由用户手动发送。
 `/api/ollama/status`成功增加`readiness_contract=approved_resident_model`；状态是当次驻留检查，不是后续生成保证。
 见[V5交接](handoffs/2026-09-16-qa-routing-v5-local-candidate.md)。
+
+## QA V6完成状态增量（2026-09-16，候选）
+
+现有JSON及SSE final增加`completion`，包含`terminal_state`、`complete`、缺对象/质量或截断/repair字段。`answered_pending_review`不表示语义通过；质量不足或补答仍截断标记`partial`。内部压缩补答最多一次，外部SSE POST不自动重放。单点预取回答固定对象、采集时间、单位与来源，不宣称正常、匹配或历史趋势。[权威交接](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。

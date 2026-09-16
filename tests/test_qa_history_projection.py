@@ -55,3 +55,15 @@ def test_keyword_extraction_of_three_real_failures():
     assert history.history_keyword("检索历史问答里关于透气性的回答") == "透气性"
     assert history.history_keyword("最近有没有关于顶压波动的历史问答？") == "顶压波动"
     assert history.history_keyword("之前有没有问过顶压波动？") == "顶压波动"
+
+
+def test_generated_history_projections_never_reenter_search_or_crowd_original_answers():
+    conn = database()
+    conn.executemany('INSERT INTO qa_messages VALUES (?, ?, ?, ?, ?)', [
+        (index, 'a', 'assistant', '在当前会话身份可访问的历史中找到 10 条匹配消息：顶压波动：旧回答', '2026-09-16') for index in range(5, 25)
+    ])
+    result = history.fetch_owned_history(conn, owner='owner-a', before_message_id=30, question='检索历史问答里关于顶压波动的回答')
+    assert result['count'] == 1
+    assert result['messages'][0]['excerpt'] == '顶压波动：旧回答'
+    assert all(item['role'] == 'assistant' for item in result['messages'])
+    conn.close()
