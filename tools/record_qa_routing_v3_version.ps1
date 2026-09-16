@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('V3','V4','V5','V6')][string]$Version = 'V3')
+param([ValidateSet('V3','V4','V5','V6','V7')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -42,6 +42,14 @@ if ($Version -eq 'V6') {
     $Guard = Join-Path $StageRoot 'git_record_guard.py'
 }
 $OperationPath = Join-Path $StageRoot 'operation.json'
+if ($Version -eq 'V7') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v7-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v7-20260916-r1'
+    $CommitMessage = 'fix: bind history exclusion SQL patterns [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v7-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+}
 $PlanPath = Join-Path $StageRoot 'record-plan.json'
 $Operation = Get-Content -LiteralPath $OperationPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $Plan = Get-Content -LiteralPath $PlanPath -Raw -Encoding UTF8 | ConvertFrom-Json

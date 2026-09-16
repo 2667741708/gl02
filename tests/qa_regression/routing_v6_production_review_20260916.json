@@ -1,0 +1,18 @@
+{
+  "schema":"bf.qa.production-semantic-review.v1",
+  "requirement_id":"REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version":"routing-v6",
+  "production_commit":"dd34e235f75d9f474923c4094c47e035e8328229",
+  "requests":8,"persisted_sse_done":7,"automatic_post_retries":0,
+  "passed":3,"partial":1,"failed":3,"dependency_blocked":1,
+  "reviews":[
+    {"case_id":"TPL-933773C8C24B2E93","status":"partial","evidence":"四点实际统计与单位未登记、全零和样本覆盖缺项全部列出；缺有效单位与同时刻对齐证据，拒绝判定正式温差或异常，完成状态partial。代码边界已修复，真实测点质量依赖仍开放。"},
+    {"case_id":"TPL-26CC8346013E1DEA","status":"passed","evidence":"相邻两个历史窗口统计及差值再次通过。"},
+    {"case_id":"TPL-8DA6777B502376D4","status":"passed","evidence":"读取正式日报的真实摘要再次通过。"},
+    {"case_id":"TPL-FD3912331A49B991","status":"failed","evidence":"历史SQL遇到真实PostgreSQL占位符兼容错误，关闭范围回答，未泄漏跨owner信息。"},
+    {"case_id":"TPL-3877C5B34E972AA0","status":"failed","evidence":"同一历史SQL依赖失败，V7改为绑定排除模式，新增真实驱动解析回归。"},
+    {"case_id":"TPL-4EB4CE7FC45519A5","status":"failed","evidence":"历史SQL兼容错误，未计非空降级文案为通过。"},
+    {"case_id":"TPL-18F38D141C29CF15","status":"dependency_blocked","evidence":"上游RemoteDisconnected，error确定结束；随后就绪检查证明Ollama不可用/未驻留，无外部自动重放。压缩补答生产效果尚无通过证据。"},
+    {"case_id":"TPL-A60B0CD794D49E48","status":"passed","evidence":"该题首次在发送前因健康阻断，没有claim；只续跑未发送题。实际单点预取固定对象/采集时刻/来源，无额外模型、不编造正常范围或趋势。"}
+  ]
+}

@@ -67,3 +67,28 @@ def test_generated_history_projections_never_reenter_search_or_crowd_original_an
     assert result['messages'][0]['excerpt'] == '顶压波动：旧回答'
     assert all(item['role'] == 'assistant' for item in result['messages'])
     conn.close()
+
+
+def test_real_psycopg_placeholder_parser_accepts_generated_history_exclusion_sql():
+    # SQLite alone cannot detect psycopg interpreting a literal % in SQL.
+    # Use the project's actual qmark translation and the driver's real parser.
+    import ast
+    from psycopg._queries import _split_query
+    adapter = Path(__file__).resolve().parents[1] / '高炉前端数据/智能助手/backend/assistant_pg.py'
+    tree = ast.parse(adapter.read_text(encoding='utf-8'))
+    node = next(item for item in tree.body if isinstance(item, ast.FunctionDef) and item.name == '_qmark_to_psycopg')
+    scope = {}
+    exec(compile(ast.Module(body=[node], type_ignores=[]), str(adapter), 'exec'), scope)
+    class Connection:
+        def execute(self, sql, params):
+            prepared = scope['_qmark_to_psycopg'](sql)
+            parts = _split_query(prepared.encode('utf-8'), 'utf-8')
+            assert prepared.count('%s') == len(params) == 6
+            assert params[2].startswith('在当前') and params[3].startswith('历史问答未完成')
+            assert params[4] == '%顶压波动%'
+            self.parts = parts
+            return self
+        def fetchall(self): return []
+    conn = Connection()
+    result = history.fetch_owned_history(conn, owner='owned', before_message_id=10, question='之前有没有问过顶压波动？')
+    assert result['ok'] and result['count'] == 0
