@@ -22,6 +22,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--snapshot',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--version', choices=('v21','v22'), default='v21')
     args=parser.parse_args()
     ledger=load(ROOT/'tests/qa_regression/question_ledger_20260916.json')
     entries=ledger['rows'] if isinstance(ledger,dict) and 'rows' in ledger else ledger['questions']
@@ -54,7 +55,7 @@ def main():
     snapshot=load(args.snapshot)
     if not snapshot.get('ok'):raise ValueError('Unverified production snapshot')
     plan={'schema':'bf.qa.paired-failure-round.v1','requirement_id':'REQ-QA-PAIRED-FAILURE-RETEST-20260916',
-          'phase':'after-v21','round':'paired-v21-20260916-r1','production_commit':snapshot['head'],
+          'phase':'after-'+args.version,'round':'paired-'+args.version+'-20260917-r1','production_commit':snapshot['head'],
           'collector_sha256':hashlib.sha256((ROOT/'tools/run_qa_live_case.py').read_bytes()).hexdigest(),
           'catalog_sha256':snapshot['catalog_sha256'],'runtime_hashes':snapshot['runtime_hashes'],
           'model_identity':snapshot['model_identity'],'cases':cases,

@@ -117,7 +117,19 @@ def _is_no_live_request(instruction: str) -> bool:
 def _explicit_live_request(instruction: str) -> bool:
     if not _contains_any(instruction, _LIVE_TERMS):
         return False
+    if (not re.search(r"当前|现在|目前|最近|过去|今天|今日|昨天|最新|实时", instruction)
+            and _contains_any(instruction, ("通常", "一般", "原理", "原因", "含义"))):
+        return False
     if qa_time_window_plan.temporal_intent(instruction):
+        return True
+    # REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
+    # Single-window comparisons and stability questions are observations too.
+    # The downstream reviewed resolver owns exact point IDs; requiring its
+    # separate multi-entity range resolver here drops valid single body points.
+    if (re.search(r"当前|现在|目前|最近|过去", instruction)
+            and re.search(r"对比|比较|稳不稳|大不大|高不高|低不低|顺不顺|偏高吗|偏低吗", instruction)
+            and re.search(r"压差|炉体温度|炉顶压力|顶压|炉喉温度|铁口温度|风量|风温|(?:第)?\d{1,2}层\s*[A-Fa-f]\s*温度", instruction)
+            and not _contains_any(instruction, ("通常", "一般", "原理", "原因", "含义", "假设"))):
         return True
     # Observational questions need data even without an imperative verb.
     # Require a current/window anchor and a reviewed object; generic process

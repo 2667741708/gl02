@@ -9,7 +9,7 @@ def sha(path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", choices=("v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21"), default="v9")
+    parser.add_argument("--version", choices=("v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23"), default="v9")
     args = parser.parse_args()
     RELEASE = ROOT / f".codex_runtime/qa-routing-{args.version}/release"
     text = (ROOT / ".codex_runtime/qa-routing-v8/release/invoke-deployment.ps1").read_text(encoding="utf-8")

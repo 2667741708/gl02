@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version', choices=('v21',), required=True)
+    parser.add_argument('--version', choices=('v21','v22','v23'), required=True)
     args = parser.parse_args()
     release = ROOT/f'.codex_runtime/qa-routing-{args.version}/release'
     baseline = json.loads((release/'readonly-baseline.json').read_text(encoding='utf-8'))
@@ -27,7 +27,7 @@ def main():
     recipes=json.loads(registry.read_text(encoding='utf-8'))
     for validation in recipes[args.version]['validations']:
         if validation['id']=='remote-readonly-preflight':
-            validation.update(status='passed',evidence='Exact HEAD/dependency hashes/scoped clean and staged Python3.11 compile;recordable5 raw/5 semantic lines,no EOL migration')
+            validation.update(status='passed',evidence='Exact HEAD/dependency hashes/scoped clean and staged Python3.11 compile; candidate recordability verified; no EOL migration')
     registry.write_bytes((json.dumps(recipes,ensure_ascii=False,indent=2)+'\n').encode('utf-8'))
     print(json.dumps({'ok':True,'version':args.version}))
 

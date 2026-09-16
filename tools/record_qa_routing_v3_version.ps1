@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21')][string]$Version = 'V3')
+param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -173,6 +173,24 @@ if ($Version -eq 'V21') {
     $ExecutionId = 'qa-routing-v21-20260916-r1'
     $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v21-20260916-r1'
     $CommitMessage = 'fix: enforce one active assistant request across roles [REQ-QA-EXCLUSIVE-USE-20260916] [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v21-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V22') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v22-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v22-20260916-r1'
+    $CommitMessage = 'fix: validate CV domain and clarify trend scope [REQ-QA-STATISTICAL-SCOPE-20260917] [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v22-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V23') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v23-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v23-20260916-r1'
+    $CommitMessage = 'fix: route single-window observations to read-only data [REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917] [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v23-20260916-r1]'
     $Guard = Join-Path $StageRoot 'git_record_guard.py'
     $OperationPath = Join-Path $StageRoot 'operation.json'
     $PlanPath = Join-Path $StageRoot 'record-plan.json'

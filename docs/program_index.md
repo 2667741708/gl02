@@ -1,5 +1,9 @@
 # 程序索引
 
+## REQ-QA-STATISTICAL-SCOPE-20260917 / REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
+
+[qa_verified_facts.py](../高炉前端数据/智能助手/backend/qa_verified_facts.py)的`cv_contract/render_cv/trend_context`校验统计适用性并限定时间尺度；[qa_task_plan.py](../高炉前端数据/智能助手/backend/qa_task_plan.py)的`_explicit_live_request`补单窗观察且保留说明/用户数据边界。代理候选从当前生产字节确定性构建，497其他AST节点不变；本机旧代理不得直接覆盖生产。[V22/V23实施与作用域](handoffs/2026-09-17-qa-v23-single-window-routing.md)。行号TODO-LINES。
+
 ## REQ-QA-INITIAL-828-SEMANTIC-REVIEW-20260916：审阅结果验收
 
 [validate_qa_initial_828_review.py](../tools/validate_qa_initial_828_review.py)仅核对完成报告是否覆盖原待审828唯一题、首次result_sha256、五类语义状态及禁公开字段。实际语义审阅由用户指定的单个`gpt-5.6-luna`子智能体完成，不调用生产，不以关键词规则替代语义判断；当前审阅进行中。

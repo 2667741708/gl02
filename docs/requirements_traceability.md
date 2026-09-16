@@ -1,5 +1,9 @@
 # 需求追踪
 
+## REQ-QA-STATISTICAL-SCOPE-20260917 / REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
+
+V22已发布CV适用条件/趋势范围/MCP责任说明；其复测两题工具0次而误称未连接系统，V23据真实原题修复单窗对比与单点稳定性路由，保留无工具/禁现场/文档边界。105项关联回归通过，V23生产字节/PID/CAS验收通过，407题上线复测进行中，未称全量解决。[统计与完整方案](handoffs/2026-09-17-qa-v22-optimization-and-paired-retest.md)、[V23验收](handoffs/2026-09-17-qa-v23-single-window-routing.md)。
+
 ## REQ-QA-INITIAL-828-SEMANTIC-REVIEW-20260916：首次待审答复逐题核验
 
 按用户明确指定，启动单个`gpt-5.6-luna`子智能体审核首次台账828道`pending_semantic_review`的已有答复，模型固定，不调用其他模型，不发送生产问答。原题、首次答复和标准不改；通过、部分正确、失败、标准冲突、证据不足分别记录。未审完不计算全量准确率，不将后续版本的新答案混入首次数据。公开仅脱敏结论和首次结果哈希，原始证据保留忽略目录；主任务用[离线范围/哈希/隐私核验器](../tools/validate_qa_initial_828_review.py)验收。当前状态：子任务已启动，语义审核进行中。
@@ -1189,3 +1193,8 @@ REQ-QA-FULL-ISSUE-INVENTORY-20260916：R02/R03/R04/R05/E01/O01/O05 的本轮代�
 ## QA V5生产与V6接缝（2026-09-16）
 
 REQ-QA-FULL-ISSUE-INVENTORY-20260916：V5八题2通过/4部分/2失败；V6继续修复历史摘录递归、单点无证据推断、温差完整度、截断和多轮继承。106项聚焦回归通过，生产状态见[V5生产/V6候选交接](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。未计入828条知识语义待审题。
+
+
+### V23真实复测冻结补记（2026-09-17）
+
+407题已发8题：2通过、3部分、3失败；399明确未发送，模型身份未核实中断。只计算观察小样本，不发布全量准确率。详情见[逐题核验](handoffs/2026-09-17-qa-v23-single-window-routing.md)与[受控模型窗口/V24方案](handoffs/2026-09-17-qa-model-window-and-v24-plan.md)。

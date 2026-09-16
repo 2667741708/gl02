@@ -28,8 +28,15 @@ def verify(plan,root,collector):
         with urllib.request.urlopen('http://127.0.0.1:11434/api/tags',timeout=6) as response:
             tags=json.load(response)
         matches=[row for row in tags.get('models',[]) if row.get('name')==identity['name']]
-        if len(matches)!=1 or matches[0].get('digest')!=identity['digest']:
+        approved=identity.get('approved_digests') or [identity['digest']]
+        if len(matches)!=1 or matches[0].get('digest') not in approved:
             raise RuntimeError('model identity changed; no next request sent')
+        with urllib.request.urlopen('http://127.0.0.1:11434/api/ps',timeout=6) as response:
+            resident=json.load(response).get('models',[])
+        if len(resident)!=1 or resident[0].get('digest')!=matches[0].get('digest'):
+            raise RuntimeError('resident model differs from frozen identity; no next request sent')
+        return {'name':identity['name'],'digest':matches[0]['digest']}
+    return None
 
 def model_ready():
     try:
@@ -48,7 +55,7 @@ def main():
     p.add_argument('--detach',action='store_true')
     a=p.parse_args()
     if not a.execute: p.error('--execute required')
-    plan=read(a.plan); verify(plan,a.root,a.collector)
+    plan=read(a.plan)
     if len({c['case_id'] for c in plan['cases']})!=len(plan['cases']): raise RuntimeError('duplicate case ID')
     a.output.mkdir(parents=True,exist_ok=True)
     if a.detach:
@@ -67,9 +74,10 @@ def main():
     conversations=dict(plan.get('initial_conversations') or {})
     progress=a.output/'progress.json'
     try:
+        verify(plan,a.root,a.collector)
         for case in plan['cases']:
             state['active_case']=case['case_id']; write(progress,state)
-            verify(plan,a.root,a.collector)
+            before_identity=verify(plan,a.root,a.collector)
             caseid=case['case_id']; outfile=a.output/(caseid+'.json'); claim=a.output/(caseid+'.claim')
             if outfile.exists() or claim.exists():
                 raise RuntimeError('existing evidence requires explicit read-only recovery: '+caseid)
@@ -77,13 +85,15 @@ def main():
                 if model_ready(): break
                 state['state']='waiting_for_model'; write(progress,state); time.sleep(30)
             else: raise RuntimeError('model unavailable; no case request sent')
+            # The readiness wait may outlive an alias/model switch; recheck before claiming/sending.
+            before_identity=verify(plan,a.root,a.collector)
             state['state']='running'; write(progress,state)
             group=case.get('conversation_group')
             if group and case.get('turn_index',0)>0 and group not in conversations:
                 raise RuntimeError('prior turn unavailable: '+caseid)
             with claim.open('x',encoding='utf-8') as f:
                 json.dump({'case_id':caseid,'prompt_sha256':hashlib.sha256(case['prompt'].encode()).hexdigest(),
-                    'request_may_be_sent':True,'created_at':time.time()},f)
+                    'request_may_be_sent':True,'created_at':time.time(),'before_identity':before_identity},f)
             # Only actual user inputs reach the collector, never test oracles.
             payload={k:case[k] for k in ('case_id','prompt','prompt_mode') if k in case}
             cmd=[sys.executable,'-X','utf8',str(a.collector),'--root',str(a.root),
@@ -102,8 +112,20 @@ def main():
                 'has_answer':bool(result.get('answer')),'error_code':result.get('error_code'),
                 'route':result.get('final',{}).get('answer_route'),
                 'tool_calls':len(result.get('tool_starts',[])),
-                'answer_contract':'pending_review' if result.get('answer') else 'failed'})
+                'answer_contract':'pending_review' if result.get('answer') else 'failed',
+                'before_identity':before_identity})
             write(progress,state)
+            # Keep already-sent evidence even if model/code drift occurred during the turn.
+            try:
+                after_identity=verify(plan,a.root,a.collector)
+                state['results'][-1]['after_identity']=after_identity
+                if after_identity!=before_identity:
+                    raise RuntimeError('model digest changed during turn')
+                state['results'][-1]['post_turn_identity']='matched'
+            except Exception:
+                state['results'][-1]['post_turn_identity']='drift_or_unavailable'
+                write(progress,state)
+                raise RuntimeError('identity drift after sent case; evidence retained; do not replay: '+caseid)
         state['state']='completed'; state['active_case']=None
     except Exception as exc:
         state['state']='blocked'; state['error_type']=type(exc).__name__; state['reason']=str(exc)

@@ -7,11 +7,58 @@ import math
 import re
 from typing import Any
 
-VERSION = 'qa-verified-facts-v1'
+VERSION = 'qa-verified-facts-v2-statistical-scope'
 
 
 def finite(value: Any) -> bool:
     return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
+
+
+def cv_contract(statistics: dict, unit: str) -> dict:
+    """Guard a descriptive population ratio, without assuming a physical zero."""
+    mean = statistics.get('avg')
+    stddev = statistics.get('stddev', statistics.get('stddev_pop'))
+    if not finite(mean) or not finite(stddev) or stddev < 0:
+        return {'value': None, 'reason': '统计输入缺失或无效'}
+    if not str(unit or '').strip():
+        return {'value': None, 'reason': '单位和零点口径未登记'}
+    if str(unit).strip().lower() in {'℃', '°c', '°f', '℉', '摄氏度', '华氏度', 'celsius', 'fahrenheit'}:
+        return {'value': None, 'reason': '该温标不是比例尺度，CV不适用；请用标准差与极差描述波动'}
+    minimum = statistics.get('min')
+    if mean <= 0 or (finite(minimum) and minimum < 0):
+        return {'value': None, 'reason': '均值非正或存在负值，CV相对波动口径不适用'}
+    scale = max([abs(float(stddev))] + [abs(float(statistics[key]))
+                for key in ('min', 'max') if finite(statistics.get(key))])
+    if mean <= max(scale, abs(float(mean))) * 1e-12:
+        return {'value': None, 'reason': '均值接近数值零，CV对微小变化敏感，不作相对波动比较'}
+    value = float(stddev) / float(mean) * 100.0
+    if not math.isfinite(value):
+        return {'value': None, 'reason': '计算结果不是有限数值'}
+    return {'value': value, 'reason': '描述性比值；比例尺度与有效零点未另行核实，不用于正式跨尺度优劣比较'}
+
+
+def render_cv(statistics: dict, unit: str, number) -> str:
+    contract = cv_contract(statistics, unit)
+    if contract['value'] is None:
+        return 'CV未提供：' + contract['reason'] + '；保留标准差与极差。'
+    return ('CV = STDDEV_POP ÷ 均值 × 100% = ' + number(contract['value']) + '%；'
+            + contract['reason'] + '。')
+
+
+def trend_context(statistics: dict, unit_text: str, number) -> str:
+    """Name the scope of an upstream two-signal check and compare all scales."""
+    if not any(key in statistics for key in ('endpoint_direction', 'regression_direction', 'recent_direction')):
+        return ''
+    known = {'上升', '下降', '基本持平'}
+    directions = [statistics.get(key) for key in
+                  ('endpoint_direction', 'regression_direction', 'recent_direction')]
+    endpoint, regression, recent = [value if isinstance(value, str) and value in known else '无法判断' for value in directions]
+    pair = ('consistent' if endpoint == regression else 'conflicting') if endpoint in known and regression in known else 'insufficient'
+    all_scales = ('方向一致' if endpoint == regression == recent else '存在时间尺度差异') if all(value in known for value in (endpoint, regression, recent)) else '部分时间尺度证据不足'
+    delta = statistics.get('recent_delta')
+    return (f'首末方向 {endpoint}；回归方向 {regression}；最近15分钟方向 {recent}；'
+            f'最近15分钟变化量 {number(delta) + unit_text if finite(delta) else "无法判断"}；'
+            f'首末与回归一致性 {pair}；全部时间尺度：{all_scales}。')
 
 
 def timestamp(value: Any) -> datetime | None:

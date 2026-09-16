@@ -1,8 +1,8 @@
 {
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
-  "checked_at": "2026-09-16",
-  "production_commit": "cdb69f5ba233475fdcad989fc2442e64a01aaa8d",
+  "checked_at": "2026-09-17",
+  "production_commit": "baaa7496afbd43b35be98c1e231f79a71d3aa7cf",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -10,17 +10,22 @@
     "blocked_client_contract": 1
   },
   "latest_production_retest": {
-    "version": "routing-v21",
-    "requests": 4,
-    "sse_done": 4,
-    "passed": 3,
-    "partial": 1,
-    "failed": 0,
-    "planned": 413,
-    "not_sent": 409,
-    "model_identity_drift": true,
+    "version": "routing-v23",
+    "requests": 8,
+    "sse_done": 8,
+    "passed": 2,
+    "partial": 3,
+    "failed": 3,
+    "planned": 407,
+    "not_sent": 399,
+    "model_identity_drift_or_unavailable": true,
     "automatic_post_retries": 0,
-    "full_dataset_accuracy_available": false
+    "stable_sample": 7,
+    "stable_sample_correct_complete": 2,
+    "stable_sample_correct_complete_rate": 0.2857142857142857,
+    "first_405_failed_attempted": 6,
+    "full_dataset_accuracy_available": false,
+    "evidence": "routing_v23_paired_observations_20260917.json"
   },
   "knowledge_collection": {
     "source": 833,
@@ -30,7 +35,7 @@
     "full_semantic_pass_inferred": false
   },
   "current_local_candidate": {
-    "version": "next",
+    "version": "v24_plan",
     "issues": [
       "QAOPT-K06",
       "QAOPT-R02",
@@ -39,7 +44,7 @@
       "QAOPT-T02",
       "QAOPT-T04"
     ],
-    "state": "remaining_items_in_progress"
+    "state": "planned_after_v23_collection_blocked_model_window_requires_separate_authorization"
   },
   "rows": [
     {
@@ -48,7 +53,7 @@
       "priority": "P0",
       "title": "统一任务决策，阻止关键词抢路由",
       "state": "deployed_partial_verified",
-      "evidence": "V12制度子任务隔离、未知来源澄清；V13简单读取独立完成",
+      "evidence": "V12制度子任务隔离、未知来源澄清；V13简单读取独立完成; V23全文审核：TPL-342113EAB17420C6 failed",
       "next_gate": "结构未知与全部复合子任务覆盖门",
       "case_ids": [
         "TPL-11F6C2E3DDD207BC",
@@ -79,7 +84,7 @@
       "priority": "P1",
       "title": "完整解析多对象及范围",
       "state": "deployed_partial_verified",
-      "evidence": "V6实际A-D统计已返回；缺单位、零值和稀疏覆盖已明确标记",
+      "evidence": "V6实际A-D统计已返回；缺单位、零值和稀疏覆盖已明确标记; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-342113EAB17420C6 failed；TPL-C5DF79304112ED85 failed",
       "next_gate": "核对数据依赖后扩展多对象质量回归",
       "case_ids": [
         "TPL-61F40958498914A0",
@@ -176,7 +181,7 @@
       "priority": "P1",
       "title": "统一能力说明与Prompt目标",
       "state": "deployed_partial_verified",
-      "evidence": "V8统一能力目标与允许证据，禁实时不抹掉允许的原文知识",
+      "evidence": "V8统一能力目标与允许证据，禁实时不抹掉允许的原文知识; V23全文审核：TPL-C5DF79304112ED85 failed",
       "next_gate": "核对所有复合与降级分支",
       "case_ids": [
         "TPL-00D19D36ED184B7C"
@@ -304,7 +309,7 @@
       "priority": "P0",
       "title": "成功证据不能被生命周期异常清空",
       "state": "deployed_partial_verified",
-      "evidence": "V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回",
+      "evidence": "V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回; V23全文审核：TPL-01EEE414179DB624 partial；TPL-BE97AA4EAD567003 failed",
       "next_gate": "全部工具成功证据恢复与追加账本",
       "case_ids": [
         "TPL-4CA73F09C24F631B"
@@ -319,7 +324,7 @@
       "priority": "P1",
       "title": "有类型的证据与适用范围",
       "state": "deployed_partial_verified",
-      "evidence": "V6当前对象及A-D统计EvidenceItem绑定对象/时间/单位/来源",
+      "evidence": "V6当前对象及A-D统计EvidenceItem绑定对象/时间/单位/来源; V23全文审核：TPL-E1C7A67C947531E9 partial",
       "next_gate": "全部工具证据追加账本",
       "case_ids": [],
       "depends_on": [
@@ -345,7 +350,7 @@
       "priority": "P1",
       "title": "固定计算与统计定义",
       "state": "deployed_partial_verified",
-      "evidence": "V5相邻两窗/V6确定性统计及公式样本数质量限制",
+      "evidence": "V5相邻两窗/V6确定性统计及公式样本数质量限制; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-01EEE414179DB624 partial",
       "next_gate": "统一跨工具派生计算与冲突",
       "case_ids": [
         "TPL-496B774E90F8EA09"
@@ -376,7 +381,7 @@
       "priority": "P1",
       "title": "多源证据冲突与分析深度",
       "state": "deployed_partial_verified",
-      "evidence": "单点不推趋势、窗口均值不冒充同步温差、V12控制与热平衡条件性因果通过",
+      "evidence": "单点不推趋势、窗口均值不冒充同步温差、V12控制与热平衡条件性因果通过; V23全文审核：TPL-FACD6F5FE05C74FC partial",
       "next_gate": "跨源冲突和时效矩阵",
       "case_ids": [],
       "depends_on": [
@@ -389,9 +394,9 @@
       "issue_id": "QAOPT-O01",
       "priority": "P0",
       "title": "模型就绪与请求间竞态",
-      "state": "production_dependency_open",
-      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本",
-      "next_gate": "单一模型状态控制者、测试期间固定digest且标签/驻留一致；模型任务变更须独立授权，仅续跑已证明未发送409题",
+      "state": "dependency_blocked",
+      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed",
+      "next_gate": "单独授权受控模型窗口，原状态恢复验证后续跑399明确未发送题",
       "case_ids": [
         "TPL-18F38D141C29CF15"
       ],
@@ -502,8 +507,8 @@
       "priority": "P1",
       "title": "全答案审阅、持出集与重复可靠性",
       "state": "in_progress",
-      "evidence": "历史828待语义审查为旧快照；新有效803题原文覆盖已核验，30oracle阻断单列，不称833全通过",
-      "next_gate": "旧case_id逐条对齐新覆盖结果及独立语义持出审查",
+      "evidence": "历史828待语义审查为旧快照；新有效803题原文覆盖已核验，30oracle阻断单列，不称833全通过; V23全文审核：TPL-E1C7A67C947531E9 partial",
+      "next_gate": "828真实逐题审核完成；初筛默认passed结果不作为语义准确率",
       "case_ids": [],
       "depends_on": [
         "QAOPT-T01",
@@ -548,5 +553,20 @@
     "failed": 0,
     "provenance_readonly_passed": 5,
     "automatic_post_retries": 0
-  }
+  },
+  "production_retest_history": [
+    {
+      "version": "routing-v21",
+      "requests": 4,
+      "sse_done": 4,
+      "passed": 3,
+      "partial": 1,
+      "failed": 0,
+      "planned": 413,
+      "not_sent": 409,
+      "model_identity_drift": true,
+      "automatic_post_retries": 0,
+      "full_dataset_accuracy_available": false
+    }
+  ]
 }

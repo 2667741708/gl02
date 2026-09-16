@@ -1,0 +1,225 @@
+{
+  "schema": "bf.qa.v23.independent-observations.v1",
+  "checked_at": "2026-09-17",
+  "requirement_id": "REQ-QA-PAIRED-FAILURE-RETEST-20260916",
+  "production_commit": "baaa7496afbd43b35be98c1e231f79a71d3aa7cf",
+  "method": "Primary-agent full-question/full-answer review; statistical and prefetch evidence inspected, report source independently read; history response reviewed without a separate database re-query.",
+  "planned": 407,
+  "attempted": 8,
+  "proven_unsent": 399,
+  "passed": 2,
+  "partial": 3,
+  "failed": 3,
+  "stable_identity_sampled": 7,
+  "stable_sample_correct_complete": 2,
+  "stable_sample_accuracy": 0.2857142857142857,
+  "accuracy_scope": "Seven observed samples only; not full assistant accuracy, causal improvement, or all 405 failure recovery.",
+  "initial_405_failed_attempted": 6,
+  "initial_405_failed_proven_unsent": 399,
+  "initial_failure_stable_sample": {
+    "attempted": 5,
+    "passed": 2,
+    "partial": 1,
+    "failed": 2,
+    "correct_complete_rate": 0.4
+  },
+  "transport_complete": 8,
+  "transport_rate": 1.0,
+  "automatic_post_retries": 0,
+  "state": "blocked_model_identity_drift_or_unavailable",
+  "full_dataset_accuracy_available": false,
+  "rows": [
+    {
+      "case_id": "TPL-FACD6F5FE05C74FC",
+      "cohort": "v22_new_failure",
+      "status": "partial",
+      "reason": "三对象同窗口统计与成功工具数据对应，已进入查询；仍缺综合对比结论，两对象单位未登记，总压差单位取渲染映射而非本次工具目录，不能算完整解决。",
+      "issue_ids": [
+        "QAOPT-R03",
+        "QAOPT-E04",
+        "QAOPT-E06"
+      ],
+      "result_sha256": "a7ec3d986165a18f3b10d99b4f9c539074aca8c0a283cc36ceebea5768671d1a",
+      "route": "grounded_fact_only",
+      "transport_complete": true,
+      "eligible_stable_sample": true,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      }
+    },
+    {
+      "case_id": "TPL-01EEE414179DB624",
+      "cohort": "v22_new_failure",
+      "status": "partial",
+      "reason": "单点查询成功，保留真实统计且未补造风险；综合被可信守卫拒绝，未回答稳定性，单位/阈值仍缺。",
+      "issue_ids": [
+        "QAOPT-E01",
+        "QAOPT-E04"
+      ],
+      "result_sha256": "d97dae61dc031900c31a4100f2858e1d6c4e7730f8d43ef4ddbf014b7f485047",
+      "route": "grounding_guard_rejected",
+      "transport_complete": true,
+      "eligible_stable_sample": true,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      }
+    },
+    {
+      "case_id": "TPL-342113EAB17420C6",
+      "cohort": "initial_confirmed_failure",
+      "status": "failed",
+      "reason": "昨晚八点至九点的明确历史查询未调用工具，错误声称无已授权数据访问能力。",
+      "issue_ids": [
+        "QAOPT-R01",
+        "QAOPT-R03"
+      ],
+      "result_sha256": "663afc9a8ed388b011345b5a7bcf02b85fe8d999fa6dee1c3f7bba35fe73943d",
+      "route": "evidence_without_tools",
+      "transport_complete": true,
+      "eligible_stable_sample": true,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      }
+    },
+    {
+      "case_id": "TPL-E1C7A67C947531E9",
+      "cohort": "initial_confirmed_failure",
+      "status": "partial",
+      "reason": "实际完成最近窗口查询并明确缺合格历史基线，不编造偏高结论；业务结论未完成，采集器仅保留工具成功摘要，须补数据质量证据。",
+      "issue_ids": [
+        "QAOPT-E02",
+        "QAOPT-T04"
+      ],
+      "result_sha256": "afc8300585361e2bb29471f9485ca21885803c25ba7e0aaafe805b4f00b3c2f8",
+      "route": "deterministic_time_windows",
+      "transport_complete": true,
+      "eligible_stable_sample": true,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      }
+    },
+    {
+      "case_id": "TPL-FD3912331A49B991",
+      "cohort": "initial_confirmed_failure",
+      "status": "passed",
+      "reason": "返回可访问身份历史的相关提问和时间，历史回答明确为未重新核实的摘录；没有把旧答案冒充当前业务结论。",
+      "issue_ids": [],
+      "result_sha256": "a25558486614d0794a136ac177fafcc7d19fa81696af2238f31a9e4e692918a6",
+      "route": "owner_scoped_history",
+      "transport_complete": true,
+      "eligible_stable_sample": true,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      }
+    },
+    {
+      "case_id": "TPL-8DA6777B502376D4",
+      "cohort": "initial_confirmed_failure",
+      "status": "passed",
+      "reason": "最近日报按文件更新时间选择且摘要与随后Reliable SSH只读读取的实际文件一致，历史范围明确，未执行写入。",
+      "issue_ids": [],
+      "result_sha256": "4b8682144cbb92ff3807a7dda2c9cd235bb433b8482a0e80a4eb6c515ac27776",
+      "route": "deterministic_report_read",
+      "transport_complete": true,
+      "eligible_stable_sample": true,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      }
+    },
+    {
+      "case_id": "TPL-C5DF79304112ED85",
+      "cohort": "initial_confirmed_failure",
+      "status": "failed",
+      "reason": "没有查询或绘图；误把高度与A-F方位混淆并错误否认已授权能力，还提出生成绘图代码，违反禁代码目标。",
+      "issue_ids": [
+        "QAOPT-R03",
+        "QAOPT-R09"
+      ],
+      "result_sha256": "f2b5ef075e2591431b39f6820247d66828c273e8bad3bdceb58360d201859866",
+      "route": "evidence_without_tools",
+      "transport_complete": true,
+      "eligible_stable_sample": true,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      }
+    },
+    {
+      "case_id": "TPL-BE97AA4EAD567003",
+      "cohort": "initial_confirmed_failure",
+      "status": "failed",
+      "reason": "预取已获得顶温值，但最终只输出点位目录；重复最新值查询耗尽预算且综合被拒绝，成功预取事实丢失。请求后身份未核实单列。",
+      "issue_ids": [
+        "QAOPT-E01",
+        "QAOPT-O01"
+      ],
+      "result_sha256": "d0fb5ee9ee9611c5c470664ac1be764d10ef59aa3814ffc92192c3f0a87d592b",
+      "route": "partial_grounded_analysis",
+      "transport_complete": true,
+      "eligible_stable_sample": false,
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": null,
+        "post_turn_identity": "drift_or_unavailable"
+      }
+    }
+  ]
+}

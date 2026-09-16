@@ -1,5 +1,9 @@
 # 配置参考
 
+## REQ-QA-STATISTICAL-SCOPE-20260917：发布与评测配置
+
+V22/V23不修改生产模型、keyword检索、单模型驻留或计划任务配置。复测冻结程序/语义目录哈希，批准Qwen两个digest发送前后分层采样；采样不一致停止并保留已发送记录。`BF_QA_RELEASE_CANDIDATE_REQUIRED=1`仅为本机测试门，候选缺失立即失败，不是生产开关。[范围](handoffs/2026-09-17-qa-v23-single-window-routing.md)。
+
 ## ERR-QA-MODEL-ALIAS-DRIFT-20260916：同名模型的权重漂移
 
 V21未修改生产模型配置。只读确认`BFOllamaModelSelectionRecovery`自动Repair尝试两个版本并反复改写latest别名；曾出现tags与实际驻留digest不一致。两版本都是允许驻留的Qwen，检查模型名称/就绪布尔值不足以冻结实际版本。共享模型与任务控制须独立授权；[最小维护与恢复方案](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。

@@ -1,5 +1,9 @@
 # 排障手册
 
+## REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917：正常比较被答复无法连接系统
+
+若半小时压差比较/单点温度稳不稳的工具调用为0，先查TaskPlan `allow_prefetch/allow_mcp_tools`及执行层，不先扩大模型工具轮数。V23补单窗观察；有工具成功却可信守卫拒绝是另外的完成/证据问题，不能取消校验。模型已驻留但latest digest变化、标签与实际驻留不一致也须分开处理。[问题与闭环](handoffs/2026-09-17-qa-v23-single-window-routing.md)。
+
 ## ERR-QA-MODEL-ALIAS-DRIFT-20260916：健康但模型版本不断变化
 
 先只读比较11434的tags与ps digest、模型active-state及恢复事件，而不是仅比较latest名称。`BFOllamaModelSelectionRecovery`可在候选失败后覆盖公共别名，另行暂停/恢复`BFOllama11434HealthCheck`；二者不能混淆。V21程序已发布，复测4题后在第5题发送前阻断。已发送题不得重放；模型任务维护须独立授权，再续跑未发送409题。[具体证据与恢复边界](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。

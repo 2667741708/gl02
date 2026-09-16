@@ -1,5 +1,9 @@
 # 测试参考
 
+## REQ-QA-STATISTICAL-SCOPE-20260917 / REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
+
+新增[test_qa_statistical_scope.py](../tests/test_qa_statistical_scope.py)、[test_qa_single_window_routing.py](../tests/test_qa_single_window_routing.py)、[test_qa_batch_identity.py](../tests/test_qa_batch_identity.py)，覆盖总体标准差独立复算、CV无效域、趋势双信号范围、实际生产渲染前后对比、单窗观察正反例和模型标签/驻留不一致。最终105项通过，真实V22六题单列全文审阅，V23的407失败题复测进行中；正确率与传输率不混用。[复現与验收](handoffs/2026-09-17-qa-v23-single-window-routing.md)。
+
 ## REQ-QA-INITIAL-828-SEMANTIC-REVIEW-20260916：待审全集一致性门
 
 限定`gpt-5.6-luna`逐题离线审阅828份首次已有答复，进行中，无生产POST。完成后运行`python -X utf8 tools/validate_qa_initial_828_review.py --report tests/qa_regression/initial_828_semantic_review_20260916.json`，预期`ok=true`、`reviewed=828`、`remaining=0`及首次结果哈希一致。此命令只验证范围与隐私字段，不重新判语义，不代表已通过全量审核或准确率。
@@ -3247,3 +3251,8 @@ REQ-QA-FULL-ISSUE-INVENTORY-20260916：六题各一次POST，3通过/1部分/2�
 ## QA V5生产与V6回归（2026-09-16）
 
 V5真实八题2通过/4部分/2失败，七题SSE落盘，第八题只读恢复答案而未恢复事件。V6共106项聚焦回归通过；新增`test_qa_v6_contracts.py`检查有限值/来源/对象/单位/窗口、质量缺项、截断压缩和继承；`test_qa_retest_persistence.py`复现元数据缺少时已发送结果保全。生产Python3.11只编译不执行模型，临时索引原始/语义275行一致，没有换行迁移。[权威交接](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。
+
+
+### V23真实复测冻结补记（2026-09-17）
+
+407题已发8题：2通过、3部分、3失败；399明确未发送，模型身份未核实中断。只计算观察小样本，不发布全量准确率。详情见[逐题核验](handoffs/2026-09-17-qa-v23-single-window-routing.md)与[受控模型窗口/V24方案](handoffs/2026-09-17-qa-model-window-and-v24-plan.md)。

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version', choices=('v18', 'v19', 'v20', 'v21'), required=True)
+    parser.add_argument('--version', choices=('v18', 'v19', 'v20', 'v21', 'v22', 'v23'), required=True)
     parser.add_argument('--phase', choices=('preflight', 'activation'), required=True)
     args = parser.parse_args()
     recipe = json.loads((ROOT/'tools/qa_routing_release_extensions.json').read_text(encoding='utf-8'))[args.version]
@@ -30,7 +30,7 @@ def main():
     command = [sys.executable,'-X','utf8',str(ROOT/'tools/remote_22012_session.py'),'run','--']
     for path, name in files:
         command += ['--upload',f'{path.resolve()}={stage}/{name}']
-    command += ['--upload-only','--emit-timing-json']
+    command += ['--upload-only','--workdir','F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW','--emit-timing-json']
     return subprocess.call(command, cwd=ROOT)
 
 

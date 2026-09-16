@@ -1,5 +1,9 @@
 # API 参考
 
+## REQ-QA-STATISTICAL-SCOPE-20260917：问答统计输出范围
+
+V22保留现有QA/SSE接口和原统计字段；描述性CV仅在满足基本计算条件时展示，温标/缺单位/非正或近零均值明确限制，原均值与标准差仍保留。`trend_consistency`上游语义仅首末与回归，答案明示该范围并另列最近15分钟，不更改原工具合同。V23只调整正常单窗观察的只读路由，无新增写接口或匿名权限。[证据](handoffs/2026-09-17-qa-v23-single-window-routing.md)。
+
 ## REQ-QA-EXCLUSIVE-USE-20260916：使用中拒绝（V21已发布）
 
 8093问答生成入口共用一个活动名额；注册时已有未完成请求，则HTTP409返回`ok=false`、`error=assistant_in_use`、`message=智能助手正在使用中，请等待当前请求结束后手动发送。`、`retryable=true`、`automatic_replay=false`。不返回占用者身份或会话/请求ID，不进入工具或模型调用。取消信号不立即释放，实际停止后才允许新人工发送。既有鉴权、owner隔离与同源合同保留。V21已受控发布，真实双角色/取消现场验收待测；[范围与验收](handoffs/2026-09-16-qa-exclusive-use-local.md)。
