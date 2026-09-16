@@ -16,7 +16,7 @@ foreach ($Name in $Scripts) {
     [void][Management.Automation.Language.Parser]::ParseFile($Path, [ref]$Tokens, [ref]$Errors)
     if ($Errors.Count -ne 0) { throw "Release script parse failed: $Name" }
     $Text = [IO.File]::ReadAllText($Path, $Utf8)
-    if (-not $Text.Contains("ValidateSet('V3','V4','V5','V6','V7')")) { throw "Version gate missing: $Name" }
+    if (-not $Text.Contains("ValidateSet('V3','V4','V5','V6','V7','V8')")) { throw "Version gate missing: $Name" }
 }
 $Deployer = [IO.File]::ReadAllText((Join-Path $PSScriptRoot $Scripts[1]), $Utf8)
 foreach ($Marker in @('Global\BFV4PreviewProxy8093Deployment','Check-Protected $Before','finally','Assert-Baselines','guard_restored')) {

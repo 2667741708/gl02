@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('V3','V4','V5','V6','V7')][string]$Version = 'V3',
+    [ValidateSet('V3','V4','V5','V6','V7','V8')][string]$Version = 'V3',
     [Parameter(Mandatory)][string]$StageRoot,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$PlanHash,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$GateHash
@@ -66,6 +66,15 @@ if ($Version -eq 'V7') {
     $Allowed = @('高炉前端数据/智能助手/backend/qa_history_projection.py')
 }
 $ExpectedStage = [IO.Path]::GetFullPath((Join-Path 'C:\Users\Administrator\AppData\Local\Temp' $ReleaseName))
+if ($Version -eq 'V8') {
+    $Req = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $Allowed = @(
+        '高炉前端数据/智能助手/backend/ollama_proxy_server.py',
+        '高炉前端数据/智能助手/backend/qa_task_plan.py',
+        '高炉前端数据/智能助手/backend/qa_document_knowledge.py',
+        '高炉前端数据/智能助手/backend/qa_prompt_sources.py'
+    )
+}
 if ($StageRoot -ne $ExpectedStage) { throw 'Stage identity mismatch' }
 $PlanPath = Join-Path $StageRoot 'delta-plan.json'
 $GatePath = Join-Path $StageRoot 'scope-gate.json'

@@ -77,6 +77,13 @@ V7_ARTIFACTS = {
     "qa_history_projection.py": {"baseline": ["2fecd6d60ca4ad3c91674a63ff2193bb76c592076069f90967c5c31d22f3d9be"], "markers": ['VERSION = "qa-history-projection-v2"', "c.owner_subject = ? AND m.id < ?", "m.content NOT LIKE ?"], "allow_create": False},
 }
 
+V8_ARTIFACTS = {
+    "ollama_proxy_server.py": {"baseline": ["3ca45c017b4285fa04b97969801e40ec7ea6c6d333dff3136f7a794baaf315c4"], "markers": ["import qa_document_knowledge", "import qa_prompt_sources", "document_result"], "allow_create": False},
+    "qa_task_plan.py": {"baseline": ["f202316a1fce64c4f1648bd2b9919967fd7973e4c1bb361d6528ce7234be953e"], "markers": ["book_reference", "def tool_allowed"], "allow_create": False},
+    "qa_document_knowledge.py": {"baseline": [], "markers": ["qa-document-knowledge-v1", "section_parts_not_contiguous", "table_blocks_preserved"], "allow_create": True},
+    "qa_prompt_sources.py": {"baseline": [], "markers": ["qa-prompt-sources-v1", "def build_source_messages", "DOCUMENT_RULES"], "allow_create": True},
+}
+
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -92,25 +99,25 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-head", required=True)
     parser.add_argument("--semantic-review", choices=("passed", "pending"), default="pending")
-    parser.add_argument("--version", choices=("v3", "v4", "v5", "v6", "v7"), default="v3")
+    parser.add_argument("--version", choices=("v3", "v4", "v5", "v6", "v7", "v8"), default="v3")
     args = parser.parse_args()
-    if args.version in ("v4", "v5", "v6", "v7"):
+    if args.version in ("v4", "v5", "v6", "v7", "v8"):
         REQ = "REQ-QA-FULL-ISSUE-INVENTORY-20260916"
         EXECUTION = f"qa-routing-{args.version}-20260916-r1"
         STAGE = Path("C:/Users/Administrator/AppData/Local/Temp") / EXECUTION
-        ARTIFACTS = {"v4": V4_ARTIFACTS, "v5": V5_ARTIFACTS, "v6": V6_ARTIFACTS, "v7": V7_ARTIFACTS}[args.version]
+        ARTIFACTS = {"v4": V4_ARTIFACTS, "v5": V5_ARTIFACTS, "v6": V6_ARTIFACTS, "v7": V7_ARTIFACTS, "v8": V8_ARTIFACTS}[args.version]
         READ_SET = {**READ_SET,
             "高炉前端数据/智能助手/backend/mcp_tool_selection.py": "f986ec49226593befe064763622821fc6bf738a66649b3a23bca17eb6f00c4e4",
             "高炉前端数据/智能助手/backend/qa_evidence_policy.py": "0724e66578f521ba272867c06436da836111669d38356df9d939186cdb2e62e3",
             "高炉前端数据/智能助手/backend/qa_evidence_claims.py": "73b077850d710301473f0ff2d37f3e0521d15c96895232c4443630050ec51c5a",
             "高炉前端数据/智能助手/backend/qa_request_control.py": "0853b77655247030436f0a55a9c973503dc6a853280f3f9aa09d28be6cbeb901",
         }
-        if args.version in ("v5", "v6", "v7"):
+        if args.version in ("v5", "v6", "v7", "v8"):
             READ_SET.update({
                 "高炉前端数据/智能助手/backend/qa_entity_resolution.py": "46c49bb5020425134133af14c51dd902b9e9c5a3787074012b03dd094a500c7a",
                 "高炉前端数据/智能助手/mcp/business_object_catalog.py": "a746a7a057ac0e689d376feb321854c1889a4da79e2857dee00188de6061bcdf",
             })
-        if args.version in ("v6", "v7"):
+        if args.version in ("v6", "v7", "v8"):
             READ_SET.pop("高炉前端数据/智能助手/backend/mcp_conversation_context.py")
             READ_SET.update({
                 "高炉前端数据/智能助手/backend/qa_task_plan.py": "f202316a1fce64c4f1648bd2b9919967fd7973e4c1bb361d6528ce7234be953e",
@@ -119,7 +126,7 @@ def main() -> int:
                 "高炉前端数据/智能助手/backend/qa_model_readiness.py": "65e9fb9600230431de11ba7142ff3100205841117b5cf6df17d3f8d20fa3211c",
                 "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "9dd1999e40e0a4648c25e4ae626b5e290269e68cab0e707bc4561fac4f9a3e95",
             })
-        if args.version == "v7":
+        if args.version in ("v7", "v8"):
             READ_SET.update({
                 "高炉前端数据/智能助手/backend/assistant_pg.py": "6f6fd528e9dd0391c206d38727d468b6f2eb727e4194ee13c636726782cadf34",
                 "高炉前端数据/智能助手/backend/mcp_conversation_context.py": "94aa5a09c54652f94776aefeb78f746acf1c587037918a881bf07d3a1fb9d38c",
@@ -127,6 +134,10 @@ def main() -> int:
                 "高炉前端数据/智能助手/backend/qa_completion.py": "bceb29c3e310a73526bb3cc6504fe877fd516ad4fd9d261804b4f7ebd873c47f",
                 "高炉前端数据/智能助手/backend/qa_verified_facts.py": "7278f7a4437ea4cdf573a193698a35ad22b86460dd5194a03956d01890028e9b",
             })
+        if args.version == "v8":
+            READ_SET.pop("高炉前端数据/智能助手/backend/ollama_proxy_server.py")
+            READ_SET.pop("高炉前端数据/智能助手/backend/qa_task_plan.py")
+            READ_SET["高炉前端数据/智能助手/backend/qa_history_projection.py"] = "56f82b925c6877909eddd3f91847cbdf1de3784de60d025c366ab154e7942a1a"
     base_head = args.base_head.lower()
     if len(base_head) != 40:
         raise ValueError("base head must be a full commit id")
@@ -194,7 +205,7 @@ def main() -> int:
             {"id": "mcp-gold", "kind": "deterministic", "status": "passed", "evidence": "14/14"},
             {"id": "shared-feature-preservation", "kind": "deterministic", "status": "passed", "evidence": "accepted proxy markers preserved"},
         ]
-        if args.version in ("v4", "v5", "v6", "v7"):
+        if args.version in ("v4", "v5", "v6", "v7", "v8"):
             validations = [{"id": "focused-pytest", "kind": "deterministic", "status": "passed", "evidence": "103 passed including exact proxy/MCP seams, owner SQL isolation and missing-summary terminal" if args.version == "v5" else "98 passed plus final adapter 4 passed"},
                 {"id": "task-plan-contracts", "kind": "deterministic", "status": "passed", "evidence": "15/15"},
                 {"id": "mcp-gold-structure", "kind": "deterministic", "status": "passed", "evidence": "14/14; structure only"},
@@ -207,6 +218,9 @@ def main() -> int:
                 validations[0]["evidence"] = "106 focused tests including real SQL history exclusion, typed sensor facts, completion repair and context reset"
             if args.version == "v7":
                 validations[0]["evidence"] = "107 focused tests including actual psycopg placeholder parser and owner-bound history exclusion"
+            if args.version == "v8":
+                validations[0]["evidence"] = "123 focused tests including document source/integrity/page/table isolation and source-aware prompts"
+                validations.append({"id": "production-document-readonly-candidate", "kind": "readonly_remote", "status": "passed", "evidence": "actual stored document hashes and existing section rows; three controlled original-document checks passed"})
         if args.semantic_review == "passed":
             validations.append({"id": "luna-diff-review", "kind": "semantic", "status": "passed", "model": "gpt-5.6-luna", "reasoning_effort": "low"})
         spec = {
@@ -254,6 +268,13 @@ def main() -> int:
                 "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1", "tools/remote_preflight_qa_routing_v3.ps1",
                 "tools/record_qa_routing_v3_version.ps1", "tools/verify_qa_routing_release.ps1",
                 "高炉前端数据/智能助手/backend/qa_history_projection.py", "tests/test_qa_history_projection.py")]
+        elif args.version == "v8":
+            spec["sources"] = [str(root / path) for path in (
+                "tools/build_qa_routing_v8_candidate.py", "tools/prepare_qa_routing_v3_release.py",
+                "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1", "tools/remote_preflight_qa_routing_v3.ps1",
+                "tools/record_qa_routing_v3_version.ps1", "tools/verify_qa_routing_release.ps1",
+                "高炉前端数据/智能助手/backend/qa_task_plan.py", "高炉前端数据/智能助手/backend/qa_document_knowledge.py",
+                "高炉前端数据/智能助手/backend/qa_prompt_sources.py", "tests/test_qa_document_knowledge.py")]
         write_json(release / "release-spec.json", spec)
     print(json.dumps({"ok": True, "release": str(release), "artifacts": len(artifact_rows), "recordability_present": evidence.exists()}, ensure_ascii=False))
     return 0

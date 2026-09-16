@@ -1,0 +1,177 @@
+"""Read-only document execution with source, integrity and page coverage gates.
+
+REQ-QA-FULL-ISSUE-INVENTORY-20260916; QAOPT-K01..K06.
+Uses the existing flattened three_rules_section index; performs no DDL.
+"""
+from __future__ import annotations
+
+import hashlib
+import re
+from typing import Any
+
+VERSION = "qa-document-knowledge-v1"
+THREE_RULES = "bf_three_rules_two_systems_20260712"
+ACCIDENT = "bf_accident_20260711"
+FORMAL_DOCUMENTS = {THREE_RULES: "冀钢炼铁三规二制", ACCIDENT: "高炉事故处理"}
+REGULATIONS = ("安全操作规程", "技术操作规程", "设备使用维护规程", "岗位交接班制度", "生产联系确认制")
+PAGE_CHARS = 9000
+MAX_BLOCK_CHARS = 30000
+
+
+def canonical_text(value: Any) -> str:
+    return str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def _digest(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _integrity(row: dict[str, Any]) -> bool:
+    content = str(row.get("content") or "")
+    expected = str(row.get("content_hash") or "").lower()
+    return bool(content and re.fullmatch(r"[0-9a-f]{64}", expected)
+                and expected in {_digest(content), _digest(canonical_text(content))})
+
+
+def _header(row: dict[str, Any]) -> dict[str, Any] | None:
+    text = canonical_text(row.get("enriched_content"))
+    chapter = re.search(r"^【岗位/制度】(\d+)\.\s*(.+)$", text, re.M)
+    regulation = re.search(r"^【规程类型】(.+)$", text, re.M)
+    part = re.search(r"第(\d+)部分$", str(row.get("title") or ""))
+    if not chapter or not regulation or not part:
+        return None
+    return {"chapter_code": int(chapter.group(1)), "chapter": chapter.group(2).strip(),
+            "regulation": regulation.group(1).strip(), "part": int(part.group(1))}
+
+
+def _outcome(answer: str, state: str, code: str, manifests=(), coverage=None) -> dict[str, Any]:
+    return {"answer": answer, "answer_route": "verified_document_knowledge",
+            "completion": {"schema": VERSION, "terminal_state": state, "reason": code,
+                           "semantic_review_required": True, "coverage": coverage or {}},
+            "knowledge_manifest": list(manifests), "tool_calls": 0}
+
+
+def _manifest(row: dict[str, Any]) -> dict[str, Any]:
+    return {key: str(row.get(key) or "") for key in
+            ("doc_id", "title", "version", "content_hash", "updated_at")}
+
+
+def _doc_id(question: str) -> str | None:
+    titles = re.findall(r"《([^》]+)》", question)
+    if titles:
+        resolved = []
+        for title in titles:
+            if "三规二制" in title:
+                resolved.append(THREE_RULES)
+            elif title.strip() == "高炉事故处理":
+                resolved.append(ACCIDENT)
+            else:
+                return None
+        return resolved[0] if len(set(resolved)) == 1 else None
+    if "三规二制" in question or any(term in question for term in REGULATIONS):
+        return THREE_RULES
+    if "高炉事故处理" in question:
+        return ACCIDENT
+    return None
+
+
+def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) -> dict[str, Any] | None:
+    """Only pure document tasks; compound tasks stay in their source plan."""
+    if plan.get("intents") != ["document_knowledge"]:
+        return None
+    doc_id = _doc_id(question)
+    if not doc_id:
+        return _outcome("尚未确认所指文档的权威原文。请提供准确书名及岗位/章节；不能用聊天、报表或通用知识补写正式条款。",
+                        "needs_clarification", "document_reference_unresolved")
+    row = conn.execute(
+        "SELECT doc_id, title, version, authority_level, content_hash, updated_at, full_text "
+        "FROM rag_document WHERE doc_id = ?", (doc_id,)
+    ).fetchone()
+    doc = dict(row or {})
+    if (doc.get("title") != FORMAL_DOCUMENTS[doc_id] or doc.get("authority_level") != "knowledge_doc"
+            or not _integrity({"content": doc.get("full_text"), "content_hash": doc.get("content_hash")})):
+        return _outcome("所指文档的原文、来源或版本完整性尚未通过核验，未生成正式制度答案。",
+                        "dependency_blocked", "document_integrity_unverified")
+    manifest = _manifest(doc)
+    intro = f"来源：《{doc['title']}》；版本 {manifest['version']}；更新 {manifest['updated_at']}。\n"
+    if doc_id == ACCIDENT:
+        body = canonical_text(doc.get("full_text"))
+        if len(body) > MAX_BLOCK_CHARS:
+            return _outcome(intro + "原文超出单页安全范围，需先建立章节索引，未裁切表格或伪称全文完成。",
+                            "dependency_blocked", "chapter_index_required", [manifest])
+        return _outcome(intro + "以下为已核验原文，未补写现场判断：\n\n" + body,
+                        "completed", "verified_original_document", [manifest], {"documents": 1})
+    # section pieces are already present in rag_chunk on production.  Fetch the
+    # complete bounded document scope, rather than top-k pieces across sources.
+    rows = conn.execute(
+        "SELECT chunk_id, doc_id, title, content, enriched_content, content_hash, authority_level "
+        "FROM rag_chunk WHERE doc_id = ? AND chunk_type = ? ORDER BY chunk_id LIMIT 2001",
+        (doc_id, "three_rules_section")
+    ).fetchall()
+    if not rows or len(rows) > 2000:
+        return _outcome(intro + "章节索引缺失或超出受控上限，未将少量检索片段当作完整制度。",
+                        "dependency_blocked", "section_index_incomplete", [manifest])
+    pieces = []
+    for raw in rows:
+        item = dict(raw)
+        header = _header(item)
+        if not header or item.get("authority_level") != "knowledge_doc" or not _integrity(item):
+            return _outcome(intro + "章节顺序或片段完整性未通过核验，未拼接正式条款。",
+                            "dependency_blocked", "section_integrity_unverified", [manifest])
+        pieces.append(item | header)
+    chapters = sorted({(item["chapter_code"], item["chapter"]) for item in pieces})
+    requested = [name for _, name in chapters if name in question]
+    if not requested:
+        requested = [name for _, name in chapters if len(name.removeprefix("高炉")) >= 3 and name.removeprefix("高炉") in question]
+    if not requested and "工长" in question:
+        requested = [name for _, name in chapters if name.endswith("工长")]
+        if len(requested) > 1:
+            return _outcome(intro + "工长岗位存在多个范围，请指定：" + "、".join(requested),
+                            "needs_clarification", "chapter_role_ambiguous", [manifest])
+    code_match = re.search(r"第\s*(\d+)\s*章", question)
+    if code_match:
+        requested = [name for code, name in chapters if code == int(code_match.group(1))]
+        if not requested:
+            return _outcome(intro + "该章节编号不在已核验目录中，请核对章节。", "needs_clarification", "chapter_unknown", [manifest])
+    selected = [item for item in pieces if not requested or item["chapter"] in requested]
+    regulations = [term for term in REGULATIONS if term in question]
+    if regulations:
+        selected = [item for item in selected if item["regulation"] in regulations]
+    if not selected:
+        return _outcome(intro + "该岗位/规程组合没有已核验原文；未用其他岗位或报表替代。",
+                        "dependency_blocked", "requested_scope_missing", [manifest])
+    if not requested and not any(term in question for term in ("全文", "原文", "完整", "全部", "目录")):
+        names = "；".join(f"{code}. {name}" for code, name in chapters)
+        return _outcome(intro + "请指定岗位或章节后读取对应条款。已核验目录：\n" + names,
+                        "needs_clarification", "chapter_selection_required", [manifest])
+    if "目录" in question and not any(term in question for term in ("全文", "原文")):
+        return _outcome(intro + "\n" + "\n".join(f"{code}. {name}" for code, name in chapters),
+                        "completed", "verified_chapter_catalog", [manifest], {"chapters": len(chapters)})
+    selected.sort(key=lambda x: (x["chapter_code"], REGULATIONS.index(x["regulation"]) if x["regulation"] in REGULATIONS else -1, x["part"]))
+    groups: dict[tuple[int, str], list[int]] = {}
+    for item in selected:
+        groups.setdefault((item["chapter_code"], item["regulation"]), []).append(item["part"])
+    if any(parts != list(range(1, len(parts) + 1)) for parts in groups.values()):
+        return _outcome(intro + "所选章节存在缺页或重复片段，未把拼接结果标为完整。",
+                        "dependency_blocked", "section_parts_not_contiguous", [manifest])
+    pages: list[list[dict[str, Any]]] = [[]]
+    chars = 0
+    for item in selected:
+        size = len(canonical_text(item["content"]))
+        if size > MAX_BLOCK_CHARS:
+            return _outcome(intro + "存在超长完整表格/片段，需独立导出，未裁切其行或列。",
+                            "dependency_blocked", "whole_block_exceeds_limit", [manifest])
+        if pages[-1] and chars + size > PAGE_CHARS:
+            pages.append([])
+            chars = 0
+        pages[-1].append(item)
+        chars += size
+    match = re.search(r"第\s*(\d+)\s*页", question)
+    page = int(match.group(1)) if match else 1
+    if not 1 <= page <= len(pages):
+        return _outcome(intro + f"可用页码为 1–{len(pages)}，请核对页码。", "needs_clarification", "page_out_of_range", [manifest])
+    body = "\n\n".join(f"【{item['chapter']} / {item['regulation']} / 第{item['part']}部分】\n" + canonical_text(item["content"]) for item in pages[page - 1])
+    more = f"\n\n原文共 {len(pages)} 页，本次第 {page} 页；沿用同一书名及岗位/规程，并指定第 {page + 1} 页可继续读取。全文尚未全部展示。" if len(pages) > 1 and page < len(pages) else (f"\n\n原文共 {len(pages)} 页，本次为最后一页；此前页面须分别读取。" if len(pages) > 1 else "")
+    return _outcome(intro + "以下为所选范围的原文，未补写正式条款：\n\n" + body + more,
+                    "partial" if len(pages) > 1 else "completed", "verified_original_page", [manifest],
+                    {"pages": len(pages), "page": page, "selected_parts": len(selected), "returned_parts": len(pages[page - 1]), "table_blocks_preserved": True})

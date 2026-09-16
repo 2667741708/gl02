@@ -1,0 +1,22 @@
+{
+  "schema": "bf.qa.production-semantic-review.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version": "routing-v7",
+  "production_commit": "f46841edd06502c53fa85df88255d381ee850dfb",
+  "execution_id": "qa-routing-v7-20260916-r1",
+  "requests": 5,
+  "sse_done": 5,
+  "automatic_post_retries": 0,
+  "passed": 4,
+  "partial": 1,
+  "failed": 0,
+  "reviews": [
+    {"case_id": "TPL-FD3912331A49B991", "status": "pass", "route": "owner_scoped_history", "reason": "Bounded owner-visible historical records; generated history summaries excluded; provenance and historical-only limitation explicit."},
+    {"case_id": "TPL-3877C5B34E972AA0", "status": "pass", "route": "owner_scoped_history", "reason": "History query succeeds under production PostgreSQL facade; structured legacy payload suppressed; historical claims are not represented as current facts."},
+    {"case_id": "TPL-4EB4CE7FC45519A5", "status": "pass", "route": "owner_scoped_history", "reason": "Assistant-role filter returns scoped prior answers with excerpt truncation and non-authoritative caveat; no recursive generated history summary."},
+    {"case_id": "TPL-A60B0CD794D49E48", "status": "pass", "route": "verified_prefetch_facts", "reason": "Actual latest stored object/time/source; unknown unit disclosed; no invented normality, trend, or matching."},
+    {"case_id": "TPL-18F38D141C29CF15", "status": "partial", "route": "evidence_without_tools", "reason": "Complete no-tool response with general-knowledge caveat; furnace flow resistance and regulated top-pressure causal directions still need an explicit control-system qualification. Completeness is not full domain accuracy."}
+  ],
+  "excluded": ["833 knowledge-question semantic denominator", "one legacy uncertain POST"],
+  "privacy": "Only case ids and sanitized findings; no raw conversations, measurements, identities, credentials, or cookies."
+}

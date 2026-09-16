@@ -22,7 +22,7 @@ _DOCUMENT_TERMS = (
     "三规二制", "原文", "全文", "逐条", "完整说明", "制度", "规程", "手册",
     "文档", "条款", "章节", "操作规程", "安全规程", "技术规程",
 )
-_DOCUMENT_ACTIONS = ("说明", "列出", "引用", "查找", "检索", "给出", "回答", "是什么", "有哪些")
+_DOCUMENT_ACTIONS = ("说明", "解释", "摘要", "总结", "读取", "列出", "引用", "查找", "检索", "给出", "回答", "是什么", "有哪些")
 _HISTORY_TERMS = (
     "历史问答", "历史会话", "聊天记录", "对话记录", "之前问", "以前问", "问过", "问过什么",
     "最近问", "上一轮", "上次对话", "我们的对话",
@@ -142,7 +142,8 @@ def build_task_plan(question: str) -> dict[str, Any]:
     entity_resolution = qa_entity_resolution.resolve_requested_entities(instruction)
     no_live = _is_no_live_request(instruction)
     wants_user_data = bool(_USER_DATA_PATTERN.search(instruction))
-    wants_document = _contains_any(instruction, _DOCUMENT_TERMS) and (
+    book_reference = any(span.startswith("《") for span in quoted)
+    wants_document = (_contains_any(instruction, _DOCUMENT_TERMS) or book_reference) and (
         _contains_any(instruction, _DOCUMENT_ACTIONS) or "按" in instruction or "根据" in instruction
     )
     wants_history = _contains_any(instruction, _HISTORY_TERMS)
