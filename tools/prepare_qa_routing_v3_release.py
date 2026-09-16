@@ -50,6 +50,16 @@ V4_ARTIFACTS = {
     "bf_data_mcp_server.py": {"relative": "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py", "baseline": ["35e35f540077e615d5a6213b3a81dbaf875be6d7257d4428ae2b2acb6a6bee31"], "markers": ['"total_chars": total_chars', '"truncated": len(text) < total_chars'], "allow_create": False},
 }
 
+V5_ARTIFACTS = {
+    "ollama_proxy_server.py": {"baseline": ["bb81b5fe248379aebecdd194c491cc4441b703feca3743c778d427028e7a66b2"], "markers": ["import qa_history_projection", "import qa_model_readiness", "history_result", "_MCP_DATA_IMPORT_LOCK"], "allow_create": False},
+    "qa_task_plan.py": {"baseline": ["e88ce9324967f465bdaf95d6584d1f05f16a7f5f3cb858f937ac448a6c81676f"], "markers": ["def _explicit_live_request", "Observational questions"], "allow_create": False},
+    "qa_time_window_plan.py": {"baseline": ["3c7ce8d05864e5c706aa8e6d8fb3b69ccc189af5052516ba6335732df9d90515"], "markers": ["Production query_gl02_sensors flattens", "async def execute_time_window_plan"], "allow_create": False},
+    "qa_report_workflow.py": {"baseline": ["bd306dd4758942927c560506cb44048d2c4110176a91e2adf7c461183a59381f"], "markers": ["metadata bullet", "async def execute_report_plan"], "allow_create": False},
+    "qa_history_projection.py": {"baseline": [], "markers": ['VERSION = "qa-history-projection-v1"', "c.owner_subject = ? AND m.id < ?"], "allow_create": True},
+    "qa_model_readiness.py": {"baseline": [], "markers": ['VERSION = "qa-model-readiness-v1"', "class ModelUnavailable", "def resolve_resident"], "allow_create": True},
+    "bf_data_mcp_server.py": {"relative": "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py", "baseline": ["8bccb93ae420c230d96a25acb5c6d029065f42c6ec891adaf49d744edb90673e"], "markers": ["QA_HISTORY_SCOPE_REQUIRED", '"truncated": len(text) < total_chars'], "allow_create": False},
+}
+
 READ_SET = {
     "高炉前端数据/智能助手/backend/mcp_conversation_context.py": "fbef24db2d324ac3417ad1f3a59e1cdcfc8f5bd7d79f959c1f60b3b51b33db15",
     "高炉前端数据/智能助手/backend/bf_knowledge_rag.py": "3f9fc5347fd0ad8927be66D6C19D1024D82B105BAB755991257D4A7551286DA4".lower(),
@@ -70,19 +80,24 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-head", required=True)
     parser.add_argument("--semantic-review", choices=("passed", "pending"), default="pending")
-    parser.add_argument("--version", choices=("v3", "v4"), default="v3")
+    parser.add_argument("--version", choices=("v3", "v4", "v5"), default="v3")
     args = parser.parse_args()
-    if args.version == "v4":
+    if args.version in ("v4", "v5"):
         REQ = "REQ-QA-FULL-ISSUE-INVENTORY-20260916"
-        EXECUTION = "qa-routing-v4-20260916-r1"
+        EXECUTION = f"qa-routing-{args.version}-20260916-r1"
         STAGE = Path("C:/Users/Administrator/AppData/Local/Temp") / EXECUTION
-        ARTIFACTS = V4_ARTIFACTS
+        ARTIFACTS = V4_ARTIFACTS if args.version == "v4" else V5_ARTIFACTS
         READ_SET = {**READ_SET,
             "高炉前端数据/智能助手/backend/mcp_tool_selection.py": "f986ec49226593befe064763622821fc6bf738a66649b3a23bca17eb6f00c4e4",
             "高炉前端数据/智能助手/backend/qa_evidence_policy.py": "0724e66578f521ba272867c06436da836111669d38356df9d939186cdb2e62e3",
             "高炉前端数据/智能助手/backend/qa_evidence_claims.py": "73b077850d710301473f0ff2d37f3e0521d15c96895232c4443630050ec51c5a",
             "高炉前端数据/智能助手/backend/qa_request_control.py": "0853b77655247030436f0a55a9c973503dc6a853280f3f9aa09d28be6cbeb901",
         }
+        if args.version == "v5":
+            READ_SET.update({
+                "高炉前端数据/智能助手/backend/qa_entity_resolution.py": "46c49bb5020425134133af14c51dd902b9e9c5a3787074012b03dd094a500c7a",
+                "高炉前端数据/智能助手/mcp/business_object_catalog.py": "a746a7a057ac0e689d376feb321854c1889a4da79e2857dee00188de6061bcdf",
+            })
     base_head = args.base_head.lower()
     if len(base_head) != 40:
         raise ValueError("base head must be a full commit id")
@@ -150,8 +165,8 @@ def main() -> int:
             {"id": "mcp-gold", "kind": "deterministic", "status": "passed", "evidence": "14/14"},
             {"id": "shared-feature-preservation", "kind": "deterministic", "status": "passed", "evidence": "accepted proxy markers preserved"},
         ]
-        if args.version == "v4":
-            validations = [{"id": "focused-pytest", "kind": "deterministic", "status": "passed", "evidence": "98 passed plus final adapter 4 passed"},
+        if args.version in ("v4", "v5"):
+            validations = [{"id": "focused-pytest", "kind": "deterministic", "status": "passed", "evidence": "103 passed including exact proxy/MCP seams, owner SQL isolation and missing-summary terminal" if args.version == "v5" else "98 passed plus final adapter 4 passed"},
                 {"id": "task-plan-contracts", "kind": "deterministic", "status": "passed", "evidence": "15/15"},
                 {"id": "mcp-gold-structure", "kind": "deterministic", "status": "passed", "evidence": "14/14; structure only"},
                 {"id": "remote-readonly-preflight", "kind": "readonly_remote", "status": "passed", "evidence": "exact baselines and dependency hashes verified; unrelated dirty targets preserved"}]
@@ -185,6 +200,14 @@ def main() -> int:
                 "高炉前端数据/智能助手/backend/qa_task_plan.py", "高炉前端数据/智能助手/backend/qa_entity_resolution.py",
                 "高炉前端数据/智能助手/backend/qa_time_window_plan.py", "高炉前端数据/智能助手/backend/qa_report_workflow.py",
                 "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py")]
+        elif args.version == "v5":
+            spec["sources"] = [str(root / path) for path in (
+                "tools/build_qa_routing_v5_candidate.py", "tools/prepare_qa_routing_v3_release.py",
+                "tools/remote_guarded_deploy_qa_routing_v3_8093.ps1", "tools/remote_preflight_qa_routing_v3.ps1",
+                "tools/record_qa_routing_v3_version.ps1", "tools/verify_qa_routing_release.ps1",
+                "高炉前端数据/智能助手/backend/qa_task_plan.py", "高炉前端数据/智能助手/backend/qa_time_window_plan.py",
+                "高炉前端数据/智能助手/backend/qa_report_workflow.py", "高炉前端数据/智能助手/backend/qa_history_projection.py",
+                "高炉前端数据/智能助手/backend/qa_model_readiness.py")]
         write_json(release / "release-spec.json", spec)
     print(json.dumps({"ok": True, "release": str(release), "artifacts": len(artifact_rows), "recordability_present": evidence.exists()}, ensure_ascii=False))
     return 0

@@ -84,6 +84,15 @@ def test_task_plan_freezes_all_explicit_live_entities() -> None:
     assert public["entities"] == plan["entities"]
 
 
+def test_observational_range_question_reaches_data_executor():
+    question = "炉喉温度A-D最近半小时温差大不大？"
+    plan = qa_task_plan.build_task_plan(question)
+    assert plan["intents"] == ["live_data"] and plan["allow_mcp_tools"]
+    assert plan["entities"] == ["T_throat_A", "T_throat_B", "T_throat_C", "T_throat_D"]
+    assert not qa_task_plan.build_task_plan(question + "不要查询实时数据")["allow_mcp_tools"]
+    assert not qa_task_plan.build_task_plan("炉喉温差一般多大，原因是什么？")["allow_mcp_tools"]
+
+
 def test_temporal_failed_cases_pass_the_outer_tool_gate():
     for question in ("对比最近30分钟和前30分钟的炉顶压力。", "全炉压差最近一小时相对历史基线偏高吗？"):
         plan = qa_task_plan.build_task_plan(question)

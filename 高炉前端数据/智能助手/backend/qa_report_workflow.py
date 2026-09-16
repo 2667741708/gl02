@@ -64,10 +64,15 @@ def summary_excerpt(text: str, max_chars: int = 2500) -> tuple[str, bool]:
         content = "\n".join(lines[start:end]).strip()
         if content:
             return content[:max_chars], len(content) > max_chars
-    # No summary section: show actual body; expressly avoid claiming this is
-    # a complete synthesis or a source of current live furnace measurements.
-    content = text.strip()
-    return content[:max_chars], True
+    # The production daily report stores its summary as a metadata bullet,
+    # rather than a Markdown section. Extract that field, not the full report.
+    for line in lines:
+        match = re.match(r"^\s*(?:[-*]\s*)?(?:\*\*)?(?:摘要|总结|概览|结论)(?:\*\*)?\s*[：:]\s*(.+?)\s*$", line)
+        if match:
+            content = match.group(1).strip()
+            return content[:max_chars], len(content) > max_chars
+    # A summary request must not silently become a dump of report details.
+    return "", True
 
 
 async def execute_report_plan(plan: dict[str, Any], *, available_tools: set[str], validate: Any, call: Any, on_start: Any, on_result: Any, max_calls: int) -> dict[str, Any]:
@@ -97,7 +102,7 @@ async def execute_report_plan(plan: dict[str, Any], *, available_tools: set[str]
     def outcome(answer, status, complete=False):
         return {"ok": True, "tool_used": executed > 0, "answer": answer, "report_status": status, "complete": complete,
                 "tool_trace": trace, "answer_route": "deterministic_report_read", "model_request_count": 0,
-                "grounding_status": "verified_report_excerpt" if status == "read" else "no_verified_report_content"}
+                "grounding_status": "verified_report_excerpt" if status == "read" else "verified_report_read_no_summary" if status == "summary_missing" else "no_verified_report_content"}
 
     if max_calls < 2:
         return outcome("本轮预算不足以完成报表目录及正文读取，未发送工具请求。", "budget_blocked")
@@ -110,11 +115,12 @@ async def execute_report_plan(plan: dict[str, Any], *, available_tools: set[str]
     if result.get("ok") is not True or _path(result.get("report_path")) != selected["report_path"] or not isinstance(result.get("content"), str) or not result["content"].strip():
         return outcome(source + "\n正文未成功读取或来源不匹配；目录不等于正文，无法生成摘要。", "read_failed")
     excerpt, shortened = summary_excerpt(result["content"])
+    if not excerpt:
+        return outcome(source + "\n正文已成功读取，但未找到可确认的摘要字段或章节；本次不把正文明细当作摘要。该报表为历史内容。", "summary_missing")
     filtered = re.sub(r"```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)", "[代码块已按禁代码策略省略]", excerpt)
     shortened = shortened or filtered != excerpt
     excerpt = filtered
-    # Current MCP truncated compares Unicode chars with file bytes, so it may
-    # be a false positive for Chinese reports. Never silently call it complete.
+    # A bounded excerpt never proves that an unread part contains no details.
     partial = shortened or result.get("truncated") is not False
     qualifier = "摘要/正文摘录（读取可能截断，不代表全文总结）" if partial else "报表摘要原文摘录"
     answer = source + f"\n{qualifier}：\n" + excerpt + "\n\n以上为该报表所述历史内容，不代表当前实时炉况；未执行任何写操作。"

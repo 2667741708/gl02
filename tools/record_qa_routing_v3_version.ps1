@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('V3','V4')][string]$Version = 'V3')
+param([ValidateSet('V3','V4','V5')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -26,6 +26,12 @@ if ($Version -eq 'V4') {
     $ExecutionId = 'qa-routing-v4-20260916-r1'
     $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v4-20260916-r1'
     $CommitMessage = 'fix: preserve entities, compare windows and read reports [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v4-20260916-r1]'
+}
+if ($Version -eq 'V5') {
+    $RequirementId = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $ExecutionId = 'qa-routing-v5-20260916-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v5-20260916-r1'
+    $CommitMessage = 'fix: bind history owner and adapt real tool results [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v5-20260916-r1]'
 }
 $Guard = Join-Path $StageRoot 'git_record_guard.py'
 $OperationPath = Join-Path $StageRoot 'operation.json'

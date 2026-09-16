@@ -68,6 +68,17 @@ def test_comparison_arithmetic_independent_of_model():
     assert "样本数 30" in answer["answer"] and "postgresql" in answer["answer"]
 
 
+def test_production_flat_sensor_items_are_validated_and_compared():
+    plan = comparison()
+    results = {}
+    for step, avg in zip(plan["steps"], [120, 100]):
+        results[step["id"]] = {"ok": True, "items": [{"requested_variable": "P_top", **stats(step, avg=avg)}]}
+    answer = temporal.format_time_window_answer(plan, results)
+    assert answer["complete"] and "= 20 kPa" in answer["answer"]
+    results["previous"]["items"][0]["variable"]["variable_name"] = "DP_total"
+    assert not temporal.format_time_window_answer(plan, results)["complete"]
+
+
 @pytest.mark.parametrize("mutation", ["missing", "wrong_variable", "wrong_time", "zero_count", "nan", "unit"])
 def test_missing_or_conflicting_window_never_claims_complete(mutation):
     plan = comparison()

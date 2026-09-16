@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('V3','V4')][string]$Version = 'V3',
+    [ValidateSet('V3','V4','V5')][string]$Version = 'V3',
     [Parameter(Mandatory)][string]$StageRoot,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$PlanHash,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$GateHash
@@ -34,6 +34,18 @@ if ($Version -eq 'V4') {
         '高炉前端数据/智能助手/backend/qa_entity_resolution.py',
         '高炉前端数据/智能助手/backend/qa_time_window_plan.py',
         '高炉前端数据/智能助手/backend/qa_report_workflow.py',
+        '高炉前端数据/智能助手/mcp/bf_data_mcp_server.py'
+    )
+}
+if ($Version -eq 'V5') {
+    $Req = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $Allowed = @(
+        '高炉前端数据/智能助手/backend/ollama_proxy_server.py',
+        '高炉前端数据/智能助手/backend/qa_task_plan.py',
+        '高炉前端数据/智能助手/backend/qa_time_window_plan.py',
+        '高炉前端数据/智能助手/backend/qa_report_workflow.py',
+        '高炉前端数据/智能助手/backend/qa_history_projection.py',
+        '高炉前端数据/智能助手/backend/qa_model_readiness.py',
         '高炉前端数据/智能助手/mcp/bf_data_mcp_server.py'
     )
 }

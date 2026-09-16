@@ -3193,3 +3193,9 @@ REQ-QA-FULL-ISSUE-INVENTORY-20260916：六题各一次POST，3通过/1部分/2�
 [脱敏审阅](../tests/qa_regression/routing_v4_production_review_20260916.json)。
 `run_qa_failed_retest_once.py`仅在POST claim创建之前对就绪GET最多重查三次，记录四项布尔状态；
 所有已发送或发送不确定的问题仍禁止自动重放。
+## QA V5 回归补充（2026-09-16，候选）
+
+103项聚焦pytest通过，覆盖实际代理/MCP接缝、两owner SQL、当前消息排除、通配符、未知模型、
+超时、取消和真实报表摘要结构；TaskPlan15/15，MCP金标14/14仅结构验证。
+新增`test_qa_routing_v5_candidate.py`、`test_qa_history_projection.py`、`test_qa_model_readiness.py`。
+生产验收待受控部署；详细范围见[V5交接](handoffs/2026-09-16-qa-routing-v5-local-candidate.md)。

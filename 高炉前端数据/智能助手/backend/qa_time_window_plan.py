@@ -122,7 +122,10 @@ def format_time_window_answer(plan: dict[str, Any], results: dict[str, dict[str,
                 payload = _mapping(results.get(step["id"]))
                 rows = payload.get("items")
                 items = [item for item in rows if isinstance(item, dict) and item.get("requested_variable") == variable] if isinstance(rows, list) and payload.get("ok") is True else []
-                result = _mapping(items[0].get("result")) if len(items) == 1 else {}
+                # Production query_gl02_sensors flattens each result into the
+                # item. Some older adapters wrap it; validate either shape
+                # with the same variable/time/source contract below.
+                result = _mapping(items[0].get("result", items[0])) if len(items) == 1 else {}
                 stats = _mapping(result.get("statistics"))
                 if not _matched_result(result, variable, step["arguments"]) or not _stats_valid(stats):
                     complete = False

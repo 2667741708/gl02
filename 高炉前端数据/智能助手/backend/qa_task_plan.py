@@ -119,6 +119,14 @@ def _explicit_live_request(instruction: str) -> bool:
         return False
     if qa_time_window_plan.temporal_intent(instruction):
         return True
+    # Observational questions need data even without an imperative verb.
+    # Require a current/window anchor and a reviewed object; generic process
+    # explanations and quoted titles do not turn into live queries.
+    if (re.search(r"当前|现在|目前|最近|过去", instruction)
+            and re.search(r"大不大|高不高|低不低|稳不稳|顺不顺|偏高吗|偏低吗", instruction)
+            and qa_entity_resolution.resolve_requested_entities(instruction).get("variables")
+            and not _contains_any(instruction, ("通常", "一般", "原理", "原因", "含义"))):
+        return True
     if _contains_any(instruction, _LIVE_ACTIONS):
         return True
     compact = re.sub(r"[\s，,。；;？?！!]", "", instruction)

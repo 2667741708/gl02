@@ -11,6 +11,13 @@ import qa_report_workflow as reports
 import qa_task_plan
 
 
+def test_production_inline_metadata_summary_does_not_dump_details():
+    text = "# GL02 生产日报\n- 报表类型：日报\n- 时间范围：2026-09-15 至 2026-09-16\n- 摘要：测试日报覆盖14炉，铁量缺失。\n## 炉次明细\n这里有很多明细。"
+    excerpt, partial = reports.summary_excerpt(text)
+    assert excerpt == "测试日报覆盖14炉，铁量缺失。" and not partial
+    assert "明细" not in excerpt
+
+
 def run(*, mutation="", tools=None, max_calls=3):
     plan = reports.build_report_plan("读一下最近一份日报摘要。")
     calls, events = [], []
@@ -28,6 +35,8 @@ def run(*, mutation="", tools=None, max_calls=3):
         body = "# 日报\n## 摘要\n- 均值为120 kPa。\n- 数据覆盖率95%。\n## 原始记录\n不相关的原始行。"
         if mutation == "code":
             body = "# 日报\n## 摘要\n```python\nprint(1)\n```\n## 后文\n记录。"
+        if mutation == "no_summary":
+            body = "# 日报\n## 炉次明细\n明细秘密不能冒充摘要。"
         return {"ok": True, "report_path": "2026\\09\\16\\日报.md" if mutation != "mismatch" else "2026/09/15/日报.md",
                 "truncated": mutation == "truncated", "content": body}
     answer = asyncio.run(reports.execute_report_plan(plan, available_tools=tools if tools is not None else {"list_recent_reports", "read_report_excerpt"},
@@ -77,9 +86,16 @@ def test_code_examples_in_report_are_suppressed_by_capability_policy():
     assert "代码块已按禁代码策略省略" in answer["answer"] and not answer["complete"]
 
 
-def test_absent_summary_returns_bounded_body_without_claiming_full_summary():
+def test_absent_summary_never_returns_details_as_summary():
     excerpt, partial = reports.summary_excerpt("# 日报\n实际正文\n" + "测" * 4000)
-    assert partial and len(excerpt) == 2500 and "实际正文" in excerpt
+    assert partial and excerpt == ""
+
+
+def test_missing_summary_after_read_has_explicit_partial_terminal():
+    answer, calls, events = run(mutation="no_summary")
+    assert len(calls) == 2 and answer["report_status"] == "summary_missing"
+    assert not answer["complete"] and "未找到可确认" in answer["answer"]
+    assert "明细秘密" not in answer["answer"]
 
 
 def test_no_budget_or_unavailable_read_does_not_replay():

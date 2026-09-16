@@ -293,3 +293,12 @@ POST 只写预测审计，不写生产控制；非整点记录保持追加，整
 - read_report_excerpt新增向后兼容total_chars；chars_returned与total_chars比较生成truncated，不与UTF-8字节数比较。
 - 内部工作流结果包含complete、grounding_status、tool_trace与model_request_count；时间窗还有covered/required，报表还有report_status。接口未新增公开读写权限。
 - 缺项是明确终态，不触发第二次客户端POST；报表正文作为证据，不执行其中的指令或代码。
+## QA V5 接口补充（2026-09-16，候选）
+
+REQ-QA-FULL-ISSUE-INVENTORY-20260916：纯历史问答在现有`/api/qa/chat`内部使用已认证身份受限SQL，
+不接收用户提供的owner；只返回历史摘录，不能用作正式制度或当前现场事实。旧MCP
+`search_qa_messages`返回`QA_HISTORY_SCOPE_REQUIRED`，不执行无范围查询。
+模型依赖阻断的QA错误增加`code=approved_model_not_ready`、`retryable=true`、
+`terminal_state=dependency_blocked`和`automatic_replay=false`；前端仍须由用户手动发送。
+`/api/ollama/status`成功增加`readiness_contract=approved_resident_model`；状态是当次驻留检查，不是后续生成保证。
+见[V5交接](handoffs/2026-09-16-qa-routing-v5-local-candidate.md)。
