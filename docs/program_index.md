@@ -1,5 +1,9 @@
 # 程序索引
 
+## V17 历史复合执行入口（2026-09-16）
+
+`qa_history_compound.split_request/execute/model_messages/normalize_present/compose` 管理历史与非历史子任务；生产代理 JSON/两条 SSE 使用相同合成接缝。完成归一化复用已核验原文合同或实际最新工具事实，不根据非空答案升级。[权威实施](handoffs/2026-09-16-qa-routing-v17-production.md)，符号行号 TODO-LINES。
+
 ## 智能助手V15当前实现（2026-09-16）
 
 原文独立完整性门`qa_document_integrity.inspect/inspect_selected_scope`；多章节逐项完成`qa_document_knowledge._original_subsections`；最新读取及无效时钟窗口继承门`mcp_conversation_context.update_tool_context`。符号行号TODO-LINES。新增版本元数据统一在`tools/qa_routing_release_extensions.json`定义并由现有冻结发布器消费；仍要求精确三目标部署和远端只读验证。证据：[V15生产交接](handoffs/2026-09-16-qa-routing-v15-production.md)。

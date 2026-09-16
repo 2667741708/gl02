@@ -3,8 +3,8 @@
 - 状态：执行中；最后核对：2026-09-16。
 - 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。
 - 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。
-- 生产修复版本：`25d4cd1cc4777153bcbe1d8cd38b4ab1755f9874`；V15五题单发送并独立语义通过，其中未知章节与代码策略按预期partial。有效803知识题已核验原文覆盖，30题标准答案冲突阻断；剩余项继续修复，非空不算通过。
-- 最新权威实施：[V15生产修复交接](../../docs/handoffs/2026-09-16-qa-routing-v15-production.md)。旧阶段记录保留为历史证据。
+- 生产修复版本：`ab0dafa3f2008b819ed40211b43a17858ecf654c`；V16发现三项完成合同失败，V17新轮五题单发送并独立通过，缺章及禁工具历史按预期partial。有效803知识题已核验原文覆盖，30题标准答案冲突阻断；剩余项继续修复，非空不算通过。
+- 最新权威实施：[V17生产修复交接](../../docs/handoffs/2026-09-16-qa-routing-v17-production.md)。旧阶段记录保留为历史证据。
 
 ## 借鉴 DSH 与 Codex 的实施边界
 
@@ -21,7 +21,7 @@
 |序号|问题|优先级|当前状态|已核对证据|下一验收门|
 |---:|---|---|---|---|---|
 |1|`QAOPT-R01` 统一任务决策，阻止关键词抢路由|P0|deployed_partial_verified|V12制度子任务隔离、未知来源澄清；V13简单读取独立完成|结构未知与全部复合子任务覆盖门|
-|2|`QAOPT-R02` 历史问答与业务证据分离|P0|production_verified|V7三条owner隔离历史题通过，实际PostgreSQL占位符正确，生成摘录排除|补历史与当前数据复合任务|
+|2|`QAOPT-R02` 历史问答与业务证据分离|P0|deployed_partial_verified|V7身份隔离历史通过；V16独立历史/当前编排已部署，V17三种历史+当前/原文真实完成通过，无匹配明确，禁工具策略保留|不可分历史推断及全来源复合持出集|
 |3|`QAOPT-R03` 完整解析多对象及范围|P1|deployed_partial_verified|V6实际A-D统计已返回；缺单位、零值和稀疏覆盖已明确标记|核对数据依赖后扩展多对象质量回归|
 |4|`QAOPT-R04` 多时间窗与历史基线|P1|production_verified|V5真实相邻两窗统计、差值及相对变化通过；V4真实30日基线通过|扩展多对象、缺失数据及窗口覆盖回归|
 |5|`QAOPT-R05` 报表工作流读取正文|P1|production_verified|V5真实最新日报摘要提取通过；缺摘要单独partial合同已验证|扩大报表类型并保持正文依赖和权威边界|
@@ -40,7 +40,7 @@
 |18|`QAOPT-E02` 有类型的证据与适用范围|P1|deployed_partial_verified|V6当前对象及A-D统计EvidenceItem绑定对象/时间/单位/来源|全部工具证据追加账本|
 |19|`QAOPT-E03` 字段级事实校验与合理舍入|P0|deployed_partial_verified|V14实际压力单位/时间/来源及规范单位血缘独立通过，未知制度partial；未登记单位partial合同通过|全部工具单位/派生量血缘|
 |20|`QAOPT-E04` 固定计算与统计定义|P1|deployed_partial_verified|V5相邻两窗/V6确定性统计及公式样本数质量限制|统一跨工具派生计算与冲突|
-|21|`QAOPT-E05` 输出字段边界及完整性|P0|deployed_partial_verified|V15多章节逐子任务完成与缺章partial真实通过，保持旧长度中止内部修复合同|全部复合源及全部模型工具分支完成覆盖|
+|21|`QAOPT-E05` 输出字段边界及完整性|P0|deployed_partial_verified|V15多章逐任务合同；V17既有原文合同归一化和实际最新工具事实复验，真实五题完成/缺项状态独立通过|全部工具及模型分支完成覆盖，不凭非空升级|
 |22|`QAOPT-E06` 多源证据冲突与分析深度|P1|deployed_partial_verified|单点不推趋势、窗口均值不冒充同步温差、V12控制与热平衡条件性因果通过|跨源冲突和时效矩阵|
 |23|`QAOPT-O01` 模型就绪与请求间竞态|P0|production_dependency_open|新部署器最多3次只读GET检查并保留失败状态；运行时仍出现批准模型未驻留|核对跨服务模型占槽/请求租约；不修改Ollama或8094配置|
 |24|`QAOPT-O02` 工具超时和故障域隔离|P1|deployed_partial_verified|执行器已有独立超时/每服务预算；V12成功证据保留和失败不扩散合同通过|MCP注册/会话/流式故障矩阵|
@@ -51,7 +51,7 @@
 |29|`QAOPT-T02` 导入错误与评测污染|P0|implemented_partial_verified|原分母保留；833知识源明确30个编号/同问不同标准答案冲突，禁止当失败重发或自动改标准|版本化修正经原文独立审核|
 |30|`QAOPT-T03` 系统Prompt绑定与故障夹具|P1|partial|TaskPlan/故障夹具已建立；系统Prompt版本绑定仍需全链路证明|记录prompt_hash并覆盖工具/模型/流式故障|
 |31|`QAOPT-T04` 全答案审阅、持出集与重复可靠性|P1|in_progress|历史828待语义审查为旧快照；新有效803题原文覆盖已核验，30oracle阻断单列，不称833全通过|旧case_id逐条对齐新覆盖结果及独立语义持出审查|
-|32|`QAOPT-T05` 版本冻结、候选对比与受控发布|P1|implemented_verified|V3至V15密封/8093-only守卫/CAS/保护PID/一次POST和独立审阅闭环|后续版本保持当前冻结字节和精确基线|
+|32|`QAOPT-T05` 版本冻结、候选对比与受控发布|P1|implemented_verified|V3至V17密封/8093-only守卫/CAS/保护PID/一次POST闭环；V16三失败原样冻结，V17五通过独立审阅|后续版本保持冻结字节、精确基线和独立审查|
 |33|`QAOPT-T06` 范围缺口与长期运营|P2|ongoing|回归集已公开并可扩展，长期范围和SLO仍需运营|按新故障自动归类并每版发布覆盖/SLO报告|
 
 ## 固定处理顺序

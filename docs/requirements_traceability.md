@@ -1,5 +1,9 @@
 # 需求追踪
 
+## V17 历史复合完成修复（2026-09-16）
+
+`REQ-QA-FULL-ISSUE-INVENTORY-20260916`：QAOPT-R02/E05 的可分历史复合要求按身份独立查询；当前事实与正式原文独立完成，缺章或策略阻断保持 partial。V16 三项真实合同失败已冻结，V17 新轮五题独立审查通过。[权威证据](handoffs/2026-09-16-qa-routing-v17-production.md)。
+
 ## REQ-QA-FULL-ISSUE-INVENTORY-20260916：V15已部署
 
 状态：定向复测完成；33项整体仍执行中。112项不同本机测试通过，实际KB803项原文覆盖候选通过、30项oracle冲突单列；真实5题独立语义通过。原文缺尾、多章节缺项和最新追问清旧窗口已补。权威入口：[V15生产交接](handoffs/2026-09-16-qa-routing-v15-production.md)。

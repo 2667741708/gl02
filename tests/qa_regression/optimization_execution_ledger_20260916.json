@@ -2,7 +2,7 @@
   "schema": "bf.qa.optimization-execution-ledger.v1",
   "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
   "checked_at": "2026-09-16",
-  "production_commit": "25d4cd1cc4777153bcbe1d8cd38b4ab1755f9874",
+  "production_commit": "ab0dafa3f2008b819ed40211b43a17858ecf654c",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -10,7 +10,7 @@
     "blocked_client_contract": 1
   },
   "latest_production_retest": {
-    "version": "routing-v15",
+    "version": "routing-v17",
     "requests": 5,
     "sse_done": 5,
     "passed": 5,
@@ -57,9 +57,9 @@
       "issue_id": "QAOPT-R02",
       "priority": "P0",
       "title": "历史问答与业务证据分离",
-      "state": "production_verified",
-      "evidence": "V7三条owner隔离历史题通过，实际PostgreSQL占位符正确，生成摘录排除",
-      "next_gate": "补历史与当前数据复合任务",
+      "state": "deployed_partial_verified",
+      "evidence": "V7身份隔离历史通过；V16独立历史/当前编排已部署，V17三种历史+当前/原文真实完成通过，无匹配明确，禁工具策略保留",
+      "next_gate": "不可分历史推断及全来源复合持出集",
       "case_ids": [
         "TPL-FD3912331A49B991",
         "TPL-3877C5B34E972AA0",
@@ -357,8 +357,8 @@
       "priority": "P0",
       "title": "输出字段边界及完整性",
       "state": "deployed_partial_verified",
-      "evidence": "V15多章节逐子任务完成与缺章partial真实通过，保持旧长度中止内部修复合同",
-      "next_gate": "全部复合源及全部模型工具分支完成覆盖",
+      "evidence": "V15多章逐任务合同；V17既有原文合同归一化和实际最新工具事实复验，真实五题完成/缺项状态独立通过",
+      "next_gate": "全部工具及模型分支完成覆盖，不凭非空升级",
       "case_ids": [
         "TPL-0F1075D1C8967EA5"
       ],
@@ -513,8 +513,8 @@
       "priority": "P1",
       "title": "版本冻结、候选对比与受控发布",
       "state": "implemented_verified",
-      "evidence": "V3至V15密封/8093-only守卫/CAS/保护PID/一次POST和独立审阅闭环",
-      "next_gate": "后续版本保持当前冻结字节和精确基线",
+      "evidence": "V3至V17密封/8093-only守卫/CAS/保护PID/一次POST闭环；V16三失败原样冻结，V17五通过独立审阅",
+      "next_gate": "后续版本保持冻结字节、精确基线和独立审查",
       "case_ids": [],
       "depends_on": [
         "QAOPT-T04",

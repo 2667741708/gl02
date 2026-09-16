@@ -103,6 +103,13 @@ STATUS.update({
 })
 
 
+STATUS.update({
+    'QAOPT-R02': ('deployed_partial_verified', 'V7身份隔离历史通过；V16独立历史/当前编排已部署，V17三种历史+当前/原文真实完成通过，无匹配明确，禁工具策略保留', '不可分历史推断及全来源复合持出集'),
+    'QAOPT-E05': ('deployed_partial_verified', 'V15多章逐任务合同；V17既有原文合同归一化和实际最新工具事实复验，真实五题完成/缺项状态独立通过', '全部工具及模型分支完成覆盖，不凭非空升级'),
+    'QAOPT-T05': ('implemented_verified', 'V3至V17密封/8093-only守卫/CAS/保护PID/一次POST闭环；V16三失败原样冻结，V17五通过独立审阅', '后续版本保持冻结字节、精确基线和独立审查'),
+})
+
+
 def main() -> int:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     issues = catalog["issues"]
@@ -127,9 +134,9 @@ def main() -> int:
         "schema": "bf.qa.optimization-execution-ledger.v1",
         "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
         "checked_at": "2026-09-16",
-        "production_commit": "25d4cd1cc4777153bcbe1d8cd38b4ab1755f9874",
+        "production_commit": "ab0dafa3f2008b819ed40211b43a17858ecf654c",
         "production_retest": {"passed": 2, "partial": 6, "failed": 7, "blocked_client_contract": 1},
-        "latest_production_retest": {"version": "routing-v15", "requests": 5, "sse_done": 5, "passed": 5, "failed": 0, "expected_partial": 2, "automatic_post_retries": 0},
+        "latest_production_retest": {"version": "routing-v17", "requests": 5, "sse_done": 5, "passed": 5, "failed": 0, "expected_partial": 2, "automatic_post_retries": 0},
         "knowledge_collection": {"source": 833, "valid_once_only_requests": 803, "original_coverage_contract_verified": 803, "oracle_conflicts_blocked": 30, "full_semantic_pass_inferred": False},
         "current_local_candidate": {"version": "next", "issues": ["QAOPT-K06", "QAOPT-R02", "QAOPT-R10", "QAOPT-O04", "QAOPT-T02", "QAOPT-T04"], "state": "remaining_items_in_progress"},
         "rows": rows,
@@ -142,8 +149,8 @@ def main() -> int:
         "- 状态：执行中；最后核对：2026-09-16。",
         "- 需求：`REQ-QA-FULL-ISSUE-INVENTORY-20260916`。",
         "- 权威机器数据：[optimization_execution_ledger_20260916.json](optimization_execution_ledger_20260916.json)。",
-        "- 生产修复版本：`25d4cd1cc4777153bcbe1d8cd38b4ab1755f9874`；V15五题单发送并独立语义通过，其中未知章节与代码策略按预期partial。有效803知识题已核验原文覆盖，30题标准答案冲突阻断；剩余项继续修复，非空不算通过。",
-        "- 最新权威实施：[V15生产修复交接](../../docs/handoffs/2026-09-16-qa-routing-v15-production.md)。旧阶段记录保留为历史证据。",
+        "- 生产修复版本：`ab0dafa3f2008b819ed40211b43a17858ecf654c`；V16发现三项完成合同失败，V17新轮五题单发送并独立通过，缺章及禁工具历史按预期partial。有效803知识题已核验原文覆盖，30题标准答案冲突阻断；剩余项继续修复，非空不算通过。",
+        "- 最新权威实施：[V17生产修复交接](../../docs/handoffs/2026-09-16-qa-routing-v17-production.md)。旧阶段记录保留为历史证据。",
         "",
         "## 借鉴 DSH 与 Codex 的实施边界",
         "",

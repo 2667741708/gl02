@@ -1,5 +1,9 @@
 # API 参考
 
+## V17 历史复合完成合同（2026-09-16）
+
+`completion.history_subtasks` 标记历史查询终态与 `history_status`，no_match 是已完成查询但没有匹配记录。非历史子任务使用独立证据；整体 completed 需双方完成，否则 partial。`completion_basis` 区分既有原文合同与重新校验的最新工具载荷。策略阻断历史不抹掉允许的用户数据分析。[证据](handoffs/2026-09-16-qa-routing-v17-production.md)。
+
 ## V15多章节完成合同（2026-09-16）
 
 正式多章节请求的`completion.subsection_subtasks`逐项给出终态，并公开请求/完成数量。所有章节完整才completed；明确缺章且有已完成章节时partial，保留有效原文。独立来源及选中章节一致覆盖门在原文回答前执行；不靠模型补写缺章。最新追问不能把旧窗口平均值当当前单点。[验证证据](handoffs/2026-09-16-qa-routing-v15-production.md)。

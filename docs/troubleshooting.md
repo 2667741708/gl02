@@ -1,5 +1,9 @@
 # 排障手册
 
+## V17 历史复合错误 partial（2026-09-16）
+
+历史与其他子任务有结果而整体 partial 时，先检查原文执行器的完成字段和实时分支的 pending 合同。不得以答案非空强行 completed：应检查原文来源清单，或实际 latest 工具载荷的请求对象、单位、时间和只读来源。V16 三失败在 V17 新轮复测通过。[权威排障证据](handoffs/2026-09-16-qa-routing-v17-production.md)。
+
 ## 原文少答一章或最新追问沿用历史窗口
 
 V15已补逐章节完成和最新窗口重置。先核对当前生产提交及三个文件哈希，再查`completion.subsection_subtasks`、来源完整性和继承依据；不要重发已发送/不确定题。超出只读检查时限时使用`check_qa_knowledge_candidate_readonly.py --summary --offset N --limit 100`分批核对，0 POST/模型/数据库写入；结果不能推断全题语义通过。[V15权威交接](handoffs/2026-09-16-qa-routing-v15-production.md)。
