@@ -3490,3 +3490,10 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 tests/test_qa_full_candidate_probe.py与tests/test_qa_full_candidate_probe_evidence.py共34 pass（7.25秒）。生产独立Python3.11.9实际完整加载16冻结模块及59项目依赖，10完整合成合同pass。五个外部I/O边界为夹具；不计为真实数据库、模型答案、并发或线上准确率。
 
 权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+31模块760合同通过；24源门测试及9新增证据拒绝反例，10完整原生合成Handler受限读取0；不是线上语义或并发通过。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。

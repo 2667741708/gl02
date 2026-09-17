@@ -202,7 +202,8 @@ def request_contracts(proxy):
     timestamp = '2026-01-01T00:00:00+00:00'
     conversation = {'id': conversation_id, 'owner_subject': owner, 'title': 'synthetic-title',
         'created_at': timestamp, 'updated_at': timestamp, 'last_user_at': timestamp}
-    state = {'messages': [], 'calls': [], 'digest': FIXED_DIGEST, 'cancel_after_chat': False}
+    state = {'messages': [], 'calls': [], 'digest': FIXED_DIGEST, 'cancel_after_chat': False,
+        'sensor_context_reads': [], 'page_archives': []}
 
     class Cursor:
         def __init__(self, rows=(), lastrowid=None):
@@ -217,6 +218,11 @@ def request_contracts(proxy):
         def commit(self): pass
         def execute(self, sql, params=()):
             text = ' '.join(sql.lower().split())
+            if text.startswith('select') and 'from furnace_snapshots' in text:
+                state['sensor_context_reads'].append('assistant_snapshot_read')
+            if text.startswith('insert into furnace_snapshots('):
+                state['page_archives'].append('synthetic_page_archive')
+                return Cursor(lastrowid=len(state['page_archives']))
             if text.startswith('insert into qa_messages('):
                 message = dict(zip(('conversation_id', 'role', 'content', 'created_at', 'snapshot_id', 'hidden_context_json'), params))
                 message['id'] = len(state['messages']) + 1
@@ -267,7 +273,9 @@ def request_contracts(proxy):
             self.statuses = []
             self.session = {'sub': subject, 'role': 'operator', 'access_mode': 'authenticated'}
             body = {'message': question, 'conversation_id': conversation_id, 'stream': stream,
-                'client_request_id': request_id or 'synthetic_request_' + proxy.uuid.uuid4().hex}
+                'client_request_id': request_id or 'synthetic_request_' + proxy.uuid.uuid4().hex,
+                'current_snapshot': {'source_time': timestamp,
+                    'values': {'synthetic_page_marker': 'PAGE_ARCHIVE_IS_NOT_ANALYSIS_EVIDENCE'}}}
             raw = json.dumps(body).encode('utf-8')
             self.headers['Content-Length'] = str(len(raw))
             self.rfile = io.BytesIO(raw)
@@ -276,8 +284,12 @@ def request_contracts(proxy):
         def send_header(self, *args): pass
         def end_headers(self): pass
         def add_cors(self): pass
-        def latest_pg_snapshot_for_qa(self, conn): return None
-        def recent_pg_diagnosis_snapshots_for_qa(self, **kwargs): return [], {}
+        def latest_pg_snapshot_for_qa(self, conn):
+            state['sensor_context_reads'].append('latest_sensor_provider')
+            return None
+        def recent_pg_diagnosis_snapshots_for_qa(self, **kwargs):
+            state['sensor_context_reads'].append('trend_sensor_provider')
+            return [], {}
 
     # Keep actual DB/control wrapper, ownership, preparation, prompt, request,
     # completion, persistence and reply methods. Only external seams are fake.
@@ -285,12 +297,34 @@ def request_contracts(proxy):
     proxy._QA_DB_BOOTSTRAPPED = True
     proxy.urlopen = transport
     proxy.qa_request_control._requests.clear()
-    cases = []
+    class SourceBoundCases(list):
+        def append(self, row):
+            # All questions below explicitly restrict external data or request
+            # disabled code. Functional success alone does not prove no reads.
+            row['functional_contract_passed'] = bool(row['passed'])
+            row['sensor_context_read_count'] = len(state['sensor_context_reads'])
+            row['sensor_context_read_kinds'] = list(state['sensor_context_reads'])
+            row['mock_page_archives'] = len(state['page_archives'])
+            expected_archives = 0 if row['id'] in {'full_json_cross_owner_denied', 'full_json_single_user_busy'} else 1
+            isolated = all(message.get('snapshot_id') is None
+                and not (json.loads(message.get('hidden_context_json') or '{}').get('snapshot_ids') or [])
+                and json.loads(message.get('hidden_context_json') or '{}').get('latest_snapshot_id') is None
+                for message in state['messages'])
+            isolated = isolated and all('PAGE_ARCHIVE_IS_NOT_ANALYSIS_EVIDENCE' not in json.dumps(body)
+                for body in state['calls'])
+            row['page_archive_isolated_from_evidence'] = bool(isolated)
+            row['passed'] = bool(row['passed'] and not state['sensor_context_reads']
+                and row['mock_page_archives'] == expected_archives and isolated)
+            super().append(row)
+
+    cases = SourceBoundCases()
     data_question = '仅基于我提供的数据：风压=[220,224,226]，计算平均值并说明波动，不查数据库。'
 
     def reset():
         state['messages'], state['calls'], state['digest'] = [], [], FIXED_DIGEST
         state['cancel_after_chat'] = False
+        state['sensor_context_reads'] = []
+        state['page_archives'] = []
 
     def response(handler):
         return json.loads(handler.wfile.getvalue())

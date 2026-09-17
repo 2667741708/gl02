@@ -608,3 +608,10 @@ SSH已恢复但固定底座仍被阻断：比较固定摘要与tags→ps→tags�
 片段测试全绿但完整导入缺模块时，禁止伪造依赖或回落旧proxy。运行哈希绑定的RAM完整加载探针，真实缺失模块/I/O尝试/依赖源变化均阻断。Windows stdlib OS元数据在候选guard之前预热，不放开候选进程权限。固定身份不一致继续阻断原题复问。
 
 权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+0 MCP工具仍可能prepare提前读炉况；检查sensor_context_policy及snapshot兜底。归档失败不得开启实时兜底；当前新生产共享proxy先合并再密封。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。

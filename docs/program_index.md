@@ -1343,3 +1343,10 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 tools/qa_full_candidate_probe.py负责RAM源加载、只读I/O边界、执行源哈希及完整合成Handler合同；tools/build_qa_full_candidate_probe.py绑定最新冻结manifest/probe SHA并OEXCL生成私有脚本；tools/verify_qa_full_candidate_probe.py校验完整证据并导出59项传递依赖read_set，不授予部署授权。
 
 权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+build_qa_sensor_context_candidate.py只改冻结prepare；完整探针统计sensor读取、归档次数及证据隔离，校验器拒绝缺证据。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。

@@ -796,3 +796,10 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 完整候选探针仅清理独立子进程BF_/OLLAMA_/PG环境并注入synthetic上游与keyword检索；不修改服务配置、计划任务或模型。BF_FRONTEND_DIR指向已审查依赖根，BF_SKIP_ASSISTANT_STARTUP=1只用于探针，禁止把合成环境应用到生产服务。
 
 权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+sensor_context_policy schema qa-sensor-context-source-gate-v1；不新增环境变量、模型选项或可覆盖的底座。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。

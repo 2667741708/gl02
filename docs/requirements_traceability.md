@@ -1427,3 +1427,10 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 完整发布候选不能只靠AST函数片段验收；需原生Python3.11完整加载冻结16模块、所有实际传递依赖，以及JSON/SSE/owner/固定底座/取消/去重合成链路。V45-r2已验证16模块、59实际依赖、10合成合同；34边界测试及独立审查通过，未部署或生产销项。
 
 权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+明确no_live或纯代码在prepare执行层也必须零sensor读取；页面归档与本轮证据分离。REQ-QA-SENSOR-CONTEXT-SOURCE-GATE-20260917。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。

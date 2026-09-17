@@ -743,3 +743,10 @@ python -X utf8 tools/build_qa_prompt_binding_candidate.py --revision rN只冻结
 生成：python -B -X utf8 tools/build_qa_full_candidate_probe.py --dependency-root <reviewed-root> --output-script <new-ignored-private-path>。校验：python -B -X utf8 tools/verify_qa_full_candidate_probe.py --evidence <private-report> --output-read-scope <new-private-read-scope>。两入口--help通过。脚本只经Reliable SSH精确Python -B -X utf8 - argv/stdin执行，remote不落源码；ok=false退出1，无自动重放或部署授权。全部传递依赖须加入后续守卫read_set并新鲜复核。
 
 权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+python -B -X utf8 tools/build_qa_sensor_context_candidate.py --revision rN只冻结本机候选；编号需未存在，O_EXCL，不授予部署或模型权限。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。

@@ -540,3 +540,10 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 本轮没有新增或放宽QA API。完整导入后的真实Handler/prepare/JSON/SSE代码在合成外部边界下验证：跨owner404、占用/去重/取消409、JSON固定权重错误code=fixed_model_identity_not_ready、SSE对应error。合同通过不能证明生产接口已部署或语义准确率。
 
 权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+请求自带current_snapshot保持归档；明确no-live/纯代码不读取或注入它，也不绑定本轮snapshot_id。既有ABC权威context独立保留；认证和owner合同不变。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。

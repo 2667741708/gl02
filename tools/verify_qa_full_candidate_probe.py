@@ -45,6 +45,14 @@ def validate(report, candidate, manifest, probe_sha256):
     rows = contracts.get('cases') or []
     require(len(rows) == len(CASES) and {row.get('id') for row in rows} == CASES
         and all(row.get('passed') is True for row in rows), 'Complete handler contract evidence required')
+    require(all(row.get('functional_contract_passed') is True
+        and type(row.get('sensor_context_read_count')) is int and row['sensor_context_read_count'] == 0
+        and row.get('sensor_context_read_kinds') == [] for row in rows),
+        'Explicit source restriction sensor reads were not verified')
+    require(all(type(row.get('mock_page_archives')) is int
+        and row['mock_page_archives'] == (0 if row['id'] in {'full_json_cross_owner_denied', 'full_json_single_user_busy'} else 1)
+        and row.get('page_archive_isolated_from_evidence') is True for row in rows),
+        'Page archival preservation or evidence isolation not verified')
     require(contracts.get('state') == 'synthetic_contract_only' and contracts.get('full_prepare_executed') is True
         and all(contracts.get(key) is False for key in ('real_database_verified', 'real_model_answer_verified',
             'real_concurrency_verified', 'production_accuracy_inferred')), 'Synthetic scope mislabeled')
