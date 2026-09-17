@@ -1,0 +1,43 @@
+{
+  "schema": "bf.qa.plan-runtime-readonly-snapshot.v1",
+  "checked_date": "2026-09-17",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "method": "Reliable SSH read-only progress, process, file SHA256 and git inspection; local accepted version record cross-check",
+  "production_commit": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+  "version": "routing-v26",
+  "accepted_version_record_verified": true,
+  "runtime_files": {
+    "ollama_proxy_server.py": "47b7e75f6a4c2b932ac21b0dd9628d4c049f7a6f2ee083537bbedf1a6c57f431",
+    "qa_tool_fallback.py": "c5be1cb459c845510d7ad4b8ce60a8da444910a554e6005683d48bf97dd69dfd",
+    "bf_data_mcp_server.py": "42d81acb60a0d3b28897c55e5c692e71f75ca5cf262dc8088fa4d1dcc6817884",
+    "qa_evidence_policy.py": "541545bc427892b61356bbb61821b0d8f6c67e150d91a067acc147d823aac8b4",
+    "qa_document_knowledge.py": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9",
+    "qa_request_control.py": "3a377273d67767727432744a1e2077df42a6516a4801042f02f6df34fbbd41ca"
+  },
+  "initial_r3": {
+    "planned": 953,
+    "completed": 953,
+    "requests": 953,
+    "state": "completed",
+    "process_alive": false,
+    "automatic_retries": 0
+  },
+  "v26_retest": {
+    "planned": 822,
+    "completed": 0,
+    "requests": 0,
+    "state": "blocked",
+    "process_alive": false,
+    "automatic_retries": 0,
+    "reason": "model identity changed; no next request sent",
+    "progress_plan_sha256": "d972e0719932da51a7572740615c806fa3feb68daf89d0e5cc7078ab8d032c05",
+    "claims_independently_audited_this_turn": false,
+    "full_dataset_accuracy_available": false
+  },
+  "limits": [
+    "This inspection did not send model requests or change production.",
+    "Deployment and file hashes do not prove semantic correctness.",
+    "Zero requests is the batch progress observation; continuation still requires independent claim reconciliation.",
+    "V25 issue states remain scoped historical verification, not proof of all V26 cases passing."
+  ]
+}

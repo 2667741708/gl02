@@ -1636,3 +1636,12 @@ AO/PBR？
 - 边界：ABC33是当前代码的直接导出；原8类普通公式按现存YAML还原，硬门与最终主次Resolver没有
   足够本地代码证据，手册明确标注未核实而没有猜测。
 - 验证：8+33章节完整，PDF 55页、约1.46MB，封面、B4和C11页面视觉检查通过；没有连接或修改220.12。
+
+## Q-QA-VERIFIED-ISSUE-PLAN-20260917
+
+- 用户问题：统计全部智能助手问题，并给出逐条可核对的路由与助手完善方案。
+- 关联需求：REQ-QA-FULL-ISSUE-INVENTORY-20260916。
+- 答复入口：[全量统计与实施方案](handoffs/2026-09-17-qa-verified-issue-plan.md)。
+- 可核对产物：[1418条索引与机器统计](../tests/qa_regression/verified_inventory_20260917.json)、[33项验收清单](../tests/qa_regression/verified_optimization_checklist_20260917.md)、[20类语义标签与9题待归类清单](../tests/qa_regression/semantic_issue_crosswalk_20260917.md)。
+- 验证：对账脚本核对1233条最终判定、分母恒等式、唯一ID和原结果哈希；14条金标结构校验通过。生产仅作Reliable SSH只读核查，V26恢复批次显示发送0、模型身份门禁阻断，不能报告新版全量准确率。
+- 边界：保留初次不确定发送题，禁止自动重放；模型及其他服务变更另按授权；本次统计与方案不改变生产。
