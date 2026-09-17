@@ -1280,3 +1280,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [_declared_input_clause](../高炉前端数据/智能助手/backend/qa_task_plan.py:215)区分声明、字面值、数值核验及时间；[_explicit_live_request](../高炉前端数据/智能助手/backend/qa_task_plan.py:260)保留当前数值问句。冻结[生成器](../tools/build_qa_declared_input_candidate.py:13)仅替换task_plan，15文件中14继承V39。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
+
+
+## REQ-QA-RESPONSE-STYLE-SOURCE-SCOPE-20260917：回答形式与资料来源
+
+状态：2026-09-17本机395项相关回归/独立审查通过，V41-r1冻结，生产未应用。
+
+[任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py:300)仅调整VERSION与_DOCUMENT_TERMS；[冻结生成器](../tools/build_qa_response_style_candidate.py)15文件中14继承V40。实际制度入口和代理外层MCP选择均有回归。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

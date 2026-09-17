@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / '高炉前端数据/智能助手/backend'))
 import qa_task_plan as planner
 import qa_evidence_policy as policy
 import qa_entity_resolution
+from qa_frozen_candidate import latest_frozen_candidate
 
 
 @pytest.mark.parametrize('question', [
@@ -102,8 +103,7 @@ def test_clock_or_date_numbers_do_not_assert_measurement_values(question):
 
 
 def actual_proxy_scope():
-    candidate = ROOT / '.codex_runtime/qa-routing-v40/candidate-r2'
-    assert (candidate / 'qa_task_plan.py').read_bytes() == (ROOT / '高炉前端数据/智能助手/backend/qa_task_plan.py').read_bytes()
+    candidate, _ = latest_frozen_candidate(ROOT)
     tree = ast.parse((candidate / 'ollama_proxy_server.py').read_bytes())
     aliases = next(node for node in tree.body if isinstance(node, ast.AnnAssign)
       and isinstance(node.target, ast.Name) and node.target.id == 'SPOKEN_MCP_VARIABLE_ALIASES')
@@ -157,7 +157,9 @@ def test_candidate_keeps_fixed_base_and_all_other_files():
     assert manifest['model_name'] == 'chiqiongblastfuenace:latest'
     assert manifest['model_digest'] == 'e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124'
     assert not any(manifest[key] for key in ('model_switch_allowed', 'same_name_weight_replacement_allowed', 'fallback_model_allowed'))
-    assert (candidate / 'qa_task_plan.py').read_bytes() == (ROOT / '高炉前端数据/智能助手/backend/qa_task_plan.py').read_bytes()
+    public = json.loads((ROOT / 'tests/qa_regression/declared_input_scope_20260917.json').read_bytes())
+    assert hashlib.sha256((candidate / 'package_manifest.private.json').read_bytes()).hexdigest() == public['private_candidate']['manifest_sha256']
+    assert manifest['files']['qa_task_plan.py']['sha256'] == public['private_candidate']['changed_module_sha256']
     for name, item in manifest['files'].items():
         assert hashlib.sha256((candidate / name).read_bytes()).hexdigest() == item['sha256']
     for name in manifest['inherited_v39_files_byte_identical']:

@@ -313,3 +313,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL/生产数据改动。prior_local_candidate_v39保留旧候选；R07原production_verified/两题证据及next_gate完整存档，新状态deployed_partial_verified。另32状态及初始题判定/生产复测不变，0销项。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
+
+
+## REQ-QA-RESPONSE-STYLE-SOURCE-SCOPE-20260917：回答形式与资料来源
+
+状态：2026-09-17本机395项相关回归/独立审查通过，V41-r1冻结，生产未应用。
+
+无DDL和生产数据修改。prior_local_candidate_v40保存历史候选；33项状态、R07重新开放记录和旧线上证据均保留，0销项。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

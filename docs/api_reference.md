@@ -477,3 +477,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无新增HTTP接口。声明数值绑定user_message，当前“是否为某值”是live_data核验，不能拿候选数值充当测量；独立现场/历史/报表及明确全局禁令保持既有合同。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
+
+
+## REQ-QA-RESPONSE-STYLE-SOURCE-SCOPE-20260917：回答形式与资料来源
+
+状态：2026-09-17本机395项相关回归/独立审查通过，V41-r1冻结，生产未应用。
+
+无HTTP接口新增。普通逐条解释不得要求补书名或附加制度缺失任务；明确资料请求仍受绑定和原文完整性校验。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

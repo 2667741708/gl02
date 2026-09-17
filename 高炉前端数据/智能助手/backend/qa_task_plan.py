@@ -15,11 +15,11 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v5-declared-input-scope"
+VERSION = "qa-task-plan-v6-response-style-source"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
-    "三规二制", "原文", "全文", "逐条", "完整说明", "制度", "规程", "手册",
+    "三规二制", "原文", "全文", "制度", "规程", "手册",
     "文档", "条款", "章节", "操作规程", "安全规程", "技术规程",
 )
 _DOCUMENT_ACTIONS = ("说明", "解释", "摘要", "总结", "读取", "列出", "引用", "查找", "检索", "给出", "回答", "是什么", "有哪些")

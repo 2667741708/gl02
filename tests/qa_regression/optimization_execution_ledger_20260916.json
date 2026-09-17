@@ -39,12 +39,12 @@
     "full_semantic_pass_inferred": false
   },
   "current_local_candidate": {
-    "version": "v40-r2",
+    "version": "v41-r1",
     "state": "local_tested_reviewed_frozen_not_production_applied",
-    "related_tests_passed": 327,
+    "related_tests_passed": 395,
     "production_semantic_effectiveness_verified": false,
-    "evidence": "declared_input_scope_20260917.json",
-    "manifest_sha256": "80b785bf18576273cb0ad65ae9b0e63bb57abb703c377d2c246043cc4bc1c44c",
+    "evidence": "response_style_source_scope_20260917.json",
+    "manifest_sha256": "697a0c119288ec792465e7ce22156cd2ce6d89c6b7f58866431f42b84d6d80e3",
     "fixed_base_identity_unchanged": true
   },
   "rows": [
@@ -70,7 +70,9 @@
       "local_user_data_source_scope": "user_data_source_scope_20260917.json",
       "local_user_data_source_scope_state": "v39_r3_reviewed_286_tests_passed_not_deployed",
       "local_declared_input_scope": "declared_input_scope_20260917.json",
-      "local_declared_input_scope_state": "v40_r2_reviewed_327_tests_passed_not_deployed"
+      "local_declared_input_scope_state": "v40_r2_reviewed_327_tests_passed_not_deployed",
+      "local_response_style_source_scope": "response_style_source_scope_20260917.json",
+      "local_response_style_source_scope_state": "v41_r1_reviewed_395_tests_passed_not_deployed"
     },
     {
       "order": 2,
@@ -202,7 +204,9 @@
         "evidence": "V12顶压调节控制和风温/焦比/喷煤条件性因果两题独立语义通过，0外部工具",
         "next_gate": "扩展工艺持出集和稳定性"
       },
-      "reopened_reason": "New local declared-input counterexamples contradict full-scope completion; the two historical production questions remain verified only for their original subset."
+      "reopened_reason": "New local declared-input counterexamples contradict full-scope completion; the two historical production questions remain verified only for their original subset.",
+      "local_response_style_source_scope": "response_style_source_scope_20260917.json",
+      "local_response_style_source_scope_state": "v41_r1_reviewed_395_tests_passed_not_deployed"
     },
     {
       "order": 8,
@@ -369,7 +373,9 @@
       "new_boundary_defect": "V33书名字串误绑本机复现；先前生产验收未覆盖该边界，不等于已重新现场失败",
       "local_document_regulation_scope": "document_regulation_scope_20260917.json",
       "local_compound_source_scope": "compound_source_scope_20260917.json",
-      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed",
+      "local_response_style_source_scope": "response_style_source_scope_20260917.json",
+      "local_response_style_source_scope_state": "v41_r1_reviewed_395_tests_passed_not_deployed"
     },
     {
       "order": 15,
@@ -906,6 +912,15 @@
     "production_semantic_effectiveness_verified": false,
     "evidence": "user_data_source_scope_20260917.json",
     "manifest_sha256": "4d84a7e47cfd09fe2fc1e7d6ddea85a68977465fdba0dfbee50de5315f073a86",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v40": {
+    "version": "v40-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 327,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "declared_input_scope_20260917.json",
+    "manifest_sha256": "80b785bf18576273cb0ad65ae9b0e63bb57abb703c377d2c246043cc4bc1c44c",
     "fixed_base_identity_unchanged": true
   }
 }

@@ -733,3 +733,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 无新增配置；qa-task-plan-v5-declared-input-scope只改输入来源判断。固定同一名称/digest，切换/备用/同名换权重仍禁止；禁代码、keyword和单用户限制不变。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
+
+
+## REQ-QA-RESPONSE-STYLE-SOURCE-SCOPE-20260917：回答形式与资料来源
+
+状态：2026-09-17本机395项相关回归/独立审查通过，V41-r1冻结，生产未应用。
+
+无新增配置；固定模型名称/digest，禁止切换、备用、同名换权重。Prompt、禁代码、keyword、单用户及源门禁字节不变。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

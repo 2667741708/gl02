@@ -545,3 +545,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 假设/已知数值被误查现场时先核输入声明；反向检查“当前值是180吗”仍核验实测。时间反例必须保留，不能把从7点到8点当温度变化；从/由数值变化要求变化动词及两个测量数值。旧两题通过不足以关闭R07。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
+
+
+## REQ-QA-RESPONSE-STYLE-SOURCE-SCOPE-20260917：回答形式与资料来源
+
+状态：2026-09-17本机395项相关回归/独立审查通过，V41-r1冻结，生产未应用。
+
+普通完整说明被要求提供书名时先检查是否把回答形式当成来源。测试代理必须包含外层allow_mcp_tools与内部谓词；最新冻结包全15哈希必须验证，历史快照保持独立固定绑定，禁止回退旧候选掩盖变化。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
