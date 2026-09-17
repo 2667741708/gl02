@@ -1434,3 +1434,10 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 明确no_live或纯代码在prepare执行层也必须零sensor读取；页面归档与本轮证据分离。REQ-QA-SENSOR-CONTEXT-SOURCE-GATE-20260917。
 
 [实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+REQ-QA-SHARED-PROXY-INTEGRATION-20260917：发布候选必须保留生产并行ABC33展示修复，不能用旧proxy覆盖。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。

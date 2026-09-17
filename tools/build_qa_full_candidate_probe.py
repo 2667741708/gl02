@@ -17,10 +17,12 @@ def build(dependency_root, output_script):
     candidate, manifest = latest_frozen_candidate(ROOT)
     probe = (ROOT / 'tools/qa_full_candidate_probe.py').read_bytes()
     payload = {'dependency_root': str(dependency_root), 'request_contracts': True,
+        'shared_abc_contracts': bool(manifest.get('shared_proxy_integration')),
         'candidate': manifest['candidate'],
         'manifest_sha256': hashlib.sha256((candidate / 'package_manifest.private.json').read_bytes()).hexdigest(),
         'probe_sha256': hashlib.sha256(probe).hexdigest(),
         'model_name': manifest['model_name'], 'model_digest': manifest['model_digest'],
+        'runtime_dependency_pins': manifest.get('runtime_dependency_pins', {}),
         'sources': {name: base64.b64encode((candidate / name).read_bytes()).decode('ascii') for name in manifest['files']},
         'sha256': {name: item['sha256'] for name, item in manifest['files'].items()}}
     packed = base64.b64encode(zlib.compress(json.dumps(payload, ensure_ascii=False).encode('utf-8'))).decode('ascii')

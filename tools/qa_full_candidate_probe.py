@@ -13,7 +13,8 @@ import io
 import json
 import os
 import platform
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
 import sys
 import threading
 
@@ -39,6 +40,15 @@ def run(payload):
     hashes = payload['sha256']
     if set(sources) != BASE_FILES or set(hashes) != BASE_FILES:
         raise ValueError('Frozen module set mismatch')
+    pins = payload.get('runtime_dependency_pins', {})
+    if not isinstance(pins, dict):
+        raise ValueError('Runtime dependency pins must be a mapping')
+    for path, digest in pins.items():
+        if not isinstance(path, str) or not isinstance(digest, str):
+            raise ValueError('Invalid dependency pin')
+        parsed = PurePosixPath(path)
+        if parsed.is_absolute() or '..' in parsed.parts or '\\' in path or ':' in path or parsed.as_posix() != path or not path.endswith('.py') or not re.fullmatch(r'[0-9a-f]{64}', digest):
+            raise ValueError('Invalid dependency pin')
     decoded = {name: base64.b64decode(data, validate=True) for name, data in sources.items()}
     for name, raw in decoded.items():
         if hashlib.sha256(raw).hexdigest() != hashes[name]:
@@ -128,7 +138,11 @@ def run(payload):
                 origin = Path(spec.origin).resolve()
                 if origin.is_relative_to(root):
                     raw = origin.read_bytes()
-                    dependency_hashes[origin.relative_to(root).as_posix()] = hashlib.sha256(raw).hexdigest()
+                    relative = origin.relative_to(root).as_posix()
+                    digest = hashlib.sha256(raw).hexdigest()
+                    dependency_hashes[relative] = digest
+                    if relative in pins and digest != pins[relative]:
+                        raise ValueError('Pinned dependency changed before execution: ' + relative)
                     return importlib.util.spec_from_file_location(fullname, str(origin),
                         loader=Loader(fullname, raw, origin),
                         submodule_search_locations=spec.submodule_search_locations)
@@ -140,6 +154,7 @@ def run(payload):
     imported = []
     importing = None
     contracts = None
+    shared_contracts = None
     error = None
     try:
         sys.stdout = log
@@ -153,6 +168,8 @@ def run(payload):
             importlib.import_module(importing)
         if payload.get('request_contracts') is True:
             contracts = request_contracts(sys.modules['ollama_proxy_server'])
+        if payload.get('shared_abc_contracts') is True:
+            shared_contracts = shared_abc_contracts(sys.modules['ollama_proxy_server'])
     except Exception as exc:
         error = {'type': type(exc).__name__, 'missing_module': getattr(exc, 'name', None), 'importing': importing}
     finally:
@@ -176,23 +193,175 @@ def run(payload):
             if executed_sha is None or executed_sha != current_sha:
                 changed_dependencies.append(relative)
             loaded[relative] = {'sha256': executed_sha, 'source': 'dependency_readonly_source'}
+    pin_mismatches = sorted(path for path, digest in pins.items()
+        if loaded.get(path) != {'sha256': digest, 'source': 'dependency_readonly_source'})
     return {'schema': 'bf.qa.full-candidate-readonly-import.v1',
         'candidate': payload.get('candidate'), 'manifest_sha256': payload.get('manifest_sha256'),
         'probe_sha256': payload.get('probe_sha256'),
         'fixed_identity': {'name': FIXED_NAME, 'digest': FIXED_DIGEST},
-        'ok': imported == ['ollama_proxy_server', 'bf_data_mcp_server'] and error is None and not attempted and not changed_dependencies
-            and (contracts is None or all(row['passed'] for row in contracts['cases'])),
+        'ok': imported == ['ollama_proxy_server', 'bf_data_mcp_server'] and error is None and not attempted and not changed_dependencies and not pin_mismatches
+            and (contracts is None or all(row['passed'] for row in contracts['cases']))
+            and (shared_contracts is None or all(row['passed'] for row in shared_contracts['cases'])),
         'native_python': '.'.join(str(x) for x in sys.version_info[:3]),
         'stdlib_platform_metadata_prepared': True,
         'imported_entries': imported, 'error': error,
         'frozen_modules_loaded': sum(name[:-3] in sys.modules for name in BASE_FILES),
         'module_hashes': loaded, 'side_effect_attempts': attempted,
         'changed_or_unbound_dependencies': changed_dependencies,
+        'runtime_dependency_pins': pins, 'runtime_dependency_pin_mismatches': pin_mismatches,
         'project_dependencies_executed_from_source': True,
         'side_effect_frames': attempt_frames,
         'request_contracts': contracts,
+        'shared_abc_contracts': shared_contracts,
         'model_calls': 0, 'question_posts': 0, 'production_writes': 0,
         'service_started': False, 'semantic_accuracy_inferred': False}
+
+
+def shared_abc_contracts(proxy):
+    """Run merged public methods with synthetic external data, never a real DB."""
+    from contextlib import nullcontext
+    from copy import deepcopy
+    from datetime import datetime, timedelta, timezone
+
+    bands = {'A': {'review_below': 85}, 'B': {'observe_from': 20, 'popup_from': 40,
+        'amber_from': 60, 'confirm_from': 80}, 'C': {'alarm_from': 80}}
+    config = {'config_version': 'synthetic-display-contract', 'score_bands': bands,
+        'release_control': {'mode': 'synthetic', 'scores_visible': True, 'alerts_enabled': False}}
+    now = datetime.now(timezone.utc)
+    rows = []
+    for category, count in (('A', 9), ('B', 13), ('C', 11)):
+        for number in range(1, count + 1):
+            key = category + str(number)
+            score = 80 if key in {'A1', 'B1'} else 90 if category == 'A' or key == 'C1' else 0
+            rows.append({'batch_id': 17, 'evaluation_ts': now, 'rule_id': key,
+                'category': category, 'display_name': 'SYNTHETIC_OLD_NAME', 'score': score,
+                'confidence': 1, 'status': 'ok', 'public_detail': {'rule_id': key,
+                    'category': category, 'display_name': 'SYNTHETIC_OLD_NAME', 'score': score,
+                    'score_available': True, 'status': 'ok'},
+                'weights': {}, 'normalized_values': {}, 'contributions': {},
+                'missing_features': [], 'thresholds': {}})
+    state = {'reads': [], 'operator_checks': 0, 'missing': False, 'rows': rows,
+        'stale': False, 'unavailable': False}
+
+    class Cursor:
+        def __init__(self, values): self.values = values
+        def fetchone(self): return self.values[0] if self.values else None
+        def fetchall(self): return self.values
+
+    class Database:
+        def execute(self, sql, params=()):
+            normalized = ' '.join(sql.split())
+            if not normalized.startswith('SELECT '):
+                raise AssertionError('Shared contract attempted non-read SQL')
+            state['reads'].append(normalized)
+            if state['missing']: return Cursor([])
+            if 'FROM bf_sensor.abc_rule_evaluation_batches' in normalized:
+                return Cursor([{'id': 17, 'evaluation_ts': now}])
+            if 'FROM bf_sensor.abc_rule_evaluation_items i' in normalized:
+                values = deepcopy(state['rows'])
+                if state['unavailable']:
+                    # public_rule derives output score_available from the
+                    # authoritative release gate; do not feed its output back
+                    # as if it were the persisted input contract.
+                    values[0]['public_detail']['score_released'] = False
+                if 'WHERE i.rule_id=%s' in normalized:
+                    values = [row for row in values if row['rule_id'] == params[0]]
+                    if state['stale']:
+                        for row in values: row['evaluation_ts'] = now - timedelta(hours=1)
+                return Cursor(values)
+            raise AssertionError('Unexpected shared SQL')
+
+    class Probe(proxy.Handler):
+        def __init__(self): self.responses = []; self.statuses = []
+        def send_json(self, payload, status=200, headers=None):
+            self.responses.append(deepcopy(payload)); self.statuses.append(status)
+        def _abc_connection(self): return nullcontext(Database())
+        def _load_persisted_abc_review(self, batch_id, rule_id): return None
+        def _abc_operator_read_required(self):
+            state['operator_checks'] += 1
+            self.send_json({'ok': False, 'error': 'synthetic_operator_required'}, status=403)
+            return False
+
+    def reset(**changes):
+        state.update(reads=[], operator_checks=0, missing=False, stale=False, unavailable=False)
+        state.update(changes)
+
+    cases = []
+    def record(identifier, handler, passed):
+        cases.append({'id': identifier, 'passed': bool(passed), 'status': handler.statuses[-1],
+            'mock_db_read_count': len(state['reads']), 'mock_operator_checks': state['operator_checks']})
+
+    original = proxy.load_abc_config
+    proxy.load_abc_config = lambda path: deepcopy(config)
+    try:
+        reset()
+        handler = Probe(); handler.handle_public_furnace_rule_breakdown('evaluation_id=17')
+        response = handler.responses[-1]; summary = response.get('unified_summary') or {}
+        a1 = next((row for row in response.get('rules', []) if row['rule_id'] == 'A1'), {})
+        record('shared_public_breakdown_v2', handler, handler.statuses == [200]
+            and response.get('schema_version') == 'furnace_rule_public_breakdown.v2'
+            and response.get('rule_count') == 33 and response.get('display_policy', {}).get('score_bands') == bands
+            and summary.get('complete') is True and summary.get('state') == 'degraded'
+            and summary.get('evaluation_id') == 17 and summary.get('a_valid_count') == 9
+            and (summary.get('primary_risk') or {}).get('rule_id') == 'C1'
+            and (summary.get('secondary_risk') or {}).get('rule_id') == 'B1'
+            and a1.get('display_name') == '综合顺行状态'
+            and a1.get('score_explanation', {}).get('good_threshold') == 85
+            and len(state['reads']) == 2 and not state['operator_checks'])
+
+        reset(unavailable=True)
+        handler = Probe(); handler.handle_public_furnace_rule_breakdown()
+        summary = handler.responses[-1].get('unified_summary') or {}
+        record('shared_unavailable_score_not_counted', handler, handler.statuses == [200]
+            and summary.get('state') == 'needs_data' and summary.get('a_valid_count') == 8
+            and 'A1' in summary.get('missing_rule_ids', []) and summary.get('complete') is False)
+
+        reset()
+        handler = Probe(); handler.handle_furnace_rule_detail('A1', 'evaluation_id=17')
+        response = handler.responses[-1]; detail = response.get('detail') or {}
+        record('shared_public_detail_v3', handler, handler.statuses == [200]
+            and response.get('schema_version') == 'furnace_rule_detail.v3'
+            and response.get('display_policy', {}).get('score_bands') == bands
+            and response.get('batch_state') == 'current' and 'score_breakdown' not in response
+            and detail.get('display_name') == '综合顺行状态'
+            and detail.get('score_explanation', {}).get('good_threshold') == 85
+            and len(state['reads']) == 1 and not state['operator_checks'])
+
+        reset(stale=True)
+        handler = Probe(); handler.handle_furnace_rule_detail('A1')
+        response = handler.responses[-1]; detail = response.get('detail') or {}
+        record('shared_stale_detail_fail_closed', handler, handler.statuses == [200]
+            and response.get('batch_state') == 'stale' and detail.get('score_available') is False
+            and detail.get('score') is None and detail.get('score_explanation', {}).get('state') == 'needs_data')
+
+        for identifier, action, expected_status, expected_error, settings in [
+                ('shared_operator_breakdown_denied', lambda h: h.handle_furnace_rule_detail('A1', 'include_breakdown=1'),
+                    403, 'synthetic_operator_required', {}),
+                ('shared_invalid_evaluation_denied', lambda h: h.handle_public_furnace_rule_breakdown('evaluation_id=0'),
+                    400, 'invalid_evaluation_id', {}),
+                ('shared_unknown_rule_denied', lambda h: h.handle_furnace_rule_detail('UNKNOWN_RULE'),
+                    404, 'unknown_rule', {}),
+                ('shared_missing_batch_denied', lambda h: h.handle_public_furnace_rule_breakdown('evaluation_id=17'),
+                    404, 'evaluation_not_found', {'missing': True})]:
+            reset(**settings); handler = Probe(); action(handler)
+            response = handler.responses[-1]
+            expected_reads = 1 if identifier == 'shared_missing_batch_denied' else 0
+            record(identifier, handler, handler.statuses == [expected_status]
+                and response.get('error') == expected_error and len(state['reads']) == expected_reads
+                and state['operator_checks'] == (1 if identifier == 'shared_operator_breakdown_denied' else 0))
+
+        reset(missing=True)
+        handler = Probe(); handler.handle_furnace_rule_detail('A1')
+        record('shared_missing_detail_needs_data', handler, handler.statuses == [200]
+            and handler.responses[-1].get('state') == 'needs_data' and len(state['reads']) == 1)
+    finally:
+        proxy.load_abc_config = original
+    return {'state': 'synthetic_contract_only', 'cases': cases,
+        'mocked_boundaries': ['abc_configuration_provider', 'abc_database_connection',
+            'persisted_sensor_review_provider', 'operator_permission_result', 'http_response_capture'],
+        'merged_handler_methods_executed': True, 'real_database_verified': False,
+        'real_authorization_verified': False, 'real_model_answer_verified': False,
+        'production_accuracy_inferred': False}
 
 
 def request_contracts(proxy):

@@ -9,7 +9,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests')]
 from qa_frozen_candidate import latest_frozen_candidate
-from verify_qa_full_candidate_probe import CASES, validate
+from verify_qa_full_candidate_probe import CASES, SHARED_CASES, validate
 
 
 def evidence():
@@ -23,6 +23,8 @@ def evidence():
     for name in ('assistant_pg.py', 'qa_request_control.py', 'qa_prompt_sources.py', 'qa_model_readiness.py'):
         modules['高炉前端数据/智能助手/backend/' + name] = {
             'sha256': 'a' * 64, 'source': 'dependency_readonly_source'}
+    for path, digest in manifest.get('runtime_dependency_pins', {}).items():
+        modules[path] = {'sha256': digest, 'source': 'dependency_readonly_source'}
     report = {'schema': 'bf.qa.full-candidate-readonly-import.v1', 'ok': True,
         'candidate': manifest['candidate'], 'manifest_sha256': hashlib.sha256((candidate / 'package_manifest.private.json').read_bytes()).hexdigest(),
         'probe_sha256': probe_sha, 'fixed_identity': {'name': manifest['model_name'], 'digest': manifest['model_digest']},
@@ -30,6 +32,7 @@ def evidence():
         'frozen_modules_loaded': 16, 'side_effect_attempts': [], 'changed_or_unbound_dependencies': [],
         'project_dependencies_executed_from_source': True, 'model_calls': 0, 'question_posts': 0, 'production_writes': 0,
         'service_started': False, 'semantic_accuracy_inferred': False, 'module_hashes': modules,
+        'runtime_dependency_pins': manifest.get('runtime_dependency_pins', {}), 'runtime_dependency_pin_mismatches': [],
         'request_contracts': {'state': 'synthetic_contract_only',
             'cases': [{'id': name, 'passed': True, 'functional_contract_passed': True,
                 'sensor_context_read_count': 0, 'sensor_context_read_kinds': [],
@@ -39,13 +42,25 @@ def evidence():
             'real_model_answer_verified': False, 'real_concurrency_verified': False,
             'production_accuracy_inferred': False,
             'mocked_boundaries': ['authentication_session', 'database_connection', 'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start']}}
+    if manifest.get('shared_proxy_integration'):
+        report['shared_abc_contracts'] = {'state': 'synthetic_contract_only',
+            'merged_handler_methods_executed': True, 'real_database_verified': False,
+            'real_authorization_verified': False, 'real_model_answer_verified': False,
+            'production_accuracy_inferred': False,
+            'mocked_boundaries': ['abc_configuration_provider', 'abc_database_connection',
+                'persisted_sensor_review_provider', 'operator_permission_result', 'http_response_capture'],
+            'cases': [{'id': key, 'passed': True, 'status': values[0], 'mock_db_read_count': values[1],
+                'mock_operator_checks': values[2]} for key, values in SHARED_CASES.items()]}
     return report, candidate, manifest, probe_sha
 
 
 def test_valid_evidence_exports_only_dependency_read_scope_without_authorization():
     report, candidate, manifest, probe_sha = evidence()
     scope = validate(report, candidate, manifest, probe_sha)
-    assert len(scope['required_reads']) == 4
+    assert set(scope['required_reads']) == {
+        '高炉前端数据/智能助手/backend/' + name for name in
+        ('assistant_pg.py', 'qa_request_control.py', 'qa_prompt_sources.py', 'qa_model_readiness.py')
+    } | set(manifest.get('runtime_dependency_pins', {}))
     assert scope['native_contracts_passed'] == 10
     assert scope['production_dependency_refresh_required'] is True
     assert scope['deployment_authorized'] is False
@@ -63,6 +78,19 @@ def test_valid_evidence_exports_only_dependency_read_scope_without_authorization
     lambda r: r.update(frozen_modules_loaded=15),
     lambda r: r.update(side_effect_attempts=['socket.connect']),
     lambda r: r.update(changed_or_unbound_dependencies=['modified.py']),
+    lambda r: r.pop('runtime_dependency_pins'),
+    lambda r: r.update(runtime_dependency_pins={}),
+    lambda r: r.pop('runtime_dependency_pin_mismatches'),
+    lambda r: r.update(runtime_dependency_pin_mismatches=['changed.py']),
+    lambda r: r['module_hashes'].pop('高炉前端数据/智能助手/backend/furnace_display_policy.py'),
+    lambda r: r['module_hashes']['高炉前端数据/智能助手/backend/abc_score_explanation.py'].update(sha256='b' * 64),
+    lambda r: r.pop('shared_abc_contracts'),
+    lambda r: r['shared_abc_contracts']['cases'].pop(),
+    lambda r: r['shared_abc_contracts']['cases'][0].update(passed=False),
+    lambda r: r['shared_abc_contracts']['cases'][0].update(mock_db_read_count=0),
+    lambda r: r['shared_abc_contracts']['cases'][0].update(status=201),
+    lambda r: r['shared_abc_contracts'].update(real_authorization_verified=True),
+    lambda r: r['shared_abc_contracts']['mocked_boundaries'].append('unreviewed'),
     lambda r: r.update(model_calls=1),
     lambda r: r.update(production_writes=False),
     lambda r: r.update(semantic_accuracy_inferred=True),

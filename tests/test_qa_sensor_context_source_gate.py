@@ -2,6 +2,7 @@
 import ast
 from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
+import json
 from pathlib import Path
 import sys
 import time
@@ -174,14 +175,18 @@ def test_prior_full_prepare_demonstrates_the_five_unwanted_reads(question):
 
 def test_frozen_candidate_inherits_other_modules_and_does_not_change_base():
     candidate, manifest = latest_frozen_candidate(ROOT)
-    assert manifest['candidate'].startswith('v46-')
+    source_gate = ROOT / '.codex_runtime/qa-routing-v46/candidate-r2'
+    source_manifest = json.loads((source_gate / 'package_manifest.private.json').read_bytes())
     prior = ROOT / '.codex_runtime/qa-routing-v45/candidate-r2'
-    assert len(manifest['inherited_v45_files_byte_identical']) == 15
-    for name in manifest['inherited_v45_files_byte_identical']:
-        assert (candidate / name).read_bytes() == (prior / name).read_bytes()
+    assert len(source_manifest['inherited_v45_files_byte_identical']) == 15
+    for name in source_manifest['inherited_v45_files_byte_identical']:
+        assert (source_gate / name).read_bytes() == (prior / name).read_bytes()
     before = ast.parse((prior / 'ollama_proxy_server.py').read_bytes())
-    after = ast.parse((candidate / 'ollama_proxy_server.py').read_bytes())
+    after = ast.parse((source_gate / 'ollama_proxy_server.py').read_bytes())
     funcs = lambda tree: {n.name: ast.dump(n, include_attributes=False) for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
     a, b = funcs(before), funcs(after)
     assert a.keys() == b.keys()
     assert {name for name in a if a[name] != b[name]} == {'prepare_qa_chat'}
+    current = funcs(ast.parse((candidate / 'ollama_proxy_server.py').read_bytes()))
+    assert current['prepare_qa_chat'] == b['prepare_qa_chat'], 'New candidate changed the frozen source gate'
+    assert manifest['model_digest'] == source_manifest['model_digest']

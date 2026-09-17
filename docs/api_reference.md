@@ -547,3 +547,10 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 请求自带current_snapshot保持归档；明确no-live/纯代码不读取或注入它，也不绑定本轮snapshot_id。既有ABC权威context独立保留；认证和owner合同不变。
 
 [实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+保留生产公共breakdown.v2的display_policy/unified_summary及detail.v3；include_breakdown权限门、非法evaluation拒绝、过期detail无分数不变。9项共享测试使用显式5个外部合成边界，不证明真实授权。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。

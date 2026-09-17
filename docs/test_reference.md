@@ -3497,3 +3497,10 @@ tests/test_qa_full_candidate_probe.py与tests/test_qa_full_candidate_probe_evide
 31模块760合同通过；24源门测试及9新增证据拒绝反例，10完整原生合成Handler受限读取0；不是线上语义或并发通过。
 
 [实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+32模块808合同、14金标schema、16冻结模块/60实际依赖及19完整原生Handler合成合同通过；保留首轮1夹具错误和2编码错误，不计生产准确率。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。

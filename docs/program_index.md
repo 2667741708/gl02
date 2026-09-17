@@ -1350,3 +1350,10 @@ tools/qa_full_candidate_probe.py负责RAM源加载、只读I/O边界、执行源
 build_qa_sensor_context_candidate.py只改冻结prepare；完整探针统计sensor读取、归档次数及证据隔离，校验器拒绝缺证据。
 
 [实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+probe_qa_shared_proxy_delta_readonly证明全AST差异仅3函数/1导入；build_qa_shared_proxy_candidate按类作用域保留字面量；完整探针执行前校验2共享依赖pin。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。

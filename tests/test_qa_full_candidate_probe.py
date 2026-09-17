@@ -95,3 +95,35 @@ def test_package_dependency_retains_native_relative_imports(tmp_path):
     assert result['ok'] and result['changed_or_unbound_dependencies'] == []
     paths = [name for name in result['module_hashes'] if '/synthetic_package/' in name]
     assert len(paths) == 2 and not list(tmp_path.rglob('__pycache__'))
+
+
+def test_runtime_pin_verifies_actual_dependency_before_source_exec(tmp_path):
+    data = payload(tmp_path, 'from synthetic_dependency import VALUE\nassert VALUE == 17\n')
+    file = tmp_path / '高炉前端数据/智能助手/backend/synthetic_dependency.py'
+    raw = b'VALUE = 17\n'
+    file.write_bytes(raw)
+    data['runtime_dependency_pins'] = {file.relative_to(tmp_path).as_posix(): hashlib.sha256(raw).hexdigest()}
+    report = probe(data)
+    assert report['ok'] and report['runtime_dependency_pins'] == data['runtime_dependency_pins']
+    assert report['runtime_dependency_pin_mismatches'] == []
+
+
+def test_changed_pinned_dependency_never_executes_even_if_import_error_is_caught(tmp_path):
+    data = payload(tmp_path, 'try:\n    import synthetic_dependency\nexcept ValueError:\n    pass\n')
+    file = tmp_path / '高炉前端数据/智能助手/backend/synthetic_dependency.py'
+    file.write_bytes(b'import socket\nsocket.socket().connect(("127.0.0.1",1))\n')
+    path = file.relative_to(tmp_path).as_posix()
+    data['runtime_dependency_pins'] = {path: hashlib.sha256(b'VALUE = 17\n').hexdigest()}
+    report = probe(data)
+    assert not report['ok'] and report['error'] is None
+    assert report['runtime_dependency_pin_mismatches'] == [path]
+    assert report['side_effect_attempts'] == [], 'Changed source must not execute before hash rejection'
+
+
+def test_unimported_runtime_pin_cannot_be_reported_as_verified(tmp_path):
+    data = payload(tmp_path, 'pass\n')
+    path = '高炉前端数据/智能助手/backend/synthetic_dependency.py'
+    (tmp_path / path).write_bytes(b'VALUE = 17\n')
+    data['runtime_dependency_pins'] = {path: hashlib.sha256(b'VALUE = 17\n').hexdigest()}
+    report = probe(data)
+    assert not report['ok'] and report['runtime_dependency_pin_mismatches'] == [path]

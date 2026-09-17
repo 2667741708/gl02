@@ -750,3 +750,10 @@ python -X utf8 tools/build_qa_prompt_binding_candidate.py --revision rN只冻结
 python -B -X utf8 tools/build_qa_sensor_context_candidate.py --revision rN只冻结本机候选；编号需未存在，O_EXCL，不授予部署或模型权限。
 
 [实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+python -B -X utf8 tools/build_qa_shared_proxy_candidate.py --revision rN只构建未存在编号的本机候选；只读probe在RAM读取固定Git对象，verify核对原生证据，不授予部署或换模。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
