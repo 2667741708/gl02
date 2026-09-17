@@ -340,3 +340,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL或生产数据修改。prior_local_candidate_v42保留旧候选；33项状态及首次/历史线上判断不变，0销项。具名排除是本请求私有范围，不写成新的模型或知识源基线。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SUPPLIED-RECORD-SCOPE-20260917：已给记录数据与来源核验
+
+状态：2026-09-17本机546项相关回归、原源保真和独立审查通过，V44-r2冻结，生产未应用。
+
+无DDL和生产数据写入。prior_local_candidate_v43保留旧证据，33项问题状态及历史线上统计不变，0销项。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。

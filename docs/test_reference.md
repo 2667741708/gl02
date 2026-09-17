@@ -3454,3 +3454,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 新增62例，初始25项20fail/5pass；r1/r2独立审查FAIL及具名/连词反例完整保留，r4疑点实测纠正，r5发现2个知识库别名绕过再修r6。最终18模块498pass；原源5587索引、11组14次读取保真通过；Luna最终PASS/14金标schema/22共享标记，未推导线上正确率。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SUPPLIED-RECORD-SCOPE-20260917：已给记录数据与来源核验
+
+状态：2026-09-17本机546项相关回归、原源保真和独立审查通过，V44-r2冻结，生产未应用。
+
+新增48例，首批29项19fail/10pass；r1旧范围535pass后4个来源核验反例全失败，独立审查结论纠正。r2最终19模块546pass，原源5587索引/11组14读取保真、14schema/22标记和Luna复审通过。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。

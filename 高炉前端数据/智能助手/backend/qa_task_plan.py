@@ -15,14 +15,14 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v8-source-exclusion-scope"
+VERSION = "qa-task-plan-v9-supplied-record-scope"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
     "三规二制", "原文", "全文", "制度", "规程", "手册",
     "文档", "条款", "章节", "操作规程", "安全规程", "技术规程",
 )
-_DOCUMENT_ACTIONS = ("说明", "解释", "摘要", "总结", "读取", "列出", "引用", "查找", "检索", "给出", "回答", "是什么", "有哪些")
+_DOCUMENT_ACTIONS = ("说明", "解释", "摘要", "总结", "读取", "列出", "引用", "查找", "检索", "给出", "回答", "是什么", "有哪些", "核实", "确认", "验证")
 _HISTORY_TERMS = (
     "历史问答", "历史会话", "聊天记录", "对话记录", "之前问", "以前问", "问过", "问过什么",
     "最近问", "上一轮", "上次对话", "我们的对话",
@@ -308,7 +308,18 @@ def user_data_scope(text: str) -> dict[str, Any]:
 def _declared_input_clause(clause: str) -> bool:
     """A literal assertion is an input; a query or quoted clause is not."""
     instruction = _instruction_text(clause)
-    if _USER_DATA_PATTERN.search(instruction) or _PROVIDED_DATA_PATTERN.search(instruction):
+    if _USER_DATA_PATTERN.search(instruction):
+        return True
+    if _PROVIDED_DATA_PATTERN.search(instruction):
+        source_named = (_contains_any(instruction, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS)
+                        or any(span.startswith("《") for span in _quoted_spans(clause)))
+        outer_read = re.match(r"\s*(?:请|请先|帮我|麻烦)?\s*(?:查询|查看|读取|调取|检索|查一下|查下|获取)", instruction)
+        source_verification = (re.match(r"\s*(?:请|请先|帮我|麻烦)?\s*(?:核实|确认|验证)", instruction)
+                               and re.search(r"与|和|核对|一致|相符|真实|正式原文|现场|数据库|生产系统|实时接口", instruction))
+        # Referring to provided inputs while requesting source verification is
+        # not an assertion that the verified external records were supplied.
+        if source_named and (outer_read or source_verification):
+            return False
         return True
     if (any(span.startswith("《") for span in _quoted_spans(clause))
             or _contains_any(instruction, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS)
@@ -394,7 +405,11 @@ def build_task_plan(question: str) -> dict[str, Any]:
     """Return one auditable source plan for knowledge, history, reports and live data."""
 
     text = str(question or "").strip()
-    active_clauses = active_source_clauses(text)
+    # A source label on an input declaration is provenance supplied by the
+    # user, not an instruction to read that source. Independent source clauses
+    # retain their authority and gates; declared values remain in the message.
+    active_clauses = [clause for clause in active_source_clauses(text)
+                      if not _declared_input_clause(clause)]
     quoted = _quoted_spans("；".join(active_clauses))
     instruction = _instruction_text("；".join(active_clauses)).strip()
     user_scope = user_data_scope(text)

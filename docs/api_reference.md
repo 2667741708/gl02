@@ -504,3 +504,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无HTTP新增。私有计划包含source_exclusions/excluded_document_titles；公开元数据只含域名、开关及excluded_document_count，不含被禁书名。读取入口重验全局和具名禁令，允许的现场子任务不因生产报告词被禁。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SUPPLIED-RECORD-SCOPE-20260917：已给记录数据与来源核验
+
+状态：2026-09-17本机546项相关回归、原源保真和独立审查通过，V44-r2冻结，生产未应用。
+
+无HTTP新增。已提供记录数据只允许user_message，不启用历史/报告/正式文档读取；另行来源核验仍按原owner、权限和来源合同。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。

@@ -171,7 +171,13 @@ def test_actual_proxy_owned_history_entry_checks_global_source_exclusions(questi
 
 
 def test_frozen_source_exclusion_candidate_preserves_base_and_unrelated_runtime():
-    candidate, manifest = latest_frozen_candidate(ROOT)
+    # Historical acceptance binds its own immutable V43 closure. Current entry
+    # executions bind the newest fully hash-verified closure independently.
+    candidate = ROOT / '.codex_runtime/qa-routing-v43/candidate-r6'
+    manifest_raw = (candidate / 'package_manifest.private.json').read_bytes()
+    manifest = json.loads(manifest_raw)
+    evidence = json.loads((ROOT / 'tests/qa_regression/source_exclusion_scope_20260917.json').read_bytes())
+    assert hashlib.sha256(manifest_raw).hexdigest() == evidence['private_candidate']['manifest_sha256']
     prior = ROOT / '.codex_runtime/qa-routing-v42/candidate-r1'
     public = json.loads((ROOT / 'tests/qa_regression/source_concept_scope_20260917.json').read_bytes())
     assert hashlib.sha256((prior / 'package_manifest.private.json').read_bytes()).hexdigest() == public['private_candidate']['manifest_sha256']
@@ -184,8 +190,10 @@ def test_frozen_source_exclusion_candidate_preserves_base_and_unrelated_runtime(
         assert hashlib.sha256((candidate / name).read_bytes()).hexdigest() == item['sha256']
     for name in manifest['inherited_v42_files_byte_identical']:
         assert (candidate / name).read_bytes() == (prior / name).read_bytes()
+    current, current_manifest = latest_frozen_candidate(ROOT)
     for name in manifest['changed_modules']:
-        assert (candidate / name).read_bytes() == (ROOT / '高炉前端数据/智能助手/backend' / name).read_bytes()
+        assert (current / name).read_bytes() == (ROOT / '高炉前端数据/智能助手/backend' / name).read_bytes()
+        assert hashlib.sha256((current / name).read_bytes()).hexdigest() == current_manifest['files'][name]['sha256']
 
 
 @pytest.mark.parametrize('excluded_title,allowed_title,expected_calls', [

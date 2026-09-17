@@ -760,3 +760,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 无新增配置。固定底座与禁止切换/备用/同名换权重不变。具名禁书关闭无法按书过滤的通用keyword检索，明确允许正式来源仍按canonical docID绑定读取。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SUPPLIED-RECORD-SCOPE-20260917：已给记录数据与来源核验
+
+状态：2026-09-17本机546项相关回归、原源保真和独立审查通过，V44-r2冻结，生产未应用。
+
+无新增配置；同一模型名称和摘要固定，禁止切换/备用/同名权重替换。无额外数据读取权限或工具能力。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。

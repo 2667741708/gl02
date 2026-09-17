@@ -572,3 +572,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 不要查聊天/日报/制度仍触发查询时查禁令是否丢于拆分重建。禁止某书与禁止全部知识库须分开；实际别名同源应读前阻止。切句动作来自已登记源域动作表，具名列表共享否定不得误吞另一允许书。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SUPPLIED-RECORD-SCOPE-20260917：已给记录数据与来源核验
+
+状态：2026-09-17本机546项相关回归、原源保真和独立审查通过，V44-r2冻结，生产未应用。
+
+用户贴出日报/聊天记录数据仍要求工具时，检查声明子句是否加入外部来源意图；核实所给数据与真实来源一致不能被误吞。仅确认均值/极差/漏项不等于读取原始记录。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。

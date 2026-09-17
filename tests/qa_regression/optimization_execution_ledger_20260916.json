@@ -39,12 +39,12 @@
     "full_semantic_pass_inferred": false
   },
   "current_local_candidate": {
-    "version": "v43-r6",
+    "version": "v44-r2",
     "state": "local_tested_reviewed_frozen_not_production_applied",
-    "related_tests_passed": 498,
+    "related_tests_passed": 546,
     "production_semantic_effectiveness_verified": false,
-    "evidence": "source_exclusion_scope_20260917.json",
-    "manifest_sha256": "83700b808250c8e56d795f4ba35dc0c57853edf24a5c9227a425d2a8f5622b38",
+    "evidence": "supplied_record_scope_20260917.json",
+    "manifest_sha256": "9b9b797b82bd261bfbcce936e8f24aef5974f5b5f056e001633acc4b856a7ee6",
     "fixed_base_identity_unchanged": true
   },
   "rows": [
@@ -76,7 +76,9 @@
       "local_source_concept_scope": "source_concept_scope_20260917.json",
       "local_source_concept_scope_state": "v42_r1_reviewed_436_tests_passed_not_deployed",
       "local_source_exclusion_scope": "source_exclusion_scope_20260917.json",
-      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed"
+      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed",
+      "local_supplied_record_scope": "supplied_record_scope_20260917.json",
+      "local_supplied_record_scope_state": "v44_r2_reviewed_546_tests_passed_not_deployed"
     },
     {
       "order": 2,
@@ -214,7 +216,9 @@
       "local_source_concept_scope": "source_concept_scope_20260917.json",
       "local_source_concept_scope_state": "v42_r1_reviewed_436_tests_passed_not_deployed",
       "local_source_exclusion_scope": "source_exclusion_scope_20260917.json",
-      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed"
+      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed",
+      "local_supplied_record_scope": "supplied_record_scope_20260917.json",
+      "local_supplied_record_scope_state": "v44_r2_reviewed_546_tests_passed_not_deployed"
     },
     {
       "order": 8,
@@ -387,7 +391,9 @@
       "local_source_concept_scope": "source_concept_scope_20260917.json",
       "local_source_concept_scope_state": "v42_r1_reviewed_436_tests_passed_not_deployed",
       "local_source_exclusion_scope": "source_exclusion_scope_20260917.json",
-      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed"
+      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed",
+      "local_supplied_record_scope": "supplied_record_scope_20260917.json",
+      "local_supplied_record_scope_state": "v44_r2_reviewed_546_tests_passed_not_deployed"
     },
     {
       "order": 15,
@@ -951,6 +957,15 @@
     "production_semantic_effectiveness_verified": false,
     "evidence": "source_concept_scope_20260917.json",
     "manifest_sha256": "b7b74e1d68d986ca3ac98abf3acfe9f001d099854af1fb1129716b4175c714cf",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v43": {
+    "version": "v43-r6",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 498,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "source_exclusion_scope_20260917.json",
+    "manifest_sha256": "83700b808250c8e56d795f4ba35dc0c57853edf24a5c9227a425d2a8f5622b38",
     "fixed_base_identity_unchanged": true
   }
 }
