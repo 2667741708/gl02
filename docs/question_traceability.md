@@ -1645,3 +1645,17 @@ AO/PBR？
 - 可核对产物：[1418条索引与机器统计](../tests/qa_regression/verified_inventory_20260917.json)、[33项验收清单](../tests/qa_regression/verified_optimization_checklist_20260917.md)、[20类语义标签与9题待归类清单](../tests/qa_regression/semantic_issue_crosswalk_20260917.md)。
 - 验证：对账脚本核对1233条最终判定、分母恒等式、唯一ID和原结果哈希；14条金标结构校验通过。生产仅作Reliable SSH只读核查，V26恢复批次显示发送0、模型身份门禁阻断，不能报告新版全量准确率。
 - 边界：保留初次不确定发送题，禁止自动重放；模型及其他服务变更另按授权；本次统计与方案不改变生产。
+
+## Q-QA-LOCKED-QWEN38-LINEAGE-20260917
+
+- 用户问题：启动独立子智能体调查模型频繁切换，并确认 220.12 是否有 Qwen3.8 约 27B、锁定底座是否来自该模型。
+- 结论：已实际读取冻结 `31629f…` GGUF 的 `general.name=Qwen3.8-27B`；冻结版本 `:1/e4ad…` 仍存在。另一份 `:0/9111…` 的 API 来源标记为 `qwen3.5:27b`，不能以同名 `latest` 或 `qwen35` 架构标记混同底座。
+- 证据与边界：[来源核验](handoffs/2026-09-17-locked-qwen38-lineage-verification.md)、[固定底座合同与候选](handoffs/2026-09-17-qa-single-base-model-policy.md)。来源记录支持固定 GGUF 导入；业务微调血缘未核实。
+- 验证：Reliable SSH 读取 API、manifest/config 和 GGUF 头部/元数据，并核对固定上游 revision 文件摘要；未加载、切换或删除模型。[独立调查](handoffs/2026-09-17-model-identity-switch-independent-audit.md)确认每分钟 Repair 在后续检查失败后跨底座 fallback、成功前不写期望状态的循环。五组固定身份合同61项本机回归通过，生产永久锁定尚未验收。
+
+## Q-QA-MANAGER-PRODUCTION-INSTALL-20260917
+
+- 用户要求：完成生产安装，然后复测线上回答效果。
+- 已实施：新管理器独立安装成功，读回完整摘要与候选一致；受保护服务 PID 不变。r4 安装器缺陷替换前失败，经真实原子替换回归及独立审查修复，以新 r5 操作成功安装，未重放旧操作。
+- 剩余边界：实际旧错误驻留尚未恢复；11434 单次卸载与冻结底座预热另行明确授权后执行。822 原题计划已重新按单一 e4、当前生产源码和原题/结果摘要绑定准备，尚未发问，不能报告新的准确率。
+- 权威证据：[生产安装、失败记录与复测边界](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。

@@ -1236,7 +1236,7 @@ REQ-QA-FULL-ISSUE-INVENTORY-20260916：V5八题2通过/4部分/2失败；V6继�
 ## REQ-QA-SINGLE-BASE-MODEL-20260917：固定同一底座
 
 状态：本机候选52项检查及独立审查通过，未部署；生产仍V26。唯一e4ad74…底座，Switch/替代fallback禁用，每次模型POST与复测plan核验相同digest；旧双批准池窗口已停用。恢复任务仍曾自行漂移版本0，不能声称生产已锁定。管理器/计划任务维护独立授权，安装失败不能再启用旧切换策略。
-当前权威：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)、[候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)。前代r2批准fallback候选仅保留历史复现，禁止部署。
+当前合同：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)。[最初候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)是历史快照，其安装器哈希不代表本轮候选；本轮任务由[完整修复提示词](handoffs/2026-09-17-model-identity-repair-agent-prompt.md)约束，最终本机候选及测试见[实施报告](handoffs/2026-09-17-model-identity-repair-implementation.md)。前代r2批准fallback候选仅保留历史复现，禁止部署。
 
 ## REQ-QA-STATISTICS-EVIDENCE-20260917：V28统计证据与答复
 
@@ -1465,3 +1465,17 @@ REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅�
 REQ-QA-OWNED-FOLLOWUP-EXECUTION-20260917：仅owner加载且有效的对象来源能升级短追问；窗口按当前指令更新，最新值清旧窗口，缺对象先澄清并撤销取数权限。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。
+
+## QA发布预检与停服前模型身份（2026-09-17）
+
+REQ-QA-RELEASE-PREFLIGHT-BINDING-20260917：路径范围内核验且两份只读证据绑定同一观察HEAD、完整读写集合与候选/staged摘要，保留无关提交。
+REQ-QA-PRESTOP-FIXED-MODEL-GATE-20260917：停服前与锁内复核固定名称/完整摘要/唯一驻留，错误身份不加载、不切换、不停服。
+
+[实现、90项实际回归及独立审查](handoffs/2026-09-17-qa-release-preflight-and-model-gates.md)。本机通过、生产未执行；与恢复器禁切换修复和原题复测分开，不关闭既有33项问题。
+
+## 固定管理器生产安装与恢复授权（2026-09-17）
+
+OPS-QA-SINGLE-BASE-GUARD-INSTALL-20260917：禁切换管理器独立生产安装与读回完成，零模型操作、受保护 PID 不变。BUG-QA-ATOMIC-REPLACE-NULL-BACKUP-20260917：旧安装器空备份参数缺陷已通过明确备份修复，新操作 r5 成功。
+OPS-QA-RESTORE-FROZEN-BASE-20260917：错误驻留禁止自动切回；单次卸载及同一 e4 预热须另行明确授权、验证与不重放记录。REQ-QA-PAIRED-FAILURE-RETEST-20260916：822 初次 failed/partial 原题绑定计划已准备，完整正确与非空分开统计。
+
+[生产安装和仍待验证事项](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。不声称 V50 已上线，不关闭原题语义问题。

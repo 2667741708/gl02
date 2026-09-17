@@ -3294,7 +3294,7 @@ V5真实八题2通过/4部分/2失败，七题SSE落盘，第八题只读恢复�
 ## REQ-QA-SINGLE-BASE-MODEL-20260917：固定同一底座
 
 状态：本机候选52项检查及独立审查通过，未部署；生产仍V26。唯一e4ad74…底座，Switch/替代fallback禁用，每次模型POST与复测plan核验相同digest；旧双批准池窗口已停用。恢复任务仍曾自行漂移版本0，不能声称生产已锁定。管理器/计划任务维护独立授权，安装失败不能再启用旧切换策略。
-当前权威：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)、[候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)。前代r2批准fallback候选仅保留历史复现，禁止部署。
+当前合同：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)。[最初候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)是历史快照，其安装器哈希不代表本轮候选；本轮任务由[完整修复提示词](handoffs/2026-09-17-model-identity-repair-agent-prompt.md)约束，最终本机候选及测试见[实施报告](handoffs/2026-09-17-model-identity-repair-implementation.md)。前代r2批准fallback候选仅保留历史复现，禁止部署。
 
 ## REQ-QA-STATISTICS-EVIDENCE-20260917：V28统计证据与答复
 
@@ -3528,3 +3528,15 @@ REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅�
 34模块905回归、14金标schema、16候选/60实际依赖及40原生合成合同通过，15追问场景含三个缺失latest反例。外部模拟与真实准确率分开。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。
+
+## QA发布预检与停服前模型身份（2026-09-17）
+
+REQ-QA-RELEASE-PREFLIGHT-BINDING-20260917、REQ-QA-PRESTOP-FIXED-MODEL-GATE-20260917：实际Git隔离夹具69 passed/106.58秒，实际PowerShell身份门禁及readiness21 passed/15.28秒，独立只读审查PASS。
+
+[命令、唯一已用临时目录及未验证项](handoffs/2026-09-17-qa-release-preflight-and-model-gates.md)。无生产推理或服务操作，不能计入822原题复测成功率。
+
+## 固定管理器安装与单次驻留恢复（2026-09-17）
+
+BUG-QA-ATOMIC-REPLACE-NULL-BACKUP-20260917：test_qa_manager_atomic_replace.py 真实 Windows 本机文件替换/回滚及异常路径 **12 passed/8.71秒**。OPS-QA-RESTORE-FROZEN-BASE-20260917：test_qa_unapproved_resident_unload.py AST 提取实际纯边界函数 **56 passed/41.35秒**，不执行控制器顶层，不访问网络或生产模型。独立审查 PASS。
+
+[终止证据、生产影响与未发问边界](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。安装源码已读回核实；68个新增本机检查不计入原题准确率或成功回答率。

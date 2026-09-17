@@ -219,6 +219,23 @@ function Port-Pid([int]$Port) {
     if ($Row) { return [int]$Row.OwningProcess }
     return $null
 }
+function Assert-FixedModelIdentity {
+    # REQ-QA-SINGLE-BASE-MODEL-POLICY-20260917. Metadata GETs only;
+    # never warm, unload, copy, switch, or invoke any model for deployment.
+    $RequiredName = 'chiqiongblastfuenace:latest'
+    $RequiredDigest = 'e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124'
+    foreach ($Endpoint in @('tags', 'ps', 'tags')) {
+        $Metadata = Invoke-RestMethod -Method Get -Uri ('http://127.0.0.1:11434/api/' + $Endpoint) -TimeoutSec 5
+        $Models = @($Metadata.models | Where-Object { $null -ne $_ })
+        $Named = @($Models | Where-Object { $_.name -ceq $RequiredName })
+        if ($Named.Count -ne 1 -or $Named[0].digest -cne $RequiredDigest) {
+            throw "Fixed model identity unavailable: $Endpoint"
+        }
+        if ($Endpoint -eq 'ps' -and $Models.Count -ne 1) {
+            throw 'Fixed single model residency not verified'
+        }
+    }
+}
 function Read-QaReadiness {
     $Checks = [Collections.Generic.List[object]]::new()
     for ($Attempt = 1; $Attempt -le 3; $Attempt++) {
@@ -267,6 +284,7 @@ function Install-File([string]$From, [string]$To) {
     [IO.File]::Move($Tmp, $To, $true)
 }
 Assert-Baselines
+Assert-FixedModelIdentity
 & $Python -m py_compile @($Plan.changes | ForEach-Object { [string]$_.stage })
 if ($LASTEXITCODE -ne 0) { throw 'Python 3.11 syntax failed' }
 $Mutex = [Threading.Mutex]::new($false, 'Global\BFV4PreviewProxy8093Deployment')
@@ -280,6 +298,7 @@ try {
     try { $Acquired = $Mutex.WaitOne(0) } catch [Threading.AbandonedMutexException] { $Acquired=$true }
     if (-not $Acquired) { throw 'Another deployment owns the mutex' }
     Assert-Baselines
+    Assert-FixedModelIdentity
     if ((Get-Service -Name $Service).Status -ne 'Running') { throw '8093 not running before change' }
     $Before = Protected-Map
     $OldPid = Port-Pid 8093
@@ -309,6 +328,7 @@ try {
     $NewPid = Port-Pid 8093
     if ($OldPid -eq $NewPid) { throw 'Expected a new 8093 PID' }
     $Readiness = Read-QaReadiness
+    Assert-FixedModelIdentity
     $Result.readiness_checks = $Readiness.checks
     $Page = Invoke-WebRequest -Uri 'http://127.0.0.1:8093/高炉前端数据/frontend_dashboard_v3.server.html' -TimeoutSec 30
     if ($Page.StatusCode -ne 200 -or -not $Readiness.ready) { throw 'HTTP/model API health failed' }

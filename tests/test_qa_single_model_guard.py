@@ -43,16 +43,29 @@ def test_empty_resident_only_loads_identical_base(tmp_path):
 
 
 @pytest.mark.parametrize('mode', ['wrong_resident', 'multiple_residents', 'missing_fixed', 'bad_catalog',
-                                 'switch_same', 'switch_other', 'sanitize', 'direct_other', 'direct_fallback'])
+                                 'switch_same', 'switch_other', 'sanitize', 'direct_other', 'direct_fallback',
+                                 'bad_catalog_alias', 'bad_catalog_tag', 'duplicate_catalog', 'installed_wrong_digest',
+                                 'resident_null', 'resident_missing', 'resident_string', 'missing_resident_digest',
+                                 'wrong_resident_name', 'alias_unknown', 'alias_api_error', 'installed_api_error',
+                                 'resident_digest_sensitive', 'resident_single_object', 'resident_dictionary', 'initialize_empty', 'initialize_wrong', 'initialize_multiple'])
 def test_switch_fallback_or_identity_drift_blocks_without_mutation(tmp_path, mode):
     value = run(tmp_path, mode)
     assert value['failed'] and value['state'] is None, value
     assert not value['calls'], value
 
 
-@pytest.mark.parametrize('mode', ['cp_error', 'warmup_error', 'status_error'])
+@pytest.mark.parametrize('mode', ['cp_error', 'warmup_error', 'state_error', 'resident_after_error',
+                                 'warmup_no_resident', 'warmup_alias_drift', 'warmup_wrong_resident',
+                                 'alias_recheck_error', 'post_status_drift'])
 def test_failure_never_tries_another_base_or_marks_completed(tmp_path, mode):
     value = run(tmp_path, mode)
     assert value['failed'] and value['state'] is None, value
     assert value['calls'].count('warmup_same_fixed_base') <= 1
     assert set(value['calls']) <= {'restore_same_fixed_alias', 'warmup_same_fixed_base'}
+
+
+def test_empty_resident_and_wrong_alias_only_restore_and_reload_fixed_base(tmp_path):
+    value = run(tmp_path, 'empty_and_wrong_alias')
+    assert not value['failed'], value
+    assert value['calls'] == ['restore_same_fixed_alias', 'warmup_same_fixed_base']
+    assert value['result']['identity_ready'] and value['result']['assistant_ready']

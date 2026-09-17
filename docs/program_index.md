@@ -1152,7 +1152,7 @@ V4构建器新增准确生产MCP SHA-256绑定与字符截断差分。本机旧�
 ## REQ-QA-SINGLE-BASE-MODEL-20260917：固定同一底座
 
 状态：本机候选52项检查及独立审查通过，未部署；生产仍V26。唯一e4ad74…底座，Switch/替代fallback禁用，每次模型POST与复测plan核验相同digest；旧双批准池窗口已停用。恢复任务仍曾自行漂移版本0，不能声称生产已锁定。管理器/计划任务维护独立授权，安装失败不能再启用旧切换策略。
-当前权威：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)、[候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)。前代r2批准fallback候选仅保留历史复现，禁止部署。
+当前合同：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)。[最初候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)是历史快照，其安装器哈希不代表本轮候选；本轮任务由[完整修复提示词](handoffs/2026-09-17-model-identity-repair-agent-prompt.md)约束，最终本机候选及测试见[实施报告](handoffs/2026-09-17-model-identity-repair-implementation.md)。前代r2批准fallback候选仅保留历史复现，禁止部署。
 
 ## REQ-QA-STATISTICS-EVIDENCE-20260917：V28统计证据与答复
 
@@ -1381,3 +1381,15 @@ REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅�
 qa_task_plan.resolve_owned_followup新增纯辅助函数；build_qa_owned_followup_candidate修改冻结proxy七函数并证明剩余全AST/14模块不变，任务计划穿透同步/异步MCP和提示词来源层。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。
+
+## QA发布预检与停服前模型身份（2026-09-17）
+
+record_qa_release_preflight.validate_preflight_evidence严格绑定auditor与git_record_guard证据；remote_guarded_deploy_qa_routing_v3_8093.Assert-FixedModelIdentity仅GET固定身份，在外层/锁内停服前及恢复后执行。
+
+关联REQ-QA-RELEASE-PREFLIGHT-BINDING-20260917、REQ-QA-PRESTOP-FIXED-MODEL-GATE-20260917；[真实行号、范围与验证](handoffs/2026-09-17-qa-release-preflight-and-model-gates.md)。不修改模型恢复任务，不证明生产已固定。
+
+## 固定底座管理器生产安装（2026-09-17）
+
+OPS-QA-SINGLE-BASE-GUARD-INSTALL-20260917：install_qa_single_base_manager.Invoke-ManagerAtomicReplace 使用明确备份路径；unload_qa_unapproved_resident_once.Assert-UnapprovedResidentUnloadBoundary 只为另行授权的单次错误驻留卸载准备；prepare_qa_single_base_failure_retest.freeze 绑定 822 原题、原结果和当前源码，零发问。
+
+核对位置：[原子替换](../tools/install_qa_single_base_manager.ps1#L49)、[卸载边界](../tools/unload_qa_unapproved_resident_once.ps1#L16)、[原题计划生成](../tools/prepare_qa_single_base_failure_retest.py#L17)；[生产读回、12项真实文件替换回归及56项卸载边界回归](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。源码已安装，实际驻留仍未恢复，生产应用仍为 V26。

@@ -28,7 +28,13 @@ $Changed=@('Activate-Model','Initialize-State','Invoke-Switch','Invoke-Sanitize'
 $Old=@($Parsed.functions | Where-Object Name -in $Changed)
 if ($Old.Count -ne $Changed.Count) { throw 'Unexpected old guard inventory' }
 $Policy=@($GuardParsed.functions | Where-Object Name -notin $Changed)
-if ($Policy.Count -ne 5 -or $GuardParsed.functions.Count -ne 10) { throw 'Unexpected fixed guard inventory' }
+$HelperNames=@('Get-FixedProperty','Get-FixedModelPin','Write-FixedStageEvent','Invoke-FixedStage',
+    'Get-FixedResidentSnapshot','Assert-FixedInstalledVersion','Assert-FixedPublicAlias','Get-FixedDependencyHealth','New-FixedModelState')
+if ($Policy.Count -ne $HelperNames.Count -or $GuardParsed.functions.Count -ne ($Changed.Count+$HelperNames.Count)) { throw 'Unexpected fixed guard inventory' }
+foreach ($Name in @($Changed+$HelperNames)) {
+    if (@($GuardParsed.functions | Where-Object Name -ceq $Name).Count -ne 1) { throw 'Fixed guard function inventory changed' }
+}
+if (@($Parsed.functions | Where-Object Name -in $HelperNames).Count -ne 0) { throw 'Guard helper collides with baseline' }
 $Candidate=$Before
 foreach ($Node in @($Old | Sort-Object { $_.Extent.StartOffset } -Descending)) {
     $Replacement=@($GuardParsed.functions | Where-Object Name -eq $Node.Name)
@@ -51,4 +57,4 @@ $TopAfter=@($After.ast.EndBlock.Statements | Where-Object {$_ -isnot [Management
 if (($TopBefore|ConvertTo-Json -Compress) -ne ($TopAfter|ConvertTo-Json -Compress)) { throw 'Top-level mutex or action dispatch changed' }
 New-Item -ItemType Directory -Path (Split-Path -Parent $ResolvedOutput) -Force | Out-Null
 [IO.File]::WriteAllText($ResolvedOutput,$Candidate.Replace("`r`n","`n"),$Utf8)
-@{ok=$true;policy='one_identical_base_no_switch_no_fallback';base_digest='e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124';baseline_sha256=$ExpectedBaselineHash;candidate_sha256=(Get-FileHash -LiteralPath $ResolvedOutput -Algorithm SHA256).Hash.ToLowerInvariant();changed_functions=$Changed;protected_functions=$Protected;new_functions=5;remote_execution=$false} | ConvertTo-Json
+@{ok=$true;policy='one_identical_base_no_switch_no_fallback';base_digest='e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124';weight_digest='31629f53165ab6a7dad8c9847dcfd1fdf55829dac1e6e748f4a68581b0033d34';baseline_sha256=$ExpectedBaselineHash;candidate_sha256=(Get-FileHash -LiteralPath $ResolvedOutput -Algorithm SHA256).Hash.ToLowerInvariant();changed_functions=$Changed;protected_functions=$Protected;new_functions=$HelperNames;protected_top_level_statements=$TopBefore.Count;remote_execution=$false} | ConvertTo-Json
