@@ -15,7 +15,7 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v4-user-data-scope"
+VERSION = "qa-task-plan-v5-declared-input-scope"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
@@ -53,6 +53,24 @@ _USER_DATA_PATTERN = re.compile(
 _PROVIDED_DATA_PATTERN = re.compile(
     r"(?:我(?:给出|提供|给)的|(?:下面|以下)(?:是|为|的))[^，。；;\n：:]{0,12}(?:数据|数值)"
     r"|(?:这组|这些|这批|这份)[^，。；;\n：:]{0,12}(?:数据|数值)(?=\s*(?:是|为|[:：=]|[-+]?\d|[“\"\[]))"
+)
+_DECLARED_INPUT_PATTERN = re.compile(
+    r"(?:假设|假定|假如|给定|已知|(?:^|请)设)[^，。；;\n]{0,48}(?:\d|数据|数值)"
+)
+_LITERAL_INPUT_PATTERN = re.compile(
+    r"(?:数据|数值|温度|压力|风温|风量|压差)[^，。；;\n]{0,8}"
+    r"(?:分别为|分别是|为|是)\s*[-+]?\d+(?:\.\d+)?"
+)
+_VALUE_CHANGE_INPUT_PATTERN = re.compile(
+    r"(?:数据|数值|温度|压力|风温|风量|压差)[^，。；;\n]{0,8}"
+    r"(?:从|由)\s*[-+]?\d+(?:\.\d+)?\s*"
+    r"(?:千帕|兆帕|帕|摄氏度|华氏度|度|℃|℉|kpa|mpa|pa|%)?\s*"
+    r"(?:升高|降低|提高|增加|减少|升|降|变)(?:到|至|为|成)\s*[-+]?\d+(?:\.\d+)?", re.I
+)
+_NUMERIC_VALUE_QUESTION = re.compile(
+    r"(?:是否(?:是|为)|是不是)\s*[-+]?\d"
+    r"|(?:是|为)\s*[-+]?\d+(?:\.\d+)?\s*"
+    r"(?:千帕|兆帕|帕|摄氏度|华氏度|度|℃|℉|kpa|mpa|pa|%|百分比)?\s*[吗么][？?]?\s*$", re.I
 )
 _ALL_TOOLS_PATTERN = re.compile(
     r"(?:不要|不需要|无需|不必|不用|禁止|不)\s*"
@@ -162,7 +180,7 @@ def instruction_clauses(text: str) -> list[str]:
 def user_data_scope(text: str) -> dict[str, Any]:
     """Keep supplied inputs distinct from explicitly requested external reads."""
     instruction = _instruction_text(str(text or ""))
-    present = bool(_USER_DATA_PATTERN.search(instruction) or _PROVIDED_DATA_PATTERN.search(instruction))
+    present = any(_declared_input_clause(clause) for clause in instruction_clauses(str(text or "")))
     live_clauses = []
     external_source_requested = False
     global_exclusive = any(
@@ -172,7 +190,7 @@ def user_data_scope(text: str) -> dict[str, Any]:
     if present:
         for clause in instruction_clauses(str(text or "")):
             masked = _instruction_text(clause)
-            if _USER_DATA_PATTERN.search(masked) or _PROVIDED_DATA_PATTERN.search(masked):
+            if _declared_input_clause(clause):
                 continue
             if (any(span.startswith("《") for span in _quoted_spans(clause))
                     or _contains_any(masked, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS)):
@@ -192,6 +210,26 @@ def user_data_scope(text: str) -> dict[str, Any]:
                 external_source_requested = True
     exclusive = global_exclusive or (bool(_USER_DATA_PATTERN.search(instruction)) and not external_source_requested)
     return {"present": present, "live_clauses": live_clauses, "exclusive": bool(exclusive)}
+
+
+def _declared_input_clause(clause: str) -> bool:
+    """A literal assertion is an input; a query or quoted clause is not."""
+    instruction = _instruction_text(clause)
+    if _USER_DATA_PATTERN.search(instruction) or _PROVIDED_DATA_PATTERN.search(instruction):
+        return True
+    if (any(span.startswith("《") for span in _quoted_spans(clause))
+            or _contains_any(instruction, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS)
+            or re.search(r"查询|查看|读取|调取|检索|查一下|查下|获取|核实|确认|验证", instruction)
+            or _NUMERIC_VALUE_QUESTION.search(instruction)):
+        return False
+    if _DECLARED_INPUT_PATTERN.search(instruction):
+        return True
+    for pattern in (_LITERAL_INPUT_PATTERN, _VALUE_CHANGE_INPUT_PATTERN):
+        for match in pattern.finditer(instruction):
+            suffix = instruction[match.end():].lstrip()
+            if not re.match(r"[年月日点时]|[:：]\d|[/-]\d{1,2}[/-]\d", suffix):
+                return True
+    return False
 
 
 def live_query_text(question: str) -> str:
@@ -226,6 +264,10 @@ def _explicit_live_request(instruction: str) -> bool:
             and _contains_any(instruction, ("通常", "一般", "原理", "原因", "含义"))):
         return False
     if qa_time_window_plan.temporal_intent(instruction):
+        return True
+    # Numeric yes/no questions ask to verify a current measurement; do not
+    # treat their candidate value as a supplied measurement to reason from.
+    if re.search(r"当前|现在|目前|最新|实时", instruction) and _NUMERIC_VALUE_QUESTION.search(instruction):
         return True
     # REQ-QA-EXPLICIT-CLOCK-AND-CHART-20260917: route requests even when
     # their explicit clock is invalid; the execution preflight clarifies it.

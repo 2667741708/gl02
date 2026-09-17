@@ -1,0 +1,102 @@
+{
+  "schema": "bf.qa.declared-input-scope-public-evidence.v1",
+  "requirement_id": "REQ-QA-DECLARED-INPUT-SCOPE-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_tested_reviewed_frozen_not_production_applied",
+  "candidate": "v40-r2",
+  "issue_ids": [
+    "QAOPT-R01",
+    "QAOPT-R07",
+    "QAOPT-T03"
+  ],
+  "defect_reproduction": {
+    "cases": 27,
+    "failed": 19,
+    "passed": 8,
+    "elapsed_seconds": 0.34,
+    "defect": "Declared assumptions and literal supplied values were treated as external live data requests."
+  },
+  "verification": {
+    "new_regression_cases": 41,
+    "focused_passed": 141,
+    "focused_elapsed_seconds": 9.99,
+    "focused_preceded_frozen_proxy_tests": true,
+    "related_passed": 327,
+    "related_elapsed_seconds": 29.07,
+    "related_modules": 14,
+    "test_command": "python -X utf8 -m pytest -q --tb=short --basetemp=.codex_runtime/qa-declared-input-final-20260917-r2 tests/test_qa_declared_input_scope.py tests/test_qa_user_supplied_scope.py tests/test_qa_task_plan.py tests/test_qa_compound_source_scope.py tests/test_qa_evidence_policy.py tests/test_qa_math_function_policy.py tests/test_qa_history_compound.py tests/test_qa_history_projection.py tests/test_qa_history_completion.py tests/test_qa_v12_safety.py tests/test_qa_final_completion.py tests/test_qa_fixed_model_identity.py tests/test_qa_history_compound_seams.py tests/test_qa_single_window_routing.py",
+    "prior_r1_related_passed": 323,
+    "prior_r1_related_elapsed_seconds": 29.38,
+    "prior_r1_independent_static_review": "PASS for then-covered scope only; superseded by root clock counterexamples",
+    "prior_r1_clock_date_counterexamples": {
+      "cases": 4,
+      "failed": 4,
+      "elapsed_seconds": 0.27,
+      "defect": "Clock and date numbers were mistakenly treated as supplied measurement values.",
+      "production_exposed": false
+    },
+    "prior_r1_not_final_acceptance": true,
+    "independent_static_review": "PASS gpt-5.6-luna low V40-r2",
+    "shared_feature_preservation_passed": true,
+    "shared_feature_required_markers": 22,
+    "gold_task_schema_validation_passed": 14,
+    "real_model_generation_executed": false
+  },
+  "contracts": {
+    "declared_assumptions_and_literal_inputs_use_user_message": true,
+    "numeric_current_yes_no_question_requires_real_read": true,
+    "queries_quotes_formal_clauses_not_input_assertions": true,
+    "from_to_clock_ranges_not_measurement_transitions": true,
+    "date_clock_suffix_not_measurement_value": true,
+    "measurement_transition_requires_change_verb_and_two_values": true,
+    "independent_live_history_report_sources_preserved": true,
+    "external_window_excludes_assumed_window": true,
+    "explicit_global_tool_bans_unchanged": true,
+    "proxy_code_policy_reader_binding_fixed_identity_byte_unchanged": true
+  },
+  "private_candidate": {
+    "files": 15,
+    "manifest_sha256": "80b785bf18576273cb0ad65ae9b0e63bb57abb703c377d2c246043cc4bc1c44c",
+    "inherited_v39_files_byte_identical": 14,
+    "changed_module_sha256": "03e38596a42add5bad29d58444527f076a4b9346d19c9f07282c08c336dbaf78",
+    "proxy_bytes_unchanged": true,
+    "additional_runtime_read_set_preserved": true,
+    "production_sealed": false,
+    "production_dependency_refresh_required": true
+  },
+  "generator_sha256": {
+    "tools/build_qa_declared_input_candidate.py": "68f190b67285ed859faa300c3701824996eade379f45bf76ba9b960993a59509",
+    "tests/test_qa_declared_input_scope.py": "e36f4a66dcf90e8a4e6635ee20987bebf0523c1dc2c8ecf5baf460b3f3238bdb",
+    "高炉前端数据/智能助手/backend/qa_task_plan.py": "03e38596a42add5bad29d58444527f076a4b9346d19c9f07282c08c336dbaf78"
+  },
+  "evaluation_scope": "Local input provenance and actual frozen proxy routing contracts only; not real answer accuracy.",
+  "not_tested": [
+    "production_MCP_execution",
+    "real_final_answer_accuracy",
+    "latency_cost",
+    "pass5",
+    "production_single_user_concurrency"
+  ],
+  "model_name": "chiqiongblastfuenace:latest",
+  "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+  "model_switch_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "fallback_model_allowed": false,
+  "production_identity_and_routes": "NO_REACHABLE_ROUTE_both_configured_routes_SSH_CONNECT_TIMEOUT",
+  "production_current_state_freshly_verified": false,
+  "production_applied": false,
+  "production_writes": 0,
+  "question_posts": 0,
+  "assistant_model_calls": 0,
+  "issues_closed": 0,
+  "issues_reopened": [
+    "QAOPT-R07"
+  ],
+  "other_32_issue_states_preserved": true,
+  "initial_judgments_and_prior_production_retest_preserved": true,
+  "original_failure_partial_cohort": 822,
+  "real_retest_requests": 0,
+  "semantic_improvement_verified": false,
+  "initial_results_matched_same_base_claimed": false,
+  "privacy": "Public code synthetic questions hashes contracts and counts only; no raw clauses QA production data identities credentials or private artifacts."
+}

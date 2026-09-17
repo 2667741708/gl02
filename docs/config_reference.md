@@ -724,3 +724,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 无新增开关；名称chiqiongblastfuenace:latest及固定digest不变，模型切换/备用回退/同名换权重禁止。user-data scope只调整来源路由，禁代码、单用户和keyword合同不变。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-DECLARED-INPUT-SCOPE-20260917：声明输入与现场核验
+
+状态：2026-09-17本机327项相关回归/独立审查通过，V40-r2冻结，生产未应用。
+
+无新增配置；qa-task-plan-v5-declared-input-scope只改输入来源判断。固定同一名称/digest，切换/备用/同名换权重仍禁止；禁代码、keyword和单用户限制不变。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。

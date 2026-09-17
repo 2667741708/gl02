@@ -468,3 +468,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无新增HTTP接口。任务计划区分user_message与live_readonly_data，原始问题保留给最终答案及子任务完成校验；仅向prefetch/对象/时间解析传递外部子句。明确全局工具禁令保持tool_policy_conflict。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-DECLARED-INPUT-SCOPE-20260917：声明输入与现场核验
+
+状态：2026-09-17本机327项相关回归/独立审查通过，V40-r2冻结，生产未应用。
+
+无新增HTTP接口。声明数值绑定user_message，当前“是否为某值”是live_data核验，不能拿候选数值充当测量；独立现场/历史/报表及明确全局禁令保持既有合同。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。

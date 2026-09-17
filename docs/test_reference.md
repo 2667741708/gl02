@@ -3418,3 +3418,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 初始23项17fail/6pass；新增43项含实际代理alias、实体冻结、MCP门、时窗和时钟输入测试。最终13模块286pass/27.70秒，Luna low复审PASS、共享22标记通过。r2虽276pass但范围审查FAIL，过程保留并新增10例；本机通过不是线上正确率。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-DECLARED-INPUT-SCOPE-20260917：声明输入与现场核验
+
+状态：2026-09-17本机327项相关回归/独立审查通过，V40-r2冻结，生产未应用。
+
+初始27项19fail/8pass；新增41例。r1曾323pass/29.38秒和静态PASS，主任务再发现4个钟点/日期输入误判，均失败后修正r2。最终14模块327pass/29.07秒，Luna low复审PASS，14金标schema及22共享标记通过；不是线上正确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。

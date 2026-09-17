@@ -536,3 +536,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 给定数据被误查现场时先核scope和live_query_text，再查实际alias/分析bundle/时窗/路由enrichment；不能通过模型切换解决。局部仅/只约束不得误清独立来源，明确全局禁令不得绕过。查询“这些数据”必须保留引用范围。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-DECLARED-INPUT-SCOPE-20260917：声明输入与现场核验
+
+状态：2026-09-17本机327项相关回归/独立审查通过，V40-r2冻结，生产未应用。
+
+假设/已知数值被误查现场时先核输入声明；反向检查“当前值是180吗”仍核验实测。时间反例必须保留，不能把从7点到8点当温度变化；从/由数值变化要求变化动词及两个测量数值。旧两题通过不足以关闭R07。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。

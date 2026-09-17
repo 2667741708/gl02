@@ -304,3 +304,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL或生产数据改动。台账prior_local_candidate_v38保留V38冻结证据，current_local_candidate为V39-r3；33项state和生产历史结果保持不变，用户给定数值不伪装成现场记录。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-DECLARED-INPUT-SCOPE-20260917：声明输入与现场核验
+
+状态：2026-09-17本机327项相关回归/独立审查通过，V40-r2冻结，生产未应用。
+
+无DDL/生产数据改动。prior_local_candidate_v39保留旧候选；R07原production_verified/两题证据及next_gate完整存档，新状态deployed_partial_verified。另32状态及初始题判定/生产复测不变，0销项。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
