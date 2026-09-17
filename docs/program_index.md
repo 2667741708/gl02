@@ -1,5 +1,9 @@
 # 程序索引
 
+## 8093 助手部署范围审计 / 2026-09-17
+
+`OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917`：[audit](../tools/audit_qa_release_baseline_readonly.py#L29) 使用实际 Git 范围、依赖/候选摘要和 HEAD/分支稳定性检查；[部署前门禁](../tools/remote_guarded_deploy_qa_routing_v3_8093.ps1#L193) 核对审计器摘要及固定 repo/branch。[合同、测试和生产只读证据](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
 ## REQ-QA-LATEST-PREFETCH-REUSE-20260917 / V24
 
 [qa_verified_facts.py](../高炉前端数据/智能助手/backend/qa_verified_facts.py)新增`reusable_latest_read`；[qa_evidence_policy.py](../高炉前端数据/智能助手/backend/qa_evidence_policy.py)补代码承诺清理；[候选构建器](../tools/build_qa_v24_latest_candidate.py)从当前生产字节只修改代理`qa_mcp_should_use_tools`，其他497节点保留，本机旧代理不能覆盖生产。[3写/24读与生产版本证据](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。行号TODO-LINES。

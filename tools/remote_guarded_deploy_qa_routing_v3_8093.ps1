@@ -199,9 +199,20 @@ function Assert-Baselines {
     foreach ($Read in $Gate.read_files) {
         if ((Hash (Join-Path $Root $Read.path)) -ne $Read.sha256) { throw 'Dependency drift' }
     }
-    $CurrentHead = (& 'C:\Program Files\Git\cmd\git.exe' -C $Root rev-parse HEAD).Trim()
-    if ($LASTEXITCODE -ne 0) { throw 'Git identity probe failed' }
-    if ($CurrentHead -ne $Gate.head) { throw 'Refresh path-scoped preflight before deployment' }
+    $Auditor = Join-Path $StageRoot 'audit_qa_release_baseline_readonly.py'
+    if (-not $Gate.baseline_auditor_sha256 -or (Hash $Auditor) -ne $Gate.baseline_auditor_sha256) {
+        throw 'Reviewed path-scope auditor hash mismatch'
+    }
+    $AuditText = & $Python -B -X utf8 $Auditor --stage $StageRoot
+    if ($LASTEXITCODE -ne 0) { throw 'Production read/write scope validation failed' }
+    $Audit = ($AuditText -join "`n") | ConvertFrom-Json
+    if ($Audit.ok -ne $true -or $Audit.path_scope_ok -ne $true -or $Audit.head_stable -ne $true) {
+        throw 'Production read/write scope is not safe'
+    }
+    if ([IO.Path]::GetFullPath([string]$Audit.repo) -ne [IO.Path]::GetFullPath($Root) -or
+        $Audit.branch -ne 'refs/heads/production-8093') {
+        throw 'Production repository identity mismatch'
+    }
 }
 function Port-Pid([int]$Port) {
     $Row = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1

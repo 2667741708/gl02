@@ -261,6 +261,7 @@ def main() -> int:
         "head": base_head,
         "read_files": [{"path": path, "sha256": digest} for path, digest in READ_SET.items()],
         "write_set": sorted(targets),
+        "baseline_auditor_sha256": hashlib.sha256((root / 'tools/audit_qa_release_baseline_readonly.py').read_bytes()).hexdigest(),
     })
     write_json(release / "operation.json", {"schema": "bf.qa.routing.git-record-operation.v1", "requirement_id": REQ, "execution_id": EXECUTION, "expected_git_head": base_head, "git_read_set": sorted(READ_SET)})
     write_json(release / "record-plan.json", {"schema": "bf.qa.routing.git-record-plan.v1", "requirement_id": REQ, "execution_id": EXECUTION, "changes": [{"relative": relative, "target": target, "desired_sha256": targets[relative]["sha256"]} for target, relative in target_map.items()]})
@@ -400,6 +401,9 @@ def main() -> int:
             spec["sources"] = [str(root / path) for path in extension["sources"]]
             spec["validations"] = [dict(row) for row in extension["validations"]]
             spec["validations"].append({"id": "independent-diff-review", "kind": "semantic", "status": args.semantic_review})
+        auditor_source = str(root / 'tools/audit_qa_release_baseline_readonly.py')
+        if auditor_source not in spec['sources']:
+            spec['sources'].append(auditor_source)
         write_json(release / "release-spec.json", spec)
     print(json.dumps({"ok": True, "release": str(release), "artifacts": len(artifact_rows), "recordability_present": evidence.exists()}, ensure_ascii=False))
     return 0

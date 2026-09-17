@@ -21,6 +21,7 @@ def main():
         files = [(candidate/name, name) for name in recipe['artifacts']]
         files += [(release/name, name) for name in ('scope-gate.json', 'recordability-expectation.json')]
         files += [(ROOT/'tools/remote_preflight_qa_routing_v3.ps1', 'remote_preflight_qa_routing_v3.ps1'),
+                  (ROOT/'tools/audit_qa_release_baseline_readonly.py', 'audit_qa_release_baseline_readonly.py'),
                   (Path('C:/Users/hmw20/.codex/skills/deploy-8093-guarded-update/scripts/git_record_guard.py'), 'git_record_guard.py')]
     else:
         files = [(ROOT/'tools'/name, name) for name in ('remote_guarded_deploy_qa_routing_v3_8093.ps1', 'record_qa_routing_v3_version.ps1')]

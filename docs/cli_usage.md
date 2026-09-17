@@ -1,5 +1,9 @@
 # CLI 使用手册
 
+## OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917
+
+[生产只读范围审计](../tools/audit_qa_release_baseline_readonly.py#L29)：`python -B -X utf8 tools/audit_qa_release_baseline_readonly.py --stage <reviewed-stage>`，默认使用生产 Windows Git 路径，测试可用 `--git <absolute-git>`。退出码 0 表示全部范围、依赖、候选与稳定性合同通过；1 表示检查结果不通过；格式或工具错误直接失败。不因全局 HEAD 变化自动重发部署。[可复现测试与限制](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
 ## 炉次质量回看本机验证
 
 只读 dry-run 示例：

@@ -1,5 +1,9 @@
 # 排障手册
 
+## OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917：生产 HEAD 更新但助手范围未改变
+
+先经 Reliable SSH 读取生产 Git 更新日志及实际路径差异，核对基线是当前分支祖先，再检查候选 write_set、实际运行 read_set、范围内 staged/unstaged/untracked、依赖和候选摘要。仅 CSS 等范围外更新保留并允许继续；实际助手或依赖变化则重建和审查候选。新版 `Assert-Baselines` 使用已绑定摘要的只读审计器，不用全局 HEAD 等值阻止无关提交。模型身份、原始问题一次发送和服务验收仍是独立条件。[当前证据与处理规则](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
 ## V24 最新值重复规划与残余缺陷（2026-09-17）
 
 最新值已成功却重复查点位时，核对“使用工具”布尔值是否先于预取完整性判断；简单读取可复用类型化事实，历史/比较/图表不可据单点完成。缺单位保留partial；图表0工具而否认能力须修TaskPlan/执行路由。统计答案末尾未完成、Held质量与微量舍入方向冲突单列，不关闭可信校验。复测5题后驻留身份未核实已停止，402题逐条无发送记录。[逐项处理和原题结果](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。

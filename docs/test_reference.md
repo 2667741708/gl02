@@ -1,5 +1,9 @@
 # 测试参考
 
+## OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917
+
+[真实 Git 路径范围测试](../tests/test_qa_deployment_path_scope.py)与[原有 PowerShell 模型就绪测试](../tests/test_qa_release_readiness.py)共 36 项通过，覆盖无关更新保留、相关范围拒绝、血缘/分支/合并状态、字节摘要、仓库和 stage 路径安全，并直接执行实际 `Assert-Baselines` 的通过、审计器篡改与依赖漂移拒绝；PowerShell 解析和 UTF-8 运行时检查通过，独立审查 PASS。不是原始 QA 答案复测，不计入 822 题准确率。[复现命令与实际生产范围证据](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
 ## REQ-QA-LATEST-PREFETCH-REUSE-20260917 / V24
 
 [最新值复用与禁代码承诺回归](../tests/test_qa_latest_reuse_and_code_offers.py)连同证据策略/统计范围共76项通过。5道原题真实发送后独立全文审核1通过/3部分/1失败，传输5/5；身份稳定4题完整1题，仅小样本。402题逐条依赖阻断，已发送不重放。[复现、结果哈希和剩余方案](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。

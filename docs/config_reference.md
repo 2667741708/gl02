@@ -1,5 +1,9 @@
 # 配置参考
 
+## OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917：预暂存审计器绑定
+
+新 `scope-gate.json` 必须包含 `baseline_auditor_sha256`，绑定已审查审计器字节；缺失或不匹配停止部署并重新准备候选，不接受未绑定旧 gate。`bf.qa.readonly-baseline.v2` 输出 `base_head/head/head_match/path_scope_ok/head_stable/branch/repo` 及范围冲突、依赖和候选摘要检查结果；`head_match=false` 本身不是失败，`ok` 仍要求所有合同通过。没有改变应用、模型、数据库或计划任务配置。[完整边界](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
 ## V24 配置边界（2026-09-17）
 
 V24不调整模型、keyword检索、单模型限制、11434或计划任务。批准Qwen可驻留；批准:0/:1均合法，但已冻结复测digest不得混合。模型恢复健康不等于原版本对照可继续，须核对标签与实际驻留；独立固定窗口需要单独授权。[证据与剩余方案](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。

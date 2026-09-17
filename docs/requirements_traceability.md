@@ -1,5 +1,9 @@
 # 需求追踪
 
+## OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917
+
+生产 HEAD 变化按助手实际读写范围分类。2026-09-17 只读确认最新提交仅修改 ABC33 CSS，V49 的 60 个运行依赖全部匹配，16 个目标范围干净；改用祖先、范围交集、相关 dirty 和稳定性检查，保留无关更新与 4 个无关改动。36 项真实 Git/PowerShell 测试与独立审查通过，本轮未部署、未推理、未重发问题。固定底座检查保持独立。[实施与验收](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
 ## REQ-QA-LATEST-PREFETCH-REUSE-20260917 / V24
 
 V24已受控部署，简单最新值读取复用核验预取，并补禁代码承诺边界。76项回归及独立审查通过；原压力题partial→passed，温度failed→partial，图表仍failed。5次实际发送后模型身份无法核实停止，402题逐题未发送阻断；没有全量准确率。[统计、生产证据和逐项剩余方案](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。
