@@ -353,3 +353,10 @@ REQ-QA-FULL-ISSUE-INVENTORY-20260916：纯历史问答在现有`/api/qa/chat`内
 明确钟点/跨午夜窗口不回落最近一小时，历史记录和质量保留；18点绘图已进入正确路由，但生产工具只返回16点且生命周期降级遗漏图，仍待修复。
 
 本机159检查、14黄金题结构、4写24读/490 AST/22标记、8093受控发布和CAS通过。新版822原失败/部分题复测只发1题且失败，821题证明未发。首次完整正确269/可判1091=24.66%，不能报告优化后全量准确率。
+
+## V26图表证据修复及固定模型复测（2026-09-17）
+
+状态：V26已部署，174本机检查和独立审查通过；822原失败/部分题发送前因Qwen身份变化拦截，零发送。线上语义修复效果未确认。
+需求：REQ-QA-CHART-COVERAGE-20260917、OPS-QA-FIXED-MODEL-WINDOW-20260917。
+最新权威来源：[V26部署与固定模型复测方案](handoffs/2026-09-17-qa-v26-model-window.md)、[33项优化方案](handoffs/2026-09-17-qa-full-optimization-plan.md)、[V26生产哈希](../tests/qa_regression/routing_v26_production_20260917.json)、[822未发题证据](../tests/qa_regression/routing_v26_unattempted_dependencies_20260917.json)。
+执行器见 [窗口owner](../tools/run_qa_fixed_model_window.ps1)、[独立启动器](../tools/start_qa_fixed_model_window.ps1)、[只读准备器](../tools/prepare_qa_fixed_model_window.py)；11项真实控制流/截止预算隔离测试通过，另有8项身份/续跑合同回归通过。窗口仅本机准备，计划任务操作尚未授权执行；继续保留V25历史记录，不以非空答复计算正确率。

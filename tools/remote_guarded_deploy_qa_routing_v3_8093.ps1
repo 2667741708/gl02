@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23','V24','V25')][string]$Version = 'V3',
+    [ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23','V24','V25','V26')][string]$Version = 'V3',
     [Parameter(Mandatory)][string]$StageRoot,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$PlanHash,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$GateHash
@@ -162,6 +162,10 @@ if ($Version -eq 'V24') {
 if ($Version -eq 'V25') {
     $Req = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
     $Allowed = @('高炉前端数据/智能助手/backend/ollama_proxy_server.py','高炉前端数据/智能助手/backend/qa_time_window_plan.py','高炉前端数据/智能助手/backend/qa_task_plan.py','高炉前端数据/智能助手/backend/qa_entity_resolution.py')
+}
+if ($Version -eq 'V26') {
+    $Req = 'REQ-QA-FULL-ISSUE-INVENTORY-20260916'
+    $Allowed = @('高炉前端数据/智能助手/backend/ollama_proxy_server.py','高炉前端数据/智能助手/backend/qa_tool_fallback.py','高炉前端数据/智能助手/mcp/bf_data_mcp_server.py')
 }
 if ($StageRoot -ne $ExpectedStage) { throw 'Stage identity mismatch' }
 $PlanPath = Join-Path $StageRoot 'delta-plan.json'

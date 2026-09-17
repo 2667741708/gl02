@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -45,6 +46,14 @@ def model_ready():
         return all(data.get(k) for k in ('ok','proxy_ok','ollama_ok','model_ok'))
     except Exception: return False
 
+def require_request_budget(deadline_epoch, now=None):
+    """Reserve five minutes for identity gates and one already-started collector."""
+    if deadline_epoch is None: return
+    if not math.isfinite(deadline_epoch): raise ValueError('Invalid batch deadline')
+    current = time.time() if now is None else now
+    if current + 300 >= deadline_epoch:
+        raise RuntimeError('fixed model window deadline reached; no next request sent')
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--root',type=Path,required=True)
@@ -53,12 +62,15 @@ def main():
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--execute',action='store_true')
     p.add_argument('--detach',action='store_true')
+    p.add_argument('--deadline-epoch',type=float)
     a=p.parse_args()
     if not a.execute: p.error('--execute required')
+    if a.deadline_epoch is not None and not math.isfinite(a.deadline_epoch): p.error('finite deadline required')
     plan=read(a.plan)
     if len({c['case_id'] for c in plan['cases']})!=len(plan['cases']): raise RuntimeError('duplicate case ID')
     a.output.mkdir(parents=True,exist_ok=True)
     if a.detach:
+        if a.deadline_epoch is not None: p.error('bounded model window must use its independent owner, not detach')
         with (a.output/'launch.claim').open('x',encoding='utf-8') as claim:
             claim.write(json.dumps({'plan_sha256':digest(a.plan),'created_at':time.time()}))
         with (a.output/'batch.stdout').open('xb') as out, (a.output/'batch.stderr').open('xb') as err:
@@ -76,17 +88,20 @@ def main():
     try:
         verify(plan,a.root,a.collector)
         for case in plan['cases']:
+            require_request_budget(a.deadline_epoch)
             state['active_case']=case['case_id']; write(progress,state)
             before_identity=verify(plan,a.root,a.collector)
             caseid=case['case_id']; outfile=a.output/(caseid+'.json'); claim=a.output/(caseid+'.claim')
             if outfile.exists() or claim.exists():
                 raise RuntimeError('existing evidence requires explicit read-only recovery: '+caseid)
             for _ in range(20):
+                require_request_budget(a.deadline_epoch)
                 if model_ready(): break
                 state['state']='waiting_for_model'; write(progress,state); time.sleep(30)
             else: raise RuntimeError('model unavailable; no case request sent')
             # The readiness wait may outlive an alias/model switch; recheck before claiming/sending.
             before_identity=verify(plan,a.root,a.collector)
+            require_request_budget(a.deadline_epoch)
             state['state']='running'; write(progress,state)
             group=case.get('conversation_group')
             if group and case.get('turn_index',0)>0 and group not in conversations:

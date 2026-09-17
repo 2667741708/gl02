@@ -1,0 +1,18 @@
+{
+  "schema": "bf.qa.paired-observations.v1",
+  "version": "v26",
+  "checked_at": "2026-09-17",
+  "production_commit": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+  "planned": 822,
+  "attempted": 0,
+  "transport_complete": 0,
+  "passed": 0,
+  "partial": 0,
+  "failed": 0,
+  "proven_unsent": 822,
+  "initial_failed": 636,
+  "initial_partial": 186,
+  "full_dataset_accuracy_available": false,
+  "reason": "Approved Qwen alias changed before the first send; strict identity gate blocked the batch.",
+  "rows": []
+}
