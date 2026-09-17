@@ -9,6 +9,7 @@ import hashlib
 import re
 from typing import Any
 import qa_document_integrity
+import qa_knowledge_reader_source_gate
 
 VERSION = "qa-document-knowledge-v1"
 THREE_RULES = "bf_three_rules_two_systems_20260712"
@@ -116,7 +117,7 @@ def _atomic_selector(question: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
-def _original_atomic(conn, question, intro, manifest):
+def _original_atomic(conn, question, intro, manifest, indexed=None):
     selector = _atomic_selector(question)
     if not selector:
         return None
@@ -124,13 +125,22 @@ def _original_atomic(conn, question, intro, manifest):
     if len(wanted) < 2:
         return _outcome(intro + "条款引用过短，无法唯一识别原文，请补充原句。", "needs_clarification", "atomic_reference_too_short", [manifest])
     parent = _reference(question)
-    rows = conn.execute(
+    rows = [row for row in indexed if row.get('chunk_type') == 'three_rules_atomic'] if indexed is not None else conn.execute(
         "SELECT chunk_id, doc_id, content, enriched_content, content_hash, authority_level "
         "FROM rag_chunk WHERE doc_id = ? AND chunk_type = ? ORDER BY chunk_id LIMIT 12001",
         (THREE_RULES, "three_rules_atomic"),
     ).fetchall()
     if len(rows) > 12000:
         return _outcome(intro + "条款索引超出受控上限，未截取少量片段冒充完整匹配。", "dependency_blocked", "atomic_index_exceeds_limit", [manifest])
+    roles = set()
+    for raw in rows:
+        role = re.search(r'^【岗位/制度】\d+\.\s*(.+)$', canonical_text(dict(raw).get('enriched_content')), re.M)
+        if role:
+            roles.add(role.group(1).strip())
+    requested_roles = [role for role in roles if role in question]
+    if len(requested_roles) != 1:
+        return _outcome(intro + "请明确唯一岗位后读取所引条款，未借用其他岗位的同句原文。",
+                        "needs_clarification", "atomic_role_unresolved", [manifest])
     matches = {}
     for raw in rows:
         row = dict(raw)
@@ -138,7 +148,7 @@ def _original_atomic(conn, question, intro, manifest):
         role = re.search(r"^【岗位/制度】\d+\.\s*(.+)$", header, re.M)
         regulation = re.search(r"^【规程类型】(.+)$", header, re.M)
         path = re.search(r"^【层级路径】(.+)$", header, re.M)
-        if not role or role.group(1).strip() != "高炉工长" or not regulation:
+        if not role or role.group(1).strip() != requested_roles[0] or not regulation:
             continue
         if parent and (not path or _label(parent[0] + parent[1]) not in _label(path.group(1))):
             continue
@@ -161,7 +171,7 @@ def _original_atomic(conn, question, intro, manifest):
     (regulation, content), (_, row) = next(iter(matches.items()))
     if len(content) > MAX_BLOCK_CHARS:
         return _outcome(intro + "完整条款或表格超出受控范围，未裁切原文。", "dependency_blocked", "atomic_block_exceeds_limit", [manifest])
-    return _outcome(intro + f"【高炉工长 / {regulation}】\n以下为唯一匹配的完整原文条款：\n\n" + content,
+    return _outcome(intro + f"【{requested_roles[0]} / {regulation}】\n以下为唯一匹配的完整原文条款：\n\n" + content,
                     "completed", "verified_original_atomic", [manifest],
                     {"chunk_id": str(row["chunk_id"]), "matched_scopes": 1, "table_blocks_preserved": True})
 
@@ -223,7 +233,7 @@ def _original_subsections(selected, references, intro, manifest):
     return result
 
 
-def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) -> dict[str, Any] | None:
+def _execute_document_question_in_snapshot(conn: Any, question: str, plan: dict[str, Any], snapshot=None) -> dict[str, Any] | None:
     """Only pure document tasks; compound tasks stay in their source plan."""
     if plan.get("intents") != ["document_knowledge"]:
         return None
@@ -231,7 +241,7 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     if not doc_id:
         return _outcome("尚未确认所指文档的权威原文。请提供准确书名及岗位/章节；不能用聊天、报表或通用知识补写正式条款。",
                         "needs_clarification", "document_reference_unresolved")
-    row = conn.execute(
+    row = snapshot['document'] if snapshot is not None else conn.execute(
         "SELECT doc_id, title, version, authority_level, content_hash, updated_at, full_text "
         "FROM rag_document WHERE doc_id = ?", (doc_id,)
     ).fetchone()
@@ -243,7 +253,7 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     manifest = _manifest(doc)
     intro = f"来源：《{doc['title']}》；版本 {manifest['version']}；更新 {manifest['updated_at']}。\n"
     if doc_id == THREE_RULES:
-        indexed = conn.execute(
+        indexed = snapshot['chunks'] if snapshot is not None else conn.execute(
             "SELECT chunk_type, content, content_hash, authority_level, enriched_content FROM rag_chunk "
             "WHERE doc_id = ? AND chunk_type IN (?, ?, ?) ORDER BY chunk_id LIMIT 15001",
             (doc_id, 'three_rules_atomic', 'three_rules_section', 'three_rules_topic'),
@@ -252,7 +262,7 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
         if not gate['verified']:
             return _outcome(intro + "权威原文与章节索引的独立完整性核验未通过，可能有缺失或来源不一致；未将现有片段当作完整正式制度。",
                             'dependency_blocked', gate['reason'], [manifest], {'authority_index': gate})
-        atomic_result = _original_atomic(conn, question, intro, manifest)
+        atomic_result = _original_atomic(conn, question, intro, manifest, indexed if snapshot is not None else None)
         if atomic_result is not None:
             return atomic_result
     if doc_id == ACCIDENT:
@@ -264,7 +274,7 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
                         "completed", "verified_original_document", [manifest], {"documents": 1})
     # section pieces are already present in rag_chunk on production.  Fetch the
     # complete bounded document scope, rather than top-k pieces across sources.
-    rows = conn.execute(
+    rows = [row for row in snapshot['chunks'] if row.get('chunk_type') == 'three_rules_section'] if snapshot is not None else conn.execute(
         "SELECT chunk_id, doc_id, title, content, enriched_content, content_hash, authority_level "
         "FROM rag_chunk WHERE doc_id = ? AND chunk_type = ? ORDER BY chunk_id LIMIT 2001",
         (doc_id, "three_rules_section")
@@ -301,7 +311,7 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     if not selected:
         return _outcome(intro + "该岗位/规程组合没有已核验原文；未用其他岗位或报表替代。",
                         "dependency_blocked", "requested_scope_missing", [manifest])
-    if not requested and not any(term in question for term in ("全文", "原文", "完整", "全部", "目录")):
+    if not requested and not any(term in question for term in ("全文", "整本", "全书", "所有岗位", "全部岗位", "目录")):
         names = "；".join(f"{code}. {name}" for code, name in chapters)
         return _outcome(intro + "请指定岗位或章节后读取对应条款。已核验目录：\n" + names,
                         "needs_clarification", "chapter_selection_required", [manifest])
@@ -345,3 +355,26 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     return _outcome(intro + "以下为所选范围的原文，未补写正式条款：\n\n" + body + more,
                     "partial" if len(pages) > 1 else "completed", "verified_original_page", [manifest],
                     {"pages": len(pages), "page": page, "selected_parts": len(selected), "returned_parts": len(pages[page - 1]), "table_blocks_preserved": True})
+
+
+def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) -> dict[str, Any] | None:
+    """Production entry: freeze every formal source field in one verified SELECT."""
+    if plan.get('intents') != ['document_knowledge']:
+        return None
+    if _doc_id(question) != THREE_RULES:
+        return _execute_document_question_in_snapshot(conn, question, plan)
+    try:
+        row = conn.execute(qa_knowledge_reader_source_gate.SNAPSHOT_SQL, (THREE_RULES,)).fetchone()
+        snapshot = dict(row or {})
+        gate = qa_knowledge_reader_source_gate.verify(snapshot)
+    except qa_knowledge_reader_source_gate.ReaderSourceError as exc:
+        return _outcome('制度原书范围、来源绑定或完整检索索引尚未通过核验；未将现有片段标为完整原文，也未用其他知识补写。',
+                        'dependency_blocked', str(exc), coverage={'original_source_scope_verified': False})
+    except Exception:
+        return _outcome('制度原书来源绑定暂不可读，未用旧片段或聊天补写正式条款。',
+                        'dependency_blocked', 'original_source_snapshot_unavailable',
+                        coverage={'original_source_scope_verified': False})
+    result = _execute_document_question_in_snapshot(None, question, plan, snapshot=snapshot)
+    if result:
+        result['completion']['coverage']['original_source'] = gate
+    return result

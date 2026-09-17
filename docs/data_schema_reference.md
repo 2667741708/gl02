@@ -241,3 +241,12 @@ DDL候选qa_knowledge_source_releases保存release_id、doc_id、applied/rolled_
 状态：2026-09-17本机验证，生产未执行。
 private-source-release-entry契约仅私有，绑定action/operation/root/host/DB实例/config/hash/固定底座。独占jsonl记录claim/identity/write_started/committed或unresolved，只含安全错误码/计数/hash，不存凭据或源行；源表迁移仍待授权执行。
 当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。
+
+
+## REQ-QA-ORIGINAL-SOURCE-READER-20260917：制度原书读取门禁
+
+状态：2026-09-17本机验证/复审并冻结，生产未接入。
+
+没有新增DDL。读取现有rag_document/rag_chunk、待授权迁移的qa_knowledge_source_bindings/releases及目标embedding计数，一条MVCC SELECT返回同一快照。核binding.manifest_text精确字节、applied release及全量after摘要；不读取before归档或vector正文。迁移表缺失稳定阻断。
+
+当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。

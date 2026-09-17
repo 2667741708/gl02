@@ -661,3 +661,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：2026-09-17本机验证，生产未执行。
 contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLEDGE_SEARCH_MODE必须显式keyword。所有连接默认启动只读，核真实实例后才开启授权write事务，恢复保留只读；CLI标志不授予生产授权。
 当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。
+
+
+## REQ-QA-ORIGINAL-SOURCE-READER-20260917：制度原书读取门禁
+
+状态：2026-09-17本机验证/复审并冻结，生产未接入。
+
+没有新增环境开关来绕过来源核验。固定r2 release、manifest、四字段文档与十九字段检索投影摘要；仅keyword且目标源零vector。模型名及e4ad74…d8124摘要固定，不允许备用模型或同名权重替换。
+
+当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。

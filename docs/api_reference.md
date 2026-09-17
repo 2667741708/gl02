@@ -405,3 +405,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 completion新增可选missing_evidence_fields对象，按对象列出unit、quality_meaning、collection_time、readonly_policy或derived_component_alignment缺项；保留covered_objects/missing_objects。缺字段是partial，非空不算通过；完整最新值读取也不能使所需分析标完整。最新答复写最近已保存值，不冒充此刻无异常；采集/接口标记不等于物理采样。没有新增端点或重试。
 权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+
+## REQ-QA-ORIGINAL-SOURCE-READER-20260917：制度原书读取门禁
+
+状态：2026-09-17本机验证/复审并冻结，生产未接入。
+
+未增加HTTP路由。制度答复completion.coverage.original_source包含来源范围/数据库快照核验与摘要；未核来源completion.terminal_state=dependency_blocked，不补写正式条款；综合数据+制度中数据可保留、总体partial。分页partial仍不等同全问题完成，来源通过仍semantic_verified=false。
+
+当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。

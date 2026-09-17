@@ -45,7 +45,9 @@ def append_authority(conn, content, reset=False):
 
 
 def run(conn, question):
-    return doc.execute_document_question(conn, question, qa_task_plan.build_task_plan(question))
+    # These SQLite cases exercise selection/coverage after source verification.
+    # The public one-statement source gate is covered separately with native PG.
+    return doc._execute_document_question_in_snapshot(conn, question, qa_task_plan.build_task_plan(question))
 
 
 def add_atomic(conn, content, path="1 工作前", chunk_id="atomic1", regulation="安全操作规程"):

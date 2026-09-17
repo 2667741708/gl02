@@ -473,3 +473,12 @@ commit异常使用新启动只读连接recover_release；journal不存在仍not_
 状态：2026-09-17本机验证，生产未执行。
 operation_already_claimed禁止第二次连接；DB身份/config/SHA/keyword或固定模型策略不符停止写入。提交成功但收据失败也只读recover，缺release仍unresolved。生产写入授权与迁移未完成，不能重放私有包或用其他模型继续。
 当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。
+
+
+## REQ-QA-ORIGINAL-SOURCE-READER-20260917：制度原书读取门禁
+
+状态：2026-09-17本机验证/复审并冻结，生产未接入。
+
+original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_drift表示源依赖未核，不是模型故障。先只读检查迁移/发布/完整快照，不能换模型或用旧片段填正式条款。本轮Reliable SSH身份和路线均超时，仅判传输中断；0生产改动/重发，恢复后先重新只读核查。
+
+当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。

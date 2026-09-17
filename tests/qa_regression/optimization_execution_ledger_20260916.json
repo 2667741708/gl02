@@ -297,7 +297,7 @@
       "local_keyword_release": "keyword_source_release_preparation_20260917.json",
       "local_keyword_transaction": "keyword_source_transaction_20260917.json",
       "local_source_release_entry": "source_release_entry_20260917.json",
-      "next_gate": "受控入口291项/复审PASS及私有包冻结；数据库单独授权、只读重核/增量DDL/实际发布和读取器接入待完成，再按同一底座真实原题验收；topic完整性/语义未验证",
+      "next_gate": "读取门禁已本机接入：356项/复审PASS，真实私有原源11组14次读取保留条款表格，V33-r1冻结；生产SSH身份/路线超时，须重新只读核验；DB单独授权/增量迁移/一次发布、固定底座管理器及8093守卫发布仍未完成，再复问822原失败/partial题；topic/语义和30项oracle冲突单列",
       "case_ids": [
         "TPL-B1DDFC78E40D26DD",
         "TPL-81261F34B14214DC"
@@ -308,7 +308,8 @@
       "repair_and_acceptance_plan": "全文章节及表格按结构边界读取，校验开头/结尾/连续性及多章节完整覆盖。验收：不漏尾、不串岗、不丢表头和单位。",
       "initial_linked_semantic_counts": {
         "failed": 2
-      }
+      },
+      "local_original_source_reader": "original_source_reader_20260917.json"
     },
     {
       "order": 14,
@@ -365,13 +366,14 @@
       "local_keyword_release": "keyword_source_release_preparation_20260917.json",
       "local_keyword_transaction": "keyword_source_transaction_20260917.json",
       "local_source_release_entry": "source_release_entry_20260917.json",
-      "next_gate": "实例/配置封存和独占执行记录入口291项/复审PASS；DB单独授权/迁移/实际归档尚未完成，完整源DB绑定与读取器待接入；再审核语义角色及30项oracle，固定底座不换模型",
+      "next_gate": "读取门禁已本机接入：356项/复审PASS，真实私有原源11组14次读取保留条款表格，V33-r1冻结；生产SSH身份/路线超时，须重新只读核验；DB单独授权/增量迁移/一次发布、固定底座管理器及8093守卫发布仍未完成，再复问822原失败/partial题；topic/语义和30项oracle冲突单列",
       "case_ids": [],
       "depends_on": [
         "QAOPT-K03"
       ],
       "repair_and_acceptance_plan": "文档和 oracle 分别版本化；89 题标准阻断对照岗位原文逐条确认，记录修正理由和旧标准。验收：同问不同标准/错编号不自动改答案。",
-      "initial_linked_semantic_counts": {}
+      "initial_linked_semantic_counts": {},
+      "local_original_source_reader": "original_source_reader_20260917.json"
     },
     {
       "order": 17,

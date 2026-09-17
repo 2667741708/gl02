@@ -1292,3 +1292,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：2026-09-17本机验证，生产未执行。
 入口本机实现、291项/静态复审PASS及私有包冻结；生产迁移/数据写入/读取器仍未应用，不销项K03/K06。固定模型name+权重，禁止切换/同名替换。source写入另需用户数据库授权，不以源码或CLI标志授予。
 当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。
+
+
+## REQ-QA-ORIGINAL-SOURCE-READER-20260917：制度原书读取门禁
+
+状态：2026-09-17本机验证/复审并冻结，生产未接入。
+
+完整制度回答必须来自固定原书与检索投影匹配的同一数据库快照；来源未验证返回dependency_blocked，综合问题保留已验证数据部分。关联QAOPT-K03/K06仍deployed_partial_verified，本轮不销项。
+
+当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
