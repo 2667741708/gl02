@@ -53,6 +53,23 @@ FOLLOWUP_CASES = {
     'followup_clarification_json': None,
     'followup_clarification_sse': None,
 }
+CONFIRMATION_CASES = {
+    'confirmation_bare_history': ('confirmed_data_object', ['DP_total'], 30),
+    'confirmation_prefixed_history': ('confirmed_data_object', ['DP_total'], 120),
+    'confirmation_latest': ('confirmed_data_object', ['DP_total'], None),
+    'confirmation_statistics': ('confirmed_data_object', ['DP_total'], 120),
+    'confirmation_boxplot': ('confirmed_data_object', ['DP_total'], 30),
+    'confirmation_pair': ('confirmed_data_object', ['DP_total', 'P_top'], 60),
+    'confirmation_insufficient_pair': ('needs_clarification', [], 60),
+    'confirmation_expired': ('needs_clarification', ['DP_total'], None),
+    'confirmation_foreign': ('needs_clarification', ['DP_total'], None),
+    'confirmation_no_tools': ('not_applicable', [], None),
+    'confirmation_selected_no_tools': ('not_applicable', [], None),
+    'confirmation_disabled_code': ('disabled_code_only', [], None),
+    'confirmation_supplied_data': ('not_applicable', [], None),
+    'confirmation_roundtrip_json': ('confirmed_data_object', ['DP_total'], 30),
+    'confirmation_roundtrip_sse': ('confirmed_data_object', ['DP_total'], 30),
+}
 
 
 def validate(report, candidate, manifest, probe_sha256):
@@ -148,6 +165,30 @@ def validate(report, candidate, manifest, probe_sha256):
                     and row['mock_prefetch_queries'] == (1 if state == 'owned_live_followup' else 0)
                     and row.get('fresh_evidence_required') is True,
                     'Owned object window ancestry or fresh-query contract not verified')
+    if manifest.get('pending_object_confirmation'):
+        confirmations = contracts.get('pending_confirmation_cases') or []
+        require(len(confirmations) == len(CONFIRMATION_CASES)
+            and {row.get('id') for row in confirmations} == set(CONFIRMATION_CASES),
+            'Complete pending confirmation evidence required')
+        for row in confirmations:
+            state, objects, minutes = CONFIRMATION_CASES[row['id']]
+            enabled = state == 'confirmed_data_object'
+            roundtrip = row['id'].startswith('confirmation_roundtrip_')
+            require(row.get('passed') is True and row.get('functional_contract_passed') is True
+                and row.get('resolution_state') == state and row.get('selected_objects') == objects
+                and (row.get('minutes') is None if minutes is None else type(row.get('minutes')) is int and row['minutes'] == minutes)
+                and row.get('model_answer_generated') is False
+                and type(row.get('mock_prefetch_queries')) is int and row['mock_prefetch_queries'] == int(enabled)
+                and type(row.get('mock_model_requests')) is int and row['mock_model_requests'] == 0
+                and type(row.get('sensor_context_read_count')) is int and row['sensor_context_read_count'] == 0
+                and row.get('sensor_context_read_kinds') == []
+                and type(row.get('mock_page_archives')) is int and row['mock_page_archives'] == (2 if roundtrip else 1)
+                and row.get('page_archive_isolated_from_evidence') is True
+                and row.get('fresh_evidence_required') is True
+                and row.get('original_user_question_preserved') is True
+                and (row.get('current_object_source_bound') is True if enabled else row.get('current_object_source_bound') is None)
+                and (not roundtrip or (row.get('pending_created_by_first_handler') is True and row.get('clarification_no_reads') is True)),
+                'Pending confirmation owner freshness or source boundary not verified')
     if manifest.get('shared_proxy_integration'):
         shared = report.get('shared_abc_contracts') or {}
         shared_rows = shared.get('cases') or []
@@ -203,6 +244,7 @@ def validate(report, candidate, manifest, probe_sha256):
         'native_ordinary_prepare_contracts_passed': len(ORDINARY_CASES),
         'native_shared_contracts_passed': len(SHARED_CASES) if manifest.get('shared_proxy_integration') else 0,
         'native_owned_followup_contracts_passed': len(FOLLOWUP_CASES) if manifest.get('owned_followup_plan_propagated') else 0,
+        'native_pending_confirmation_contracts_passed': len(CONFIRMATION_CASES) if manifest.get('pending_object_confirmation') else 0,
         'semantic_accuracy_inferred': False}
 
 

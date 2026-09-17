@@ -9,6 +9,7 @@ instruction needs it.  Model tool planning remains downstream of this gate.
 from __future__ import annotations
 
 import re
+import math
 from typing import Any
 
 import qa_entity_resolution
@@ -649,4 +650,125 @@ def resolve_owned_followup(question: str, plan: dict[str, Any], context: dict[st
         allowed_tool_domains=['live_readonly_data'], entities=list(objects), unresolved_entities=[],
         reason='owned_referential_followup')
     result.update(task_plan=resolved, state='owned_live_followup')
+    return result
+
+
+def pending_data_object_context(context: dict[str, Any], resolution: dict[str, Any]) -> dict[str, Any]:
+    """Record only a deterministic data-object clarification, never a model guess."""
+    result = dict(context)
+    result.pop('pending_data_object', None)
+    if resolution.get('state') != 'needs_clarification':
+        return result
+    goal = context.get('analysis_goal')
+    stamp = context.get('updated_at')
+    window = context.get('time_range')
+    chart = context.get('preferred_chart')
+    if (goal not in {'latest', 'history', 'statistics', 'correlation', 'plot'}
+            or type(stamp) not in (int, float) or not math.isfinite(stamp)):
+        return result
+    if window is not None and (not isinstance(window, dict) or set(window) != {'mode', 'minutes'}
+            or window.get('mode') != 'relative' or type(window.get('minutes')) is not int
+            or not 1 <= window['minutes'] <= 1440):
+        return result
+    if chart not in {None, 'trend', 'correlation_heatmap', 'matrix', 'correlation_scatter', 'boxplot', 'distribution'}:
+        return result
+    result['selected_objects'] = []
+    result['last_evidence'] = []
+    result['evidence_reuse'] = False
+    result['pending_data_object'] = {'schema': 'qa.pending-data-object.v1',
+        'goal': goal, 'time_range': dict(window) if window else None,
+        'preferred_chart': chart, 'requested_at': stamp}
+    return result
+
+
+def resolve_pending_data_object(question: str, plan: dict[str, Any], previous: dict[str, Any] | None,
+        alias_registry: tuple[tuple[str, tuple[str, ...]], ...], *, now: float,
+        code_only: bool = False) -> dict[str, Any]:
+    """Resume an exact object confirmation from a server-loaded owned user turn.
+
+    The caller must use load_owned_tool_context. A positive integer supplied by
+    a client is not authentication; no client context may reach this resolver.
+    The generated question is internal. The original user message stays intact.
+    """
+    result = {'state': 'not_applicable', 'task_plan': dict(plan),
+        'execution_question': question, 'outcome': None, 'pending_context': None}
+    if (code_only or plan.get('no_live_lookup') or plan.get('all_tools_disabled')
+            or set(plan.get('intents') or []) & {'user_supplied_data', 'document_knowledge',
+                'conversation_history', 'period_report'}
+            or 'live_readonly_data' in (plan.get('source_exclusions') or [])
+            or bound_rule_context_requested(question, plan)):
+        return result
+    labels: dict[str, set[str]] = {}
+    for name, aliases in alias_registry:
+        for label in (name, *aliases):
+            labels.setdefault(label.strip().casefold(), set()).add(name)
+    text = str(question or '').strip().rstrip('。.!！?？').strip()
+    prefix = re.match(r'^(?:我指的是|我说的是|测点是|变量是|就是|是)\s*', text)
+    if prefix:
+        text = text[prefix.end():].strip()
+    objects = []
+    for part in re.split(r'\s*(?:、|，|,|和|与|&)\s*', text):
+        part = part.strip()
+        if len(part) >= 2 and (part[0], part[-1]) in {('“', '”'), ('"', '"'), ('‘', '’'), ("'", "'")}:
+            part = part[1:-1].strip()
+        matches = labels.get(part.casefold(), set())
+        if len(matches) != 1:
+            return result
+        objects.append(next(iter(matches)))
+    if not objects or len(set(objects)) != len(objects):
+        return result
+    # A bare label is not an independent live-query authorization. Authenticate
+    # its pending task before granting any read, including preparation reads.
+    closed = dict(plan)
+    closed.update(allow_prefetch=False, allow_mcp_tools=False, search_knowledge=False,
+        allowed_sources=[], allowed_tool_domains=[], reason='owned_followup_needs_clarification')
+    result.update(state='needs_clarification', task_plan=closed,
+        outcome={'ok': True, 'tool_used': False,
+            'answer': '请明确查询目标和时间范围；待确认任务缺失、过期或无法核验，本次未查询现场数据。',
+            'answer_route': 'owned_followup_needs_clarification', 'answer_contract': 'needs_clarification', 'needs_clarification': True})
+    previous = previous if isinstance(previous, dict) else {}
+    pending = previous.get('pending_data_object')
+    if (not isinstance(pending, dict) or set(pending) != {'schema', 'goal', 'time_range', 'preferred_chart', 'requested_at'}
+            or pending.get('schema') != 'qa.pending-data-object.v1'
+            or type(previous.get('source_message_id')) is not int or previous['source_message_id'] <= 0):
+        return result
+    stamp = pending.get('requested_at')
+    if (type(now) not in (int, float) or not math.isfinite(now)
+            or type(stamp) not in (int, float) or not math.isfinite(stamp)
+            or type(previous.get('updated_at')) not in (int, float) or not math.isfinite(previous['updated_at'])
+            or previous.get('updated_at') != stamp or not 0 <= now - stamp <= 600):
+        return result
+    goal, window, chart = pending.get('goal'), pending.get('time_range'), pending.get('preferred_chart')
+    if (goal not in {'latest', 'history', 'statistics', 'correlation', 'plot'}
+            or goal != previous.get('analysis_goal') or window != previous.get('time_range')
+            or chart != previous.get('preferred_chart')):
+        return result
+    if window is not None and (not isinstance(window, dict) or set(window) != {'mode', 'minutes'}
+            or window.get('mode') != 'relative' or type(window.get('minutes')) is not int
+            or not 1 <= window['minutes'] <= 1440):
+        return result
+    if chart not in {None, 'trend', 'correlation_heatmap', 'matrix', 'correlation_scatter', 'boxplot', 'distribution'}:
+        return result
+    if goal == 'correlation' and len(objects) < 2:
+        closed = dict(plan)
+        closed.update(allow_prefetch=False, allow_mcp_tools=False, search_knowledge=False,
+            allowed_sources=[], allowed_tool_domains=[], reason='owned_followup_needs_clarification')
+        result.update(state='needs_clarification', task_plan=closed,
+            pending_context={'analysis_goal': goal, 'time_range': dict(window) if window else None,
+                'preferred_chart': chart, 'updated_at': stamp},
+            outcome={'ok': True, 'tool_used': False, 'answer': '相关性分析需要至少两个明确测点，请一起列出；本次未查询现场数据。',
+                'answer_route': 'owned_followup_needs_clarification', 'answer_contract': 'needs_clarification', 'needs_clarification': True})
+        return result
+    action = {'latest': '查询最新值', 'history': '查询历史趋势', 'statistics': '查询历史统计',
+        'correlation': '查询相关性', 'plot': '画趋势图'}[goal]
+    chart_text = {None: '', 'trend': '趋势图', 'correlation_heatmap': '相关热力图', 'matrix': '矩阵图',
+        'correlation_scatter': '散点图', 'boxplot': '箱线图', 'distribution': '直方图'}[chart]
+    execution = ' '.join([action, '、'.join(objects),
+        '最近' + str(window['minutes']) + '分钟' if window else '', chart_text]).strip()
+    resolved = build_task_plan(execution)
+    resolved.update(primary_intent='live_data', intents=['live_data'], search_knowledge=False,
+        allow_prefetch=True, allow_mcp_tools=True, allowed_sources=['live_readonly_data'],
+        allowed_tool_domains=['live_readonly_data'], entities=objects, unresolved_entities=[],
+        reason='owned_referential_followup')
+    result.update(state='confirmed_data_object', task_plan=resolved, execution_question=execution, outcome=None)
     return result

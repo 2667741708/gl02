@@ -1370,6 +1370,12 @@ qa_task_plan.sensor_context_policy和bound_rule_context_requested新增2辅助�
 [实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
 
 
+## V50测点确认和准备权限顺序（2026-09-17）
+
+REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅由整句精确目录别名确认，保留目标/窗口并重新取数；解析在全部sensor读取之前执行。有效确认也不注入通用传感器；失效、跨会话及页面禁工具关闭预取和来源。两新增纯函数、prepare单函数变更与14模块逐字节继承通过冻结检查；55原生只读合成合同通过，实际取数/最终回答/并发和部署未验收。
+
+[实施/复现/剩余门](handoffs/2026-09-17-qa-pending-object-confirmation.md)；[机器证据](../tests/qa_regression/pending_object_confirmation_20260917.json)。无关Git提交按路径范围保留；固定底座检查独立，33项不销项。
+
 ## V49对象追问执行（2026-09-17）
 
 qa_task_plan.resolve_owned_followup新增纯辅助函数；build_qa_owned_followup_candidate修改冻结proxy七函数并证明剩余全AST/14模块不变，任务计划穿透同步/异步MCP和提示词来源层。

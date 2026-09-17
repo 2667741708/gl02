@@ -119,8 +119,15 @@ def test_candidate_keeps_fourteen_modules_and_all_other_planner_and_proxy_semant
     assert len(manifest['inherited_v48_files_byte_identical']) == 14
     for name in manifest['inherited_v48_files_byte_identical']:
         assert (candidate/name).read_bytes() == (PRIOR/name).read_bytes()
-    assert build_proxy((PRIOR/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (candidate/'ollama_proxy_server.py').read_text(encoding='utf-8')
-    validate_planner((PRIOR/'qa_task_plan.py').read_bytes(),(candidate/'qa_task_plan.py').read_bytes())
+    if manifest.get('pending_object_confirmation') is True:
+        from build_qa_pending_object_candidate import PRIOR as v49, build_proxy as build_pending, validate_planner as validate_pending
+        assert build_proxy((PRIOR/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (v49/'ollama_proxy_server.py').read_text(encoding='utf-8')
+        validate_planner((PRIOR/'qa_task_plan.py').read_bytes(), (v49/'qa_task_plan.py').read_bytes())
+        assert build_pending((v49/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (candidate/'ollama_proxy_server.py').read_text(encoding='utf-8')
+        validate_pending((v49/'qa_task_plan.py').read_bytes(), (candidate/'qa_task_plan.py').read_bytes())
+    else:
+        assert build_proxy((PRIOR/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (candidate/'ollama_proxy_server.py').read_text(encoding='utf-8')
+        validate_planner((PRIOR/'qa_task_plan.py').read_bytes(),(candidate/'qa_task_plan.py').read_bytes())
     assert manifest['model_digest'] == 'e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124'
 
 

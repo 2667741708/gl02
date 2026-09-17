@@ -1079,18 +1079,19 @@
     "production_writes": 0
   },
   "latest_native_runtime_gate": {
-    "candidate": "v49-r6",
-    "state": "native_owned_followup_execution_verified_production_identity_drift_blocked",
-    "evidence": "owned_followup_execution_20260917.json",
+    "candidate": "v50-r3",
+    "state": "native_pending_confirmation_verified_fixed_identity_blocked",
+    "evidence": "pending_object_confirmation_20260917.json",
     "frozen_modules": 16,
     "transitive_dependencies": 60,
-    "synthetic_contracts_passed": 40,
+    "synthetic_contracts_passed": 55,
     "qa_contracts_passed": 10,
     "shared_abc_contracts_passed": 9,
     "ordinary_prepare_contracts_passed": 6,
     "owned_followup_contracts_passed": 15,
     "production_semantic_effectiveness_verified": false,
-    "required_before_production_seal": true
+    "required_before_production_seal": true,
+    "pending_confirmation_contracts_passed": 15
   },
   "prior_readonly_production_gate_before_sensor_context_fix": {
     "checked_at": "2026-09-17",
@@ -1229,6 +1230,29 @@
     "related_tests_passed": 905,
     "evidence": "owned_followup_execution_20260917.json",
     "manifest_sha256": "73da30da0e2aebcfec7fafd8453598af11c4337a5ef538f29d3ae79854d70a42",
+    "fixed_base_identity_unchanged": true,
+    "production_semantic_effectiveness_verified": false
+  },
+  "prior_native_runtime_gate_before_pending_object_confirmation": {
+    "candidate": "v49-r6",
+    "state": "native_owned_followup_execution_verified_production_identity_drift_blocked",
+    "evidence": "owned_followup_execution_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 60,
+    "synthetic_contracts_passed": 40,
+    "qa_contracts_passed": 10,
+    "shared_abc_contracts_passed": 9,
+    "ordinary_prepare_contracts_passed": 6,
+    "owned_followup_contracts_passed": 15,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true
+  },
+  "latest_local_pending_object_candidate": {
+    "version": "v50-r3",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 975,
+    "manifest_sha256": "0b30d0f39df03eeee14e9660252398454f434d8e233fea13850a11aecf23c8d0",
+    "evidence": "pending_object_confirmation_20260917.json",
     "fixed_base_identity_unchanged": true,
     "production_semantic_effectiveness_verified": false
   }

@@ -9,7 +9,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests')]
 from qa_frozen_candidate import latest_frozen_candidate
-from verify_qa_full_candidate_probe import CASES, SHARED_CASES, ORDINARY_CASES, FOLLOWUP_CASES, validate
+from verify_qa_full_candidate_probe import CASES, SHARED_CASES, ORDINARY_CASES, FOLLOWUP_CASES, CONFIRMATION_CASES, validate
 
 
 def evidence():
@@ -77,6 +77,22 @@ def evidence():
                     mock_prefetch_queries=1 if state == 'owned_live_followup' else 0)
             followups.append(row)
         report['request_contracts']['owned_followup_cases'] = followups
+    if manifest.get('pending_object_confirmation'):
+        rows = []
+        for key, (state, objects, minutes) in CONFIRMATION_CASES.items():
+            enabled = state == 'confirmed_data_object'
+            roundtrip = key.startswith('confirmation_roundtrip_')
+            row = {'id': key, 'passed': True, 'functional_contract_passed': True,
+                'resolution_state': state, 'selected_objects': objects, 'minutes': minutes,
+                'model_answer_generated': False, 'mock_prefetch_queries': int(enabled),
+                'mock_model_requests': 0, 'sensor_context_read_count': 0, 'sensor_context_read_kinds': [],
+                'mock_page_archives': 2 if roundtrip else 1, 'page_archive_isolated_from_evidence': True,
+                'fresh_evidence_required': True, 'original_user_question_preserved': True,
+                'current_object_source_bound': True if enabled else None}
+            if roundtrip:
+                row.update(pending_created_by_first_handler=True, clarification_no_reads=True)
+            rows.append(row)
+        report['request_contracts']['pending_confirmation_cases'] = rows
     return report, candidate, manifest, probe_sha
 
 

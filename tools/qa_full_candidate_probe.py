@@ -203,6 +203,7 @@ def run(payload):
             and (contracts is None or (all(row['passed'] for row in contracts['cases'])
                 and all(row['passed'] for row in contracts.get('ordinary_context_cases', []))))
             and (contracts is None or all(row['passed'] for row in contracts.get('owned_followup_cases', [])))
+            and (contracts is None or all(row['passed'] for row in contracts.get('pending_confirmation_cases', [])))
             and (shared_contracts is None or all(row['passed'] for row in shared_contracts['cases'])),
         'native_python': '.'.join(str(x) for x in sys.version_info[:3]),
         'stdlib_platform_metadata_prepared': True,
@@ -489,6 +490,8 @@ def request_contracts(proxy):
             row['sensor_context_read_kinds'] = list(state['sensor_context_reads'])
             row['mock_page_archives'] = len(state['page_archives'])
             expected_archives = 0 if row['id'] in {'full_json_cross_owner_denied', 'full_json_single_user_busy'} else 1
+            if row['id'] in {'confirmation_roundtrip_json', 'confirmation_roundtrip_sse'}:
+                expected_archives = 2
             isolated = all(message.get('snapshot_id') is None
                 and not (json.loads(message.get('hidden_context_json') or '{}').get('snapshot_ids') or [])
                 and json.loads(message.get('hidden_context_json') or '{}').get('latest_snapshot_id') is None
@@ -673,6 +676,7 @@ def request_contracts(proxy):
         proxy.search_knowledge = original_search
 
     followup_cases = SourceBoundCases()
+    confirmation_cases = SourceBoundCases()
     original_prefetch = proxy.qa_mcp_prefetch
     original_enabled, original_mode = proxy.QA_MCP_TOOLS_ENABLED, proxy.QA_MCP_TOOL_MODE
     prefetch_queries = []
@@ -759,6 +763,87 @@ def request_contracts(proxy):
                 'model_answer_generated':False,'mock_model_requests':len(state['calls']),
                 'mock_prefetch_queries':len(prefetch_queries),'status':handler.statuses[-1],
                 'events':events,'answer_route':response.get('answer_route')})
+        for identifier,question,goal,minutes,chart,expired,foreign,expected_state,expected_objects in [
+                ('confirmation_bare_history','总压差','history',30,None,False,False,'confirmed_data_object',['DP_total']),
+                ('confirmation_prefixed_history','我指的是总压差','history',120,None,False,False,'confirmed_data_object',['DP_total']),
+                ('confirmation_latest','总压差','latest',None,None,False,False,'confirmed_data_object',['DP_total']),
+                ('confirmation_statistics','总压差','statistics',120,None,False,False,'confirmed_data_object',['DP_total']),
+                ('confirmation_boxplot','总压差','plot',30,'boxplot',False,False,'confirmed_data_object',['DP_total']),
+                ('confirmation_pair','总压差和炉顶压力','correlation',60,'correlation_scatter',False,False,'confirmed_data_object',['DP_total','P_top']),
+                ('confirmation_insufficient_pair','总压差','correlation',60,'correlation_scatter',False,False,'needs_clarification',[]),
+                ('confirmation_expired','总压差','history',30,None,True,False,'needs_clarification',['DP_total']),
+                ('confirmation_foreign','总压差','history',30,None,False,True,'needs_clarification',['DP_total']),
+                ('confirmation_no_tools','不调用工具，总压差','history',30,None,False,False,'not_applicable',[]),
+                ('confirmation_selected_no_tools','总压差','history',30,None,False,False,'not_applicable',[]),
+                ('confirmation_disabled_code','给出查询总压差的Python代码示例。','history',30,None,False,False,'disabled_code_only',[]),
+                ('confirmation_supplied_data',data_question,'history',30,None,False,False,'not_applicable',[])]:
+            reset(); prefetch_queries.clear()
+            previous = proxy.update_tool_context(None,'这个最近30分钟的趋势如何？',[],minutes,
+                now=proxy.time.time()-(601 if expired else 5))
+            previous.update(analysis_goal=goal,time_range={'mode':'relative','minutes':minutes} if minutes else None,
+                preferred_chart=chart,selected_objects=[],last_evidence=[])
+            previous['pending_data_object'] = {'schema':'qa.pending-data-object.v1','goal':goal,
+                'time_range':previous['time_range'],'preferred_chart':chart,'requested_at':previous['updated_at']}
+            previous = proxy.qa_context_state.bind_persisted_context(previous,1)
+            state['messages'].append({'id':1,'conversation_id':'synthetic_foreign_room' if foreign else conversation_id,
+                'role':'user','content':'SYNTHETIC_PENDING_TASK','created_at':timestamp,'snapshot_id':None,
+                'hidden_context_json':json.dumps({'mcp_conversation_context':previous})})
+            handler = Probe(question)
+            prepared = handler.prepare_qa_chat({'conversation_id':conversation_id,'_qa_owner_subject':owner,
+                '_qa_access_mode':'authenticated','use_mcp_tools':True,
+                **({'_qa_tool_selection': {'mode':'none','tools':[]}} if identifier == 'confirmation_selected_no_tools' else {}),
+                'current_snapshot':{'source_time':timestamp,'values':{'synthetic_page_marker':'PAGE_ARCHIVE_IS_NOT_ANALYSIS_EVIDENCE'}}},
+                question,include_conversations=False)
+            hidden = prepared['hidden_context']; active = hidden.get('mcp_conversation_context') or {}
+            plan = prepared.get('execution_task_plan') or {}
+            enabled = expected_state == 'confirmed_data_object'
+            expected_minutes = minutes if enabled or identifier == 'confirmation_insufficient_pair' else None
+            window = active.get('time_range'); actual_minutes = window.get('minutes') if isinstance(window,dict) else None
+            current = state['messages'][-1]
+            sources = ((active.get('inheritance_provenance') or {}).get('objects') or {}).get('sources') or {}
+            confirmation_cases.append({'id':identifier,'passed':hidden.get('followup_resolution_state') == expected_state
+                and plan.get('allow_prefetch') is enabled and plan.get('allow_mcp_tools') is enabled
+                and prepared.get('use_mcp_tools') is enabled and active.get('selected_objects') == expected_objects
+                and actual_minutes == expected_minutes and len(prefetch_queries) == (1 if enabled else 0)
+                and not state['calls'] and current['content'] == question and active.get('last_evidence') == []
+                and (set(sources.values()) == {current['id']} if enabled else True),
+                'model_answer_generated':False,'resolution_state':hidden.get('followup_resolution_state'),
+                'selected_objects':active.get('selected_objects'),'minutes':actual_minutes,
+                'mock_prefetch_queries':len(prefetch_queries),'mock_model_requests':len(state['calls']),
+                'original_user_question_preserved':current['content'] == question,
+                'current_object_source_bound':set(sources.values()) == {current['id']} if enabled else None,
+                'fresh_evidence_required':active.get('evidence_reuse') is False})
+        for stream in (False,True):
+            reset(); prefetch_queries.clear()
+            first = Probe('这个最近30分钟的趋势如何？',stream=stream)
+            proxy.Handler.do_POST(first)
+            first_user = next((row for row in state['messages'] if row['role'] == 'user'),{})
+            previous = json.loads(first_user.get('hidden_context_json') or '{}').get('mcp_conversation_context') or {}
+            pending_created = (previous.get('pending_data_object') or {}).get('schema') == 'qa.pending-data-object.v1'
+            clarification_no_reads = not state['calls'] and not prefetch_queries
+            question = '总压差'
+            second = Probe(question)
+            prepared = second.prepare_qa_chat({'conversation_id':conversation_id,'_qa_owner_subject':owner,
+                '_qa_access_mode':'authenticated','use_mcp_tools':True,
+                'current_snapshot':{'source_time':timestamp,'values':{'synthetic_page_marker':'PAGE_ARCHIVE_IS_NOT_ANALYSIS_EVIDENCE'}}},
+                question,include_conversations=False)
+            active = prepared['hidden_context']['mcp_conversation_context']
+            current = state['messages'][-1]
+            sources = active['inheritance_provenance']['objects']['sources']
+            confirmation_cases.append({'id':'confirmation_roundtrip_'+('sse' if stream else 'json'),
+                'passed':first.statuses == [200] and pending_created and clarification_no_reads
+                    and prepared['hidden_context'].get('followup_resolution_state') == 'confirmed_data_object'
+                    and prepared.get('use_mcp_tools') is True and len(prefetch_queries) == 1 and not state['calls']
+                    and active.get('selected_objects') == ['DP_total'] and (active.get('time_range') or {}).get('minutes') == 30
+                    and current['content'] == question and set(sources.values()) == {current['id']}
+                    and active.get('last_evidence') == [] and active.get('pending_data_object') is None,
+                'model_answer_generated':False,'resolution_state':prepared['hidden_context'].get('followup_resolution_state'),
+                'selected_objects':active.get('selected_objects'),'minutes':(active.get('time_range') or {}).get('minutes'),
+                'mock_prefetch_queries':len(prefetch_queries),'mock_model_requests':len(state['calls']),
+                'original_user_question_preserved':current['content'] == question,
+                'current_object_source_bound':set(sources.values()) == {current['id']},
+                'fresh_evidence_required':active.get('evidence_reuse') is False,
+                'pending_created_by_first_handler':pending_created,'clarification_no_reads':clarification_no_reads})
     finally:
         proxy.qa_mcp_prefetch = original_prefetch
         proxy.QA_MCP_TOOLS_ENABLED, proxy.QA_MCP_TOOL_MODE = original_enabled, original_mode
@@ -767,6 +852,7 @@ def request_contracts(proxy):
     return {'state': 'synthetic_contract_only', 'cases': cases,
         'ordinary_context_cases': ordinary_cases,
         'owned_followup_cases': followup_cases,
+        'pending_confirmation_cases': confirmation_cases,
         'owned_followup_mocked_boundaries':['authentication_session','database_connection',
             'sensor_snapshot_provider','ollama_transport','heartbeat_thread_start',
             'mcp_prefetch_provider','mcp_configuration_result'],

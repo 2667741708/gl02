@@ -27,6 +27,8 @@ def exercise(question, *, prior=False, browser_snapshot=True, mode='', owned=Tru
     if prior:
         candidate = ROOT / '.codex_runtime/qa-routing-v45/candidate-r2'
     tree = ast.parse((candidate / 'ollama_proxy_server.py').read_bytes())
+    registry = next(node for node in tree.body if isinstance(node, ast.AnnAssign)
+        and isinstance(node.target, ast.Name) and node.target.id == 'SPOKEN_MCP_VARIABLE_ALIASES')
     nodes = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
         and node.name in {'prepare_qa_chat', 'latest_snapshot', 'recent_snapshots'}]
     state = {'sensor_reads': [], 'snapshot_writes': [], 'browser_snapshot_reads': [], 'captured': {}}
@@ -65,6 +67,7 @@ def exercise(question, *, prior=False, browser_snapshot=True, mode='', owned=Tru
 
     namespace = {'Any': object, 'time': time, 're': re, 'db_connect': lambda: nullcontext(Connection()),
         'qa_task_plan': qa_task_plan, 'qa_evidence_policy': qa_evidence_policy,
+        'SPOKEN_MCP_VARIABLE_ALIASES': ast.literal_eval(registry.value),
         'insert_snapshot': insert, 'snapshot_by_id': by_id,
         'sanitize_model_exposure': lambda exc: type(exc).__name__,
         'last_qa_context_anchor': lambda *args: {'message_id': 3, 'snapshot_id': 4},
