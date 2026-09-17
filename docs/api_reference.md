@@ -377,3 +377,11 @@ REQ-QA-FULL-ISSUE-INVENTORY-20260916：纯历史问答在现有`/api/qa/chat`内
 状态：本机候选，生产仍为V26；最后核对2026-09-17。关联QAOPT-E01/E02/E03/E04/E05。
 V28保留固定同一底座身份检查，仅修复统计预取、证据完整性和确定性答复三个函数。完整保留stddev/单位/质量及来源窗口；非零微量不舍入成0；缺单位仅继承现有精确合同并披露，Held端点不证明整窗质量或炉况稳定。直接答复同样校验请求对象、来源和时间窗，未核实不得输出正式STDDEV/CV/趋势。没有新增API或配置，不改模型、生产数据库或ABC33合同。
 权威：[实施、回归及未完成项](handoffs/2026-09-17-qa-v28-statistics-evidence.md)、[机器检查证据](../tests/qa_regression/statistical_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_statistics_evidence.py)。本机通过不得写成线上准确率提高；822原失败/部分题尚未发送。
+
+## REQ-QA-FINAL-COMPLETION-20260917：V29最终答复完成状态
+
+状态：本机r2候选、92项聚焦回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E05/O04/T03。
+统一识别模型截断、未知终止、空答案和末行空标题；工具后解释未完成时保留事实并标部分，MCP降级仍最多一次无工具回合。普通免工具问答保留原有一次有界补答；JSON/SSE核对实际最终answer，图表/文档追加不能擦除已记录的空标题。固定底座、V28统计合同及其他AST保留，无新增配置、工具重试或数据库变更。
+权威：[实施、实际检查及剩余边界](handoffs/2026-09-17-qa-v29-final-completion.md)、[候选机器证据](../tests/qa_regression/final_completion_candidate_20260917.json)、[真实函数回归](../tests/test_qa_final_completion.py)。处理器接缝为AST与合同检查，尚未执行线上处理器/822原题语义验收；这些问题未销项。
+
+`completion.incomplete_reasons`为可选字符串数组；本轮原因包括output_limit、termination_unverified、empty_answer、unfinished_heading、stream_incomplete、model_analysis_incomplete。发现明确不完整证据时terminal_state=partial、complete=false；保留原合同中的covered/missing及子任务字段。新模块默认schema=qa-completion-v2，既有结构化执行器的schema继续原样保留。answered_pending_review不等于语义通过，semantic_review_required继续为true；不增加新的API端点或重发指令。

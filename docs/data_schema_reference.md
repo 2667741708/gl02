@@ -1,5 +1,10 @@
 # 数据结构参考
 
+## REQ-QA-FINAL-COMPLETION-20260917：普通问答完成合同
+
+状态：V29本机候选，未部署；最后核对2026-09-17。不增加表、列或数据库迁移。
+公开completion新增可选incomplete_reasons字符串数组，记录长度上限、未确认终止、空答案、空标题、流式未完成或模型分析未完成；有明确缺项时complete=false、terminal_state=partial。保留已有对象覆盖、子任务和来源字段，不根据非空文本升级为completed。新普通模型模块schema=qa-completion-v2；既有确定性执行器合同schema原样保留。权威：[API字段与行为](api_reference.md)、[实施及回归边界](handoffs/2026-09-17-qa-v29-final-completion.md)。
+
 ## `bf_sensor.sensor_registry` 罐重设定目录（2026-08-14）
 
 `Hopper_weight_set_01`～`Hopper_weight_set_11` 是 pSpace 物理分量，分别对应
