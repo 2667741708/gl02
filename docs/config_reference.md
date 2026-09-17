@@ -634,3 +634,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 没有新增配置。唯一底座及权重摘要固定，不改Ollama驻留上限或keyword模式。两次独立GET快照先身份不符、后别名符合但驻留为空；旧管理器hash未变，不能声称生产已锁定。管理器/恢复计划任务安装仍待单独授权，不自动加载、卸载或切换模型以继续测试。
 权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+## 2026-09-17：审计连接配置
+
+[readonly_pg_connect](../tools/qa_readonly_pg.py#L59)复用进程内受控PG环境参数，不打印或缓存凭据。连接启动固定default_transaction_read_only=on、autocommit=False、已校验schema/bf_sensor/public搜索路径，statement_timeout默认20000ms（范围1..60000且拒绝bool）、lock_timeout=3000ms、connect_timeout封顶8s；不使用普通池/初始化。此为审计进程配置，不改生产服务或数据库schema，固定模型名称/摘要继续保持。
+权威：[缺陷、验证和发布边界](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)。

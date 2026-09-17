@@ -40,7 +40,8 @@ def main():
         if key.startswith(("BF_ASSISTANT_PG", "GL02_PG", "PG")):
             os.environ[key] = str(value)
     sys.path.insert(0, str(args.root / "高炉前端数据/智能助手/backend"))
-    from assistant_pg import raw_pg_connect, PgCompatConnection
+    from assistant_pg import PgCompatConnection
+    from qa_readonly_pg import readonly_pg_connect
     sys.path.insert(0, str(args.candidate_source.parent))
     spec = importlib.util.spec_from_file_location("qa_candidate", args.candidate_source)
     module = importlib.util.module_from_spec(spec)
@@ -50,8 +51,7 @@ def main():
         raise ValueError("Invalid read-only batch bounds")
     cases = cases[args.offset:None if args.limit is None else args.offset + args.limit]
     results = []
-    with raw_pg_connect() as raw:
-        raw.execute("SET TRANSACTION READ ONLY")
+    with readonly_pg_connect() as raw:
         connection = CachedReads(PgCompatConnection(raw))
         for row in cases:
             if row.get("oracle_blocked"):

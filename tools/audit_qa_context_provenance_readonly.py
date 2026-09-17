@@ -21,11 +21,11 @@ def main():
         if key.startswith(('BF_ASSISTANT_PG', 'GL02_PG', 'PG')):
             os.environ[key] = str(value)
     sys.path.insert(0, str(args.root / '高炉前端数据/智能助手/backend'))
-    from assistant_pg import raw_pg_connect, PgCompatConnection
+    from assistant_pg import PgCompatConnection
+    from qa_readonly_pg import readonly_pg_connect
     import mcp_conversation_context as context
     results = []
-    with raw_pg_connect() as raw:
-        raw.execute('SET TRANSACTION READ ONLY')
+    with readonly_pg_connect() as raw:
         conn = PgCompatConnection(raw)
         for case in cases:
             row = conn.execute('''SELECT m.content, m.hidden_context_json, c.owner_subject

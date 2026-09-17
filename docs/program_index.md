@@ -1181,3 +1181,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 程序：[最新值门禁 qa_statistical_evidence.py:L212](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L212)、[逐字段披露:L236](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L236)、[直接工具完成合同:L286](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L286)、[事实预取 qa_verified_facts.py:L101](../高炉前端数据/智能助手/backend/qa_verified_facts.py#L101)。候选仅修改代理两个及事实三个函数，其他AST与MCP/固定底座/完成/质量模块保留。
 权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+## 2026-09-17：只读审计及制度源解析
+
+程序：[启动只读连接:L59](../tools/qa_readonly_pg.py#L59)、[SELECT封装:L46](../tools/qa_readonly_pg.py#L46)、[数据库来源诊断:L52](../tools/probe_qa_readonly_pg.py#L52)、[源DOCX元数据审计:L12](../tools/audit_qa_source_docx_readonly.py#L12)、[整行标题识别:L149](../tools/build_three_rules_hierarchical_kb.py#L149)。四个审计入口迁移，manifest输出使用白名单；源解析只改变类别/标题分界，不改条款原文。151项及独立审查通过，生产知识库/代理尚未更新。
+权威：[确认缺陷、发布范围与未验证项](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。

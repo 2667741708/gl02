@@ -445,3 +445,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 最新读取异常时依次核对请求/外层变量列表、元数据绑定、来源和策略、有限数值、观测时间，再核单位/质量释义/采集标记。部分字段缺失保留有效事实，逐项说明，不重复查全量或靠模型补字段。顶温派生核四组件及时间/均值；混时不当同一时刻均值。模型身份或驻留波动先GET核查并停止新发送，不切换底座。
 权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+## BUG-QA-REGULATION-CLAUSE-DROP-20260917：制度短条款缺失
+
+先核原始DOCX、源解析标题分界及索引血缘，再核模型或路由。27/28章旧解析把多数<=80字内容当标题跳过；生产派生full_text与同一索引覆盖不能发现源抽取遗漏。整行标题修复本机151项及独立审查通过，补回123片段，但生产知识库未更新。来源路径标记仅说明记录的路径不存在，不说明原书不存在。
+只读审计必须使用启动readonly连接，不能调用会初始化schema的raw_pg_connect后才SET READ ONLY；审计失败停止，不通过建schema或修改权限让检查继续。
+权威：[具体修复与受控知识库发布步骤](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。

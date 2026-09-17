@@ -130,3 +130,8 @@ python -X utf8 tools/qa_regression.py --results path/to/run.json --reviews path/
 - [V4修复交接](../../docs/handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md)：R04时间窗/独立基线，R05报表依赖链/中文截断。
 - 合成测试位于tests/test_qa_time_window_plan.py、test_qa_report_workflow.py、test_qa_report_excerpt_contract.py；包含独立复算、部分失败和越界输入，不含生产数据。
 - [33项执行台账](optimization_execution_ledger_20260916.md)保留本机候选与生产通过的区别；候选源文件、原始线上源码及真实工具结果不随回归集上传。
+
+## 2026-09-17：只读启动与制度源抽取
+
+- [机器证据](readonly_audit_source_repair_20260917.json)和[修复交接](../../docs/handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)：52只读审计、55源标题和44既有文档回归，共151通过及独立审查PASS。
+- 源解析修复补回27/28章123片段，原书哈希和版本可追踪；仅本机抽取，生产知识库尚未更新，无原题发送。原始DOCX/条款不上传，源角色和30项标准冲突仍须独立审查。

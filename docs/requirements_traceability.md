@@ -1265,3 +1265,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 最新值必须绑定请求对象、typed来源/只读策略、有限数值与观测时刻；仅日期不是观测时刻。缺单位、质量释义、采集标记或策略保留事实并标partial；派生顶温须四组件同一时刻及均值复算，单点不能完成分析任务。九条漏分类记录仅提出归类，不改首次判定或销项。
 权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+## REQ-QA-READONLY-AUDIT-20260917 / BUG-QA-REGULATION-CLAUSE-DROP-20260917
+
+状态：本机151项及独立审查通过，生产知识库未更新；2026-09-17核对。所有审计必须从连接启动起只读且不初始化schema，不输出用户路径或原文；正式制度源解析只把整行明确标题作分界，不能丢弃短条款/表格或把句中引用当标题。原书两章补回123片段，独立源范围/语义及受控知识库发布尚未完成，不销项QAOPT-K03/K06。
+权威：[修复、前后统计及后续发布门](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。不改变模型名称、权重、生产API或数据库schema。

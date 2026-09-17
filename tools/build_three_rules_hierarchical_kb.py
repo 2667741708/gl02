@@ -30,6 +30,23 @@ REGULATION_PATTERNS = (
     ("生产联系确认制", re.compile(r"生产联系确认制")),
 )
 
+# Exact original heading variants observed in the frozen source DOCX. These
+# classify headings only; they never rewrite the original clause/table text.
+REGULATION_HEADING_ALIASES = {
+    '安全操作规程': '安全操作规程',
+    '技术操作规程': '技术操作规程',
+    '工艺操作规程': '技术操作规程',
+    '工艺技术规程': '技术操作规程',
+    '工艺技术操作规程': '技术操作规程',
+    '工艺技术技作规程': '技术操作规程',
+    '设备使用维护规程': '设备使用维护规程',
+    '设备维护规程': '设备使用维护规程',
+    '设备维护操作规程': '设备使用维护规程',
+    '设备操维护规程': '设备使用维护规程',
+    '岗位交接班制度': '岗位交接班制度',
+    '生产联系确认制': '生产联系确认制',
+}
+
 
 @dataclass
 class SourceItem:
@@ -130,12 +147,16 @@ def match_chapter(text: str, chapters: dict[int, str]) -> tuple[str, str] | None
 
 
 def match_regulation(text: str, chapter_title: str) -> str | None:
-    for label, pattern in REGULATION_PATTERNS:
-        if pattern.search(text):
-            return label
-    if chapter_title in {"岗位交接班制度", "生产联系确认制"}:
-        return chapter_title
-    return None
+    # A regulation mention inside a clause is not a heading. In particular,
+    # assigning the chapter's制度 label to every short paragraph dropped its
+    # original clauses and short tables before chunk creation.
+    if '\n' in text or ' | ' in text:
+        return None
+    candidate = re.sub(r'^\s*(?:\d+(?:\.\d+)*[.．、]*|[一二三四五六七八九十]+[.．、]+|[（(][一二三四五六七八九十\d]+[）)])\s*', '', text).strip()
+    candidate = candidate.rstrip(':：').strip()
+    if chapter_title and candidate != chapter_title and candidate.startswith(chapter_title):
+        candidate = candidate[len(chapter_title):].strip()
+    return REGULATION_HEADING_ALIASES.get(candidate)
 
 
 def parse_source_items(document: DocumentObject) -> tuple[dict[int, str], list[SourceItem]]:

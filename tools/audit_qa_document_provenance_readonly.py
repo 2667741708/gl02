@@ -18,9 +18,8 @@ def main():
     for key, value in config.get("env", {}).items():
         if key.startswith(("BF_ASSISTANT_PG", "GL02_PG", "PG")): os.environ[key] = str(value)
     sys.path.insert(0, str(args.root / "高炉前端数据/智能助手/backend"))
-    from assistant_pg import raw_pg_connect
-    with raw_pg_connect() as connection:
-        connection.execute("SET TRANSACTION READ ONLY")
+    from qa_readonly_pg import readonly_pg_connect
+    with readonly_pg_connect() as connection:
         doc = connection.execute("SELECT full_text, content_hash FROM rag_document WHERE doc_id = %s", ("bf_three_rules_two_systems_20260712",)).fetchone()
         rows = connection.execute("SELECT chunk_id, chunk_type, content, enriched_content, content_hash, authority_level FROM rag_chunk WHERE doc_id = %s", ("bf_three_rules_two_systems_20260712",)).fetchall()
         full = compact(doc["full_text"])

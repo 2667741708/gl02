@@ -3328,3 +3328,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 状态：本机47项通过；最后核对2026-09-17；生产管理器安装未完成。历史双底座窗口的六种真实PowerShell隔离场景均必须拒绝执行且无任务/HTTP操作，保留截止时间与请求预算测试。固定身份、禁切换管理器、退役窗口及安装事务共47项通过。生产只读快照显示固定名称未匹配冻结摘要、驻留为空，未使用其他底座继续测试。
 权威：[本轮缺陷及可复现命令](handoffs/2026-09-17-qa-fixed-base-constraint-recheck.md)、[退役窗口回归](../tests/test_qa_fixed_model_window.py)。本机通过不代表生产已锁定，也不代表原题准确率提高。
+
+## 2026-09-17：只读启动与制度短条款回归
+
+151 passed：52项[只读审计](../tests/test_qa_readonly_pg.py)、55项[原书标题与源解析](../tests/test_three_rules_heading_boundaries.py)、44项既有文档合同。真实数据库默认/当前事务均readonly=on；原DOCX旧解析与生产96fd哈希相同，修复后fbf583哈希不同、两制度章补回123片段。比较旧authority退出1是必须受控重建知识库的信号，不放宽为语义通过。
+权威：[命令、逐类检查与未完成验收](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。独立审查PASS；未生产写入、未复问原题、不更新线上准确率。
