@@ -1325,3 +1325,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [身份判定](../tools/probe_qa_paired_runtime_readonly.py:24)、[路径边界](../tools/probe_qa_paired_runtime_readonly.py:13)、[metadata探测](../tools/probe_qa_paired_runtime_readonly.py:37)只读核验固定摘要；不上传远端源码、不生成或切换模型。
 
 权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+[实际请求绑定](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:67)、[准备绑定](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:56)、[缓存版本](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:20)由确定性候选构建器注入已审查proxy边界；不重建或覆盖旧单体。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。

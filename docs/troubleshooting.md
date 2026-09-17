@@ -590,3 +590,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 SSH已恢复但固定底座仍被阻断：比较固定摘要与tags→ps→tags，而非只看同名或旧status.ok。旧恢复任务仍活跃，独立授权治理后重新只读核验，不自动切换绕过。
 
 权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+复测缺实际系统Prompt凭证时，核对服务端prompt_binding而非用户输入hash。比较prepared与各实际请求摘要，规划/降级/repair不同是正常；request_built不冒充发送成功。legacy/未知摘要缓存应拒绝命中；固定摘要不符停止新调用。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。

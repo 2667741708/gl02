@@ -778,3 +778,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 无新增生产配置。固定名称chiqiongblastfuenace:latest及e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124；禁止模型切换、备用、动态基线及同名换权重。loopback GET不使用环境网络代理。
 
 权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+底座名称/e4摘要及禁切换/备用/同名换权重不变。BF_ABC_RULE_ASSISTANT_PROMPT_VERSION配置基值统一幂等追加.fixed-pin-binding.v1作为缓存版本键，无新配置值写入生产。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。

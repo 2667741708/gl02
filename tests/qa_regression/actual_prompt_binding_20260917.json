@@ -1,0 +1,123 @@
+{
+  "schema": "bf.qa.actual-prompt-binding-public-evidence.v1",
+  "requirement_id": "REQ-QA-ACTUAL-PROMPT-BINDING-20260917",
+  "checked_at": "2026-09-17",
+  "candidate": "v45-r2",
+  "state": "local_tested_reviewed_frozen_not_production_applied",
+  "issue_ids": [
+    "QAOPT-T03",
+    "QAOPT-T01",
+    "QAOPT-T05",
+    "QAOPT-O01",
+    "QAOPT-O04"
+  ],
+  "defect_reproduction": {
+    "cases": 21,
+    "failed": 11,
+    "passed": 10,
+    "elapsed_seconds": 6.81,
+    "defect": "Actual proxy request, persistence and reply boundaries had no effective-system-prompt binding; legacy same-name cache had no immutable-weight proof."
+  },
+  "verification": {
+    "new_regression_cases": 30,
+    "focused_passed": 30,
+    "focused_elapsed_seconds": 17.48,
+    "related_passed": 643,
+    "related_elapsed_seconds": 83.68,
+    "related_modules": 24,
+    "test_command": "python -X utf8 -m pytest -q --tb=short --basetemp=.codex_runtime/qa-prompt-binding-final-20260917-r2 tests/test_qa_supplied_record_scope.py tests/test_qa_source_exclusion_scope.py tests/test_qa_source_concept_scope.py tests/test_qa_response_style_source_scope.py tests/test_qa_declared_input_scope.py tests/test_qa_user_supplied_scope.py tests/test_qa_task_plan.py tests/test_qa_compound_source_scope.py tests/test_qa_evidence_policy.py tests/test_qa_math_function_policy.py tests/test_qa_history_compound.py tests/test_qa_history_projection.py tests/test_qa_history_completion.py tests/test_qa_v12_safety.py tests/test_qa_final_completion.py tests/test_qa_fixed_model_identity.py tests/test_qa_history_compound_seams.py tests/test_qa_single_window_routing.py tests/test_qa_document_knowledge.py tests/test_qa_prompt_binding.py tests/test_qa_runtime_probe_fixed_pin.py tests/test_qa_exclusive_use.py tests/test_qa_window_quality.py tests/test_qa_v27_fixed_base_candidate.py",
+    "prior_r1": {
+      "focused_passed": 21,
+      "focused_elapsed_seconds": 7.03,
+      "static_review": "FAIL duplicate cache suffix",
+      "actual_namespace_counterexamples": {
+        "cases": 3,
+        "failed": 3,
+        "elapsed_seconds": 1.88
+      },
+      "not_published_or_deployed": true
+    },
+    "independent_static_review": "PASS gpt-5.6-luna low V45-r2",
+    "gold_task_schema_passed": 14,
+    "shared_feature_required_markers": 22,
+    "shared_feature_preservation_passed": true,
+    "production_semantic_accuracy_inferred": false
+  },
+  "contracts": {
+    "fixed_model_name_and_digest_module_byte_unchanged": true,
+    "request_built_not_sent_completed_or_correct": true,
+    "exact_serialized_body_hash_after_fixed_pin_check": true,
+    "no_upstream_body_mutation_for_telemetry": true,
+    "prepared_and_effective_prompts_tracked_separately": true,
+    "ordered_planner_fallback_repair_bodies": true,
+    "message_tool_options_output_schema_and_policy_hashes": true,
+    "json_sse_error_hidden_context_and_logs": true,
+    "cache_generation_binding_preserved": true,
+    "unknown_cache_weight_provenance_rejected": true,
+    "cache_namespace_unique_and_idempotent": true,
+    "owner_checks_preserved": true,
+    "thread_and_failure_context_reset": true,
+    "raw_prompts_or_data_retained_in_binding": false
+  },
+  "private_candidate": {
+    "files": 16,
+    "manifest_sha256": "a27bd42e7130ac7ba784f982b0b9240846cb1cf2c22f49e6d27809da505abb59",
+    "inherited_v44_files_byte_identical": 14,
+    "changed_modules": [
+      "ollama_proxy_server.py"
+    ],
+    "added_modules": [
+      "qa_prompt_binding.py"
+    ],
+    "other_proxy_function_asts_unchanged": true,
+    "additional_runtime_read_set_preserved": true,
+    "production_sealed": false,
+    "production_dependency_refresh_required": true,
+    "reader_source_planner_and_model_identity_inherited_byte_identical": true
+  },
+  "production_readonly": {
+    "identity_verified": true,
+    "production_commit": "e6530983531251e7290d045d96e1aead065585fb",
+    "backend_runtime_version": "v26",
+    "proxy_sha256": "47b7e75f6a4c2b932ac21b0dd9628d4c049f7a6f2ee083537bbedf1a6c57f431",
+    "mcp_sha256": "42d81acb60a0d3b28897c55e5c692e71f75ca5cf262dc8088fa4d1dcc6817884",
+    "new_commit_changes_only_disjoint_dashboard_paths": true,
+    "fixed_name": "chiqiongblastfuenace:latest",
+    "fixed_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+    "latest_alias_and_resident_digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb",
+    "fixed_identity_ready": false,
+    "r3_collection_total": 953,
+    "r3_collection_completed": 953,
+    "r3_original_process_absent": true,
+    "original_failed_partial_planned": 822,
+    "original_reasks_this_operation": 0
+  },
+  "model_policy": {
+    "switch_allowed": false,
+    "fallback_allowed": false,
+    "same_name_weight_replacement_allowed": false
+  },
+  "actions": {
+    "model_calls": 0,
+    "question_posts": 0,
+    "model_switches": 0,
+    "production_writes": 0,
+    "database_writes": 0,
+    "service_restarts": 0,
+    "scheduled_task_changes": 0,
+    "issues_closed": 0
+  },
+  "not_tested": [
+    "production_request_and_reply_prompt_binding",
+    "production_semantic_accuracy",
+    "fixed_manager_installation_and_residency_correction",
+    "source_database_release",
+    "guarded_8093_deployment"
+  ],
+  "artifact_sha256": {
+    "高炉前端数据/智能助手/backend/qa_prompt_binding.py": "9f427830403c850550507bd0d00e7961bb4de14b3edccb1bc7449b9079ea7265",
+    "tools/build_qa_prompt_binding_candidate.py": "9550ad0cfafbbab992ad88b3a00e84b580c50c26fd340b19548875e725a0b7ff",
+    "tests/test_qa_prompt_binding.py": "06f490399a870fab136087f57b8ec5b9a347a913a64465a4fb055343c36355d7",
+    "tests/qa_frozen_candidate.py": "8a3c80a8fe80e4a7f351d1ca406a0d46878e060bb468693a517d4b40d2d03cc4"
+  }
+}

@@ -725,3 +725,12 @@ action=plan无DB连接、秘密配置读取或记录写入；recover启动只读
 probe_qa_paired_runtime_readonly.py --root <repo> --scope-file <reviewed-gate.json>；也支持互斥 --scope-json <structured-json>，与前者共享路径审查。仅GET且不使用网络代理。成功ok=true/退出0；身份不符ok=false/退出1，无自动修复。
 
 权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+python -X utf8 tools/build_qa_prompt_binding_candidate.py --revision rN只冻结本机16文件受控私有闭包，OEXCL禁止覆写；逐字节继承14文件并验证全部其余函数AST。不是上传或部署入口。聚焦验证python -X utf8 -m pytest -q tests/test_qa_prompt_binding.py --tb=short。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。

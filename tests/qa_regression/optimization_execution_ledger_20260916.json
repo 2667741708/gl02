@@ -4,7 +4,7 @@
   "checked_at": "2026-09-17",
   "proposed_unmapped_triage_supplement": "unmapped_triage_supplement_20260917.json",
   "proposed_unmapped_triage_state": "9_partial_triaged_0_root_causes_confirmed_0_closed_original_judgments_unchanged",
-  "production_commit": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+  "production_commit": "e6530983531251e7290d045d96e1aead065585fb",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -39,12 +39,12 @@
     "full_semantic_pass_inferred": false
   },
   "current_local_candidate": {
-    "version": "v44-r2",
+    "version": "v45-r2",
     "state": "local_tested_reviewed_frozen_not_production_applied",
-    "related_tests_passed": 546,
+    "related_tests_passed": 643,
     "production_semantic_effectiveness_verified": false,
-    "evidence": "supplied_record_scope_20260917.json",
-    "manifest_sha256": "9b9b797b82bd261bfbcce936e8f24aef5974f5b5f056e001633acc4b856a7ee6",
+    "evidence": "actual_prompt_binding_20260917.json",
+    "manifest_sha256": "a27bd42e7130ac7ba784f982b0b9240846cb1cf2c22f49e6d27809da505abb59",
     "fixed_base_identity_unchanged": true
   },
   "rows": [
@@ -600,7 +600,9 @@
       "single_base_candidate_state": "reviewed_52_checks_not_deployed",
       "local_fixed_model_override": "fixed_model_override_20260917.json",
       "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
-      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends"
+      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
     },
     {
       "order": 24,
@@ -653,7 +655,9 @@
         "QAOPT-T01"
       ],
       "repair_and_acceptance_plan": "turn/step/item 统一状态、耗时和故障类型；浏览器有界合并与历史分页。验收：可区分数据空、超时、模型变化和答案不完整，不泄漏身份/凭据。",
-      "initial_linked_semantic_counts": {}
+      "initial_linked_semantic_counts": {},
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
     },
     {
       "order": 27,
@@ -686,7 +690,9 @@
       "repair_and_acceptance_plan": "全题唯一 ID、发送 claim、程序/模型/Prompt/结果哈希冻结。验收：全题对账，首次未知题永不重发，续跑仅限证明未发。",
       "initial_linked_semantic_counts": {},
       "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
-      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends"
+      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
     },
     {
       "order": 29,
@@ -715,7 +721,7 @@
       "local_final_completion_candidate": "final_completion_candidate_20260917.json",
       "local_final_completion_candidate_state": "v29_r2_reviewed_92_tests_passed_not_deployed_no_real_answers",
       "evidence": "TaskPlan/故障夹具已建立；系统Prompt版本绑定仍需全链路证明",
-      "next_gate": "V36固定name/digest拒绝调用覆盖，61本机回归/独立审查PASS；管理器/任务与DB分别授权待落实，SSH身份路线失败无生产操作。远端重核及受控8093发布后再复问822原失败partial题；不得切模型绕过阻断，首次同digest配对未经证明，0生产销项",
+      "next_gate": "本机实际请求/准备/隐藏上下文/JSON/SSE/缓存摘要链已验证；固定底座、管理器/任务、11434与源库各独立门禁通过后，8093受控发布；原题单次发送核对服务器实际prompt_binding，不以用户问题hash或本机合同代替线上证明。",
       "case_ids": [],
       "depends_on": [
         "QAOPT-R09",
@@ -729,7 +735,9 @@
       "local_user_data_source_scope": "user_data_source_scope_20260917.json",
       "local_user_data_source_scope_state": "v39_r3_reviewed_286_tests_passed_not_deployed",
       "local_declared_input_scope": "declared_input_scope_20260917.json",
-      "local_declared_input_scope_state": "v40_r2_reviewed_327_tests_passed_not_deployed"
+      "local_declared_input_scope_state": "v40_r2_reviewed_327_tests_passed_not_deployed",
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
     },
     {
       "order": 31,
@@ -765,7 +773,9 @@
       "initial_linked_semantic_counts": {},
       "local_fixed_model_override": "fixed_model_override_20260917.json",
       "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
-      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends"
+      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
     },
     {
       "order": 33,
@@ -976,14 +986,25 @@
   },
   "prior_production_snapshot_state_before_runtime_pin_probe": "historical_last_verified_v26_current_connection_gate_failed",
   "latest_readonly_production_gate": {
-    "checked_at": "2026-09-17 10:00:59 UTC",
-    "evidence": "runtime_fixed_pin_20260917.json",
-    "production_commit": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+    "checked_at": "2026-09-17",
+    "evidence": "actual_prompt_binding_20260917.json",
+    "production_commit": "e6530983531251e7290d045d96e1aead065585fb",
+    "backend_runtime_version": "v26",
     "fixed_identity_ready": false,
     "connection_identity_verified": true,
-    "legacy_recovery_active": true,
+    "disjoint_dashboard_commit_reviewed": true,
     "question_posts": 0,
     "model_calls": 0,
     "production_writes": 0
-  }
+  },
+  "prior_local_candidate_v44": {
+    "version": "v44-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 546,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "supplied_record_scope_20260917.json",
+    "manifest_sha256": "9b9b797b82bd261bfbcce936e8f24aef5974f5b5f056e001633acc4b856a7ee6",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_production_commit_before_disjoint_dashboard": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e"
 }

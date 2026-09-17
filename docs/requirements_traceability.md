@@ -1409,3 +1409,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 用户要求持续使用同一底座；名称和固定权重摘要同时不可覆盖。其他驻留摘要、同名换权重及备用回退全部拒绝。
 
 权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+每条答复关联服务端实际系统Prompt及请求策略摘要；规划/降级/repair单列，用户问题hash不代替实际系统Prompt。请求构建不证明发送/完成/准确。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。

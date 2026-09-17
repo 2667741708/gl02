@@ -358,3 +358,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL/生产数据写入。账本保留旧生产快照状态，新增最新只读门禁；33项状态、首次语义判定、822计划及V44候选不变。
 
 权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+无需DDL。现有qa_messages.hidden_context_json保存prompt_binding；analysis_json新包络schema=bf.qa.cached-analysis-envelope.v1，含原analysis和原生成binding。新缓存版本键隔离legacy completed行；不删除旧记录。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。

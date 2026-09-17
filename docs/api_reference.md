@@ -522,3 +522,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无新增HTTP API；只读GET /api/ollama/status和tags→ps→tags。旧status.ok不构成固定底座证明；身份不符时停止新调用，不自动加载/卸载/切换。
 
 权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+问答JSON和SSE final/error新增prompt_binding安全元数据；仅版本、摘要及request_built状态，不展示原文/Prompt/身份。缓存 delivery=cache沿用原生成摘要且current_requests_built=0；legacy未知摘要缓存不命中。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。

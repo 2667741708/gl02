@@ -3472,3 +3472,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 首次7例3fail/4pass；最终33项底座合同测试及Luna只读审查通过。最新生产实际权重不符，0原题发送；合同测试不能计入线上正确率。
 
 权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+新增30例，初始21例11fail/10pass；r1审查FAIL的3个后缀反例全部失败已修。r2最终24模块643pass、14schema/22标记/复审通过，0真实模型请求，不计线上准确率。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
