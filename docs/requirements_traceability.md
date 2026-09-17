@@ -1479,3 +1479,9 @@ OPS-QA-SINGLE-BASE-GUARD-INSTALL-20260917：禁切换管理器独立生产安装
 OPS-QA-RESTORE-FROZEN-BASE-20260917：错误驻留禁止自动切回；单次卸载及同一 e4 预热须另行明确授权、验证与不重放记录。REQ-QA-PAIRED-FAILURE-RETEST-20260916：822 初次 failed/partial 原题绑定计划已准备，完整正确与非空分开统计。
 
 [生产安装和仍待验证事项](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。不声称 V50 已上线，不关闭原题语义问题。
+
+## 原题静默后台复测（2026-09-18）
+
+OPS-QA-QUIET-ORIGINAL-RETEST-20260918：远端独立隐藏进程 PID9808 已启动并核验，封存822原题与单一e4输入，GET-only 等待三轮固定身份，随后只执行一次串行批次；零自动换模、重启或重放。正常等待/运行保持安静。
+
+[实际启动、hash、验证与剩余授权边界](handoffs/2026-09-18-qa-quiet-background-retest.md)。当前尚未发题，生产仍V26，不声称V50效果。

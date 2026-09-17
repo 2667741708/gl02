@@ -3540,3 +3540,9 @@ REQ-QA-RELEASE-PREFLIGHT-BINDING-20260917、REQ-QA-PRESTOP-FIXED-MODEL-GATE-2026
 BUG-QA-ATOMIC-REPLACE-NULL-BACKUP-20260917：test_qa_manager_atomic_replace.py 真实 Windows 本机文件替换/回滚及异常路径 **12 passed/8.71秒**。OPS-QA-RESTORE-FROZEN-BASE-20260917：test_qa_unapproved_resident_unload.py AST 提取实际纯边界函数 **56 passed/41.35秒**，不执行控制器顶层，不访问网络或生产模型。独立审查 PASS。
 
 [终止证据、生产影响与未发问边界](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。安装源码已读回核实；68个新增本机检查不计入原题准确率或成功回答率。
+
+## 静默后台复测门（2026-09-18）
+
+OPS-QA-QUIET-ORIGINAL-RETEST-20260918：test_qa_single_base_background.py **36 passed/0.38秒**，覆盖严格身份、布尔状态、状态查询期间漂移、原题排除、source/目录漂移、等待零调用、停止、不重复执行以及三次稳定观察只启动一次合成batch。全为无网络合成夹具。
+
+[JUnit、PowerShell检查、Python3.11服务器只读编译及真实PID](handoffs/2026-09-18-qa-quiet-background-retest.md)。实际822问答尚未发送，不能将36回归计为线上成功。

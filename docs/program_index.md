@@ -1393,3 +1393,9 @@ record_qa_release_preflight.validate_preflight_evidence严格绑定auditor与git
 OPS-QA-SINGLE-BASE-GUARD-INSTALL-20260917：install_qa_single_base_manager.Invoke-ManagerAtomicReplace 使用明确备份路径；unload_qa_unapproved_resident_once.Assert-UnapprovedResidentUnloadBoundary 只为另行授权的单次错误驻留卸载准备；prepare_qa_single_base_failure_retest.freeze 绑定 822 原题、原结果和当前源码，零发问。
 
 核对位置：[原子替换](../tools/install_qa_single_base_manager.ps1#L49)、[卸载边界](../tools/unload_qa_unapproved_resident_once.ps1#L16)、[原题计划生成](../tools/prepare_qa_single_base_failure_retest.py#L17)；[生产读回、12项真实文件替换回归及56项卸载边界回归](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。源码已安装，实际驻留仍未恢复，生产应用仍为 V26。
+
+## 静默原题 supervisor（2026-09-18）
+
+OPS-QA-QUIET-ORIGINAL-RETEST-20260918：[run_qa_single_base_background.run](../tools/run_qa_single_base_background.py#L113) 封存验证、GET等待及一次batch；[start_qa_single_base_background](../tools/start_qa_single_base_background.ps1#L41) 用唯一claim和WMI创建独立pythonw。复用既有batch/collector，未修改生产助手代码或模型配置。
+
+[真实远端启动与状态来源](handoffs/2026-09-18-qa-quiet-background-retest.md)。
