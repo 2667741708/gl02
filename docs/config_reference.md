@@ -644,3 +644,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 固定原DOCX/hash及唯一底座，候选搜索为keyword，embedding_generation=false。输出必须为Git忽略的`.codex_runtime/qa-source-scope-20260917`下全新子目录；已有目录只读恢复，不重放覆盖。源manifest与文档候选hash互相绑定，生产更新预期旧authority使用CAS，不放宽为任意文档替换。当前无生产环境变量、模型或数据库配置修改。
 权威：[冻结身份、目录及受控发布门](handoffs/2026-09-17-qa-independent-source-scope.md)、[机器证据](../tests/qa_regression/source_scope_candidate_20260917.json)。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：keyword发布准备合同
+
+无生产配置修改。doc_id/原源/candidate/manifest SHA固定；准备器只接收已只读复核的v1.0-hierarchical旧authority及5454索引/向量基线，规划新5587行keyword且embedding_generation=false。输出为Git忽略source-scope下全新目录，源路径沿用旧doc，模型唯一底座保持。DDL与单文档事务须另获数据库写入授权，不因计划或源码存在而执行。
+权威：[私有计划与授权/验收边界](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[脱敏证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。

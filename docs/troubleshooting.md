@@ -456,3 +456,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 源item遗漏/重排、岗位/规程错绑、原子或章节缺尾、表格切断及源hash漂移均停止候选冻结，不切换模型继续测试。目录、正文中岗位提及和单列表格不能作岗位标题；原书19章写法差异仅使用明确限定映射。原书位置校验独立于派生全文/索引；topic仅子集校验，不能宣称全覆盖。
 权威：[边界、实际校验和发布恢复步骤](handoffs/2026-09-17-qa-independent-source-scope.md)、[冻结证据](../tests/qa_regression/source_scope_candidate_20260917.json)。r1/r2私有冻结文件保留不覆盖；生产发布、回滚和真实问答验收尚待完成。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：发布/绑定阻断
+
+旧版本/hash/索引/vector计数漂移停止准备并只读复核；固定源绑定失败不能靠同名模型或旧正文哈希放行。数据库没有岗位/源块专列，应核固定enriched源头、manifest及所有实际检索字段；调用方额外源元数据也不能矛盾。准备入口明确非DB快照，实际入口必须来源路径一致。提交不确定不重放；回滚需要完整before归档和精确after无漂移证明，当前执行器未实现、归档未保存。
+权威：[当前门禁、实际schema和待实现事务](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[脱敏证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。不运行旧vectorize脚本，不切换或加载embedding模型。

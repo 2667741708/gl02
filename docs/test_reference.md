@@ -3338,3 +3338,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 实际202 passed：新增[原始位置/范围mutation](../tests/test_qa_source_scope_contract.py)、[身份与私有冻结边界](../tests/test_qa_source_candidate_freeze.py)，并覆盖标题、启动只读和既有文档合同。实际原书28章/4663item、5587chunk绑定通过，缺失/额外item为0；topic完整性及语义不宣称通过。
 权威：[可复现命令与候选hash](handoffs/2026-09-17-qa-independent-source-scope.md)、[机器证据](../tests/qa_regression/source_scope_candidate_20260917.json)。独立审查PASS，0数据库/模型/问题操作，822原题未复测。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：源绑定反例及准备验收
+
+实际253 passed：新增[51项绑定/准备回归](../tests/test_qa_knowledge_source_binding.py)，覆盖固定SHA/JSON字段、集合/内容/所有检索元数据、可选岗位/规程/块位置、文档来源路径、旧CAS漂移及私有输出。真实原书5587规划行准备检查通过，database_snapshot_verified=false。初次独立审查FAIL后补齐元数据检查，最终PASS；未执行DB发布/回滚事务，不能代替其验收。
+权威：[复现命令、冻结hash和剩余验收](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[机器证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。0生产写入/模型/问答操作，不更新线上准确率。

@@ -224,3 +224,8 @@ latest.value必须有限且非布尔，ts须含时分且可解析；source名称
 
 `bf.qa.source-scope-manifest.v1`保存原DOCX、旧/新authority hash、独立OOXML块/行位置、角色hash、规程类别及chunk指纹，原文只在私有候选。item核完整有序，atomic/section核完整源绑定；topic仅有序子集。`bf.qa.private-keyword-source-candidate.v1`精确doc_id、预期旧authority、全文及chunk绑定manifest SHA256。公开证据只含hash/计数/检查结果，无原文、凭据或生产测量。本轮未迁移表或发布数据库。
 权威：[实际源范围、冻结及后续发布](handoffs/2026-09-17-qa-independent-source-scope.md)、[脱敏证据](../tests/qa_regression/source_scope_candidate_20260917.json)。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：归档/绑定表候选
+
+DDL候选qa_knowledge_source_releases保存release_id、doc_id、applied/rolled_back状态、完整before_snapshot_json及before/after/manifest/plan hash、操作时间；旧vector保存精确文本用于还原，不重新推理。qa_knowledge_source_bindings保存doc_id、release_id、authority/manifest SHA及原始manifest_text；manifest保留字节顺序避免JSONB重排后hash失配。未执行迁移或保存快照，IF NOT EXISTS不验证已有表合同。
+实际rag_chunk无chapter_code/regulation_type/chapter_title/源块位置列，检索字段按固定候选投影核对；私有计划与公开证据分离。权威：[真实旧源/schema核查与发布/回滚合同](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[机器证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。

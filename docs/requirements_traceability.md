@@ -1275,3 +1275,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 状态：本机r2冻结、202项及独立审查通过，生产未发布；2026-09-17核对。源oracle独立遍历DOCX位置，item/atomic/section必须按原书内容、岗位、规程和顺序完整绑定；topic仅核有序子集，不认定完整或语义正确。单列表格保留，岗位明确匹配，19章仅限定别名；哈希与解析使用同一原始字节。
 权威：[实际源校验、冻结及发布门](handoffs/2026-09-17-qa-independent-source-scope.md)、[机器证据](../tests/qa_regression/source_scope_candidate_20260917.json)。固定底座、keyword且不生成embedding，0生产写入/问题POST，不销项QAOPT-K03/K06。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：单文档受控知识更新
+
+状态：本机r2计划及纯绑定门禁、253项回归/独立审查通过；发布执行器、回滚归档、迁移、读取接入与生产更新尚未完成。固定源candidate/manifest/hash和旧version/CAS；正文及检索元数据必须共同绑定，实际DB来源路径一致。准备检查不冒充DB快照，旧文档/索引/vector必须受控归档，keyword不加载embedding模型。
+权威：[当前实现、真实旧库核查及事务合同](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[机器证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。不修改模型底座或原测试标准，不销项QAOPT-K03/K06。

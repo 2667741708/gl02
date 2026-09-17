@@ -1191,3 +1191,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 程序：[独立OOXML源范围及item/chunk绑定](../tools/qa_source_scope_contract.py)、[私有keyword候选冻结](../tools/freeze_qa_source_scope_candidate.py)、[精确岗位/规程源解析](../tools/build_three_rules_hierarchical_kb.py)。符号行号TODO-LINES。校验器不调用builder抽取函数；标题政策数据显式共享，非语义oracle。私有文件不能覆盖或公开上传，冻结使用同一BytesIO校验身份与解析。
 权威：[实现、实际检查和未完成发布](handoffs/2026-09-17-qa-independent-source-scope.md)、[脱敏证据](../tests/qa_regression/source_scope_candidate_20260917.json)。202项及独立审查通过，生产知识库未变。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：源绑定及发布准备
+
+程序：[固定源绑定、确定性keyword行和准备/DB入口](../高炉前端数据/智能助手/backend/qa_knowledge_source_binding.py)、[私有单文档计划准备器](../tools/prepare_qa_keyword_source_release.py)、[增量归档/绑定表DDL候选](../schema/20260917_qa_keyword_source_release.sql)。符号行号TODO-LINES。纯模块及准备器不连接DB/模型，不发布；已补齐所有实际检索字段及可选解析源元数据检查。
+权威：[初次审查缺口、修复和执行器待办](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[253项及冻结证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。读取器尚未接入，生产未更新。
