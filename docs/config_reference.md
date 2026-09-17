@@ -655,3 +655,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
 新鲜连接必须autocommit=false且无活跃事务；写入需authorized=true及生产单独授权。固定plan SHA7ca284…16d，锁等待3秒/statement20秒，advisory及关系锁非阻塞。只读恢复启动default_transaction_read_only=on、REPEATABLE READ。唯一名称chiqiongblastfuenace:latest及唯一e4ad74…d8124摘要不变，禁止换底座/同名权重更新；无新增生产环境修改。
 当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：严格配置/实例门
+
+状态：2026-09-17本机验证，生产未执行。
+contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLEDGE_SEARCH_MODE必须显式keyword。所有连接默认启动只读，核真实实例后才开启授权write事务，恢复保留只读；CLI标志不授予生产授权。
+当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。

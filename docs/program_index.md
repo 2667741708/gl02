@@ -1202,3 +1202,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
 程序：[调用者新连接事务库](../tools/qa_keyword_source_transaction.py)、[启动只读目录依赖探针](../tools/probe_qa_keyword_source_dependencies_readonly.py)。符号publish、rollback_release、recover_release、_begin、_schema；行号TODO-LINES。库不获取连接或凭据，不执行SSH或模型调用；生产入口尚未实现。
 当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：受控执行入口
+
+状态：2026-09-17本机验证，生产未执行。
+新增[plan/publish/rollback/recover入口](../tools/qa_keyword_source_release_entry.py)，符号load_contract/_connection/_claim/run/main（TODO-LINES）。实例与配置核验、独占执行记录和恢复委托；不调用pool/schema初始化/模型，不创建DDL表。
+当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。

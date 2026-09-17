@@ -467,3 +467,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
 commit异常使用新启动只读连接recover_release；journal不存在仍not_recorded_unresolved，禁止自动重放。after漂移、before归档损坏、跨文档ID冲突、未知外键/触发器或schema不符均停止写入，不以源正文hash代替完整快照。固定底座身份异常停止模型调用，不加载其他底座。执行器本机已实现，生产入口/归档/迁移尚未应用。
 当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：入口恢复
+
+状态：2026-09-17本机验证，生产未执行。
+operation_already_claimed禁止第二次连接；DB身份/config/SHA/keyword或固定模型策略不符停止写入。提交成功但收据失败也只读recover，缺release仍unresolved。生产写入授权与迁移未完成，不能重放私有包或用其他模型继续。
+当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。

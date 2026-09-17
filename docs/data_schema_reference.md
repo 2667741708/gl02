@@ -235,3 +235,9 @@ DDL候选qa_knowledge_source_releases保存release_id、doc_id、applied/rolled_
 状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
 当前事务库严格核对五表列集合/类型、PK、全部传入/传出FK、启用用户触发器及public.vector，并用NOWAIT关系锁保持目录合同稳定。完整before JSONB含11/21/6字段集合及先前绑定；向量以原native vector文本恢复。恢复仅读状态及规范hash；生产增量表/归档尚未创建。
 当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：契约与独占记录
+
+状态：2026-09-17本机验证，生产未执行。
+private-source-release-entry契约仅私有，绑定action/operation/root/host/DB实例/config/hash/固定底座。独占jsonl记录claim/identity/write_started/committed或unresolved，只含安全错误码/计数/hash，不存凭据或源行；源表迁移仍待授权执行。
+当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。

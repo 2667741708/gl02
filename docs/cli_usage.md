@@ -709,3 +709,10 @@ D:\ProgramData\anaconda3\python.exe -X utf8 .\tools\evaluate_mcp_extended_produc
 生产执行必须显式给出 8093 SSE URL、输出路径和并发数；工具不自动重试。故障夹具不得指向 8093，
 只允许由 `tools/mcp_fault_preview_acceptance.py` 在独立回环预览中运行。完整复现命令和请求账本见
 [扩展生产回归交接](handoffs/2026-08-14-mcp-extended-production-regression.md)。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：keyword单文档入口
+
+状态：2026-09-17本机291项及静态审查通过，生产未执行。先运行python tools/qa_keyword_source_release_entry.py --help（实际通过）；入口参数为--root、--artifact-dir、--contract、--contract-sha、--action及--operation-id。
+action=plan无DB连接、秘密配置读取或记录写入；recover启动只读，publish/rollback要求用户单独数据库授权及显式--authorized-database-write。该标志不授予授权。原始contract/封存包仅私有，不把身份或秘密值填入普通文档。
+预期成功输出ok=true及安全计数/状态；失败ok=false与稳定error_code，退出2。重复执行编号直接拒绝，无第二次连接；提交/收据不确定只能新只读recover，不自动重放。
+增量表须先通过独立受控DDL和完整schema验收，入口不创建表。生产使用Reliable SSH精确argv，不直接ssh，不串接上传/执行/验证。完整候选闭包/read_set/命令合同见[当前交接](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。

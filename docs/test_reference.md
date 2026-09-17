@@ -3349,3 +3349,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
 实际271 passed（49.28秒），其中[事务18项](../tests/test_qa_keyword_source_transaction.py)使用原生PostgreSQL16.13和真实pgvector，[合成SQL夹具](../tests/qa_regression/keyword_source_pg_fixture.sql)没有原制度内容。覆盖完整回滚、跨文档隔离、提交两种不确定状态、漂移、外键/触发器和并发DDL阻断。0生产写入/问题POST，不能换算线上准确率。
 当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：入口反例与真实身份
+
+状态：2026-09-17本机验证，生产未执行。
+入口20项及既有271项合并291 passed（16.81秒），真实原生PG16.13/pgvector。DB实例/主机/root/配置封存、单次尝试、提交后收据失败恢复及明确keyword反例；静态复审PASS，不计线上准确率。
+当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。
