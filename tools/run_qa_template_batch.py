@@ -26,10 +26,15 @@ def verify(plan,root,collector):
         if digest(root/relative)!=sha: raise RuntimeError('runtime version changed: '+relative)
     if plan.get('model_identity'):
         identity=plan['model_identity']
+        # REQ-QA-SINGLE-BASE-MODEL-20260917: even approved alternatives are forbidden.
+        approved=identity.get('approved_digests') or [identity['digest']]
+        if approved != [identity['digest']]:
+            raise RuntimeError('multiple model digests forbidden; one identical base required; no request sent')
+        if identity['name'] != 'chiqiongblastfuenace:latest' or identity['digest'] != 'e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124':
+            raise RuntimeError('plan differs from immutable base; no request sent')
         with urllib.request.urlopen('http://127.0.0.1:11434/api/tags',timeout=6) as response:
             tags=json.load(response)
         matches=[row for row in tags.get('models',[]) if row.get('name')==identity['name']]
-        approved=identity.get('approved_digests') or [identity['digest']]
         if len(matches)!=1 or matches[0].get('digest') not in approved:
             raise RuntimeError('model identity changed; no next request sent')
         with urllib.request.urlopen('http://127.0.0.1:11434/api/ps',timeout=6) as response:
@@ -37,7 +42,7 @@ def verify(plan,root,collector):
         if len(resident)!=1 or resident[0].get('digest')!=matches[0].get('digest'):
             raise RuntimeError('resident model differs from frozen identity; no next request sent')
         return {'name':identity['name'],'digest':matches[0]['digest']}
-    return None
+    raise RuntimeError('immutable model identity required; no request sent')
 
 def model_ready():
     try:

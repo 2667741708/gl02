@@ -7,6 +7,7 @@ param(
     [ValidateRange(15,120)][int]$WindowMinutes = 120
 )
 $ErrorActionPreference = 'Stop'
+throw 'Superseded by REQ-QA-SINGLE-BASE-MODEL-20260917: two-base windows are forbidden; no task or model operation performed.'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) { throw 'PowerShell 7 required' }
 $Utf8 = [Text.UTF8Encoding]::new($false)
 [Console]::InputEncoding = $Utf8

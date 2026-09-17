@@ -470,8 +470,8 @@
       "priority": "P0",
       "title": "模型就绪与请求间竞态",
       "state": "dependency_blocked",
-      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24第5题后身份未核实停止；只读恢复时模型曾恢复批准:0，随后latest切为批准:1；402题无claim证明未发。; V25首题后身份未核实停止，821题无claim证明未发。; V26首题前批准Qwen版本1切为0，822题均无claim/result；恢复任务先改alias再热身，两候选HTTP发送失败后未提交状态。",
-      "next_gate": "独立授权限时暂停恢复任务未来触发，固定已驻留批准digest，结束恢复原enabled；长期管理器冷却/失败回滚另行审查授权",
+      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24第5题后身份未核实停止；只读恢复时模型曾恢复批准:0，随后latest切为批准:1；402题无claim证明未发。; V25首题后身份未核实停止，821题无claim证明未发。; V26首题前批准Qwen版本1切为0，822题均无claim/result；恢复任务先改alias再热身，两候选HTTP发送失败后未提交状态。 本轮新增单底座强约束；只读后续实际驻留再次漂移为版本0，禁止把该版本当替代。固定管理器/V27本机52检查通过，尚未部署。",
+      "next_gate": "独立授权安装禁切换管理器及Recovery任务暂停/恢复；固定e4底座身份恢复经单独验收后，发布V27并复测822原失败/部分题；不得自动换模或重放",
       "case_ids": [
         "TPL-18F38D141C29CF15"
       ],
@@ -479,10 +479,14 @@
         "QAOPT-R01",
         "QAOPT-E01"
       ],
-      "repair_and_acceptance_plan": "在独立授权窗口内固定已批准 Qwen digest，模型管理器与问答共享调度边界；单驻留并核对 alias。验收：请求前/后身份一致，波动停止下一发送。",
+      "repair_and_acceptance_plan": "固定唯一e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124底座，Switch和fallback禁用；每次模型POST前tags/ps/tags核验；安装失败Recovery禁用，不能重新启用旧切换策略；验收同题同底座且身份前后不变",
       "initial_linked_semantic_counts": {
         "failed": 1
-      }
+      },
+      "local_model_manager_candidate_evidence": "model_repair_stability_candidate_20260917.json",
+      "local_candidate_state": "superseded_26_check_r2_not_deployable",
+      "single_base_candidate_evidence": "single_base_model_candidate_20260917.json",
+      "single_base_candidate_state": "reviewed_52_checks_not_deployed"
     },
     {
       "order": 24,
