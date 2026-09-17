@@ -391,3 +391,10 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机r2候选，102项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 普通传感器完整统计可新增statistics.quality_summary：schema=qa-window-quality-v1、scope、basis、sample_count、counts与whole_window_verified。counts固定Good/Held/Bad/Uncertain/DERIVED_AVERAGE/Unknown非负整数，和必须等于原统计count。数据库scope=queried_window、basis=non_null_values，另提供observed_rows/excluded_rows/start_time/end_time，并绑定同一请求窗；该标记不证明物理采样覆盖或新增实测。序列scope=returned_samples、basis=returned_numeric_rows、whole_window_verified=false，不把有限返回结果当整窗完整。无有效质量计数或窗口不匹配时继续说明质量未核实；没有新增工具名、端点、重试或模型切换。
 权威：[实现、范围及未验收项](handoffs/2026-09-17-qa-v30-window-quality.md)、[机器回归证据](../tests/qa_regression/window_quality_candidate_20260917.json)、[实际函数回归](../tests/test_qa_window_quality.py)。SQL与最终答案本轮未在生产验证。
+
+
+## REQ-QA-RENDERER-CONTRACT-20260917：V31答复格式与字段兼容
+
+状态：本机冻结候选、126项相关回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E02/E03/E05。
+传感器字符串列表按实际工具拆分、去重，保持80个上限，请求与外层结果规范化列表必须一致；顶层字符串和非字符串项不放宽为合法调用。单位仅从明确元数据绑定继承规范合同并披露，原单位优先、不换算或猜描述。异常结果容器逐项明示并保留相邻有效事实；对象、来源、只读策略与窗口门禁保持。仅修改一个代理函数和统计证据模块，无新增API、配置、工具或模型回合，固定同一底座保持。
+权威：[确认缺陷、程序与未完成验收](handoffs/2026-09-17-qa-v31-renderer-contract.md)、[机器回归证据](../tests/qa_regression/renderer_contract_candidate_20260917.json)、[实际冻结函数回归](../tests/test_qa_renderer_contract.py)。本机通过不能用于线上准确率或问题销项；禁切换管理器安装、8093部署及822原题复测仍待完成。

@@ -4,6 +4,7 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import datetime
 import math
+import re
 from typing import Any, Mapping
 import qa_window_quality
 
@@ -47,6 +48,55 @@ def unit_contract(variable: Any, object_id: str, fallbacks: Mapping[str, str]) -
                 'disclosure': '单位来源：已登记的GL02规范变量单位合同；原始工具未提供单位字段，未换算原始数值。'}
     return {'unit': '', 'source': 'missing',
             'disclosure': '单位未核实，保留原数值，不用于正式跨量比较。'}
+
+
+def request_matches_variable(metadata: Any, requested: Any) -> bool:
+    """Only explicit identifiers bind aliases to an authoritative canonical object."""
+    if not isinstance(metadata, dict) or not isinstance(requested, str) or not requested.strip():
+        return False
+    canonical = metadata.get('variable_name')
+    if not isinstance(canonical, str) or not canonical.strip():
+        return False
+    names = {canonical}
+    for key in ('aliases', 'legacy_variable_names'):
+        values = metadata.get(key)
+        if isinstance(values, list):
+            names.update(value for value in values if isinstance(value, str) and value.strip())
+    for key in ('short_name', 'point_id', 'tag_long_name', 'tag'):
+        value = metadata.get(key)
+        if isinstance(value, str) and value.strip():
+            names.add(value)
+    return requested in names
+
+
+def request_unit_contract(variable: Any, requested: Any, fallbacks: Mapping[str, str]) -> dict:
+    object_id = variable['variable_name'] if request_matches_variable(variable, requested) else str(requested)
+    return unit_contract(variable, object_id, fallbacks)
+
+
+def sensor_variables(value: Any) -> list[str] | None:
+    """Match the sensor tool's list parsing, without accepting non-string schema items."""
+    if not isinstance(value, list) or not value or not all(isinstance(item, str) for item in value):
+        return None
+    result = list(dict.fromkeys(part.strip() for item in value
+        for part in re.split(r'[,，、;；\n]+', item) if part.strip()))
+    return result if 0 < len(result) <= 80 else None
+
+
+def renderer_item_shape_ready(item: Any) -> bool:
+    if not isinstance(item, dict):
+        return False
+    for key in ('variable', 'source', 'latest', 'statistics'):
+        value = item.get(key)
+        if value is not None and not isinstance(value, dict):
+            return False
+    statistics = item.get('statistics')
+    if isinstance(statistics, dict):
+        for key in ('first', 'last'):
+            value = statistics.get(key)
+            if value is not None and not isinstance(value, dict):
+                return False
+    return True
 
 
 def quality_context(statistics: dict, expected_start: Any = None, expected_end: Any = None) -> str:
@@ -128,25 +178,14 @@ def renderer_statistics_ready(item: Any, payload: Any, arguments: Any = None) ->
         return False
     metadata = item.get('variable')
     requested = item.get('requested_variable')
-    if not isinstance(metadata, dict) or not isinstance(requested, str) or not requested.strip():
+    if not renderer_item_shape_ready(item) or not request_matches_variable(metadata, requested):
         return False
     canonical = metadata.get('variable_name')
-    if not isinstance(canonical, str) or not canonical.strip():
-        return False
-    names = {canonical}
-    for key in ('aliases', 'legacy_variable_names'):
-        values = metadata.get(key)
-        if isinstance(values, list):
-            names.update(value for value in values if isinstance(value, str) and value.strip())
-    for key in ('short_name', 'point_id', 'tag_long_name', 'tag'):
-        value = metadata.get(key)
-        if isinstance(value, str) and value.strip():
-            names.add(value)
-    if requested not in names:
-        return False
     arguments = arguments if isinstance(arguments, Mapping) else {}
-    variables = arguments.get('variables', payload.get('variables'))
-    if not isinstance(variables, list) or not variables or not all(isinstance(v, str) and v.strip() for v in variables):
+    variables = sensor_variables(payload.get('variables'))
+    if variables is None:
+        return False
+    if 'variables' in arguments and sensor_variables(arguments['variables']) != variables:
         return False
     if requested not in variables:
         return False

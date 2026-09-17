@@ -209,3 +209,8 @@ v2不执行DDL迁移。`canonical_context` JSONB新增 `feature_snapshot/variabl
 - 条件唯一索引 `uq_qa_shared_guest_room(owner_subject) WHERE owner_role='anonymous_guest'` 保证每个房间只有一条持久会话。
 - `qa_messages.created_at` 保存每条用户/助手消息的 UTC ISO 时间戳；`snapshot_id` 和 `hidden_context_json` 保留当次页面炉况及其来源时间。
 - 访客记录属于共享可见数据，不得写入项目资料、报表附件、登录主体私有会话或 ABC 私有上下文表。
+
+## REQ-QA-RENDERER-CONTRACT-20260917：V31工具结果容器
+
+状态：本机候选126项相关回归及独立审查通过，未部署；最后核对2026-09-17。
+query_gl02_sensors的items必须为列表；每项的variable/source/latest/statistics及统计first/last字段存在且非null时必须是对象，None缺项仍表示未核实。错误容器不写成正式统计，不影响相邻有效项。字符串列表规范化与实际工具一致，限80项；参数与返回variables规范化列表须一致。明确别名绑定才继承canonical登记单位，不新增数据库表、字段或迁移。见[实现与边界](handoffs/2026-09-17-qa-v31-renderer-contract.md)、[机器证据](../tests/qa_regression/renderer_contract_candidate_20260917.json)。

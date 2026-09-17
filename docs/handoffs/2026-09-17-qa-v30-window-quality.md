@@ -22,7 +22,7 @@ Held说明保持值不能证明新增实测或真实炉况稳定；Bad/Uncertain
 
 `statistics.quality_summary`包含schema、scope、basis、sample_count、counts和whole_window_verified。数据库结果另含observed_rows、excluded_rows、start_time/end_time；queried_window只表示该查询条件匹配行没有LIMIT截断，不表示物理采样覆盖完整。returned_samples不作整窗声明。
 
-程序：[质量合同 qa_window_quality.py:L22](../../高炉前端数据/智能助手/backend/qa_window_quality.py#L22)、[答复质量上下文 qa_statistical_evidence.py:L52](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L52)、[冻结构建器](../../tools/build_qa_v30_window_quality_candidate.py)、[实际函数回归](../../tests/test_qa_window_quality.py)。
+程序：[质量合同 qa_window_quality.py:L22](../../高炉前端数据/智能助手/backend/qa_window_quality.py#L22)、[答复质量上下文 qa_statistical_evidence.py:L102](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L102)、[冻结构建器](../../tools/build_qa_v30_window_quality_candidate.py)、[实际函数回归](../../tests/test_qa_window_quality.py)。链接按后续V31源码刷新，V30冻结哈希与验收范围保留。
 构建器从已验收V26MCP仅改query_postgres_statistics、statistics_from_rows并增加一个后端模块导入，其余AST保留。从V29代理只改deterministic_mcp_answer中的质量时间窗传参，其余AST及固定底座/完成状态修复保留。
 
 ## 冻结hash与固定底座
