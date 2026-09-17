@@ -11,7 +11,12 @@ VERSION = 'qa-verified-facts-v3-latest-reuse'
 
 
 def finite(value: Any) -> bool:
-    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
 
 
 def cv_contract(statistics: dict, unit: str) -> dict:
@@ -83,40 +88,33 @@ class EvidenceItem:
 
 
 def latest_item(object_id: str, result: dict) -> EvidenceItem | None:
-    if not isinstance(result, dict) or result.get('ok') is not True:
+    import qa_statistical_evidence
+    if not qa_statistical_evidence.latest_result_ready(result, object_id):
         return None
-    variable, latest, source = result.get('variable'), result.get('latest'), result.get('source')
-    if not all(isinstance(item, dict) for item in (variable, latest, source)):
-        return None
-    if variable.get('variable_name') != object_id or not finite(latest.get('value')) or timestamp(latest.get('ts')) is None:
-        return None
+    from mcp_host.cross_source_executor import _CANONICAL_UNIT_FALLBACKS
+    variable, latest, source = result['variable'], result['latest'], result['source']
     source_name = source.get('profile') or source.get('engine') or source.get('service')
-    if not source_name or source.get('read_policy') not in (None, 'readonly'):
-        return None
-    unit = str(variable.get('unit') or '').strip()
-    unit_source = 'tool_metadata'
-    if not unit:
-        # Reuse the existing production public-unit contract. Never infer a
-        # unit from a value, a display label, or a similar variable name.
-        from mcp_host.cross_source_executor import _CANONICAL_UNIT_FALLBACKS
-        unit = _CANONICAL_UNIT_FALLBACKS.get(object_id, '')
-        unit_source = 'canonical_gl02_contract' if unit else 'missing'
-    return EvidenceItem(object_id, 'sensor_latest', float(latest['value']), unit, str(latest['ts']), str(source_name), unit_source=unit_source)
+    contract = qa_statistical_evidence.unit_contract(variable, object_id, _CANONICAL_UNIT_FALLBACKS)
+    return EvidenceItem(object_id, 'sensor_latest', float(latest['value']), contract['unit'], str(latest['ts']), str(source_name), unit_source=contract['source'])
 
 
 def prefetch_outcome(prefetch: dict, plan: dict) -> dict | None:
+    import qa_statistical_evidence
     if plan.get('intents') != ['live_data'] or prefetch.get('used') is not True or prefetch.get('kind') not in ('latest', 'multi_latest'):
         return None
     if prefetch['kind'] == 'latest':
         values = {str(prefetch.get('variable')): prefetch.get('latest')}
     else:
         values = prefetch.get('latest_by_variable') or {}
+    values = values if isinstance(values, dict) else {}
     expected = list(plan.get('entities') or []) or list(values)
     facts = [item for name in expected if (item := latest_item(name, values.get(name))) is not None]
     missing = [name for name in expected if name not in {item.object_id for item in facts}]
     missing_units = [item.object_id for item in facts if not item.unit]
-    complete = not missing and not missing_units
-    lines = [f'{item.object_id}：最近一次已保存值 {item.value:.6g}{item.unit or "（单位未登记）"}；数据时间 {item.data_time}；来源 {item.source} / readonly。' for item in facts]
+    details = {item.object_id: qa_statistical_evidence.latest_details(values[item.object_id], item.unit) for item in facts}
+    missing_details = {name: detail['missing'] for name, detail in details.items() if detail['missing']}
+    complete = not missing and not missing_units and not missing_details
+    lines = [f'{item.object_id}：最近一次已保存值 {qa_statistical_evidence.number(item.value)}{item.unit or "（单位未登记）"}；数据时间 {item.data_time}；来源 {item.source} / {values[item.object_id]["source"].get("read_policy") or "只读策略字段未提供"}。' + details[item.object_id]['text'] for item in facts]
     inherited_units = [item.object_id for item in facts if item.unit_source == 'canonical_gl02_contract']
     if inherited_units:
         lines.append('单位来源：' + '、'.join(inherited_units) + '沿用已登记的GL02规范变量单位合同，原始工具未提供单位字段；未换算原始数值。')
@@ -128,7 +126,8 @@ def prefetch_outcome(prefetch: dict, plan: dict) -> dict | None:
     return {'ok': True, 'answer': '\n'.join(lines), 'answer_route': 'verified_prefetch_facts', 'model_request_count': 0,
             'grounding_status': 'verified_facts' if facts else 'no_verified_evidence',
             'completion': {'schema': 'qa-completion-v1', 'terminal_state': 'completed' if complete else 'partial', 'complete': complete, 'requested_objects': expected, 'covered_objects': [item.object_id for item in facts], 'missing_objects': missing, 'missing_unit_objects': missing_units,
-                           'unit_sources': {item.object_id: item.unit_source for item in facts}}}
+                           'unit_sources': {item.object_id: item.unit_source for item in facts},
+                           'missing_evidence_fields': missing_details, 'semantic_review_required': True}}
 
 
 def reusable_latest_read(question: str, prefetch: dict, plan: dict) -> bool:

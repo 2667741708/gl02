@@ -14,7 +14,7 @@
 
 名称不做描述猜测；对象、来源、只读策略和窗口不匹配仍拒绝正式统计。仅支持工具JSON schema声明的字符串列表，不将运行时兼容的顶层字符串或非字符串项作为合法调用。空容器与缺字段不补成已核实证据。
 
-程序：[变量规范化 qa_statistical_evidence.py:L77](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L77)、[明确对象绑定:L53](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L53)、[容器校验:L86](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L86)、[正式统计门禁:L175](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L175)、[候选构建器:L18](../../tools/build_qa_v31_renderer_contract_candidate.py#L18)、[旧缺陷复现回归:L62](../../tests/test_qa_renderer_contract.py#L62)。
+程序：[变量规范化 qa_statistical_evidence.py:L77](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L77)、[明确对象绑定:L53](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L53)、[容器校验:L86](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L86)、[正式统计门禁:L194](../../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L194)、[候选构建器:L18](../../tools/build_qa_v31_renderer_contract_candidate.py#L18)、[旧缺陷复现回归:L62](../../tests/test_qa_renderer_contract.py#L62)。统计门禁链接按后续V32源码刷新，V31冻结哈希及验收范围保留。
 
 ## 冻结与验证
 

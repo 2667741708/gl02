@@ -1174,3 +1174,10 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机冻结候选、126项相关回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E02/E03/E05。
 传感器字符串列表按实际工具拆分、去重，保持80个上限，请求与外层结果规范化列表必须一致；顶层字符串和非字符串项不放宽为合法调用。单位仅从明确元数据绑定继承规范合同并披露，原单位优先、不换算或猜描述。异常结果容器逐项明示并保留相邻有效事实；对象、来源、只读策略与窗口门禁保持。仅修改一个代理函数和统计证据模块，无新增API、配置、工具或模型回合，固定同一底座保持。
 权威：[确认缺陷、程序与未完成验收](handoffs/2026-09-17-qa-v31-renderer-contract.md)、[机器回归证据](../tests/qa_regression/renderer_contract_candidate_20260917.json)、[实际冻结函数回归](../tests/test_qa_renderer_contract.py)。本机通过不能用于线上准确率或问题销项；禁切换管理器安装、8093部署及822原题复测仍待完成。
+
+
+## REQ-QA-LATEST-EVIDENCE-20260917：V32最新值与完成合同
+
+状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
+程序：[最新值门禁 qa_statistical_evidence.py:L212](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L212)、[逐字段披露:L236](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L236)、[直接工具完成合同:L286](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L286)、[事实预取 qa_verified_facts.py:L101](../高炉前端数据/智能助手/backend/qa_verified_facts.py#L101)。候选仅修改代理两个及事实三个函数，其他AST与MCP/固定底座/完成/质量模块保留。
+权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。

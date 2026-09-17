@@ -7,6 +7,8 @@
 
 失败或部分正确但尚无问题编号映射：9 题；须先补根因归类，不能按已分类直接销项。
 
+后续补充：[九条提出归类](unmapped_triage_supplement_20260917.json)已按冻结最终判定reason关联现有问题编号，原partial与输入/结果hash保持，根因尚未确认且0销项。本文件及verified_inventory仍是生成时的冻结快照；当前补充不重写首次判定。最新本机候选见[V32机器证据](latest_evidence_candidate_20260917.json)，284项相关回归与独立审查通过，尚未部署/线上复测。
+
 ## QAOPT-R01 · 统一任务决策，阻止关键词抢路由
 
 - 优先级：P0；台账状态：`deployed_partial_verified`。

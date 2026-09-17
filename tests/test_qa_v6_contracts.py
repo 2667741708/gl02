@@ -12,7 +12,7 @@ import mcp_conversation_context as context
 
 
 def latest(name='P_top', value=260):
-    return {'ok': True, 'variable': {'variable_name': name, 'unit': 'kPa'}, 'latest': {'value': value, 'ts': '2026-09-16T17:00:00+08:00'}, 'source': {'profile': 'bf_sensor_postgresql', 'read_policy': 'readonly'}}
+    return {'ok': True, 'variable': {'variable_name': name, 'unit': 'kPa'}, 'latest': {'value': value, 'ts': '2026-09-16T17:00:00+08:00', 'quality': 'Good', 'collected_at': '2026-09-16T17:00:01+08:00'}, 'source': {'profile': 'bf_sensor_postgresql', 'read_policy': 'readonly'}}
 
 
 def test_prefetch_facts_bind_actual_object_source_time_and_do_not_claim_normality():

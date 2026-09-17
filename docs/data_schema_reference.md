@@ -214,3 +214,8 @@ v2不执行DDL迁移。`canonical_context` JSONB新增 `feature_snapshot/variabl
 
 状态：本机候选126项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 query_gl02_sensors的items必须为列表；每项的variable/source/latest/statistics及统计first/last字段存在且非null时必须是对象，None缺项仍表示未核实。错误容器不写成正式统计，不影响相邻有效项。字符串列表规范化与实际工具一致，限80项；参数与返回variables规范化列表须一致。明确别名绑定才继承canonical登记单位，不新增数据库表、字段或迁移。见[实现与边界](handoffs/2026-09-17-qa-v31-renderer-contract.md)、[机器证据](../tests/qa_regression/renderer_contract_candidate_20260917.json)。
+
+## REQ-QA-LATEST-EVIDENCE-20260917：最新值逐字段缺项
+
+状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
+latest.value必须有限且非布尔，ts须含时分且可解析；source名称为非空字符串，策略仅readonly或缺项，缺项不能补成readonly。completion.missing_evidence_fields按对象提供缺项数组；缺字段partial、有效值保留。collected_at是来源工具标记，不推断物理采样；T_top.components须唯一A-D、同一时刻及均值复算，否则derived_component_alignment缺项。无数据库迁移。见[合同及真实来源范围](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)。

@@ -38,4 +38,4 @@
 
 ## 智能助手当前本机候选（2026-09-17）
 
-生产仍V26；[V31答复合同修复](docs/handoffs/2026-09-17-qa-v31-renderer-contract.md)继承V27固定底座、V28统计证据、V29完成状态和V30质量窗口证据。126项相关回归及独立审查通过，未部署。唯一底座与权重摘要保持固定，不使用切换或备用模型；原822失败/部分题复测与准确率尚未验证。逐项状态见[执行账本](tests/qa_regression/optimization_execution_ledger_20260916.json)。
+生产仍V26；[V32最新值证据修复](docs/handoffs/2026-09-17-qa-v32-latest-evidence.md)继承V27固定底座、V28统计证据、V29完成状态、V30质量窗口及V31答复合同。284项相关回归及独立审查通过，未部署。最新值缺字段保持partial，派生顶温核四组件及同一时刻；九条漏分类仅提出归类，未销项。唯一底座与权重摘要保持固定，不使用切换或备用模型；原822失败/部分题复测与准确率尚未验证。逐项状态见[执行账本](tests/qa_regression/optimization_execution_ledger_20260916.json)。
