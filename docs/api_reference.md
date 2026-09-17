@@ -495,3 +495,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无HTTP新增。概念解释不读取聊天或日报正文；我的/今天等实际记录请求保持既有只读来源。实际代理外层和owner历史入口均有回归，owner与消息截止锚点不变。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-EXCLUSION-SCOPE-20260917：来源排除与子任务继承
+
+状态：2026-09-17本机498项相关回归、原源保真及独立审查通过，V43-r6冻结，生产未应用。
+
+无HTTP新增。私有计划包含source_exclusions/excluded_document_titles；公开元数据只含域名、开关及excluded_document_count，不含被禁书名。读取入口重验全局和具名禁令，允许的现场子任务不因生产报告词被禁。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。

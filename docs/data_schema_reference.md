@@ -331,3 +331,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL/生产数据修改。prior_local_candidate_v41保存历史候选；33项状态、R07重新开放及旧生产证据不变，0销项。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-EXCLUSION-SCOPE-20260917：来源排除与子任务继承
+
+状态：2026-09-17本机498项相关回归、原源保真及独立审查通过，V43-r6冻结，生产未应用。
+
+无DDL或生产数据修改。prior_local_candidate_v42保留旧候选；33项状态及首次/历史线上判断不变，0销项。具名排除是本请求私有范围，不写成新的模型或知识源基线。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。

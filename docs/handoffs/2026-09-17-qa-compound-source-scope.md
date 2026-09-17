@@ -9,10 +9,10 @@
 
 | 已证明问题 | 修复与可核对入口 | 验收 |
 |---|---|---|
-| 制度/历史与明确日期、钟点或窗口数据混合时，独立数据子任务被遗漏 | [任务计划](../../高炉前端数据/智能助手/backend/qa_task_plan.py:322)共用引号感知子句分割；保留外层独立时间数据任务 | 日期、钟点、相对窗口反例保留live_data；资料内部时间/书名不增加现场权限 |
-| “不要查询现场数据库”误屏蔽明确要求的历史、报表、制度 | [来源约束](../../高炉前端数据/智能助手/backend/qa_task_plan.py:149)区分no_live_lookup和all_tools_disabled；[历史执行计划](../../高炉前端数据/智能助手/backend/qa_history_compound.py:52)保留允许的非现场域 | 实际历史数据库断言检索成功且仅返回本owner、当前消息之前的内容 |
+| 制度/历史与明确日期、钟点或窗口数据混合时，独立数据子任务被遗漏 | [任务计划](../../高炉前端数据/智能助手/backend/qa_task_plan.py:393)共用引号感知子句分割；保留外层独立时间数据任务 | 日期、钟点、相对窗口反例保留live_data；资料内部时间/书名不增加现场权限 |
+| “不要查询现场数据库”误屏蔽明确要求的历史、报表、制度 | [来源约束](../../高炉前端数据/智能助手/backend/qa_task_plan.py:166)区分no_live_lookup和all_tools_disabled；[历史执行计划](../../高炉前端数据/智能助手/backend/qa_history_compound.py:54)保留允许的非现场域 | 实际历史数据库断言检索成功且仅返回本owner、当前消息之前的内容 |
 | 纯历史在默认工具模式下绕过全局禁止 | 冻结代理prepare_qa_chat在读取前要求tool_allowed(search_qa_messages, task_plan) | 实际AST分支合成执行：仅禁止现场查询1次历史读取，禁止工具0次 |
-| 拆分制度子句丢失外层禁止，正式入口仍内部执行SQL | [制度复合入口](../../高炉前端数据/智能助手/backend/qa_document_compound.py:13)传播外层all_tools_disabled；[正式公共入口](../../高炉前端数据/智能助手/backend/qa_document_knowledge.py:581)在任何SQL前阻止 | 3个追加实际反例修复后0次读库/0次查询函数调用，dependency_blocked/document_lookup_policy_blocked明确未读取 |
+| 拆分制度子句丢失外层禁止，正式入口仍内部执行SQL | [制度复合入口](../../高炉前端数据/智能助手/backend/qa_document_compound.py:13)传播外层all_tools_disabled；[正式公共入口](../../高炉前端数据/智能助手/backend/qa_document_knowledge.py:582)在任何SQL前阻止 | 3个追加实际反例修复后0次读库/0次查询函数调用，dependency_blocked/document_lookup_policy_blocked明确未读取 |
 | MCP按笼统“无实时”条件直接放弃允许的报表/历史工具 | 冻结代理qa_mcp_should_use_tools及qa_mcp_tool_loop_async读取allow_mcp_tools | 实际代理函数及异步分支测试区分允许报表、禁止现场、禁止全部工具 |
 | 历史选择词误含整个提问或禁令，正常历史被判无匹配 | [history_keyword](../../高炉前端数据/智能助手/backend/qa_history_projection.py:16)从唯一历史子句提取字面主题 | 实际SQLite查询两种常用表述均命中；owner隔离、当前消息截止及通配符字面合同保持 |
 | 预取重新规划可能恢复被禁止的现场查询 | [prefetch_plan](../../高炉前端数据/智能助手/backend/qa_document_compound.py:48)保留原计划禁令 | 禁令下allow_prefetch不恢复 |

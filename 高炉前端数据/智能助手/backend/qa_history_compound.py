@@ -10,7 +10,7 @@ import qa_task_plan
 import qa_verified_facts
 import re
 
-VERSION = 'qa-history-compound-v3-source-scope'
+VERSION = 'qa-history-compound-v4-source-exclusions'
 MAX_HISTORY_TASKS = 4
 
 
@@ -32,6 +32,8 @@ def split_request(question, plan):
         history = []
         blocked.append('history_subtask_limit')
     return {'version': VERSION, 'history_questions': history, 'blocked': blocked,
+            'source_exclusions': list(plan.get('source_exclusions') or []),
+            'excluded_document_titles': list(plan.get('excluded_document_titles') or []),
             'tools_disabled': plan.get('all_tools_disabled') is True,
             'live_lookup_disabled': plan.get('no_live_lookup') is True,
             'remainder_question': '；'.join(remainder) or '请提示用户单独说明非历史问题的对象和时间范围，不猜测或查询。'}
@@ -59,7 +61,8 @@ def execution_plan(question, request):
         plan.update(allow_mcp_tools=bool(domains), allow_prefetch=False, no_live_lookup=True,
                     allowed_tool_domains=domains,
                     allowed_sources=[source for source in plan['allowed_sources'] if source != 'live_readonly_data'])
-    return plan
+    return qa_task_plan.apply_source_exclusions(plan, (request or {}).get('source_exclusions'),
+                                              (request or {}).get('excluded_document_titles'))
 
 
 def execute(request, conn, *, owner, before_message_id, selection):
@@ -67,8 +70,11 @@ def execute(request, conn, *, owner, before_message_id, selection):
         return None
     outcomes = []
     blocked = list(request['blocked'])
-    allowed = not request.get('tools_disabled') and selection.get('mode') != 'none' and (
+    allowed = (not request.get('tools_disabled')
+        and 'conversation_history' not in request.get('source_exclusions', [])
+        and selection.get('mode') != 'none' and (
         selection.get('mode') != 'required' or 'search_qa_messages' in selection.get('tools', []))
+    )
     for question in request['history_questions']:
         if not allowed:
             payload = {'ok': False, 'error': 'history_tool_selection_blocked'}

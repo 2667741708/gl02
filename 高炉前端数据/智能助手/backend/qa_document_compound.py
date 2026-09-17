@@ -3,7 +3,7 @@ import re
 import qa_document_knowledge as documents
 import qa_task_plan
 
-VERSION = "qa-document-compound-v3-source-scope"
+VERSION = "qa-document-compound-v4-source-exclusions"
 
 
 def clauses(text):
@@ -18,9 +18,10 @@ def prepare(conn, question, plan):
         child = qa_task_plan.build_task_plan(clause)
         if "document_knowledge" not in child["intents"]:
             remainder.append(clause)
-        elif plan.get("all_tools_disabled"):
+        elif plan.get("all_tools_disabled") or plan.get("document_lookup_disabled"):
             originals.append(documents.lookup_policy_blocked())
         elif child["intents"] == ["document_knowledge"]:
+            child = qa_task_plan.apply_source_exclusions(child, plan.get("source_exclusions"), plan.get("excluded_document_titles"))
             try: originals.append(documents.execute_document_question(conn, clause, child))
             except Exception:
                 originals.append(documents._outcome("制度原文查询暂不可用，未使用其他来源补写。", "dependency_blocked", "document_query_unavailable"))
@@ -56,7 +57,7 @@ def prefetch_plan(prepared):
     # single-point reading into a completed risk or trend assessment.
     if (child.get("intents") == ["live_data"]
         and not re.search(r"分析|判断|是否|正常|异常|风险|趋势|变化|原因|为什么|匹配|对比|比较", question)):
-        return child
+        return qa_task_plan.apply_source_exclusions(child, original.get("source_exclusions"), original.get("excluded_document_titles"))
     return original
 
 

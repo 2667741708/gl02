@@ -3445,3 +3445,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 新增41例；初始30项18fail/12pass。首次聚焦139pass/1fail发现这个概念误识别为具体记录，修正后142pass/9.59秒。最终17模块436pass/34.40秒、Luna复审PASS、14金标schema/22共享标记通过；不代表线上正确率。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-EXCLUSION-SCOPE-20260917：来源排除与子任务继承
+
+状态：2026-09-17本机498项相关回归、原源保真及独立审查通过，V43-r6冻结，生产未应用。
+
+新增62例，初始25项20fail/5pass；r1/r2独立审查FAIL及具名/连词反例完整保留，r4疑点实测纠正，r5发现2个知识库别名绕过再修r6。最终18模块498pass；原源5587索引、11组14次读取保真通过；Luna最终PASS/14金标schema/22共享标记，未推导线上正确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。

@@ -13,7 +13,7 @@
 初始23项17fail/6pass；之前4个纯用户数据问题的只读探针均发现错误现场路由。
 即使任务计划挡住纯数据请求，实际alias、分析bundle、duration和clock解析仍可能把用户提供的对象/时间混入另行要求的查询。
 
-[user_data_scope](../../高炉前端数据/智能助手/backend/qa_task_plan.py:200)现在识别给定输入及独立来源；[live_query_text](../../高炉前端数据/智能助手/backend/qa_task_plan.py:257)只将现场子任务传入查询链。
+[user_data_scope](../../高炉前端数据/智能助手/backend/qa_task_plan.py:269)现在识别给定输入及独立来源；[live_query_text](../../高炉前端数据/智能助手/backend/qa_task_plan.py:328)只将现场子任务传入查询链。
 纯给定数据使用user_message；不查现场、不注入小时分析bundle、不改写数据来源。
 “我提供的风温数据……同时查询当前炉顶压力”保留两个任务，查询目标仅为实际alias映射的顶压。
 查询时窗、时钟及路由enrichment使用外部子句，原始问题仍保留给最终答复和完成校验。

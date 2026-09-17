@@ -15,7 +15,7 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v7-source-concept-scope"
+VERSION = "qa-task-plan-v8-source-exclusion-scope"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
@@ -76,6 +76,23 @@ _ALL_TOOLS_PATTERN = re.compile(
     r"(?:不要|不需要|无需|不必|不用|禁止|不)\s*"
     r"(?:(?:查(?:询)?|读取|访问|调用|检索|连接|使用|用)\s*)?"
     r"(?:(?:任何|所有|全部|外部|MCP)\s*)?(?:工具|数据库|数据)", re.I
+)
+_SOURCE_EXCLUSION_PREFIX = (
+    r"(?:不要|不需要|无需|不必|不用|禁止|别|不允许|不能|不)\s*"
+    r"(?:(?:查询|检索|读取|访问|调用|使用|引用|依据|结合|调取|获取|查看|查|看|读|用)\s*)?"
+    r"(?:(?:任何|所有|全部|已有|这些|我的|我们的|正式|岗位|本地|历史)\s*)*"
+)
+_BOOK_SOURCE_ALIASES = ("冀钢炼铁三规二制", "三规二制", "高炉事故处理")
+_SOURCE_ACTION_START = re.compile(
+    r"(?:并且|以及|但是|同时|然后|不过|并|再|但|(?<!并)且)(?:"
+    + "|".join(re.escape(action) for action in sorted(
+        set(_DOCUMENT_ACTIONS + _LIVE_ACTIONS + ("按", "根据", "依据", "结合", "列出", "对比", "比较", "导出", "读一下")),
+        key=len, reverse=True)) + ")"
+)
+_SOURCE_EXCLUSION_START = re.compile(
+    _SOURCE_EXCLUSION_PREFIX + "(?:"
+    + "|".join(re.escape(term) for term in _HISTORY_TERMS + _REPORT_TERMS + _DOCUMENT_TERMS + _BOOK_SOURCE_ALIASES + ("知识库",))
+    + r"|《)"
 )
 
 # The production MCP registry is read-only, but routing must not infer safety
@@ -146,14 +163,16 @@ def _is_no_live_request(instruction: str) -> bool:
     return bool(_NO_LIVE_PATTERN.search(instruction) or _ALL_TOOLS_PATTERN.search(instruction))
 
 
-def lookup_constraints(question: str) -> dict[str, bool]:
+def lookup_constraints(question: str) -> dict[str, Any]:
     text = str(question or "")
-    instruction = _instruction_text(text)
+    instruction = _instruction_text("；".join(active_source_clauses(text)))
     scope = user_data_scope(text)
     return {"no_live_lookup": _is_no_live_request(instruction) or scope["exclusive"]
             or (scope["present"] and not scope["live_clauses"]),
             "all_tools_disabled": bool(_ALL_TOOLS_PATTERN.search(instruction)
-                                       or scope["exclusive"])}
+                                       or scope["exclusive"]),
+            "source_exclusions": sorted(source_exclusion_domains(text)),
+            "excluded_document_titles": sorted(excluded_document_titles(text))}
 
 
 def instruction_clauses(text: str) -> list[str]:
@@ -169,11 +188,61 @@ def instruction_clauses(text: str) -> list[str]:
             if text[start:i].strip():
                 result.append(text[start:i].strip())
             start = i + 1
-        elif not stack and i > start and re.match(r"(?:并|再|同时|然后)(?:查询|查看|分析|统计|计算|读取|对比|比较)", text[i:]):
+        elif not stack and i > start and _SOURCE_ACTION_START.match(text, i):
+            result.append(text[start:i].strip())
+            start = i
+        elif not stack and i > start and _SOURCE_EXCLUSION_START.match(text, i):
             result.append(text[start:i].strip())
             start = i
     if text[start:].strip():
         result.append(text[start:].strip())
+    return result
+
+
+def source_exclusion_domains(text: str) -> set[str]:
+    """Read unqualified source prohibitions outside literal quotations."""
+    instruction = _instruction_text(str(text or ""))
+    groups = {"conversation_history": _HISTORY_TERMS,
+              "period_report": _REPORT_TERMS,
+              "knowledge_base": tuple(term for term in _DOCUMENT_TERMS if term not in _BOOK_SOURCE_ALIASES) + ("知识库",)}
+    excluded = {domain for domain, terms in groups.items()
+                if re.search(_SOURCE_EXCLUSION_PREFIX + "(?:" + "|".join(re.escape(term) for term in terms) + ")", instruction)}
+    return excluded
+
+
+def excluded_document_titles(text: str) -> set[str]:
+    """An excluded named book does not exclude another document source."""
+    titles = set()
+    book_pattern = "(?:" + "|".join(re.escape(alias) for alias in sorted(_BOOK_SOURCE_ALIASES, key=len, reverse=True)) + ")"
+    for clause in instruction_clauses(str(text or "")):
+        matches = [match for match in _QUOTED_RE.finditer(clause) if match.group(0).startswith("《")]
+        if any(re.search(_SOURCE_EXCLUSION_PREFIX + r"$", _instruction_text(clause[:match.start()])) for match in matches):
+            titles.update(match.group(0)[1:-1].strip() for match in matches)
+        for match in re.finditer(_SOURCE_EXCLUSION_PREFIX + "(" + book_pattern + r"(?:\s*(?:和|与|及|、)\s*" + book_pattern + ")*)", _instruction_text(clause)):
+            titles.update(re.findall(book_pattern, match.group(1)))
+    return titles
+
+
+def active_source_clauses(text: str) -> list[str]:
+    return [clause for clause in instruction_clauses(str(text or ""))
+            if not source_exclusion_domains(clause) and not excluded_document_titles(clause)]
+
+
+def apply_source_exclusions(plan: dict[str, Any], exclusions, document_titles=None) -> dict[str, Any]:
+    """Carry parent prohibitions through independently rebuilt child plans."""
+    result = dict(plan)
+    excluded = set(result.get("source_exclusions") or []) | set(exclusions or [])
+    result["source_exclusions"] = sorted(excluded)
+    titles = set(result.get("excluded_document_titles") or []) | set(document_titles or [])
+    result["excluded_document_titles"] = sorted(titles)
+    result["document_lookup_disabled"] = "knowledge_base" in excluded
+    result["allowed_sources"] = [source for source in result.get("allowed_sources", []) if source not in excluded]
+    result["allowed_tool_domains"] = [domain for domain in result.get("allowed_tool_domains", []) if domain not in excluded]
+    result["allow_mcp_tools"] = bool(result.get("allow_mcp_tools") and result["allowed_tool_domains"])
+    # Unfiltered keyword retrieval cannot enforce an excluded book binding.
+    # Explicit document readers enforce the precise source identity instead.
+    if "knowledge_base" in excluded or titles:
+        result["search_knowledge"] = False
     return result
 
 
@@ -213,6 +282,8 @@ def user_data_scope(text: str) -> dict[str, Any]:
             if _declared_input_clause(clause):
                 continue
             if _conceptual_source_clause(clause):
+                continue
+            if source_exclusion_domains(clause) or excluded_document_titles(clause):
                 continue
             if (any(span.startswith("《") for span in _quoted_spans(clause))
                     or _contains_any(masked, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS)):
@@ -258,7 +329,7 @@ def live_query_text(question: str) -> str:
     text = str(question or "")
     scope = user_data_scope(text)
     if not scope["present"]:
-        return text
+        return "；".join(active_source_clauses(text))
     if lookup_constraints(text)["no_live_lookup"]:
         return ""
     return "；".join(scope["live_clauses"])
@@ -323,8 +394,9 @@ def build_task_plan(question: str) -> dict[str, Any]:
     """Return one auditable source plan for knowledge, history, reports and live data."""
 
     text = str(question or "").strip()
-    quoted = _quoted_spans(text)
-    instruction = _instruction_text(text).strip()
+    active_clauses = active_source_clauses(text)
+    quoted = _quoted_spans("；".join(active_clauses))
+    instruction = _instruction_text("；".join(active_clauses)).strip()
     user_scope = user_data_scope(text)
     live_instruction = "；".join(user_scope["live_clauses"]) if user_scope["present"] else instruction
     entity_resolution = qa_entity_resolution.resolve_requested_entities(live_instruction)
@@ -333,9 +405,9 @@ def build_task_plan(question: str) -> dict[str, Any]:
     wants_user_data = user_scope["present"]
     book_reference = any(span.startswith("《") for span in quoted)
     wants_document = (_contains_any(instruction, _DOCUMENT_TERMS) or book_reference) and (
-        _contains_any(instruction, _DOCUMENT_ACTIONS) or "按" in instruction or "根据" in instruction
+        _contains_any(instruction, _DOCUMENT_ACTIONS) or "按" in instruction or "根据" in instruction or "依据" in instruction
     )
-    source_clauses = [_instruction_text(clause) for clause in instruction_clauses(text)
+    source_clauses = [_instruction_text(clause) for clause in active_clauses
                       if not _conceptual_source_clause(clause)]
     wants_history = any(_contains_any(clause, _HISTORY_TERMS) for clause in source_clauses)
     wants_report = any(_contains_any(clause, _REPORT_TERMS) for clause in source_clauses)
@@ -395,7 +467,7 @@ def build_task_plan(question: str) -> dict[str, Any]:
         search_knowledge = False
         allowed_sources = [source for source in allowed_sources if source == "user_message"]
 
-    return {
+    return apply_source_exclusions({
         "schema": VERSION,
         "primary_intent": primary,
         "intents": intents,
@@ -411,7 +483,7 @@ def build_task_plan(question: str) -> dict[str, Any]:
         "no_live_lookup": no_live,
         "all_tools_disabled": constraints["all_tools_disabled"],
         "reason": "+".join(intents),
-    }
+    }, constraints["source_exclusions"], constraints["excluded_document_titles"])
 
 
 def public_task_plan(plan: dict[str, Any] | None) -> dict[str, Any]:
@@ -431,6 +503,9 @@ def public_task_plan(plan: dict[str, Any] | None) -> dict[str, Any]:
         "unresolved_entity_count": len(source.get("unresolved_entities") or []),
         "no_live_lookup": bool(source.get("no_live_lookup")),
         "all_tools_disabled": bool(source.get("all_tools_disabled")),
+        "source_exclusions": list(source.get("source_exclusions") or []),
+        "document_lookup_disabled": bool(source.get("document_lookup_disabled")),
+        "excluded_document_count": len(source.get("excluded_document_titles") or []),
         "reason": str(source.get("reason") or ""),
         "quoted_span_count": len(source.get("quoted_spans") or []),
     }

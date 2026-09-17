@@ -10,6 +10,7 @@ import re
 from typing import Any
 import qa_document_integrity
 import qa_knowledge_reader_source_gate
+import qa_task_plan
 
 VERSION = "qa-document-knowledge-v1"
 THREE_RULES = "bf_three_rules_two_systems_20260712"
@@ -573,7 +574,7 @@ def _execute_document_question_in_snapshot(conn: Any, question: str, plan: dict[
 
 
 def lookup_policy_blocked() -> dict[str, Any]:
-    return _outcome('本轮禁止调用工具或查询数据库，正式制度原文未读取；未使用通用知识补写正式条款。'
+    return _outcome('本轮的来源或工具限制不允许读取这项正式制度原文；未使用通用知识补写正式条款。'
                     '如需分析，可提供需要分析的原文，或明确允许资料读取。',
                     'dependency_blocked', 'document_lookup_policy_blocked')
 
@@ -582,7 +583,13 @@ def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) ->
     """Production entry: freeze every formal source field in one verified SELECT."""
     if plan.get('intents') != ['document_knowledge']:
         return None
-    if plan.get('all_tools_disabled'):
+    if plan.get('all_tools_disabled') or plan.get('document_lookup_disabled'):
+        return lookup_policy_blocked()
+    question = '；'.join(qa_task_plan.active_source_clauses(question))
+    excluded_titles = set(plan.get('excluded_document_titles') or [])
+    requested_titles = {title.strip() for title in re.findall(r'《([^》]+)》', question)}
+    excluded_ids = {FORMAL_TITLE_ALIASES[title] for title in excluded_titles if title in FORMAL_TITLE_ALIASES}
+    if requested_titles & excluded_titles or _doc_id(question) in excluded_ids:
         return lookup_policy_blocked()
     if _doc_id(question) != THREE_RULES:
         return _execute_document_question_in_snapshot(conn, question, plan)

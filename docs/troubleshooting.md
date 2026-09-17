@@ -563,3 +563,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 日报是什么或聊天记录用途触发读取时检查概念与记录定位。不能全局删除报表/历史来源；同一请求里的实际记录必须保留。时间、个人、引用、ID及读取动作优先，整个过滤按引号感知子句执行。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-EXCLUSION-SCOPE-20260917：来源排除与子任务继承
+
+状态：2026-09-17本机498项相关回归、原源保真及独立审查通过，V43-r6冻结，生产未应用。
+
+不要查聊天/日报/制度仍触发查询时查禁令是否丢于拆分重建。禁止某书与禁止全部知识库须分开；实际别名同源应读前阻止。切句动作来自已登记源域动作表，具名列表共享否定不得误吞另一允许书。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
