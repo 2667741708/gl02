@@ -295,7 +295,8 @@
       "local_source_repair_state": "202_tests_reviewed_independent_source_scope_r2_frozen_not_applied_to_production",
       "local_source_scope": "source_scope_candidate_20260917.json",
       "local_keyword_release": "keyword_source_release_preparation_20260917.json",
-      "next_gate": "源绑定与keyword发布计划r2已审查；实现并验证单文档发布/回滚事务，获得数据库写入授权后发布，再接入读取门禁和真实原题验收；topic完整性/语义未验证",
+      "local_keyword_transaction": "keyword_source_transaction_20260917.json",
+      "next_gate": "单文档发布/精确回滚/只读恢复库271项及复审通过；生产入口、数据库单独授权/迁移/实际发布及读取器接入待完成，再按同一底座真实原题验收；topic完整性/语义未验证",
       "case_ids": [
         "TPL-B1DDFC78E40D26DD",
         "TPL-81261F34B14214DC"
@@ -361,7 +362,8 @@
       "local_source_repair_state": "startup_readonly_live_verified_independent_source_scope_r2_frozen_production_knowledge_unchanged",
       "local_source_scope": "source_scope_candidate_20260917.json",
       "local_keyword_release": "keyword_source_release_preparation_20260917.json",
-      "next_gate": "单文档keyword发布/回滚执行器及完整旧向量归档待实现/授权，实际DB绑定与读取器待接入；再审核语义角色及30项oracle，不用派生全文自证完整",
+      "local_keyword_transaction": "keyword_source_transaction_20260917.json",
+      "next_gate": "发布/回滚事务库完整旧向量归档及恢复已在真实隔离PG验证；生产入口/单独授权/迁移及实际归档尚未完成，DB绑定与读取器待接入；再审核语义角色及30项oracle，固定底座不换模型",
       "case_ids": [],
       "depends_on": [
         "QAOPT-K03"

@@ -461,3 +461,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 旧版本/hash/索引/vector计数漂移停止准备并只读复核；固定源绑定失败不能靠同名模型或旧正文哈希放行。数据库没有岗位/源块专列，应核固定enriched源头、manifest及所有实际检索字段；调用方额外源元数据也不能矛盾。准备入口明确非DB快照，实际入口必须来源路径一致。提交不确定不重放；回滚需要完整before归档和精确after无漂移证明，当前执行器未实现、归档未保存。
 权威：[当前门禁、实际schema和待实现事务](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[脱敏证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。不运行旧vectorize脚本，不切换或加载embedding模型。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：提交不确定及回滚阻断
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+commit异常使用新启动只读连接recover_release；journal不存在仍not_recorded_unresolved，禁止自动重放。after漂移、before归档损坏、跨文档ID冲突、未知外键/触发器或schema不符均停止写入，不以源正文hash代替完整快照。固定底座身份异常停止模型调用，不加载其他底座。执行器本机已实现，生产入口/归档/迁移尚未应用。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。

@@ -649,3 +649,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 无生产配置修改。doc_id/原源/candidate/manifest SHA固定；准备器只接收已只读复核的v1.0-hierarchical旧authority及5454索引/向量基线，规划新5587行keyword且embedding_generation=false。输出为Git忽略source-scope下全新目录，源路径沿用旧doc，模型唯一底座保持。DDL与单文档事务须另获数据库写入授权，不因计划或源码存在而执行。
 权威：[私有计划与授权/验收边界](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[脱敏证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：事务边界与底座不可变
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+新鲜连接必须autocommit=false且无活跃事务；写入需authorized=true及生产单独授权。固定plan SHA7ca284…16d，锁等待3秒/statement20秒，advisory及关系锁非阻塞。只读恢复启动default_transaction_read_only=on、REPEATABLE READ。唯一名称chiqiongblastfuenace:latest及唯一e4ad74…d8124摘要不变，禁止换底座/同名权重更新；无新增生产环境修改。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。

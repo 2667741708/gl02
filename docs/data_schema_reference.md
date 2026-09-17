@@ -229,3 +229,9 @@ latest.value必须有限且非布尔，ts须含时分且可解析；source名称
 
 DDL候选qa_knowledge_source_releases保存release_id、doc_id、applied/rolled_back状态、完整before_snapshot_json及before/after/manifest/plan hash、操作时间；旧vector保存精确文本用于还原，不重新推理。qa_knowledge_source_bindings保存doc_id、release_id、authority/manifest SHA及原始manifest_text；manifest保留字节顺序避免JSONB重排后hash失配。未执行迁移或保存快照，IF NOT EXISTS不验证已有表合同。
 实际rag_chunk无chapter_code/regulation_type/chapter_title/源块位置列，检索字段按固定候选投影核对；私有计划与公开证据分离。权威：[真实旧源/schema核查与发布/回滚合同](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[机器证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：源事务schema与快照
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+当前事务库严格核对五表列集合/类型、PK、全部传入/传出FK、启用用户触发器及public.vector，并用NOWAIT关系锁保持目录合同稳定。完整before JSONB含11/21/6字段集合及先前绑定；向量以原native vector文本恢复。恢复仅读状态及规范hash；生产增量表/归档尚未创建。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。

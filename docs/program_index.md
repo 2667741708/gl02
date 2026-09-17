@@ -1196,3 +1196,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 程序：[固定源绑定、确定性keyword行和准备/DB入口](../高炉前端数据/智能助手/backend/qa_knowledge_source_binding.py)、[私有单文档计划准备器](../tools/prepare_qa_keyword_source_release.py)、[增量归档/绑定表DDL候选](../schema/20260917_qa_keyword_source_release.sql)。符号行号TODO-LINES。纯模块及准备器不连接DB/模型，不发布；已补齐所有实际检索字段及可选解析源元数据检查。
 权威：[初次审查缺口、修复和执行器待办](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[253项及冻结证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。读取器尚未接入，生产未更新。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：事务库与只读依赖入口
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+程序：[调用者新连接事务库](../tools/qa_keyword_source_transaction.py)、[启动只读目录依赖探针](../tools/probe_qa_keyword_source_dependencies_readonly.py)。符号publish、rollback_release、recover_release、_begin、_schema；行号TODO-LINES。库不获取连接或凭据，不执行SSH或模型调用；生产入口尚未实现。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。

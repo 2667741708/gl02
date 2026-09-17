@@ -3343,3 +3343,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 实际253 passed：新增[51项绑定/准备回归](../tests/test_qa_knowledge_source_binding.py)，覆盖固定SHA/JSON字段、集合/内容/所有检索元数据、可选岗位/规程/块位置、文档来源路径、旧CAS漂移及私有输出。真实原书5587规划行准备检查通过，database_snapshot_verified=false。初次独立审查FAIL后补齐元数据检查，最终PASS；未执行DB发布/回滚事务，不能代替其验收。
 权威：[复现命令、冻结hash和剩余验收](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[机器证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。0生产写入/模型/问答操作，不更新线上准确率。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：真实隔离PG事务验收
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+实际271 passed（49.28秒），其中[事务18项](../tests/test_qa_keyword_source_transaction.py)使用原生PostgreSQL16.13和真实pgvector，[合成SQL夹具](../tests/qa_regression/keyword_source_pg_fixture.sql)没有原制度内容。覆盖完整回滚、跨文档隔离、提交两种不确定状态、漂移、外键/触发器和并发DDL阻断。0生产写入/问题POST，不能换算线上准确率。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。

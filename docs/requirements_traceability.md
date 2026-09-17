@@ -1280,3 +1280,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 状态：本机r2计划及纯绑定门禁、253项回归/独立审查通过；发布执行器、回滚归档、迁移、读取接入与生产更新尚未完成。固定源candidate/manifest/hash和旧version/CAS；正文及检索元数据必须共同绑定，实际DB来源路径一致。准备检查不冒充DB快照，旧文档/索引/vector必须受控归档，keyword不加载embedding模型。
 权威：[当前实现、真实旧库核查及事务合同](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[机器证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。不修改模型底座或原测试标准，不销项QAOPT-K03/K06。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：单文档源事务及不可变底座
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+已实现publish/rollback_release/recover_release事务库；18项真实隔离PG事务测试及253项源回归合计271通过，静态复审PASS。旧索引/向量/绑定完整归档及还原、未知级联/触发器阻断、提交不确定只读恢复均已核实。本机测试不代表生产发布或答案正确；生产操作入口/迁移/读取器/单独DB授权待完成。模型名称与e4ad74…d8124权重同时固定，任何漂移阻断，不允许同名替换。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
