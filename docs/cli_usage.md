@@ -716,3 +716,12 @@ D:\ProgramData\anaconda3\python.exe -X utf8 .\tools\evaluate_mcp_extended_produc
 action=plan无DB连接、秘密配置读取或记录写入；recover启动只读，publish/rollback要求用户单独数据库授权及显式--authorized-database-write。该标志不授予授权。原始contract/封存包仅私有，不把身份或秘密值填入普通文档。
 预期成功输出ok=true及安全计数/状态；失败ok=false与稳定error_code，退出2。重复执行编号直接拒绝，无第二次连接；提交/收据不确定只能新只读recover，不自动重放。
 增量表须先通过独立受控DDL和完整schema验收，入口不创建表。生产使用Reliable SSH精确argv，不直接ssh，不串接上传/执行/验证。完整候选闭包/read_set/命令合同见[当前交接](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+probe_qa_paired_runtime_readonly.py --root <repo> --scope-file <reviewed-gate.json>；也支持互斥 --scope-json <structured-json>，与前者共享路径审查。仅GET且不使用网络代理。成功ok=true/退出0；身份不符ok=false/退出1，无自动修复。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。

@@ -513,3 +513,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无HTTP新增。已提供记录数据只允许user_message，不启用历史/报告/正式文档读取；另行来源核验仍按原owner、权限和来源合同。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+无新增HTTP API；只读GET /api/ollama/status和tags→ps→tags。旧status.ok不构成固定底座证明；身份不符时停止新调用，不自动加载/卸载/切换。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。

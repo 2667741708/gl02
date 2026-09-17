@@ -581,3 +581,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 用户贴出日报/聊天记录数据仍要求工具时，检查声明子句是否加入外部来源意图；核实所给数据与真实来源一致不能被误吞。仅确认均值/极差/漏项不等于读取原始记录。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+SSH已恢复但固定底座仍被阻断：比较固定摘要与tags→ps→tags，而非只看同名或旧status.ok。旧恢复任务仍活跃，独立授权治理后重新只读核验，不自动切换绕过。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。

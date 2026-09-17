@@ -3463,3 +3463,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 新增48例，首批29项19fail/10pass；r1旧范围535pass后4个来源核验反例全失败，独立审查结论纠正。r2最终19模块546pass，原源5587索引/11组14读取保真、14schema/22标记和Luna复审通过。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+首次7例3fail/4pass；最终33项底座合同测试及Luna只读审查通过。最新生产实际权重不符，0原题发送；合同测试不能计入线上正确率。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。

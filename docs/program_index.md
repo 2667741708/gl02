@@ -1316,3 +1316,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [_declared_input_clause](../高炉前端数据/智能助手/backend/qa_task_plan.py:308)识别来源核验；[任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py:404)不从纯声明子句生成外部来源意图。冻结15文件，14个继承V43，代理和所有其他模块不变。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+[身份判定](../tools/probe_qa_paired_runtime_readonly.py:24)、[路径边界](../tools/probe_qa_paired_runtime_readonly.py:13)、[metadata探测](../tools/probe_qa_paired_runtime_readonly.py:37)只读核验固定摘要；不上传远端源码、不生成或切换模型。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
