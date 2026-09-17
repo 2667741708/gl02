@@ -1328,3 +1328,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 固定底座名称/digest同时是不可覆盖身份，不因调用参数、当前alias或另一个驻留版本而变化。身份不一致在任何模型GET/POST前拒绝，显式同pin保留；只修本机边界，不宣称线上锁定或原题改善。
 
 当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+独立日期/钟点数据子任务必须保留；资料内日期不产生现场权限。区分禁止现场查询与禁止全部工具，拆分子任务保留外层禁令，制度内部SQL也受约束。固定模型名称及权重摘要不可改变。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。

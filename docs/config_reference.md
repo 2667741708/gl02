@@ -697,3 +697,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 无新环境开关。固定chiqiongblastfuenace:latest及e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124，resolve显式参数只能等于这组值。禁止另一个批准版本、同名替换权重、动态接受当前驻留成为新基线；管理器/任务授权边界保持。
 
 当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+无新增环境开关；公开任务计划包含no_live_lookup和all_tools_disabled。仅禁止现场查询不取消明确请求的资料、历史或报表；禁止全部工具时同时关闭prefetch/MCP/keyword资料检索和制度内部SQL。唯一固定底座名称及摘要继承V36，不允许备用或同名换权重。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。

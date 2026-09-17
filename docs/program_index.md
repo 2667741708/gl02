@@ -1244,3 +1244,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [resolve身份入口](../高炉前端数据/智能助手/backend/qa_fixed_model_identity.py:30)在回调前拒绝非硬编码pin；版本qa-fixed-model-identity-v2。V36继承V35其余9文件，完整源门禁/规程分页代码逐字节相同；代理每轮和fallback仍重新核验。
 
 当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+[任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py:203)、[制度入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:581)、[制度复合](../高炉前端数据/智能助手/backend/qa_document_compound.py:13)、[历史计划](../高炉前端数据/智能助手/backend/qa_history_compound.py:52)、[历史选择词](../高炉前端数据/智能助手/backend/qa_history_projection.py:16)及[候选生成器](../tools/build_qa_compound_scope_candidate.py:55)为变更入口。冻结代理只改3个谓词，反向恢复后其余AST一致，22项共享功能标记保留。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。

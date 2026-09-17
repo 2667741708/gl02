@@ -509,3 +509,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 身份检查不能用传入name/digest改变冻结对象。看到fixed_model_identity_not_ready时复核唯一固定pin与驻留，禁止换底座求通过。旧动态驻留/双模型窗口已退役；连接失败先只读身份/路线探测，无命令派发不得推断生产故障。未知发送题永不自动重放。
 
 当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+先检查禁令适用范围及公开计划：禁止现场查询不等于禁止历史/报表；禁止所有工具/数据库必须在纯历史、制度SQL、MCP和预取入口全部生效。历史无匹配时核对选择词是否误含整段指令；不要放宽owner或消息截止。底座身份不符时阻止调用，不能换模型绕过。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。

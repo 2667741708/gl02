@@ -8,13 +8,19 @@ from __future__ import annotations
 import json
 import re
 from typing import Any
+import qa_task_plan
 
-VERSION = "qa-history-projection-v2"
+VERSION = "qa-history-projection-v3-source-scope"
 
 
 def history_keyword(question: str) -> str:
-    text = re.sub(r"^(?:请)?(?:检索|查询|查找)?(?:最近有没有关于|之前有没有问过|以前有没有问过|历史问答里关于|历史问答中关于)", "", question.strip())
+    selectors = [part for part in qa_task_plan.instruction_clauses(question)
+                 if 'conversation_history' in qa_task_plan.build_task_plan(part)['intents']]
+    text = selectors[0] if len(selectors) == 1 else question.strip()
+    text = re.sub(r"^(?:请)?(?:检索|查询|查找|列出)?(?:最近有没有关于|之前有没有问过|以前有没有问过|历史问答[里中](?:关于)?|我最近问过的)", "", text)
     text = re.sub(r"(?:的历史问答|的历史回答|的回答|历史问答|历史会话|聊天记录|对话记录)[？?。\s]*$", "", text)
+    if re.search(r"我最近问过的", question):
+        text = re.sub(r"(?:问题|提问)[？?。\s]*$", "", text)
     return text.strip("？?。 ，,")[:120]
 
 

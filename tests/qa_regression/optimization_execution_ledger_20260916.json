@@ -39,18 +39,14 @@
     "full_semantic_pass_inferred": false
   },
   "current_local_candidate": {
-    "version": "v36",
+    "version": "v37-r2",
     "state": "local_tested_reviewed_frozen_not_production_applied",
-    "focused_tests_passed": 61,
+    "focused_tests_passed": 110,
+    "related_tests_passed": 557,
     "production_semantic_effectiveness_verified": false,
-    "evidence": "fixed_model_override_20260917.json",
-    "manifest_sha256": "d624e06065f0f9752b7d4b44464171f391e4ace6ca94c18f718db9c018510aee",
-    "previous_source_scope_suite": {
-      "version": "v35",
-      "tests_passed": 400,
-      "rerun_for_v36": false,
-      "source_reader_and_gate_unchanged": true
-    }
+    "evidence": "compound_source_scope_20260917.json",
+    "manifest_sha256": "dc5615e765d63c084edd35b7e75532101d41e9e8dc5e61a75e249cce397362ec",
+    "fixed_base_identity_unchanged": true
   },
   "rows": [
     {
@@ -69,7 +65,9 @@
       "repair_and_acceptance_plan": "统一外层任务计划，固定来源、对象、时间窗、子任务和完成条件；所有降级分支读取同一计划。验收：复合问题逐项覆盖，引用或关键词不抢路由。",
       "initial_linked_semantic_counts": {
         "failed": 2
-      }
+      },
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
     },
     {
       "order": 2,
@@ -90,7 +88,9 @@
       "repair_and_acceptance_plan": "聊天历史仅作对话证据，业务事实另查权威源；owner 和消息截止 ID 固定。验收：历史+当前任务分别有来源，跨用户历史不可见。",
       "initial_linked_semantic_counts": {
         "failed": 3
-      }
+      },
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
     },
     {
       "order": 3,
@@ -209,7 +209,9 @@
       "repair_and_acceptance_plan": "代码执行与代码示例独立禁用，拒绝该子任务同时完成允许的查询/统计/图表。验收：不承诺提供代码，不误拒普通问题。",
       "initial_linked_semantic_counts": {
         "failed": 48
-      }
+      },
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
     },
     {
       "order": 9,
@@ -250,7 +252,9 @@
       "repair_and_acceptance_plan": "多轮仅继承已确认对象/窗口/来源，换题清空不适用上下文。验收：追问/最新值/主题切换及用户数据任务均独立可复现。",
       "initial_linked_semantic_counts": {
         "failed": 2
-      }
+      },
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
     },
     {
       "order": 11,
@@ -348,7 +352,9 @@
       "local_document_scope_resolution": "document_scope_resolution_20260917.json",
       "prior_scoped_state": "production_verified",
       "new_boundary_defect": "V33书名字串误绑本机复现；先前生产验收未覆盖该边界，不等于已重新现场失败",
-      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json",
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
     },
     {
       "order": 15,
@@ -838,5 +844,19 @@
     "focused_tests_passed": 174,
     "production_semantic_effectiveness_verified": false
   },
-  "production_snapshot_state": "historical_last_verified_v26_current_connection_gate_failed"
+  "production_snapshot_state": "historical_last_verified_v26_current_connection_gate_failed",
+  "prior_local_candidate_v36": {
+    "version": "v36",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "focused_tests_passed": 61,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "fixed_model_override_20260917.json",
+    "manifest_sha256": "d624e06065f0f9752b7d4b44464171f391e4ace6ca94c18f718db9c018510aee",
+    "previous_source_scope_suite": {
+      "version": "v35",
+      "tests_passed": 400,
+      "rerun_for_v36": false,
+      "source_reader_and_gate_unchanged": true
+    }
+  }
 }

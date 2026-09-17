@@ -10,7 +10,7 @@ import qa_task_plan
 import qa_verified_facts
 import re
 
-VERSION = 'qa-history-compound-v2'
+VERSION = 'qa-history-compound-v3-source-scope'
 MAX_HISTORY_TASKS = 4
 
 
@@ -32,7 +32,8 @@ def split_request(question, plan):
         history = []
         blocked.append('history_subtask_limit')
     return {'version': VERSION, 'history_questions': history, 'blocked': blocked,
-            'tools_disabled': plan.get('no_live_lookup') is True,
+            'tools_disabled': plan.get('all_tools_disabled') is True,
+            'live_lookup_disabled': plan.get('no_live_lookup') is True,
             'remainder_question': '；'.join(remainder) or '请提示用户单独说明非历史问题的对象和时间范围，不猜测或查询。'}
 
 
@@ -51,7 +52,13 @@ def data_tool_selection(selection, request):
 def execution_plan(question, request):
     plan = qa_task_plan.build_task_plan(question)
     if request and request.get('tools_disabled'):
-        plan.update(allow_mcp_tools=False, allow_prefetch=False, no_live_lookup=True, allowed_tool_domains=[])
+        plan.update(allow_mcp_tools=False, allow_prefetch=False, no_live_lookup=True,
+                    all_tools_disabled=True, allowed_tool_domains=[])
+    elif request and request.get('live_lookup_disabled'):
+        domains = [domain for domain in plan['allowed_tool_domains'] if domain != 'live_readonly_data']
+        plan.update(allow_mcp_tools=bool(domains), allow_prefetch=False, no_live_lookup=True,
+                    allowed_tool_domains=domains,
+                    allowed_sources=[source for source in plan['allowed_sources'] if source != 'live_readonly_data'])
     return plan
 
 

@@ -572,10 +572,18 @@ def _execute_document_question_in_snapshot(conn: Any, question: str, plan: dict[
     return _chapter_coverage(result, requested, selected, regulation_scopes)
 
 
+def lookup_policy_blocked() -> dict[str, Any]:
+    return _outcome('本轮禁止调用工具或查询数据库，正式制度原文未读取；未使用通用知识补写正式条款。'
+                    '如需分析，可提供需要分析的原文，或明确允许资料读取。',
+                    'dependency_blocked', 'document_lookup_policy_blocked')
+
+
 def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) -> dict[str, Any] | None:
     """Production entry: freeze every formal source field in one verified SELECT."""
     if plan.get('intents') != ['document_knowledge']:
         return None
+    if plan.get('all_tools_disabled'):
+        return lookup_policy_blocked()
     if _doc_id(question) != THREE_RULES:
         return _execute_document_question_in_snapshot(conn, question, plan)
     try:

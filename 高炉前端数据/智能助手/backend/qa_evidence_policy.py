@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 
-VERSION = 'qa-evidence-no-code-v6-offer-boundary'
+VERSION = 'qa-evidence-no-code-v7-source-scope'
 NO_CODE = '当前暂不提供代码、脚本、SQL 或命令示例，也不执行代码。可以继续用中文步骤、数学计算或已有数据分析来帮助你。'
 PROMPT = '''你是“炽穹·高炉炼铁大模型”，面向高炉现场的问答、知识解释和数据分析助手。
 直接完整回答用户实际提出的问题。信息充分时直接回答，不为展示能力而调用工具。
@@ -106,14 +106,8 @@ def capability_intro_only(question):
 
 def no_live_lookup(question):
     text = current_text(question).lower()
-    negative = r'(?:不需要|不必|不用|不要|无需|禁止|不)'
-    action = r'(?:查(?:询)?|读取|访问|调用|检索|连接)'
-    source = r'(?:实时|现场|生产|数据库|数据|工具)'
-    if re.search(negative + r'\s*' + action + r'[^，。；;\n]{0,8}' + source, text):
-        return True
-    if re.search(r'(?:只|仅)(?:用|看|根据|依据|基于)[^，。；;\n]{0,12}(?:我给|我提供|这些数|假设|已给|提供的)', text):
-        return True
-    return capability_intro_only(text)
+    import qa_task_plan
+    return qa_task_plan.lookup_constraints(text)['no_live_lookup'] or capability_intro_only(text)
 
 
 def direct_result(question, selection=None):
@@ -121,9 +115,13 @@ def direct_result(question, selection=None):
         return {'ok': True, 'answer': NO_CODE, 'answer_route': 'code_disabled',
                 'model_request_count': 0, 'tool_used': False, 'tool_trace': [], 'model_timing': {}}
     if no_live_lookup(question) and (selection or {}).get('mode') == 'required':
-        return {'ok': True, 'answer': '本轮同时要求不查询数据和强制调用工具，要求存在冲突。请取消强制工具选择，或明确允许查询的范围。',
-                'answer_route': 'tool_policy_conflict', 'model_request_count': 0,
-                'tool_used': False, 'tool_trace': [], 'model_timing': {}}
+        import qa_task_plan
+        plan = qa_task_plan.build_task_plan(current_text(question))
+        required = (selection or {}).get('tools') or []
+        if not required or any(not qa_task_plan.tool_allowed(name, plan) for name in required):
+            return {'ok': True, 'answer': '本轮的查询限制与强制工具选择存在冲突。请取消强制工具选择，或明确允许查询的范围。',
+                    'answer_route': 'tool_policy_conflict', 'model_request_count': 0,
+                    'tool_used': False, 'tool_trace': [], 'model_timing': {}}
     text = current_text(question).strip()
     if capability_intro_only(text):
         return {'ok': True, 'answer': INTRO, 'answer_route': 'capability_intro', 'model_request_count': 0,

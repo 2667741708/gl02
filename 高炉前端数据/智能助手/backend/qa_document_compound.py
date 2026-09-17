@@ -3,24 +3,11 @@ import re
 import qa_document_knowledge as documents
 import qa_task_plan
 
-VERSION = "qa-document-compound-v2"
+VERSION = "qa-document-compound-v3-source-scope"
 
 
 def clauses(text):
-    # Only split outer instructions; commas inside quoted source clauses stay.
-    stack, result, start = [], [], 0
-    pairs = {"《":"》", "“":"”", "‘":"’", '"':'"'}
-    for i, ch in enumerate(text):
-        if stack and ch == stack[-1]: stack.pop()
-        elif ch in pairs: stack.append(pairs[ch])
-        elif not stack and ch in "，,；;。\n":
-            if text[start:i].strip(): result.append(text[start:i].strip())
-            start = i + 1
-        elif not stack and i > start and re.match(r"(?:并|再|同时|然后)(?:查询|查看|分析|统计|计算|读取)", text[i:]):
-            result.append(text[start:i].strip())
-            start = i
-    if text[start:].strip(): result.append(text[start:].strip())
-    return result
+    return qa_task_plan.instruction_clauses(text)
 
 
 def prepare(conn, question, plan):
@@ -31,6 +18,8 @@ def prepare(conn, question, plan):
         child = qa_task_plan.build_task_plan(clause)
         if "document_knowledge" not in child["intents"]:
             remainder.append(clause)
+        elif plan.get("all_tools_disabled"):
+            originals.append(documents.lookup_policy_blocked())
         elif child["intents"] == ["document_knowledge"]:
             try: originals.append(documents.execute_document_question(conn, clause, child))
             except Exception:
@@ -60,7 +49,7 @@ def prefetch_plan(prepared):
     """Simple current reads use typed facts even alongside document tasks."""
     original = prepared.get("hidden_context", {}).get("qa_task_plan") or {}
     pack = prepared.get("document_compound")
-    if not pack: return original
+    if not pack or original.get("no_live_lookup") or original.get("all_tools_disabled"): return original
     question = pack["remainder_question"]
     child = qa_task_plan.build_task_plan(question)
     # Analysis still needs its own completion/quality checks. Do not turn a

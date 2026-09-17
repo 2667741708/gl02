@@ -3391,3 +3391,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 5覆盖反例在旧17项运行实际5fail/12pass，修复17pass。相关五组最终61pass/38.05秒；先前38pass/23默认Temp权限夹具错误单列，改用工作树独立basetemp，未修改共享ACL或删目录。独立Luna low语义PASS；实际PowerShell隔离harness不代表生产经理执行。V35/400为历史未重跑，不虚构合并461或原题准确率。
 
 当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+新增34项回归；初始23项17fail/6pass，追加制度禁止读库3项全部失败后修复。最终相关24组557pass/79.81秒，110项聚焦4.16秒；实际私有原源11组14次读取保真，1pass/15.77秒。先前554项属于补齐前r1，不作最终验收；3个异步测试适配错误单列。独立Luna low复审PASS，未调用助手模型，未复问822原题。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。

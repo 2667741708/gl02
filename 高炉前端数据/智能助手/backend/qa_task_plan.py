@@ -15,7 +15,7 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v2"
+VERSION = "qa-task-plan-v3-source-scope"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
@@ -46,6 +46,11 @@ _KNOWLEDGE_TERMS = (
 )
 _NO_LIVE_PATTERN = re.compile(r"(?:不要|不需要|无需|不必|不用|禁止|不)\s*(?:查(?:询)?|读取|访问|调用|检索|连接)[^，。；;\n]{0,12}(?:实时|现场|生产|数据库|数据|工具)")
 _USER_DATA_PATTERN = re.compile(r"(?:只|仅)(?:用|看|根据|依据|基于)[^，。；;\n]{0,16}(?:我给|我提供|这些数|假设|已给|提供的)")
+_ALL_TOOLS_PATTERN = re.compile(
+    r"(?:不要|不需要|无需|不必|不用|禁止|不)\s*"
+    r"(?:(?:查(?:询)?|读取|访问|调用|检索|连接|使用|用)\s*)?"
+    r"(?:(?:任何|所有|全部|外部|MCP)\s*)?(?:工具|数据库|数据)", re.I
+)
 
 # The production MCP registry is read-only, but routing must not infer safety
 # from a verb-shaped tool name.  Keep an explicit allowlist of exposed names;
@@ -112,7 +117,51 @@ def _contains_any(text: str, terms: tuple[str, ...]) -> bool:
 
 
 def _is_no_live_request(instruction: str) -> bool:
-    return bool(_NO_LIVE_PATTERN.search(instruction) or _USER_DATA_PATTERN.search(instruction))
+    return bool(_NO_LIVE_PATTERN.search(instruction) or _USER_DATA_PATTERN.search(instruction)
+                or _ALL_TOOLS_PATTERN.search(instruction))
+
+
+def lookup_constraints(question: str) -> dict[str, bool]:
+    instruction = _instruction_text(str(question or ""))
+    return {"no_live_lookup": _is_no_live_request(instruction),
+            "all_tools_disabled": bool(_ALL_TOOLS_PATTERN.search(instruction)
+                                       or _USER_DATA_PATTERN.search(instruction))}
+
+
+def instruction_clauses(text: str) -> list[str]:
+    """Split outer instructions; preserve literal source titles and quotations."""
+    stack, result, start = [], [], 0
+    pairs = {"《": "》", "“": "”", "‘": "’", '"': '"', "'": "'"}
+    for i, ch in enumerate(text):
+        if stack and ch == stack[-1]:
+            stack.pop()
+        elif ch in pairs:
+            stack.append(pairs[ch])
+        elif not stack and ch in "，,；;。\n":
+            if text[start:i].strip():
+                result.append(text[start:i].strip())
+            start = i + 1
+        elif not stack and i > start and re.match(r"(?:并|再|同时|然后)(?:查询|查看|分析|统计|计算|读取|对比|比较)", text[i:]):
+            result.append(text[start:i].strip())
+            start = i
+    if text[start:].strip():
+        result.append(text[start:].strip())
+    return result
+
+
+def _independent_temporal_data_task(text: str) -> bool:
+    for clause in instruction_clauses(text):
+        instruction = _instruction_text(clause)
+        if (any(span.startswith("《") for span in _quoted_spans(clause))
+                or _contains_any(instruction, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS)):
+            continue
+        anchored = bool(re.search(r"今天|今日|昨天|昨日|前天|最近|过去|\d{4}[年/.-]\d{1,2}[月/.-]\d{1,2}|\d{1,2}月\d{1,2}日", instruction)
+                        or qa_time_window_plan.explicit_clock_intent(instruction)
+                        or qa_time_window_plan.temporal_intent(instruction))
+        if (anchored and _contains_any(instruction, _LIVE_ACTIONS + ("对比", "比较"))
+                and _explicit_live_request(instruction)):
+            return True
+    return False
 
 
 def _explicit_live_request(instruction: str) -> bool:
@@ -158,7 +207,8 @@ def build_task_plan(question: str) -> dict[str, Any]:
     quoted = _quoted_spans(text)
     instruction = _instruction_text(text).strip()
     entity_resolution = qa_entity_resolution.resolve_requested_entities(instruction)
-    no_live = _is_no_live_request(instruction)
+    constraints = lookup_constraints(text)
+    no_live = constraints["no_live_lookup"]
     wants_user_data = bool(_USER_DATA_PATTERN.search(instruction))
     book_reference = any(span.startswith("《") for span in quoted)
     wants_document = (_contains_any(instruction, _DOCUMENT_TERMS) or book_reference) and (
@@ -172,7 +222,7 @@ def build_task_plan(question: str) -> dict[str, Any]:
             _contains_any(instruction, ("当前", "现在", "实时", "再查", "同时查"))
             and _contains_any(instruction, _LIVE_ACTIONS)
         )
-        wants_live = wants_live and explicit_compound_live
+        wants_live = wants_live and (explicit_compound_live or _independent_temporal_data_task(text))
 
     intents: list[str] = []
     if wants_document:
@@ -216,8 +266,11 @@ def build_task_plan(question: str) -> dict[str, Any]:
     allow_prefetch = "live_data" in intents
     if no_live:
         allow_prefetch = False
+    if constraints["all_tools_disabled"]:
         allow_tools = False
         allowed_tool_domains = []
+        search_knowledge = False
+        allowed_sources = [source for source in allowed_sources if source == "user_message"]
 
     return {
         "schema": VERSION,
@@ -233,6 +286,7 @@ def build_task_plan(question: str) -> dict[str, Any]:
         "entities": list(entity_resolution.get("variables") or []),
         "unresolved_entities": list(entity_resolution.get("unresolved") or []),
         "no_live_lookup": no_live,
+        "all_tools_disabled": constraints["all_tools_disabled"],
         "reason": "+".join(intents),
     }
 
@@ -253,6 +307,7 @@ def public_task_plan(plan: dict[str, Any] | None) -> dict[str, Any]:
         "entities": list(source.get("entities") or []),
         "unresolved_entity_count": len(source.get("unresolved_entities") or []),
         "no_live_lookup": bool(source.get("no_live_lookup")),
+        "all_tools_disabled": bool(source.get("all_tools_disabled")),
         "reason": str(source.get("reason") or ""),
         "quoted_span_count": len(source.get("quoted_spans") or []),
     }

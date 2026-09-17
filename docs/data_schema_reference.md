@@ -277,3 +277,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL变化。台账current_local_candidate由旧V26部署状态更新为实际V36本机候选，旧字段完整保留在prior_scoped_local_candidate；production_commit保持历史最后核验V26并明确连接失败。33条问题state不变，不把本机通过当生产销项。
 
 当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+无新增或修改数据库结构；本轮只修正允许读库的条件与历史检索词。隔离真实PostgreSQL/vector夹具验证已有增量源发布、绑定及单快照读合同，不表示生产DB迁移/发布已授权或执行。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
