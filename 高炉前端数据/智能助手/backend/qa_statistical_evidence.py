@@ -5,6 +5,7 @@ from copy import deepcopy
 from datetime import datetime
 import math
 from typing import Any, Mapping
+import qa_window_quality
 
 VERSION = 'qa-statistical-evidence-v1'
 
@@ -48,7 +49,7 @@ def unit_contract(variable: Any, object_id: str, fallbacks: Mapping[str, str]) -
             'disclosure': '单位未核实，保留原数值，不用于正式跨量比较。'}
 
 
-def quality_context(statistics: dict) -> str:
+def quality_context(statistics: dict, expected_start: Any = None, expected_end: Any = None) -> str:
     """Endpoint flags do not establish quality for every sample in the window."""
     labels = {'good': 'Good', 'held': 'Held', 'bad': 'Bad', 'uncertain': 'Uncertain',
               'derived_average': 'DERIVED_AVERAGE'}
@@ -64,9 +65,10 @@ def quality_context(statistics: dict) -> str:
             text = '未核实'
         values.append(text)
     held = 'Held' in values
+    window_quality = qa_window_quality.render(statistics, expected_start, expected_end)
     return (f'首样本质量 {values[0]}；末样本质量 {values[1]}；'
             + ('端点含Held标记，不能据此确认新增实测或真实炉况稳定；' if held else '')
-            + '窗口内各类质量数量和比例未核实，端点标记不代表整窗质量。')
+            + (window_quality if window_quality else '窗口内各类质量数量和比例未核实，端点标记不代表整窗质量。'))
 
 
 def prefetch_summary(object_id: str, requested_start: str, requested_end: str, result: Any) -> dict:

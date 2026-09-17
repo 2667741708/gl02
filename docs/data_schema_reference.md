@@ -1,5 +1,10 @@
 # 数据结构参考
 
+## REQ-QA-WINDOW-QUALITY-20260917：统计质量摘要
+
+状态：V30本机r2候选，未部署；最后核对2026-09-17，不增加表、列或迁移。
+statistics.quality_summary提供固定标签的样本计数；数据库非空值为分母，observed_rows与excluded_rows分别表示匹配行及未进入比例的空值行。schema/basis/计数一致性/请求窗口均需验证；queried_window仅表示SQL匹配行全量计数，不表示采样覆盖。序列returned_samples保持whole_window_verified=false，不声称源窗口完整。未知质量不猜测为Good，派生平均不代表物理传感器质量。字段权威：[API合同](api_reference.md)、[实现与验收边界](handoffs/2026-09-17-qa-v30-window-quality.md)。
+
 ## REQ-QA-FINAL-COMPLETION-20260917：普通问答完成合同
 
 状态：V29本机候选，未部署；最后核对2026-09-17。不增加表、列或数据库迁移。

@@ -385,3 +385,9 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 权威：[实施、实际检查及剩余边界](handoffs/2026-09-17-qa-v29-final-completion.md)、[候选机器证据](../tests/qa_regression/final_completion_candidate_20260917.json)、[真实函数回归](../tests/test_qa_final_completion.py)。处理器接缝为AST与合同检查，尚未执行线上处理器/822原题语义验收；这些问题未销项。
 
 `completion.incomplete_reasons`为可选字符串数组；本轮原因包括output_limit、termination_unverified、empty_answer、unfinished_heading、stream_incomplete、model_analysis_incomplete。发现明确不完整证据时terminal_state=partial、complete=false；保留原合同中的covered/missing及子任务字段。新模块默认schema=qa-completion-v2，既有结构化执行器的schema继续原样保留。answered_pending_review不等于语义通过，semantic_review_required继续为true；不增加新的API端点或重发指令。
+
+## REQ-QA-WINDOW-QUALITY-20260917：V30统计质量合同
+
+状态：本机r2候选，102项相关回归及独立审查通过，未部署；最后核对2026-09-17。
+普通传感器完整统计可新增statistics.quality_summary：schema=qa-window-quality-v1、scope、basis、sample_count、counts与whole_window_verified。counts固定Good/Held/Bad/Uncertain/DERIVED_AVERAGE/Unknown非负整数，和必须等于原统计count。数据库scope=queried_window、basis=non_null_values，另提供observed_rows/excluded_rows/start_time/end_time，并绑定同一请求窗；该标记不证明物理采样覆盖或新增实测。序列scope=returned_samples、basis=returned_numeric_rows、whole_window_verified=false，不把有限返回结果当整窗完整。无有效质量计数或窗口不匹配时继续说明质量未核实；没有新增工具名、端点、重试或模型切换。
+权威：[实现、范围及未验收项](handoffs/2026-09-17-qa-v30-window-quality.md)、[机器回归证据](../tests/qa_regression/window_quality_candidate_20260917.json)、[实际函数回归](../tests/test_qa_window_quality.py)。SQL与最终答案本轮未在生产验证。
