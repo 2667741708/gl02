@@ -3323,3 +3323,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 实际284 passed：新latest证据46、既有读取/禁代码72、renderer/统计/质量126、完成状态40；r1/r2独立审查PASS。回归含旧错对象显示、typed source与溢出反例、日期缺时分、未登记单位、pSpace时间标记、混时/缺组件派生值及工具出口表达式。合成数据/真实函数接缝不代替完整线上链路及822题语义验收。
 权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+## REQ-QA-SINGLE-BASE-MODEL-20260917：强约束再次复核
+
+状态：本机47项通过；最后核对2026-09-17；生产管理器安装未完成。历史双底座窗口的六种真实PowerShell隔离场景均必须拒绝执行且无任务/HTTP操作，保留截止时间与请求预算测试。固定身份、禁切换管理器、退役窗口及安装事务共47项通过。生产只读快照显示固定名称未匹配冻结摘要、驻留为空，未使用其他底座继续测试。
+权威：[本轮缺陷及可复现命令](handoffs/2026-09-17-qa-fixed-base-constraint-recheck.md)、[退役窗口回归](../tests/test_qa_fixed_model_window.py)。本机通过不代表生产已锁定，也不代表原题准确率提高。

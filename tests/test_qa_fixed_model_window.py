@@ -1,4 +1,4 @@
-"""Exercise the real window try/finally using isolated task/HTTP mocks, never production."""
+"""Verify deadline guards and retirement of the historical two-base window."""
 import hashlib
 import importlib.util
 import json
@@ -46,10 +46,10 @@ def test_deadline_reserves_full_collector_budget():
 
 
 @pytest.mark.skipif(not PWSH.exists(), reason='PowerShell 7 is required for the real executor harness')
-@pytest.mark.parametrize('mode,enabled,expected_error', [
-    ('ok', True, False), ('ok', False, False), ('bad_resident', True, True),
-    ('batch_error', True, True), ('disable_error', True, True), ('duplicate_pool', True, True)])
-def test_real_window_restores_only_its_task(tmp_path, mode, enabled, expected_error):
+@pytest.mark.parametrize('mode,enabled', [
+    ('ok', True), ('ok', False), ('bad_resident', True),
+    ('batch_error', True), ('disable_error', True), ('duplicate_pool', True)])
+def test_retired_two_base_window_has_no_side_effects(tmp_path, mode, enabled):
     root = tmp_path / 'root'
     root.mkdir()
     stage = tmp_path / 'stage'
@@ -76,10 +76,10 @@ def test_real_window_restores_only_its_task(tmp_path, mode, enabled, expected_er
 $global:Enabled=__ENABLED__
 $global:Calls=[Collections.Generic.List[string]]::new()
 function Check-Task($TaskPath,$TaskName) { if ($TaskPath -ne '\BlastFurnaceServices\' -or $TaskName -ne 'BFOllamaModelSelectionRecovery') { throw 'Other task forbidden' } }
-function Get-ScheduledTask { param($TaskPath,$TaskName) Check-Task $TaskPath $TaskName; [pscustomobject]@{Settings=[pscustomobject]@{Enabled=$global:Enabled}} }
+function Get-ScheduledTask { param($TaskPath,$TaskName) $global:Calls.Add('task-read'); Check-Task $TaskPath $TaskName; [pscustomobject]@{Settings=[pscustomobject]@{Enabled=$global:Enabled}} }
 function Disable-ScheduledTask { param($TaskPath,$TaskName) Check-Task $TaskPath $TaskName; $global:Calls.Add('disable'); $global:Enabled=$false; __DISABLE__ }
 function Enable-ScheduledTask { param($TaskPath,$TaskName) Check-Task $TaskPath $TaskName; $global:Calls.Add('enable'); $global:Enabled=$true }
-function Invoke-RestMethod { param($Uri,$TimeoutSec) if ($Uri -notin @('http://127.0.0.1:11434/api/tags','http://127.0.0.1:11434/api/ps')) { throw 'Unexpected HTTP call' }; [pscustomobject]@{models=@([pscustomobject]@{name='chiqiongblastfuenace:latest';digest='__DIGEST__'})} }
+function Invoke-RestMethod { param($Uri,$TimeoutSec) $global:Calls.Add('http'); if ($Uri -notin @('http://127.0.0.1:11434/api/tags','http://127.0.0.1:11434/api/ps')) { throw 'Unexpected HTTP call' }; [pscustomobject]@{models=@([pscustomobject]@{name='chiqiongblastfuenace:latest';digest='__DIGEST__'})} }
 function Start-Sleep { param($Seconds) }
 $Failed=$false
 try { & '__WINDOW__' -Stage '__STAGE__' -PlanHash '__PLAN__' -BatchHash '__BATCH__' -CollectorHash '__COLLECTOR__' -WindowMinutes 15 }
@@ -96,10 +96,9 @@ catch { $Failed=$true; $Message=$_.ToString() }
     result = subprocess.run([str(PWSH), '-NoLogo', '-NoProfile', '-File', str(harness)], capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr
     outcome = json.loads(calls.read_text(encoding='utf-8-sig'))
-    assert outcome['failed'] is expected_error, outcome
+    assert outcome['failed'] is True, outcome
+    assert 'two-base windows are forbidden' in outcome['message']
     assert outcome['enabled'] is enabled
-    assert outcome['calls'] == (['disable', 'enable'] if enabled and mode != 'duplicate_pool' else [])
-    if mode != 'duplicate_pool':
-        audit = json.loads((root / 'logs/qa_model_window_v26_20260917_r2/window.json').read_text())
-        assert audit['task_restored'] is True
-        assert audit['automatic_replay'] is False
+    assert outcome['calls'] == []
+    assert list(root.iterdir()) == []
+    assert not list(stage.glob('qa_model_window*'))
