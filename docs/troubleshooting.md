@@ -599,3 +599,12 @@ SSH已恢复但固定底座仍被阻断：比较固定摘要与tags→ps→tags�
 复测缺实际系统Prompt凭证时，核对服务端prompt_binding而非用户输入hash。比较prepared与各实际请求摘要，规划/降级/repair不同是正常；request_built不冒充发送成功。legacy/未知摘要缓存应拒绝命中；固定摘要不符停止新调用。
 
 权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+片段测试全绿但完整导入缺模块时，禁止伪造依赖或回落旧proxy。运行哈希绑定的RAM完整加载探针，真实缺失模块/I/O尝试/依赖源变化均阻断。Windows stdlib OS元数据在候选guard之前预热，不放开候选进程权限。固定身份不一致继续阻断原题复问。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。

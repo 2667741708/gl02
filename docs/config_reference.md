@@ -787,3 +787,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 底座名称/e4摘要及禁切换/备用/同名换权重不变。BF_ABC_RULE_ASSISTANT_PROMPT_VERSION配置基值统一幂等追加.fixed-pin-binding.v1作为缓存版本键，无新配置值写入生产。
 
 权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+完整候选探针仅清理独立子进程BF_/OLLAMA_/PG环境并注入synthetic上游与keyword检索；不修改服务配置、计划任务或模型。BF_FRONTEND_DIR指向已审查依赖根，BF_SKIP_ASSISTANT_STARTUP=1只用于探针，禁止把合成环境应用到生产服务。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。

@@ -1334,3 +1334,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [实际请求绑定](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:67)、[准备绑定](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:56)、[缓存版本](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:20)由确定性候选构建器注入已审查proxy边界；不重建或覆盖旧单体。
 
 权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+tools/qa_full_candidate_probe.py负责RAM源加载、只读I/O边界、执行源哈希及完整合成Handler合同；tools/build_qa_full_candidate_probe.py绑定最新冻结manifest/probe SHA并OEXCL生成私有脚本；tools/verify_qa_full_candidate_probe.py校验完整证据并导出59项传递依赖read_set，不授予部署授权。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。

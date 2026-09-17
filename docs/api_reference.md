@@ -531,3 +531,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 问答JSON和SSE final/error新增prompt_binding安全元数据；仅版本、摘要及request_built状态，不展示原文/Prompt/身份。缓存 delivery=cache沿用原生成摘要且current_requests_built=0；legacy未知摘要缓存不命中。
 
 权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+本轮没有新增或放宽QA API。完整导入后的真实Handler/prepare/JSON/SSE代码在合成外部边界下验证：跨owner404、占用/去重/取消409、JSON固定权重错误code=fixed_model_identity_not_ready、SSE对应error。合同通过不能证明生产接口已部署或语义准确率。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。

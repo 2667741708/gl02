@@ -734,3 +734,12 @@ probe_qa_paired_runtime_readonly.py --root <repo> --scope-file <reviewed-gate.js
 python -X utf8 tools/build_qa_prompt_binding_candidate.py --revision rN只冻结本机16文件受控私有闭包，OEXCL禁止覆写；逐字节继承14文件并验证全部其余函数AST。不是上传或部署入口。聚焦验证python -X utf8 -m pytest -q tests/test_qa_prompt_binding.py --tb=short。
 
 权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+生成：python -B -X utf8 tools/build_qa_full_candidate_probe.py --dependency-root <reviewed-root> --output-script <new-ignored-private-path>。校验：python -B -X utf8 tools/verify_qa_full_candidate_probe.py --evidence <private-report> --output-read-scope <new-private-read-scope>。两入口--help通过。脚本只经Reliable SSH精确Python -B -X utf8 - argv/stdin执行，remote不落源码；ok=false退出1，无自动重放或部署授权。全部传递依赖须加入后续守卫read_set并新鲜复核。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。

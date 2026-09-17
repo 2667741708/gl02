@@ -1,0 +1,174 @@
+{
+  "schema": "bf.qa.full-candidate-runtime-public-evidence.v1",
+  "requirement_id": "REQ-QA-FULL-CANDIDATE-RUNTIME-20260917",
+  "evidence_frozen_at": "2026-09-17T11:00:54.060659+00:00",
+  "state": "native_full_import_and_synthetic_handler_verified_production_pin_blocked",
+  "issue_ids": [
+    "QAOPT-T01",
+    "QAOPT-T03",
+    "QAOPT-T05",
+    "QAOPT-O01"
+  ],
+  "candidate": "v45-r2",
+  "manifest_sha256": "a27bd42e7130ac7ba784f982b0b9240846cb1cf2c22f49e6d27809da505abb59",
+  "probe_sha256": "6d26290fe47a59fff4defe195f5ac683a9bfe18ecaa7d888a4e0fc2f3cbe3d5b",
+  "fixed_identity": {
+    "name": "chiqiongblastfuenace:latest",
+    "digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124"
+  },
+  "fixed_base_switch_allowed": false,
+  "candidate_bytes_changed": false,
+  "native_import": {
+    "python": "3.11.9",
+    "entry_modules": [
+      "ollama_proxy_server",
+      "bf_data_mcp_server"
+    ],
+    "frozen_modules_loaded": 16,
+    "transitive_project_dependencies": 59,
+    "all_project_modules_executed_from_source": true,
+    "changed_or_unbound_dependencies": 0,
+    "side_effect_attempts": 0,
+    "read_scope_sha256": "e72bb1335982c847a80cb5597139070a5e0230f003b85808d750893c1c276274",
+    "windows_platform_metadata_prepared_before_guard": true
+  },
+  "full_handler_contracts": {
+    "state": "synthetic_contract_only",
+    "cases": [
+      {
+        "id": "full_json_supplied_data",
+        "passed": true,
+        "status": 200,
+        "mock_requests": 1,
+        "error_code": null
+      },
+      {
+        "id": "full_json_code_disabled",
+        "passed": true,
+        "status": 200,
+        "mock_requests": 0,
+        "error_code": null
+      },
+      {
+        "id": "full_json_cross_owner_denied",
+        "passed": true,
+        "status": 404,
+        "mock_requests": 0
+      },
+      {
+        "id": "full_json_wrong_weight_denied",
+        "passed": true,
+        "status": 500,
+        "mock_requests": 0,
+        "error_code": "fixed_model_identity_not_ready"
+      },
+      {
+        "id": "full_json_single_user_busy",
+        "passed": true,
+        "status": 409,
+        "mock_requests": 0
+      },
+      {
+        "id": "full_json_duplicate_id_denied",
+        "passed": true,
+        "status": 409,
+        "mock_requests": 0
+      },
+      {
+        "id": "full_json_cancel_before_persist",
+        "passed": true,
+        "status": 409,
+        "mock_requests": 1
+      },
+      {
+        "id": "full_sse_supplied_data",
+        "passed": true,
+        "status": 200,
+        "events": [
+          "start",
+          "start",
+          "delta",
+          "final",
+          "done"
+        ],
+        "mock_requests": 1
+      },
+      {
+        "id": "full_sse_code_disabled",
+        "passed": true,
+        "status": 200,
+        "events": [
+          "start",
+          "start",
+          "delta",
+          "final",
+          "done"
+        ],
+        "mock_requests": 0
+      },
+      {
+        "id": "full_sse_wrong_weight_denied",
+        "passed": true,
+        "status": 200,
+        "events": [
+          "start",
+          "start",
+          "error"
+        ],
+        "mock_requests": 0
+      }
+    ],
+    "mocked_boundaries": [
+      "authentication_session",
+      "database_connection",
+      "sensor_snapshot_provider",
+      "ollama_transport",
+      "heartbeat_thread_start"
+    ],
+    "heartbeat_schedules_mocked": 3,
+    "real_concurrency_verified": false,
+    "full_prepare_executed": true,
+    "real_database_verified": false,
+    "real_model_answer_verified": false,
+    "production_accuracy_inferred": false
+  },
+  "guard_tests": {
+    "passed": 34,
+    "elapsed_seconds": 7.25,
+    "command": "python -B -X utf8 -m pytest -q tests/test_qa_full_candidate_probe.py tests/test_qa_full_candidate_probe_evidence.py --tb=short --basetemp=.codex_runtime/qa-full-import-20260917/pytest-final-r3",
+    "independent_readonly_review": "PASS gpt-5.6-luna low"
+  },
+  "probe_corrections": {
+    "initial_import_guard_block": "Windows stdlib platform.machine metadata used subprocess ver; prepared OS metadata before candidate guard, no process allowance added.",
+    "initial_contract_run": {
+      "passed": 3,
+      "failed": 1,
+      "cause": "Probe expected error_code instead of actual code field; no assistant behavior change or assertion weakening."
+    }
+  },
+  "production_readonly": {
+    "connection_identity_verified": true,
+    "production_commit": "df9dde1abe06b386906a2bfad508403732fd40ae",
+    "proxy_sha256": "47b7e75f6a4c2b932ac21b0dd9628d4c049f7a6f2ee083537bbedf1a6c57f431",
+    "mcp_sha256": "42d81acb60a0d3b28897c55e5c692e71f75ca5cf262dc8088fa4d1dcc6817884",
+    "backend_runtime_version": "v26",
+    "fixed_identity_ready": false,
+    "observed_alias_and_resident_digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb",
+    "latest_commit_paths_disjoint_from_qa_backend": true,
+    "r3_total": 953,
+    "r3_completed": 953,
+    "r3_process_absent": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0,
+    "production_issue_closures": 0
+  },
+  "required_before_seal": [
+    "Native probe report must bind the latest frozen manifest and current probe implementation.",
+    "Merge all transitive dependency source paths/hashes into the guarded release read set and freshly revalidate.",
+    "Separate fixed-base readiness and database/source release gates remain mandatory.",
+    "Synthetic contracts never count as original-question semantic accuracy or real concurrency acceptance."
+  ],
+  "original_failed_partial_cases_not_resent": 822,
+  "semantic_accuracy_inferred": false
+}

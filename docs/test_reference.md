@@ -3481,3 +3481,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 新增30例，初始21例11fail/10pass；r1审查FAIL的3个后缀反例全部失败已修。r2最终24模块643pass、14schema/22标记/复审通过，0真实模型请求，不计线上准确率。
 
 权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+tests/test_qa_full_candidate_probe.py与tests/test_qa_full_candidate_probe_evidence.py共34 pass（7.25秒）。生产独立Python3.11.9实际完整加载16冻结模块及59项目依赖，10完整合成合同pass。五个外部I/O边界为夹具；不计为真实数据库、模型答案、并发或线上准确率。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。

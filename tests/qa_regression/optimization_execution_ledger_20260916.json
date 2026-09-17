@@ -4,7 +4,7 @@
   "checked_at": "2026-09-17",
   "proposed_unmapped_triage_supplement": "unmapped_triage_supplement_20260917.json",
   "proposed_unmapped_triage_state": "9_partial_triaged_0_root_causes_confirmed_0_closed_original_judgments_unchanged",
-  "production_commit": "e6530983531251e7290d045d96e1aead065585fb",
+  "production_commit": "df9dde1abe06b386906a2bfad508403732fd40ae",
   "production_retest": {
     "passed": 2,
     "partial": 6,
@@ -602,7 +602,9 @@
       "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
       "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
       "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
-      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed",
+      "native_full_candidate_runtime_evidence": "full_candidate_runtime_20260917.json",
+      "native_full_candidate_runtime_state": "16_modules_59_dependencies_10_synthetic_handlers_verified_no_production_closure"
     },
     {
       "order": 24,
@@ -692,7 +694,9 @@
       "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
       "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
       "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
-      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed",
+      "native_full_candidate_runtime_evidence": "full_candidate_runtime_20260917.json",
+      "native_full_candidate_runtime_state": "16_modules_59_dependencies_10_synthetic_handlers_verified_no_production_closure"
     },
     {
       "order": 29,
@@ -737,7 +741,9 @@
       "local_declared_input_scope": "declared_input_scope_20260917.json",
       "local_declared_input_scope_state": "v40_r2_reviewed_327_tests_passed_not_deployed",
       "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
-      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed",
+      "native_full_candidate_runtime_evidence": "full_candidate_runtime_20260917.json",
+      "native_full_candidate_runtime_state": "16_modules_59_dependencies_10_synthetic_handlers_verified_no_production_closure"
     },
     {
       "order": 31,
@@ -775,7 +781,9 @@
       "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
       "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
       "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
-      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed",
+      "native_full_candidate_runtime_evidence": "full_candidate_runtime_20260917.json",
+      "native_full_candidate_runtime_state": "16_modules_59_dependencies_10_synthetic_handlers_verified_no_production_closure"
     },
     {
       "order": 33,
@@ -987,8 +995,8 @@
   "prior_production_snapshot_state_before_runtime_pin_probe": "historical_last_verified_v26_current_connection_gate_failed",
   "latest_readonly_production_gate": {
     "checked_at": "2026-09-17",
-    "evidence": "actual_prompt_binding_20260917.json",
-    "production_commit": "e6530983531251e7290d045d96e1aead065585fb",
+    "evidence": "full_candidate_runtime_20260917.json",
+    "production_commit": "df9dde1abe06b386906a2bfad508403732fd40ae",
     "backend_runtime_version": "v26",
     "fixed_identity_ready": false,
     "connection_identity_verified": true,
@@ -1006,5 +1014,27 @@
     "manifest_sha256": "9b9b797b82bd261bfbcce936e8f24aef5974f5b5f056e001633acc4b856a7ee6",
     "fixed_base_identity_unchanged": true
   },
-  "prior_production_commit_before_disjoint_dashboard": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e"
+  "prior_production_commit_before_disjoint_dashboard": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+  "prior_readonly_production_gate_before_native_import": {
+    "checked_at": "2026-09-17",
+    "evidence": "actual_prompt_binding_20260917.json",
+    "production_commit": "e6530983531251e7290d045d96e1aead065585fb",
+    "backend_runtime_version": "v26",
+    "fixed_identity_ready": false,
+    "connection_identity_verified": true,
+    "disjoint_dashboard_commit_reviewed": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0
+  },
+  "latest_native_runtime_gate": {
+    "candidate": "v45-r2",
+    "state": "native_full_import_and_synthetic_handler_verified_production_pin_blocked",
+    "evidence": "full_candidate_runtime_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 59,
+    "synthetic_contracts_passed": 10,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true
+  }
 }

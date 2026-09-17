@@ -1418,3 +1418,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 每条答复关联服务端实际系统Prompt及请求策略摘要；规划/降级/repair单列，用户问题hash不代替实际系统Prompt。请求构建不证明发送/完成/准确。
 
 权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+完整发布候选不能只靠AST函数片段验收；需原生Python3.11完整加载冻结16模块、所有实际传递依赖，以及JSON/SSE/owner/固定底座/取消/去重合成链路。V45-r2已验证16模块、59实际依赖、10合成合同；34边界测试及独立审查通过，未部署或生产销项。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
