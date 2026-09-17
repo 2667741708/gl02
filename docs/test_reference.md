@@ -3436,3 +3436,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 新增32例；初始27项20fail/7pass。首次7个历史快照耦合错误和2个外层MCP测试遗漏均保留记录，修正测试组合而未放宽语义断言。最终16模块395pass/31.20秒，Luna复审PASS、14金标schema和22共享标记通过；不是线上准确率。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-CONCEPT-SCOPE-20260917：来源概念与具体记录
+
+状态：2026-09-17本机436项相关回归/独立审查通过，V42-r1冻结，生产未应用。
+
+新增41例；初始30项18fail/12pass。首次聚焦139pass/1fail发现这个概念误识别为具体记录，修正后142pass/9.59秒。最终17模块436pass/34.40秒、Luna复审PASS、14金标schema/22共享标记通过；不代表线上正确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

@@ -1,0 +1,97 @@
+{
+  "schema": "bf.qa.source-concept-scope-public-evidence.v1",
+  "requirement_id": "REQ-QA-SOURCE-CONCEPT-SCOPE-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_tested_reviewed_frozen_not_production_applied",
+  "candidate": "v42-r1",
+  "issue_ids": [
+    "QAOPT-R01",
+    "QAOPT-R07",
+    "QAOPT-K04"
+  ],
+  "defect_reproduction": {
+    "cases": 30,
+    "failed": 18,
+    "passed": 12,
+    "elapsed_seconds": 0.13,
+    "defect": "Definitions and uses of reports/history triggered actual stored-record domains and invented compound subtasks."
+  },
+  "verification": {
+    "new_regression_cases": 41,
+    "related_passed": 436,
+    "related_elapsed_seconds": 34.4,
+    "related_modules": 17,
+    "test_command": "python -X utf8 -m pytest -q --tb=short --basetemp=.codex_runtime/qa-source-concept-final-20260917-r1 tests/test_qa_source_concept_scope.py tests/test_qa_response_style_source_scope.py tests/test_qa_declared_input_scope.py tests/test_qa_user_supplied_scope.py tests/test_qa_task_plan.py tests/test_qa_compound_source_scope.py tests/test_qa_evidence_policy.py tests/test_qa_math_function_policy.py tests/test_qa_history_compound.py tests/test_qa_history_projection.py tests/test_qa_history_completion.py tests/test_qa_v12_safety.py tests/test_qa_final_completion.py tests/test_qa_fixed_model_identity.py tests/test_qa_history_compound_seams.py tests/test_qa_single_window_routing.py tests/test_qa_document_knowledge.py",
+    "first_focused_attempt": {
+      "passed": 139,
+      "failed": 1,
+      "elapsed_seconds": 9.5,
+      "failure_kind": "The phrase this concept was incorrectly treated as a concrete record reference."
+    },
+    "final_focused_passed": 142,
+    "final_focused_elapsed_seconds": 9.59,
+    "non_final_attempt_preserved": true,
+    "semantic_assertions_unchanged": true,
+    "actual_document_entry_checked": true,
+    "actual_outer_mcp_assignment_checked": true,
+    "actual_owned_history_entry_checked": true,
+    "owner_and_message_cutoff_preserved": true,
+    "current_execution_binds_latest_full_frozen_candidate": true,
+    "historical_v40_v41_manifest_binding_preserved": true,
+    "independent_static_review": "PASS gpt-5.6-luna low V42-r1",
+    "shared_feature_preservation_passed": true,
+    "shared_feature_required_markers": 22,
+    "gold_task_schema_validation_passed": 14,
+    "real_model_generation_executed": false
+  },
+  "contracts": {
+    "record_domain_concepts_do_not_read_stored_records": true,
+    "explicit_read_personal_time_record_locator_and_formal_sources_preserved": true,
+    "filtering_is_clause_scoped_independent_actual_record_subtasks_preserved": true,
+    "concepts_do_not_lift_user_input_or_all_tools_constraints": true,
+    "formal_document_and_owner_history_gates_preserved": true,
+    "proxy_prompt_code_policy_reader_binding_fixed_identity_byte_unchanged": true
+  },
+  "private_candidate": {
+    "files": 15,
+    "manifest_sha256": "b7b74e1d68d986ca3ac98abf3acfe9f001d099854af1fb1129716b4175c714cf",
+    "inherited_v41_files_byte_identical": 14,
+    "changed_module_sha256": "66259c15359649aeb34d43713a37ba3506426a742ae8fb5094d37dc69f45026a",
+    "proxy_bytes_unchanged": true,
+    "additional_runtime_read_set_preserved": true,
+    "production_sealed": false,
+    "production_dependency_refresh_required": true
+  },
+  "generator_sha256": {
+    "tools/build_qa_source_concept_candidate.py": "272aa0e20da3061b7fd656aa317b32c3f1c6f7718d08c64ffc578368278db7b9",
+    "tests/test_qa_source_concept_scope.py": "9f6c5163f2452de84b75adf288d2560565d630f89b876c44ca13700532ae6653",
+    "高炉前端数据/智能助手/backend/qa_task_plan.py": "66259c15359649aeb34d43713a37ba3506426a742ae8fb5094d37dc69f45026a"
+  },
+  "evaluation_scope": "Local domain-concept and actual frozen routing/document/owner-history entry contracts only; not real final-answer accuracy.",
+  "not_tested": [
+    "production_MCP_execution",
+    "real_final_answer_accuracy",
+    "latency_cost",
+    "pass5",
+    "production_single_user_concurrency"
+  ],
+  "model_name": "chiqiongblastfuenace:latest",
+  "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+  "model_switch_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "fallback_model_allowed": false,
+  "production_identity_and_routes": "NO_REACHABLE_ROUTE_both_configured_routes_SSH_CONNECT_TIMEOUT",
+  "production_current_state_freshly_verified": false,
+  "production_applied": false,
+  "production_writes": 0,
+  "question_posts": 0,
+  "assistant_model_calls": 0,
+  "issues_closed": 0,
+  "all_33_issue_states_preserved": true,
+  "initial_judgments_and_prior_production_retest_preserved": true,
+  "original_failure_partial_cohort": 822,
+  "real_retest_requests": 0,
+  "semantic_improvement_verified": false,
+  "initial_results_matched_same_base_claimed": false,
+  "privacy": "Public code synthetic questions hashes contracts and counts only; no raw clauses QA production data identities credentials or private artifacts."
+}

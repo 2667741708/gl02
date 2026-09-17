@@ -486,3 +486,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无HTTP接口新增。普通逐条解释不得要求补书名或附加制度缺失任务；明确资料请求仍受绑定和原文完整性校验。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-CONCEPT-SCOPE-20260917：来源概念与具体记录
+
+状态：2026-09-17本机436项相关回归/独立审查通过，V42-r1冻结，生产未应用。
+
+无HTTP新增。概念解释不读取聊天或日报正文；我的/今天等实际记录请求保持既有只读来源。实际代理外层和owner历史入口均有回归，owner与消息截止锚点不变。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

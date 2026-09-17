@@ -554,3 +554,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 普通完整说明被要求提供书名时先检查是否把回答形式当成来源。测试代理必须包含外层allow_mcp_tools与内部谓词；最新冻结包全15哈希必须验证，历史快照保持独立固定绑定，禁止回退旧候选掩盖变化。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-CONCEPT-SCOPE-20260917：来源概念与具体记录
+
+状态：2026-09-17本机436项相关回归/独立审查通过，V42-r1冻结，生产未应用。
+
+日报是什么或聊天记录用途触发读取时检查概念与记录定位。不能全局删除报表/历史来源；同一请求里的实际记录必须保留。时间、个人、引用、ID及读取动作优先，整个过滤按引号感知子句执行。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

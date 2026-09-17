@@ -15,7 +15,7 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v6-response-style-source"
+VERSION = "qa-task-plan-v7-source-concept-scope"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
@@ -177,6 +177,26 @@ def instruction_clauses(text: str) -> list[str]:
     return result
 
 
+def _conceptual_source_clause(clause: str) -> bool:
+    """Explaining a record domain is not a request to read stored records."""
+    instruction = _instruction_text(clause)
+    if not _contains_any(instruction, _HISTORY_TERMS + _REPORT_TERMS):
+        return False
+    # Explicit sources, scoped records and read commands retain their original
+    # evidence domain, even when the question also asks about their meaning.
+    if (_quoted_spans(clause) or _contains_any(instruction, _DOCUMENT_TERMS)
+            or re.search(r"查询|查一下|查下|检索|读取|调取|获取|查看|列出|导出|生成", instruction)
+            or re.search(r"今天|今日|昨天|昨日|前天|最近|过去|当前|现在|最新|实时|之前|此前|上一|上次|我的|我们的|我(?:问|说)|这[份篇条次本]|这个(?!概念)|该[份篇条次本]|那[份篇个条次本]|\d{4}[年/.-]\d{1,2}|\d{1,2}月\d{1,2}日|\d{1,2}[点时]|[Ii][Dd]\s*[:：=]", instruction)
+            or re.search(r"(?:日报|周报|月报|报表|生产报告|聊天记录|对话记录|历史问答|历史会话)[^，。；;\n]{0,4}(?:里|中|第\d)", instruction)):
+        return False
+    return bool(re.search(
+        r"区别|差别|用途|作用|原理|概念|定义|含义|什么意思"
+        r"|(?:如何|怎么)(?:编写|写)"
+        r"|(?:一般|通常)[^，。；;\n]{0,8}(?:包括|包含)"
+        r"|(?:日报|周报|月报|报表|生产报告|聊天记录|对话记录|历史问答|历史会话)\s*是什么",
+        instruction))
+
+
 def user_data_scope(text: str) -> dict[str, Any]:
     """Keep supplied inputs distinct from explicitly requested external reads."""
     instruction = _instruction_text(str(text or ""))
@@ -191,6 +211,8 @@ def user_data_scope(text: str) -> dict[str, Any]:
         for clause in instruction_clauses(str(text or "")):
             masked = _instruction_text(clause)
             if _declared_input_clause(clause):
+                continue
+            if _conceptual_source_clause(clause):
                 continue
             if (any(span.startswith("《") for span in _quoted_spans(clause))
                     or _contains_any(masked, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS)):
@@ -313,8 +335,10 @@ def build_task_plan(question: str) -> dict[str, Any]:
     wants_document = (_contains_any(instruction, _DOCUMENT_TERMS) or book_reference) and (
         _contains_any(instruction, _DOCUMENT_ACTIONS) or "按" in instruction or "根据" in instruction
     )
-    wants_history = _contains_any(instruction, _HISTORY_TERMS)
-    wants_report = _contains_any(instruction, _REPORT_TERMS)
+    source_clauses = [_instruction_text(clause) for clause in instruction_clauses(text)
+                      if not _conceptual_source_clause(clause)]
+    wants_history = any(_contains_any(clause, _HISTORY_TERMS) for clause in source_clauses)
+    wants_report = any(_contains_any(clause, _REPORT_TERMS) for clause in source_clauses)
     wants_live = _explicit_live_request(instruction) and not no_live
     if wants_document or wants_history or wants_report:
         explicit_compound_live = (

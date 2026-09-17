@@ -322,3 +322,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL和生产数据修改。prior_local_candidate_v40保存历史候选；33项状态、R07重新开放记录和旧线上证据均保留，0销项。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-CONCEPT-SCOPE-20260917：来源概念与具体记录
+
+状态：2026-09-17本机436项相关回归/独立审查通过，V42-r1冻结，生产未应用。
+
+无DDL/生产数据修改。prior_local_candidate_v41保存历史候选；33项状态、R07重新开放及旧生产证据不变，0销项。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
