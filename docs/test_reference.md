@@ -3504,3 +3504,10 @@ tests/test_qa_full_candidate_probe.py与tests/test_qa_full_candidate_probe_evide
 32模块808合同、14金标schema、16冻结模块/60实际依赖及19完整原生Handler合成合同通过；保留首轮1夹具错误和2编码错误，不计生产准确率。
 
 [实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+33模块861项回归、14金标schema、16候选/60实际依赖原生加载与25合成合同通过；6普通prepare合同不生成模型答案，不计生产准确率。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。

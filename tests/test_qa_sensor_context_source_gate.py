@@ -143,10 +143,8 @@ def test_restriction_without_page_snapshot_performs_no_snapshot_operations():
     '查询当前炉顶压力。',
     '我给的数据风压=[220,224,226]，分析平均值；同时查询当前炉顶压力。',
     '查询最近一小时炉顶压力；再写一个Python代码示例。',
-    '这个最近30分钟的趋势如何？',
-    '请解释本对话绑定的规则。',
 ])
-def test_nonrestricted_live_compound_and_followup_paths_keep_snapshot_behavior(question):
+def test_explicit_live_and_compound_paths_keep_snapshot_behavior(question):
     result = exercise(question)
     assert len(result['sensor_reads']) == 5
     assert result['snapshot_writes'] == ['browser_snapshot']
@@ -155,8 +153,19 @@ def test_nonrestricted_live_compound_and_followup_paths_keep_snapshot_behavior(q
     assert result['captured']['context_meta']['context_mode'] == 'latest_snapshot_plus_pg_8h_trend'
 
 
+def test_unresolved_pronoun_does_not_authorize_generic_live_snapshot_reads():
+    result = exercise('这个最近30分钟的趋势如何？')
+    assert result['sensor_reads'] == result['browser_snapshot_reads'] == []
+    assert result['snapshot_writes'] == ['browser_snapshot']
+    assert result['captured']['context_meta']['anchor_message_id'] == 3
+    assert result['captured']['context_meta']['anchor_snapshot_id'] == 4
+    assert result['captured']['context_meta']['context_mode'] == 'source_plan_without_live_context'
+
+
 def test_nonrestricted_initial_context_prepare_keeps_authoritative_path_compatibility():
-    assert len(exercise('请解释规则形成过程。', mode='initial_context_explanation')['sensor_reads']) == 5
+    result = exercise('请解释规则形成过程。', mode='initial_context_explanation')
+    assert result['sensor_reads'] == []
+    assert result['snapshot_writes'] == ['browser_snapshot']
 
 
 def test_owner_denial_precedes_any_sensor_access():
@@ -188,5 +197,5 @@ def test_frozen_candidate_inherits_other_modules_and_does_not_change_base():
     assert a.keys() == b.keys()
     assert {name for name in a if a[name] != b[name]} == {'prepare_qa_chat'}
     current = funcs(ast.parse((candidate / 'ollama_proxy_server.py').read_bytes()))
-    assert current['prepare_qa_chat'] == b['prepare_qa_chat'], 'New candidate changed the frozen source gate'
+    assert 'sensor_context_policy' in current['prepare_qa_chat']
     assert manifest['model_digest'] == source_manifest['model_digest']

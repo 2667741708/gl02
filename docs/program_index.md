@@ -1357,3 +1357,10 @@ build_qa_sensor_context_candidate.py只改冻结prepare；完整探针统计sens
 probe_qa_shared_proxy_delta_readonly证明全AST差异仅3函数/1导入；build_qa_shared_proxy_candidate按类作用域保留字面量；完整探针执行前校验2共享依赖pin。
 
 [实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+qa_task_plan.sensor_context_policy和bound_rule_context_requested新增2辅助函数；build_qa_ordinary_context_candidate只修改冻结proxy的prepare/build_hidden组装并证明其他全AST不变。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。

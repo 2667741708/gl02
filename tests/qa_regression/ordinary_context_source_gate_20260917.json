@@ -1,0 +1,351 @@
+{
+  "schema": "bf.qa.ordinary-context-source-gate-public-evidence.v1",
+  "requirement": "REQ-QA-ORDINARY-CONTEXT-SOURCE-GATE-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_frozen_reviewed_not_deployed_fixed_pin_required",
+  "candidate": "v48-r1",
+  "manifest_sha256": "ff6667172cdaac42f9335f5b28fbf382863ea2f39d9ce07a01584dc5b5abb3b8",
+  "prior_candidate": "v47-r1",
+  "changed_modules": [
+    "ollama_proxy_server.py",
+    "qa_task_plan.py"
+  ],
+  "other_modules_inherited_byte_identical": 14,
+  "gate_scope": "explicit_task_plan_live_source_grant_only",
+  "proxy_sha256": "73d0c8ca39dc10cca6e43c4047cd1ea2875b0ff93b90d9d3dc9b45d7e97bb931",
+  "planner_sha256": "8098d4db7782374bd085274c86f89c29c8acea47c3194b02467a446b5136ea60",
+  "fixed_identity": {
+    "name": "chiqiongblastfuenace:latest",
+    "digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124"
+  },
+  "model_switch_allowed": false,
+  "fallback_model_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "runtime_dependency_pins": {
+    "高炉前端数据/智能助手/backend/furnace_display_policy.py": "494e24e76180d1a05aa70225a07355040e088a3a372f4ab395f0e6ef3c453f7d",
+    "高炉前端数据/智能助手/backend/abc_score_explanation.py": "51cd8030f014c81de1824b452369ee474a90cb09a192b1d0e5a938926b1b98bd"
+  },
+  "native_runtime": {
+    "native_python": "3.11.9",
+    "frozen_modules": 16,
+    "transitive_dependencies": 60,
+    "probe_sha256": "f58b32fee2aed69ba321c4b8ce325c99fc31e96b3908673d778c98a405554845",
+    "qa_contracts_passed": 10,
+    "shared_abc_contracts_passed": 9,
+    "ordinary_prepare_contracts_passed": 6,
+    "ordinary_context_cases": [
+      {
+        "id": "ordinary_general_explanation",
+        "passed": true,
+        "model_answer_generated": false,
+        "authority_present": false,
+        "authority_expected": false,
+        "mock_knowledge_provider_queries": 1,
+        "functional_contract_passed": true,
+        "sensor_context_read_count": 0,
+        "sensor_context_read_kinds": [],
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "ordinary_greeting",
+        "passed": true,
+        "model_answer_generated": false,
+        "authority_present": false,
+        "authority_expected": false,
+        "mock_knowledge_provider_queries": 0,
+        "functional_contract_passed": true,
+        "sensor_context_read_count": 0,
+        "sensor_context_read_kinds": [],
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "ordinary_rule_explanation",
+        "passed": true,
+        "model_answer_generated": false,
+        "authority_present": false,
+        "authority_expected": false,
+        "mock_knowledge_provider_queries": 1,
+        "functional_contract_passed": true,
+        "sensor_context_read_count": 0,
+        "sensor_context_read_kinds": [],
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "ordinary_bound_rule_explanation",
+        "passed": true,
+        "model_answer_generated": false,
+        "authority_present": true,
+        "authority_expected": true,
+        "mock_knowledge_provider_queries": 1,
+        "functional_contract_passed": true,
+        "sensor_context_read_count": 0,
+        "sensor_context_read_kinds": [],
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "ordinary_unrelated_bound_topic",
+        "passed": true,
+        "model_answer_generated": false,
+        "authority_present": false,
+        "authority_expected": false,
+        "mock_knowledge_provider_queries": 1,
+        "functional_contract_passed": true,
+        "sensor_context_read_count": 0,
+        "sensor_context_read_kinds": [],
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "ordinary_supplied_data_bound_isolated",
+        "passed": true,
+        "model_answer_generated": false,
+        "authority_present": false,
+        "authority_expected": false,
+        "mock_knowledge_provider_queries": 0,
+        "functional_contract_passed": true,
+        "sensor_context_read_count": 0,
+        "sensor_context_read_kinds": [],
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      }
+    ],
+    "ordinary_context_mocked_boundaries": [
+      "authentication_session",
+      "database_connection",
+      "sensor_snapshot_provider",
+      "ollama_transport",
+      "heartbeat_thread_start",
+      "keyword_knowledge_provider"
+    ],
+    "side_effect_attempts": [],
+    "semantic_accuracy_inferred": false
+  },
+  "pre_repair_ordinary_prepare_cases": [
+    {
+      "id": "ordinary_general_explanation",
+      "passed": false,
+      "model_answer_generated": false,
+      "authority_present": false,
+      "authority_expected": false,
+      "mock_knowledge_provider_queries": 1,
+      "functional_contract_passed": true,
+      "sensor_context_read_count": 6,
+      "sensor_context_read_kinds": [
+        "assistant_snapshot_read",
+        "latest_sensor_provider",
+        "trend_sensor_provider",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read"
+      ],
+      "mock_page_archives": 1,
+      "page_archive_isolated_from_evidence": true
+    },
+    {
+      "id": "ordinary_greeting",
+      "passed": false,
+      "model_answer_generated": false,
+      "authority_present": false,
+      "authority_expected": false,
+      "mock_knowledge_provider_queries": 0,
+      "functional_contract_passed": true,
+      "sensor_context_read_count": 6,
+      "sensor_context_read_kinds": [
+        "assistant_snapshot_read",
+        "latest_sensor_provider",
+        "trend_sensor_provider",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read"
+      ],
+      "mock_page_archives": 1,
+      "page_archive_isolated_from_evidence": true
+    },
+    {
+      "id": "ordinary_rule_explanation",
+      "passed": false,
+      "model_answer_generated": false,
+      "authority_present": false,
+      "authority_expected": false,
+      "mock_knowledge_provider_queries": 1,
+      "functional_contract_passed": true,
+      "sensor_context_read_count": 6,
+      "sensor_context_read_kinds": [
+        "assistant_snapshot_read",
+        "latest_sensor_provider",
+        "trend_sensor_provider",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read"
+      ],
+      "mock_page_archives": 1,
+      "page_archive_isolated_from_evidence": true
+    },
+    {
+      "id": "ordinary_bound_rule_explanation",
+      "passed": false,
+      "model_answer_generated": false,
+      "authority_present": false,
+      "authority_expected": true,
+      "mock_knowledge_provider_queries": 1,
+      "functional_contract_passed": false,
+      "sensor_context_read_count": 6,
+      "sensor_context_read_kinds": [
+        "assistant_snapshot_read",
+        "latest_sensor_provider",
+        "trend_sensor_provider",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read"
+      ],
+      "mock_page_archives": 1,
+      "page_archive_isolated_from_evidence": true
+    },
+    {
+      "id": "ordinary_unrelated_bound_topic",
+      "passed": false,
+      "model_answer_generated": false,
+      "authority_present": false,
+      "authority_expected": false,
+      "mock_knowledge_provider_queries": 1,
+      "functional_contract_passed": true,
+      "sensor_context_read_count": 6,
+      "sensor_context_read_kinds": [
+        "assistant_snapshot_read",
+        "latest_sensor_provider",
+        "trend_sensor_provider",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read",
+        "assistant_snapshot_read"
+      ],
+      "mock_page_archives": 1,
+      "page_archive_isolated_from_evidence": true
+    },
+    {
+      "id": "ordinary_supplied_data_bound_isolated",
+      "passed": true,
+      "model_answer_generated": false,
+      "authority_present": false,
+      "authority_expected": false,
+      "mock_knowledge_provider_queries": 0,
+      "functional_contract_passed": true,
+      "sensor_context_read_count": 0,
+      "sensor_context_read_kinds": [],
+      "mock_page_archives": 1,
+      "page_archive_isolated_from_evidence": true
+    }
+  ],
+  "local_regression": {
+    "modules": 33,
+    "passed": 861,
+    "elapsed_seconds": 125.39,
+    "command": [
+      "python",
+      "-B",
+      "-X",
+      "utf8",
+      "-m",
+      "pytest",
+      "-q",
+      "--tb=short",
+      "--basetemp=.codex_runtime/qa-full-import-20260917/pytest-v48-related-r1",
+      "tests/test_qa_supplied_record_scope.py",
+      "tests/test_qa_source_exclusion_scope.py",
+      "tests/test_qa_source_concept_scope.py",
+      "tests/test_qa_response_style_source_scope.py",
+      "tests/test_qa_declared_input_scope.py",
+      "tests/test_qa_user_supplied_scope.py",
+      "tests/test_qa_task_plan.py",
+      "tests/test_qa_compound_source_scope.py",
+      "tests/test_qa_evidence_policy.py",
+      "tests/test_qa_math_function_policy.py",
+      "tests/test_qa_history_compound.py",
+      "tests/test_qa_history_projection.py",
+      "tests/test_qa_history_completion.py",
+      "tests/test_qa_v12_safety.py",
+      "tests/test_qa_final_completion.py",
+      "tests/test_qa_fixed_model_identity.py",
+      "tests/test_qa_history_compound_seams.py",
+      "tests/test_qa_single_window_routing.py",
+      "tests/test_qa_document_knowledge.py",
+      "tests/test_qa_prompt_binding.py",
+      "tests/test_qa_runtime_probe_fixed_pin.py",
+      "tests/test_qa_exclusive_use.py",
+      "tests/test_qa_window_quality.py",
+      "tests/test_qa_v27_fixed_base_candidate.py",
+      "tests/test_qa_sensor_context_source_gate.py",
+      "tests/test_qa_followup_planning.py",
+      "tests/test_qa_context_provenance.py",
+      "tests/test_qa_context_provenance_seams.py",
+      "tests/test_qa_context_boundaries.py",
+      "tests/test_qa_full_candidate_probe.py",
+      "tests/test_qa_full_candidate_probe_evidence.py",
+      "tests/test_qa_shared_proxy_integration.py",
+      "tests/test_qa_ordinary_context_source_gate.py"
+    ],
+    "gold_schema_passed": 14,
+    "independent_review": "gpt-5.6-luna bounded readonly PASS"
+  },
+  "retained_initial_source_test_failure": {
+    "passed": 107,
+    "failed": 1,
+    "cause": "unresolved pronoun was expected to grant generic snapshot reads; now strict no-read archive and anchor contracts; production object binding remains pending",
+    "production_failure_inferred": false
+  },
+  "production_readonly_gate": {
+    "observed_at_utc": "2026-09-17T12:27:33.688450+00:00",
+    "head": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+    "runtime_hashes": {
+      "高炉前端数据/智能助手/backend/ollama_proxy_server.py": "d84cfe9d67ded7344e9c15b9de10c807d6d3846fc872b8f53d66b8bfaffe8382",
+      "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "42d81acb60a0d3b28897c55e5c692e71f75ca5cf262dc8088fa4d1dcc6817884",
+      "高炉前端数据/智能助手/backend/furnace_display_policy.py": "494e24e76180d1a05aa70225a07355040e088a3a372f4ab395f0e6ef3c453f7d",
+      "高炉前端数据/智能助手/backend/abc_score_explanation.py": "51cd8030f014c81de1824b452369ee474a90cb09a192b1d0e5a938926b1b98bd"
+    },
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0,
+    "observed_identity_metadata": {
+      "tags_before": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ],
+      "resident": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ],
+      "tags_after": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ]
+    },
+    "fixed_identity_ready": false
+  },
+  "original_question_posts": 0,
+  "real_model_calls": 0,
+  "production_writes": 0,
+  "issue_closures": 0,
+  "original_failed_or_partial_cases_resent": 0,
+  "production_semantic_effectiveness_verified": false,
+  "deployment_authorized_by_this_artifact": false,
+  "remaining_gates": [
+    "approved immutable model identity and residency without switching",
+    "separately authorized recovery task manager and DB source release",
+    "fresh full dependencies shared feature EOL recordability and guarded 8093 acceptance",
+    "single-send original failed-case final-answer review"
+  ],
+  "scope_limitations": [
+    "synthetic prepare contracts do not verify model answers real DB permissions or concurrency",
+    "unresolved pronoun source gate does not complete production object binding or final clarification",
+    "compound exclusive document history report or user-data requests do not gain ABC authority from implicit inheritance"
+  ]
+}

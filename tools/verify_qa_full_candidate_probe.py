@@ -28,6 +28,14 @@ SHARED_CASES = {
     'shared_missing_batch_denied': (404, 1, 0),
     'shared_missing_detail_needs_data': (200, 1, 0),
 }
+ORDINARY_CASES = {
+    'ordinary_general_explanation': (False, 1),
+    'ordinary_greeting': (False, 0),
+    'ordinary_rule_explanation': (False, 1),
+    'ordinary_bound_rule_explanation': (True, 1),
+    'ordinary_unrelated_bound_topic': (False, 1),
+    'ordinary_supplied_data_bound_isolated': (False, 0),
+}
 
 
 def validate(report, candidate, manifest, probe_sha256):
@@ -69,6 +77,25 @@ def validate(report, candidate, manifest, probe_sha256):
             'real_concurrency_verified', 'production_accuracy_inferred')), 'Synthetic scope mislabeled')
     require(contracts.get('mocked_boundaries') == ['authentication_session', 'database_connection',
         'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start'], 'Unreviewed mocked boundaries')
+    require(contracts.get('ordinary_context_mocked_boundaries') == ['authentication_session',
+        'database_connection', 'sensor_snapshot_provider', 'ollama_transport',
+        'heartbeat_thread_start', 'keyword_knowledge_provider'], 'Unreviewed ordinary mocked boundaries')
+    ordinary_rows = contracts.get('ordinary_context_cases') or []
+    require(len(ordinary_rows) == len(ORDINARY_CASES)
+        and {row.get('id') for row in ordinary_rows} == set(ORDINARY_CASES),
+        'Complete ordinary preparation evidence required')
+    for row in ordinary_rows:
+        authority, queries = ORDINARY_CASES[row['id']]
+        require(row.get('passed') is True and row.get('functional_contract_passed') is True
+            and row.get('model_answer_generated') is False
+            and row.get('authority_present') is authority and row.get('authority_expected') is authority
+            and type(row.get('mock_knowledge_provider_queries')) is int
+            and row['mock_knowledge_provider_queries'] == queries
+            and type(row.get('sensor_context_read_count')) is int and row['sensor_context_read_count'] == 0
+            and row.get('sensor_context_read_kinds') == []
+            and type(row.get('mock_page_archives')) is int and row['mock_page_archives'] == 1
+            and row.get('page_archive_isolated_from_evidence') is True,
+            'Ordinary source isolation or bound authority not verified')
     if manifest.get('shared_proxy_integration'):
         shared = report.get('shared_abc_contracts') or {}
         shared_rows = shared.get('cases') or []
@@ -120,7 +147,10 @@ def validate(report, candidate, manifest, probe_sha256):
         'required_reads': sorted(dependencies), 'production_model_identity_verified': False,
         'runtime_dependency_pins': pins,
         'production_dependency_refresh_required': True, 'deployment_authorized': False,
-        'native_contracts_passed': len(CASES), 'semantic_accuracy_inferred': False}
+        'native_contracts_passed': len(CASES),
+        'native_ordinary_prepare_contracts_passed': len(ORDINARY_CASES),
+        'native_shared_contracts_passed': len(SHARED_CASES) if manifest.get('shared_proxy_integration') else 0,
+        'semantic_accuracy_inferred': False}
 
 
 if __name__ == '__main__':
@@ -139,4 +169,6 @@ if __name__ == '__main__':
         stream.write((json.dumps(scope, ensure_ascii=False, indent=2) + '\n').encode('utf-8'))
     print(json.dumps({'ok': True, 'candidate': scope['candidate'],
         'native_contracts_passed': scope['native_contracts_passed'],
+        'native_ordinary_prepare_contracts_passed': scope['native_ordinary_prepare_contracts_passed'],
+        'native_shared_contracts_passed': scope['native_shared_contracts_passed'],
         'transitive_dependencies': len(scope['required_reads']), 'production_ready_inferred': False}))

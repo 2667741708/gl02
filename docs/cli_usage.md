@@ -757,3 +757,10 @@ python -B -X utf8 tools/build_qa_sensor_context_candidate.py --revision rN只冻
 python -B -X utf8 tools/build_qa_shared_proxy_candidate.py --revision rN只构建未存在编号的本机候选；只读probe在RAM读取固定Git对象，verify核对原生证据，不授予部署或换模。
 
 [实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+python -B -X utf8 tools/build_qa_ordinary_context_candidate.py --revision rN只构建新编号本机候选。verify同时要求10QA/9共享/6普通准备来源证据，不能据此授权部署。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。

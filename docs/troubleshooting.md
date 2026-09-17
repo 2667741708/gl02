@@ -622,3 +622,10 @@ SSH已恢复但固定底座仍被阻断：比较固定摘要与tags→ps→tags�
 类方法整体dedent会改变三引号字符串值，须按原类作用域解析；public_rule的权威输入为score_released，score_available是输出。默认Windows子Python须显式-X utf8。
 
 [实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+下游MCP禁用不代表prepare未读炉况；须同时核对provider/snapshot读取计数、页面归档与证据隔离。缺对象追问不得靠通用快照猜测对象，其生产绑定单列未完成。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。

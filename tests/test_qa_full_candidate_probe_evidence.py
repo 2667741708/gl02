@@ -9,7 +9,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests')]
 from qa_frozen_candidate import latest_frozen_candidate
-from verify_qa_full_candidate_probe import CASES, SHARED_CASES, validate
+from verify_qa_full_candidate_probe import CASES, SHARED_CASES, ORDINARY_CASES, validate
 
 
 def evidence():
@@ -41,7 +41,13 @@ def evidence():
             'full_prepare_executed': True, 'real_database_verified': False,
             'real_model_answer_verified': False, 'real_concurrency_verified': False,
             'production_accuracy_inferred': False,
-            'mocked_boundaries': ['authentication_session', 'database_connection', 'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start']}}
+            'mocked_boundaries': ['authentication_session', 'database_connection', 'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start'],
+            'ordinary_context_mocked_boundaries': ['authentication_session', 'database_connection', 'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start', 'keyword_knowledge_provider'],
+            'ordinary_context_cases': [{'id': key, 'passed': True, 'functional_contract_passed': True,
+                'model_answer_generated': False, 'authority_present': values[0], 'authority_expected': values[0],
+                'mock_knowledge_provider_queries': values[1], 'sensor_context_read_count': 0,
+                'sensor_context_read_kinds': [], 'mock_page_archives': 1,
+                'page_archive_isolated_from_evidence': True} for key, values in ORDINARY_CASES.items()]}}
     if manifest.get('shared_proxy_integration'):
         report['shared_abc_contracts'] = {'state': 'synthetic_contract_only',
             'merged_handler_methods_executed': True, 'real_database_verified': False,
@@ -62,6 +68,7 @@ def test_valid_evidence_exports_only_dependency_read_scope_without_authorization
         ('assistant_pg.py', 'qa_request_control.py', 'qa_prompt_sources.py', 'qa_model_readiness.py')
     } | set(manifest.get('runtime_dependency_pins', {}))
     assert scope['native_contracts_passed'] == 10
+    assert scope['native_ordinary_prepare_contracts_passed'] == 6
     assert scope['production_dependency_refresh_required'] is True
     assert scope['deployment_authorized'] is False
     assert scope['production_model_identity_verified'] is False
@@ -107,6 +114,17 @@ def test_valid_evidence_exports_only_dependency_read_scope_without_authorization
     lambda r: r['request_contracts']['cases'][0].update(page_archive_isolated_from_evidence=False),
     lambda r: r['request_contracts'].update(real_model_answer_verified=True),
     lambda r: r['request_contracts']['mocked_boundaries'].append('unreviewed'),
+    lambda r: r['request_contracts'].pop('ordinary_context_cases'),
+    lambda r: r['request_contracts'].pop('ordinary_context_mocked_boundaries'),
+    lambda r: r['request_contracts']['ordinary_context_cases'].pop(),
+    lambda r: r['request_contracts']['ordinary_context_cases'][0].update(passed=False),
+    lambda r: r['request_contracts']['ordinary_context_cases'][0].update(sensor_context_read_count=6),
+    lambda r: r['request_contracts']['ordinary_context_cases'][0].update(sensor_context_read_count=False),
+    lambda r: r['request_contracts']['ordinary_context_cases'][0].update(authority_present=True),
+    lambda r: r['request_contracts']['ordinary_context_cases'][0].update(mock_knowledge_provider_queries=0),
+    lambda r: r['request_contracts']['ordinary_context_cases'][0].update(mock_page_archives=0),
+    lambda r: r['request_contracts']['ordinary_context_cases'][0].update(model_answer_generated=True),
+    lambda r: r['request_contracts']['ordinary_context_cases'][0].update(page_archive_isolated_from_evidence=False),
     lambda r: r['module_hashes'].pop('高炉前端数据/智能助手/backend/qa_prompt_binding.py'),
     lambda r: r['module_hashes']['高炉前端数据/智能助手/backend/qa_prompt_binding.py'].update(sha256='b' * 64),
     lambda r: r['module_hashes']['高炉前端数据/智能助手/backend/qa_request_control.py'].update(source='dependency_readonly'),

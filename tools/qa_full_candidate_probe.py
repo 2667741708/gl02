@@ -200,7 +200,8 @@ def run(payload):
         'probe_sha256': payload.get('probe_sha256'),
         'fixed_identity': {'name': FIXED_NAME, 'digest': FIXED_DIGEST},
         'ok': imported == ['ollama_proxy_server', 'bf_data_mcp_server'] and error is None and not attempted and not changed_dependencies and not pin_mismatches
-            and (contracts is None or all(row['passed'] for row in contracts['cases']))
+            and (contracts is None or (all(row['passed'] for row in contracts['cases'])
+                and all(row['passed'] for row in contracts.get('ordinary_context_cases', []))))
             and (shared_contracts is None or all(row['passed'] for row in shared_contracts['cases'])),
         'native_python': '.'.join(str(x) for x in sys.version_info[:3]),
         'stdlib_platform_metadata_prepared': True,
@@ -372,7 +373,8 @@ def request_contracts(proxy):
     conversation = {'id': conversation_id, 'owner_subject': owner, 'title': 'synthetic-title',
         'created_at': timestamp, 'updated_at': timestamp, 'last_user_at': timestamp}
     state = {'messages': [], 'calls': [], 'digest': FIXED_DIGEST, 'cancel_after_chat': False,
-        'sensor_context_reads': [], 'page_archives': []}
+        'sensor_context_reads': [], 'page_archives': [], 'bound_context': None,
+        'knowledge_provider_queries': []}
 
     class Cursor:
         def __init__(self, rows=(), lastrowid=None):
@@ -389,6 +391,12 @@ def request_contracts(proxy):
             text = ' '.join(sql.lower().split())
             if text.startswith('select') and 'from furnace_snapshots' in text:
                 state['sensor_context_reads'].append('assistant_snapshot_read')
+            if 'from qa_conversation_origins o join qa_context_snapshots s' in text:
+                return Cursor([{'context_snapshot_id': 17, 'source_type': 'abc_rule',
+                    'context_hash': 'synthetic-bound-hash', 'payload_json': json.dumps(state['bound_context'])}]
+                    if state['bound_context'] else [])
+            if text.startswith('insert into qa_message_context_snapshots('):
+                return Cursor()
             if text.startswith('insert into furnace_snapshots('):
                 state['page_archives'].append('synthetic_page_archive')
                 return Cursor(lastrowid=len(state['page_archives']))
@@ -494,6 +502,8 @@ def request_contracts(proxy):
         state['cancel_after_chat'] = False
         state['sensor_context_reads'] = []
         state['page_archives'] = []
+        state['bound_context'] = None
+        state['knowledge_provider_queries'] = []
 
     def response(handler):
         return json.loads(handler.wfile.getvalue())
@@ -615,7 +625,51 @@ def request_contracts(proxy):
     finally:
         proxy.threading.Thread.start = start_thread
 
+    # Extend the actual prepare path to ordinary questions. These do not
+    # generate a model answer; the keyword evidence provider is an explicit
+    # additional seam so the check cannot accidentally read production KB.
+    ordinary_cases = SourceBoundCases()
+    original_search = proxy.search_knowledge
+    def knowledge_provider(question, **kwargs):
+        state['knowledge_provider_queries'].append(question)
+        return {'enabled': False, 'evidence': [], 'message': 'SYNTHETIC_KNOWLEDGE_UNAVAILABLE'}
+    proxy.search_knowledge = knowledge_provider
+    try:
+        for identifier, question, bound, expected_authority, expected_knowledge_queries in [
+                ('ordinary_general_explanation', '解释炉顶压力控制原理。', False, False, 1),
+                ('ordinary_greeting', '你好', False, False, 0),
+                ('ordinary_rule_explanation', '说明工艺规则的通常含义。', False, False, 1),
+                ('ordinary_bound_rule_explanation', '请解释本对话绑定的规则。', True, True, 1),
+                ('ordinary_unrelated_bound_topic', '换个话题，解释MCP协议的含义。', True, False, 1),
+                ('ordinary_supplied_data_bound_isolated', data_question, True, False, 0)]:
+            reset()
+            if bound:
+                state['bound_context'] = {'schema': 'synthetic-bound-rule-context',
+                    'rule_id': 'A1', 'authority_marker': 'ABC_BOUND_AUTHORITY_ONLY'}
+            handler = Probe(question)
+            prepared = handler.prepare_qa_chat({'conversation_id': conversation_id,
+                '_qa_owner_subject': owner, '_qa_access_mode': 'authenticated',
+                'current_snapshot': {'source_time': timestamp,
+                    'values': {'synthetic_page_marker': 'PAGE_ARCHIVE_IS_NOT_ANALYSIS_EVIDENCE'}}},
+                question, include_conversations=False)
+            prompt = json.dumps(prepared['messages'], ensure_ascii=False)
+            authority_present = 'ABC_BOUND_AUTHORITY_ONLY' in prompt
+            expected_bound_id = 17 if bound else None
+            ordinary_cases.append({'id': identifier,
+                'passed': prepared.get('use_mcp_tools') is False and not state['calls']
+                    and authority_present == expected_authority
+                    and prepared.get('bound_context_snapshot_id') == expected_bound_id
+                    and len(state['knowledge_provider_queries']) == expected_knowledge_queries,
+                'model_answer_generated': False, 'authority_present': authority_present,
+                'authority_expected': expected_authority,
+                'mock_knowledge_provider_queries': len(state['knowledge_provider_queries'])})
+    finally:
+        proxy.search_knowledge = original_search
+
     return {'state': 'synthetic_contract_only', 'cases': cases,
+        'ordinary_context_cases': ordinary_cases,
+        'ordinary_context_mocked_boundaries': ['authentication_session', 'database_connection',
+            'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start', 'keyword_knowledge_provider'],
         'mocked_boundaries': ['authentication_session', 'database_connection', 'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start'],
         'heartbeat_schedules_mocked': len(heartbeat_schedules), 'real_concurrency_verified': False,
         'full_prepare_executed': True, 'real_database_verified': False,

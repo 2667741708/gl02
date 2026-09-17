@@ -95,7 +95,9 @@ def test_wrong_unbound_or_mutating_fragment_evidence_is_rejected(mutation):
 
 
 def test_frozen_merge_retains_v46_modules_and_exact_three_production_symbols():
-    candidate, manifest = latest_frozen_candidate(ROOT)
+    latest, latest_manifest = latest_frozen_candidate(ROOT)
+    candidate = ROOT / '.codex_runtime/qa-routing-v47/candidate-r1'
+    manifest = json.loads((candidate / 'package_manifest.private.json').read_bytes())
     assert manifest['candidate'].startswith('v47-')
     assert manifest['runtime_dependency_pins'] == PINS
     evidence = fragments()
@@ -103,12 +105,15 @@ def test_frozen_merge_retains_v46_modules_and_exact_three_production_symbols():
     after = (candidate / 'ollama_proxy_server.py').read_text(encoding='utf-8')
     assert build_proxy(before, evidence) == after
     assert selected(after) == evidence['new']
+    assert selected((latest / 'ollama_proxy_server.py').read_text(encoding='utf-8')) == evidence['new']
+    assert latest_manifest['runtime_dependency_pins'] == PINS
     assert prove_delta(before, after)['whole_ast_delta_covered']
     assert len(manifest['inherited_v46_files_byte_identical']) == 15
     for name in manifest['inherited_v46_files_byte_identical']:
         assert (candidate / name).read_bytes() == (PRIOR / name).read_bytes()
     for key in ('model_switch_allowed', 'fallback_model_allowed', 'same_name_weight_replacement_allowed'):
         assert manifest[key] is False
+        assert latest_manifest[key] is False
 
 
 def test_shared_symbol_conflict_stops_before_overwriting_current_qa_code():

@@ -810,3 +810,10 @@ sensor_context_policy schema qa-sensor-context-source-gate-v1；不新增环境�
 无新环境变量。runtime_dependency_pins绑定现有furnace_display_policy与abc_score_explanation实际源码；固定底座保持e4ad74…，不得替代。
 
 [实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+无新增环境变量或模型配置；sensor_context_policy仅接受完整正向来源计划，fixed e4身份及禁止切换、fallback、同名换权重保持。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。

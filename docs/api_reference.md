@@ -554,3 +554,10 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 保留生产公共breakdown.v2的display_policy/unified_summary及detail.v3；include_breakdown权限门、非法evaluation拒绝、过期detail无分数不变。9项共享测试使用显式5个外部合成边界，不证明真实授权。
 
 [实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+问答prepare普通场景不读取现场来源，自带页面快照仍归档；绑定ABC证据仅为主动指定规则问题，旧批次不代表新现场。公共ABC接口和首轮严格Schema链路保留。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。

@@ -82,7 +82,9 @@
       "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
       "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
       "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
-      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked"
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked"
     },
     {
       "order": 2,
@@ -190,7 +192,9 @@
         "failed": 2
       },
       "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
-      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked"
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked"
     },
     {
       "order": 7,
@@ -228,7 +232,9 @@
       "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
       "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
       "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
-      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked"
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked"
     },
     {
       "order": 8,
@@ -256,7 +262,9 @@
       "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
       "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
       "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
-      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked"
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked"
     },
     {
       "order": 9,
@@ -622,7 +630,9 @@
       "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
       "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
       "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
-      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked"
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked"
     },
     {
       "order": 24,
@@ -809,7 +819,9 @@
       "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
       "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
       "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
-      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked"
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked"
     },
     {
       "order": 33,
@@ -1021,14 +1033,11 @@
   "prior_production_snapshot_state_before_runtime_pin_probe": "historical_last_verified_v26_current_connection_gate_failed",
   "latest_readonly_production_gate": {
     "checked_at": "2026-09-17",
-    "observed_at_utc": "2026-09-17T11:59:06.747241+00:00",
-    "evidence": "shared_proxy_integration_20260917.json",
+    "observed_at_utc": "2026-09-17T12:27:33.688450+00:00",
+    "evidence": "ordinary_context_source_gate_20260917.json",
     "production_commit": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
-    "backend_runtime_version": "prior_v26_qa_snapshot_plus_external_abc33_shared_delta",
     "fixed_identity_ready": false,
     "connection_identity_verified": true,
-    "shared_proxy_changed": true,
-    "candidate_shared_proxy_rebase_required_for_pinned_head": false,
     "fresh_production_dependency_refresh_required": true,
     "question_posts": 0,
     "model_calls": 0,
@@ -1057,17 +1066,17 @@
     "production_writes": 0
   },
   "latest_native_runtime_gate": {
-    "candidate": "v47-r1",
-    "state": "native_shared_integration_verified_production_pin_blocked",
-    "evidence": "shared_proxy_integration_20260917.json",
+    "candidate": "v48-r1",
+    "state": "native_ordinary_source_gate_verified_production_pin_blocked",
+    "evidence": "ordinary_context_source_gate_20260917.json",
     "frozen_modules": 16,
     "transitive_dependencies": 60,
-    "synthetic_contracts_passed": 19,
+    "synthetic_contracts_passed": 25,
     "qa_contracts_passed": 10,
     "shared_abc_contracts_passed": 9,
+    "ordinary_prepare_contracts_passed": 6,
     "production_semantic_effectiveness_verified": false,
-    "required_before_production_seal": true,
-    "candidate_shared_proxy_rebase_required_for_pinned_head": false
+    "required_before_production_seal": true
   },
   "prior_readonly_production_gate_before_sensor_context_fix": {
     "checked_at": "2026-09-17",
@@ -1137,5 +1146,42 @@
     "fixed_base_identity_unchanged": true,
     "candidate_shared_proxy_rebase_required_for_pinned_head": false
   },
-  "prior_production_snapshot_state_before_shared_proxy_integration": "fresh_shared_proxy_changed_candidate_rebase_required_fixed_pin_blocked"
+  "prior_production_snapshot_state_before_shared_proxy_integration": "fresh_shared_proxy_changed_candidate_rebase_required_fixed_pin_blocked",
+  "prior_native_runtime_gate_before_ordinary_context_gate": {
+    "candidate": "v47-r1",
+    "state": "native_shared_integration_verified_production_pin_blocked",
+    "evidence": "shared_proxy_integration_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 60,
+    "synthetic_contracts_passed": 19,
+    "qa_contracts_passed": 10,
+    "shared_abc_contracts_passed": 9,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true,
+    "candidate_shared_proxy_rebase_required_for_pinned_head": false
+  },
+  "prior_readonly_production_gate_before_ordinary_context_gate": {
+    "checked_at": "2026-09-17",
+    "observed_at_utc": "2026-09-17T11:59:06.747241+00:00",
+    "evidence": "shared_proxy_integration_20260917.json",
+    "production_commit": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+    "backend_runtime_version": "prior_v26_qa_snapshot_plus_external_abc33_shared_delta",
+    "fixed_identity_ready": false,
+    "connection_identity_verified": true,
+    "shared_proxy_changed": true,
+    "candidate_shared_proxy_rebase_required_for_pinned_head": false,
+    "fresh_production_dependency_refresh_required": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0
+  },
+  "latest_local_ordinary_context_candidate": {
+    "version": "v48-r1",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 861,
+    "evidence": "ordinary_context_source_gate_20260917.json",
+    "manifest_sha256": "ff6667172cdaac42f9335f5b28fbf382863ea2f39d9ce07a01584dc5b5abb3b8",
+    "fixed_base_identity_unchanged": true,
+    "production_semantic_effectiveness_verified": false
+  }
 }

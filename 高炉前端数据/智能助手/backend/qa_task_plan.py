@@ -542,3 +542,38 @@ def tool_domain(tool_name: str) -> str:
 def tool_allowed(tool_name: str, plan: dict[str, Any] | None) -> bool:
     allowed = set((plan or {}).get("allowed_tool_domains") or [])
     return tool_domain(tool_name) in allowed
+
+
+def sensor_context_policy(plan: dict[str, Any] | None, *, code_only: bool = False) -> dict[str, Any]:
+    """Preparation may read sensors only under an explicit live source grant."""
+    source = plan if isinstance(plan, dict) else {}
+    if code_only:
+        enabled, reason = False, 'disabled_code_only'
+    elif source.get('no_live_lookup') or source.get('all_tools_disabled'):
+        enabled, reason = False, 'explicit_source_restriction'
+    else:
+        intents, sources = source.get('intents'), source.get('allowed_sources')
+        enabled = (isinstance(intents, list) and 'live_data' in intents
+            and isinstance(sources, list) and 'live_readonly_data' in sources
+            and source.get('allow_prefetch') is True)
+        reason = 'task_plan_live_source_granted' if enabled else 'task_plan_has_no_live_source_grant'
+    return {'schema': 'qa-sensor-context-source-gate-v2', 'enabled': bool(enabled),
+        'skipped': not enabled, 'reason': reason}
+
+
+def bound_rule_context_requested(question: str, plan: dict[str, Any] | None = None) -> bool:
+    """A bound rule is evidence only for an active request about that rule."""
+    source = plan if isinstance(plan, dict) else build_task_plan(question)
+    if set(source.get('intents') or []) & {'user_supplied_data', 'document_knowledge',
+            'conversation_history', 'period_report'}:
+        return False
+    instruction = _instruction_text('；'.join(active_source_clauses(str(question or ''))))
+    if re.search(r'换个话题|新问题|另一个问题|不要继承|忘掉', instruction):
+        return False
+    if re.search(r'(?:不要|禁止|不使用|不引用|不用|无需)[^；。]{0,12}(?:绑定|本对话|本会话|ABC)[^；。]{0,8}上下文', instruction):
+        return False
+    return bool(re.search(
+        r'(?:本对话|本会话|此对话|此会话)[^；。]{0,20}(?:规则|评分|公式|权重|归一化|上下文)'
+        r'|(?:绑定的?|这个|这条|这项|那个|那条|那项|上述|刚才)[^；。]{0,8}(?:规则|评分|公式|得分|权重|归一化)'
+        r'|(?<![A-Za-z0-9_])(?:A[1-9]|B(?:1[0-3]|[1-9])|C(?:1[01]|[1-9]))(?![A-Za-z0-9_])[^；。]{0,12}(?:规则|评分|得分|分数|触发|公式|权重|归一化)',
+        instruction))
