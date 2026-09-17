@@ -250,3 +250,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 没有新增DDL。读取现有rag_document/rag_chunk、待授权迁移的qa_knowledge_source_bindings/releases及目标embedding计数，一条MVCC SELECT返回同一快照。核binding.manifest_text精确字节、applied release及全量after摘要；不读取before归档或vector正文。迁移表缺失稳定阻断。
 
 当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+无DDL变化。请求级章节与规程作用域为确定性内存结构，来自已核同一数据库快照；正式binding/release/全量after摘要继续必需。缺组合不删除源行或改标准，22项语义选择测试使用合成原文，另私有真实原源验证使用原生产投影常量。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。

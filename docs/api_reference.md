@@ -414,3 +414,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 未增加HTTP路由。制度答复completion.coverage.original_source包含来源范围/数据库快照核验与摘要；未核来源completion.terminal_state=dependency_blocked，不补写正式条款；综合数据+制度中数据可保留、总体partial。分页partial仍不等同全问题完成，来源通过仍semantic_verified=false。
 
 当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+无新路由。书名未知在任何DB查询前needs_clarification/document_reference_unresolved；chapter_unknown、chapter_range_invalid、chapter_reference_conflict明确澄清。已请求岗位在规程筛选后缺失时保留可读原文，terminal_state=partial，coverage含requested_chapters/available_chapters/missing_chapters；available是范围可用数，不冒充当前页全部已回答。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。

@@ -1,0 +1,95 @@
+{
+  "schema": "bf.qa.document-scope-resolution-public-evidence.v1",
+  "requirement_id": "REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_tested_reviewed_frozen_not_production_applied",
+  "issue_ids": [
+    "QAOPT-K01",
+    "QAOPT-K02",
+    "QAOPT-K03",
+    "QAOPT-K04",
+    "QAOPT-K06"
+  ],
+  "candidate": "v34-r1",
+  "generator_sha256": {
+    "高炉前端数据/智能助手/backend/qa_document_knowledge.py": "f631e5b374542e537adb2e592493c22c75b8f332add448b33bba24de8348f0f9",
+    "tests/test_qa_document_scope_resolution.py": "918a3a90da27f2d59866736cf53e523dfda3d616dc5204cbe322812b14c0cb5a"
+  },
+  "defect_reproduction": {
+    "v33_scope_cases": 19,
+    "v33_failed": 16,
+    "v33_passed": 3,
+    "additional_regulation_filter_cases": 3,
+    "additional_failed_before_fix": 3,
+    "fixture_adapter_error_not_a_product_failure": 5
+  },
+  "verification": {
+    "tests_passed": 378,
+    "new_scope_tests_passed": 22,
+    "prior_tests_passed": 356,
+    "elapsed_seconds": 28.86,
+    "database": "isolated native PostgreSQL 16.13",
+    "vector_extension": "real public.vector",
+    "independent_static_review": "PASS gpt-5.6-luna low",
+    "test_command": "python -X utf8 -m pytest -q --tb=short --basetemp=.codex_runtime/qa-document-scope-final-20260917-r2 tests/test_qa_keyword_source_release_entry.py tests/test_qa_keyword_source_transaction.py tests/test_qa_knowledge_source_binding.py tests/test_qa_source_candidate_freeze.py tests/test_qa_source_scope_contract.py tests/test_three_rules_heading_boundaries.py tests/test_qa_readonly_pg.py tests/test_qa_document_integrity.py tests/test_qa_document_knowledge.py tests/test_qa_knowledge_reader_source_gate.py tests/test_qa_v12_safety.py tests/test_qa_document_scope_resolution.py"
+  },
+  "private_original_reader": {
+    "schema": "bf.qa.private-original-reader-local-verification.v1",
+    "state": "isolated_original_reader_verified_not_production",
+    "source_chunks": 5587,
+    "scope_groups": 11,
+    "private_reader_requests": 14,
+    "one_statement_per_request": true,
+    "all_expected_section_blocks_preserved": true,
+    "production_requests": 0,
+    "production_writes": 0,
+    "model_calls": 0,
+    "semantic_accuracy_inferred": false,
+    "reader_sha256": "f631e5b374542e537adb2e592493c22c75b8f332add448b33bba24de8348f0f9"
+  },
+  "private_candidate": {
+    "files": 10,
+    "manifest_sha256": "72aed0fded83c53797e01197b3031c817c7cb6b817182d8cc4597a76dc7aae91",
+    "inherited_v33_files_byte_identical": 9,
+    "ast_parse_and_reader_import_verified": true,
+    "production_sealed": false,
+    "production_dependency_refresh_required": true
+  },
+  "contracts": {
+    "quoted_title_exact_allowlist": true,
+    "unknown_quoted_source_database_queries": 0,
+    "complete_explicit_chapter_lists_and_ranges": true,
+    "unknown_requested_chapter_not_omitted": true,
+    "adjacent_role_code_conflict_is_clarification": true,
+    "independent_role_and_code_scopes_are_unioned": true,
+    "clause_regulation_filters_preserved": true,
+    "unavailable_requested_role_regulation_is_partial": true,
+    "one_mvcc_statement_per_known_source_request": true,
+    "source_snapshot_cache": false,
+    "original_source_gate_bytes_preserved": true
+  },
+  "ledger_adjustment": {
+    "issue_id": "QAOPT-K04",
+    "previous_state": "production_verified",
+    "state": "deployed_partial_verified",
+    "reason": "Earlier unknown-source tests did not cover quoted substring titles; gap reproduced locally in V33, new production verification pending."
+  },
+  "model_name": "chiqiongblastfuenace:latest",
+  "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+  "model_switch_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "production_identity_and_explicit_route_probes": "both_timeout_no_command_dispatched",
+  "production_current_state_freshly_verified": false,
+  "production_applied": false,
+  "production_database_writes": 0,
+  "database_write_authorization_received": false,
+  "question_posts": 0,
+  "model_calls": 0,
+  "issues_closed": 0,
+  "issues_reopened": 1,
+  "semantic_verified": false,
+  "topic_completeness_verified": false,
+  "original_failure_partial_cohort": 822,
+  "real_retest_requests": 0,
+  "privacy": "No original source clauses conversations measurements identities credentials or private artifacts are published."
+}

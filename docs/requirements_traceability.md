@@ -1301,3 +1301,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 完整制度回答必须来自固定原书与检索投影匹配的同一数据库快照；来源未验证返回dependency_blocked，综合问题保留已验证数据部分。关联QAOPT-K03/K06仍deployed_partial_verified，本轮不销项。
 
 当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+正式书名按精确别名注册，未知带“三规二制”字样的引号书名也不能借用正式原书。多个章节/范围必须完整解析，冲突或未知澄清；多子句按各自规程范围读取。QAOPT-K04因新标题边界本机复现，重新deployed_partial_verified；旧生产验收仅覆盖此前子集，本轮不销项。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。

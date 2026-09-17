@@ -670,3 +670,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 没有新增环境开关来绕过来源核验。固定r2 release、manifest、四字段文档与十九字段检索投影摘要；仅keyword且目标源零vector。模型名及e4ad74…d8124摘要固定，不允许备用模型或同名权重替换。
 
 当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+无新环境开关。FORMAL_TITLE_ALIASES精确注册短名/正式名，不接受标题包含关系；显式章节选择最多64组，每组数值最长3位，范围受目录及上限核验。同一模型名称/digest固定，无fallback或同名权重替换。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。

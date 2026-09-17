@@ -1217,3 +1217,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [单语句读取门禁](../高炉前端数据/智能助手/backend/qa_knowledge_reader_source_gate.py)的SNAPSHOT_SQL/projection/verify与[公开执行入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:360)使用同一帧；内部选择函数仅在已核快照内组织原文，层级测试不替代公开入口。新gate符号行号TODO-LINES。
 
 当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+[读取器](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:133)新增_requested_chapters；_regulation_scopes第189行、_chapter_coverage第210行，公开execute_document_question第463行。纯确定性选择不增加SQL/模型；旧V33源门禁及其他9候选文件字节保留。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。

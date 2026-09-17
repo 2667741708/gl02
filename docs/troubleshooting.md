@@ -482,3 +482,12 @@ operation_already_claimed禁止第二次连接；DB身份/config/SHA/keyword或�
 original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_drift表示源依赖未核，不是模型故障。先只读检查迁移/发布/完整快照，不能换模型或用旧片段填正式条款。本轮Reliable SSH身份和路线均超时，仅判传输中断；0生产改动/重发，恢复后先重新只读核查。
 
 当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+不要将带原书字串的未知标题映射到现有源；章节code与岗位冲突先澄清。多子句answer缺某岗位时检查regulation作用范围及missing_chapters，不能把剩余非空原文判全部完成。本轮SSH身份/备用路线仍超时，0远端操作；恢复后按固定流程只读重核，不重发未知发送题。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
