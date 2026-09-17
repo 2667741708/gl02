@@ -451,3 +451,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 先核原始DOCX、源解析标题分界及索引血缘，再核模型或路由。27/28章旧解析把多数<=80字内容当标题跳过；生产派生full_text与同一索引覆盖不能发现源抽取遗漏。整行标题修复本机151项及独立审查通过，补回123片段，但生产知识库未更新。来源路径标记仅说明记录的路径不存在，不说明原书不存在。
 只读审计必须使用启动readonly连接，不能调用会初始化schema的raw_pg_connect后才SET READ ONLY；审计失败停止，不通过建schema或修改权限让检查继续。
 权威：[具体修复与受控知识库发布步骤](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。
+
+## REQ-QA-SOURCE-SCOPE-20260917：源范围失败
+
+源item遗漏/重排、岗位/规程错绑、原子或章节缺尾、表格切断及源hash漂移均停止候选冻结，不切换模型继续测试。目录、正文中岗位提及和单列表格不能作岗位标题；原书19章写法差异仅使用明确限定映射。原书位置校验独立于派生全文/索引；topic仅子集校验，不能宣称全覆盖。
+权威：[边界、实际校验和发布恢复步骤](handoffs/2026-09-17-qa-independent-source-scope.md)、[冻结证据](../tests/qa_regression/source_scope_candidate_20260917.json)。r1/r2私有冻结文件保留不覆盖；生产发布、回滚和真实问答验收尚待完成。

@@ -639,3 +639,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 [readonly_pg_connect](../tools/qa_readonly_pg.py#L59)复用进程内受控PG环境参数，不打印或缓存凭据。连接启动固定default_transaction_read_only=on、autocommit=False、已校验schema/bf_sensor/public搜索路径，statement_timeout默认20000ms（范围1..60000且拒绝bool）、lock_timeout=3000ms、connect_timeout封顶8s；不使用普通池/初始化。此为审计进程配置，不改生产服务或数据库schema，固定模型名称/摘要继续保持。
 权威：[缺陷、验证和发布边界](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)。
+
+## REQ-QA-SOURCE-SCOPE-20260917：私有源冻结配置
+
+固定原DOCX/hash及唯一底座，候选搜索为keyword，embedding_generation=false。输出必须为Git忽略的`.codex_runtime/qa-source-scope-20260917`下全新子目录；已有目录只读恢复，不重放覆盖。源manifest与文档候选hash互相绑定，生产更新预期旧authority使用CAS，不放宽为任意文档替换。当前无生产环境变量、模型或数据库配置修改。
+权威：[冻结身份、目录及受控发布门](handoffs/2026-09-17-qa-independent-source-scope.md)、[机器证据](../tests/qa_regression/source_scope_candidate_20260917.json)。

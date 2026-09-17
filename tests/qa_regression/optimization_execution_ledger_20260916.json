@@ -292,8 +292,9 @@
       "state": "deployed_partial_verified",
       "evidence": "V15多章节逐项原文真实通过、缺章partial；选中章节缺尾及缓存删改失效门部署；本轮确认27/28章源抽取丢短条款，本机解析修复未发布知识库",
       "local_source_repair": "readonly_audit_source_repair_20260917.json",
-      "local_source_repair_state": "151_tests_reviewed_123_system_fragments_recovered_not_applied_to_production",
-      "next_gate": "以原始DOCX独立重建源范围；27/28章丢条款修复待受控知识库发布，再审核岗位元数据/原子边界及多引用持出集",
+      "local_source_repair_state": "202_tests_reviewed_independent_source_scope_r2_frozen_not_applied_to_production",
+      "local_source_scope": "source_scope_candidate_20260917.json",
+      "next_gate": "独立源item/atomic/section范围校验已完成，topic完整性和语义未验证；准备受控keyword知识库发布及回滚，再接入读取门禁和真实原题验收",
       "case_ids": [
         "TPL-B1DDFC78E40D26DD",
         "TPL-81261F34B14214DC"
@@ -356,8 +357,9 @@
       "state": "deployed_partial_verified",
       "evidence": "V15派生全文行覆盖及选中岗位跨索引缺尾门；实际833只读803覆盖候选通过/30冲突单列；本轮确认原DOCX源抽取遗漏，派生全文与索引互证不足以证明原书完整",
       "local_source_repair": "readonly_audit_source_repair_20260917.json",
-      "local_source_repair_state": "startup_readonly_live_verified_source_parser_repaired_production_knowledge_unchanged",
-      "next_gate": "受控发布原DOCX修正抽取并保留旧版本；独立审核源范围/语义角色及30项oracle，不用派生全文自证完整",
+      "local_source_repair_state": "startup_readonly_live_verified_independent_source_scope_r2_frozen_production_knowledge_unchanged",
+      "local_source_scope": "source_scope_candidate_20260917.json",
+      "next_gate": "受控发布原DOCX修正抽取并保留旧版本；核对生产源manifest血缘并独立审核语义角色及30项oracle，不用派生全文自证完整",
       "case_ids": [],
       "depends_on": [
         "QAOPT-K03"

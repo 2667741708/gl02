@@ -1270,3 +1270,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 状态：本机151项及独立审查通过，生产知识库未更新；2026-09-17核对。所有审计必须从连接启动起只读且不初始化schema，不输出用户路径或原文；正式制度源解析只把整行明确标题作分界，不能丢弃短条款/表格或把句中引用当标题。原书两章补回123片段，独立源范围/语义及受控知识库发布尚未完成，不销项QAOPT-K03/K06。
 权威：[修复、前后统计及后续发布门](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。不改变模型名称、权重、生产API或数据库schema。
+
+## REQ-QA-SOURCE-SCOPE-20260917：独立制度源范围
+
+状态：本机r2冻结、202项及独立审查通过，生产未发布；2026-09-17核对。源oracle独立遍历DOCX位置，item/atomic/section必须按原书内容、岗位、规程和顺序完整绑定；topic仅核有序子集，不认定完整或语义正确。单列表格保留，岗位明确匹配，19章仅限定别名；哈希与解析使用同一原始字节。
+权威：[实际源校验、冻结及发布门](handoffs/2026-09-17-qa-independent-source-scope.md)、[机器证据](../tests/qa_regression/source_scope_candidate_20260917.json)。固定底座、keyword且不生成embedding，0生产写入/问题POST，不销项QAOPT-K03/K06。

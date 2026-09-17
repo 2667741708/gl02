@@ -89,3 +89,35 @@ def test_mentions_do_not_reassign_regulation_or_discard_original_clause():
     document.add_paragraph(clause)
     _, items = builder.parse_source_items(document)
     assert items[-1].text == clause and items[-1].regulation_type == '技术操作规程'
+
+
+@pytest.mark.parametrize('text', ['1. 岗位甲负责交接检查。', '1. 根据岗位甲要求检查。',
+                                '1. 岗位', '1. 岗位甲 | 操作要求', '1. 岗位甲……1'])
+def test_role_mentions_prefixes_tables_and_toc_are_not_body_chapters(text):
+    assert builder.match_chapter(text, {1: '岗位甲'}) is None
+
+
+@pytest.mark.parametrize('text,chapters,expected', [('1. 工长', {1: '高炉工长'}, ('1', '高炉工长')),
+                                                 ('18.喷煤制粉工“三规一制”', {18: '喷煤制粉工'}, ('18', '喷煤制粉工')),
+                                                 ('19.喷煤喷吹工“三规一制”', {19: '喷吹工'}, ('19', '喷吹工'))])
+def test_exact_role_aliases_and_quoted_source_marker(text, chapters, expected):
+    assert builder.match_chapter(text, chapters) == expected
+
+
+def test_source_role_alias_is_bound_to_its_chapter_only():
+    assert builder.match_chapter('18.喷煤喷吹工“三规一制”', {18: '喷吹工'}) is None
+    assert builder.match_chapter('19.喷煤喷吹工负责确认。', {19: '喷吹工'}) is None
+
+
+def test_conflicting_source_directory_fails_closed():
+    document = source_document()
+    document.paragraphs[1].insert_paragraph_before('1. 另一个岗位……1')
+    with pytest.raises(ValueError, match='目录编号'):
+        builder.toc_chapters(document)
+
+
+def test_toc_does_not_assign_prebody_text_to_last_system_chapter():
+    document = source_document()
+    document.paragraphs[28].insert_paragraph_before('目录后的说明。')
+    _, items = builder.parse_source_items(document)
+    assert all(item.text != '目录后的说明。' for item in items)

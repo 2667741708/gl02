@@ -33,6 +33,18 @@
 
 ## 候选与保留边界
 
+### 用户再次确认后的只读复核（2026-09-17）
+
+用户再次要求“不允许更换模型切换模型，持续使用完全相同的底座”；唯一允许的名称与digest继续按上述冻结合同执行，禁止将观察到的漂移作为新基线。
+
+本次两个先后快照必须分别解释：第一次`tags`有4个已安装模型、`ps`有1个驻留模型，固定名称在两处均未匹配冻结digest，且同名不同digest；第二次`tags`中的该名称匹配冻结digest，但`ps`没有该名称对应的驻留记录。第二次仅证明该次查询时别名权重匹配，不证明稳定驻留或已完成禁切换。探测没有加载、卸载、复制或切换模型，没有发送问答POST，也不据此确认后台变更的执行者。
+
+生产管理器仍为旧SHA256`856f38b6edb088327e2138b88e68961db1a153b451aedb6709bea9fd2a8e99fa`。独立`Get-ScheduledTask`查询确认恢复任务`Enabled=true`、`State=4`（Running）；此前XML查询未取得Enabled字段，不能将空字段解释为禁用。生产仍为V26，HEAD及代理hash与本记录基线一致；r3为953/953完成，初始PID18224不存活。
+
+因此继续冻结线上复测发送，按既有单独授权边界安装禁切换管理器并验证固定身份后再恢复。路由、提示词、工具和知识证据修复可以继续在本机推进，不能用更换底座规避问题。
+
+本次身份、管理器、旧双底座入口禁用、批次身份四组隔离回归实际46项通过（14.60秒）。命令：`python -m pytest -q --basetemp=.codex_runtime/qa-single-base-confirmation-20260917-r1 tests/test_qa_fixed_model_identity.py tests/test_qa_single_model_guard.py tests/test_qa_fixed_model_window.py tests/test_qa_batch_identity.py`。默认系统Temp曾触发31个夹具权限错误，改用全新工作树隔离目录后全部通过；不计为线上题目失败或回答准确率。
+
 - 生产原管理器SHA256：`856f38b6edb088327e2138b88e68961db1a153b451aedb6709bea9fd2a8e99fa`。
 - catalogSHA256：`723c4f2c6e5c2093060db8beaf5338dc857477a5b10d5db9f95ec79dfdc2f57a`；无需修改catalog。
 - 固定管理器候选SHA256：`1dc63bc93135b4da644c5f6187f8002b9e6f5add2d4216e4e97ed3044f9772f0`。替换Activate-Model、Initialize-State、Invoke-Switch、Invoke-Sanitize、Invoke-Repair；保留30其他函数及顶层mutex/dispatch。

@@ -219,3 +219,8 @@ query_gl02_sensors的items必须为列表；每项的variable/source/latest/stat
 
 状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
 latest.value必须有限且非布尔，ts须含时分且可解析；source名称为非空字符串，策略仅readonly或缺项，缺项不能补成readonly。completion.missing_evidence_fields按对象提供缺项数组；缺字段partial、有效值保留。collected_at是来源工具标记，不推断物理采样；T_top.components须唯一A-D、同一时刻及均值复算，否则derived_component_alignment缺项。无数据库迁移。见[合同及真实来源范围](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)。
+
+## REQ-QA-SOURCE-SCOPE-20260917：私有源manifest
+
+`bf.qa.source-scope-manifest.v1`保存原DOCX、旧/新authority hash、独立OOXML块/行位置、角色hash、规程类别及chunk指纹，原文只在私有候选。item核完整有序，atomic/section核完整源绑定；topic仅有序子集。`bf.qa.private-keyword-source-candidate.v1`精确doc_id、预期旧authority、全文及chunk绑定manifest SHA256。公开证据只含hash/计数/检查结果，无原文、凭据或生产测量。本轮未迁移表或发布数据库。
+权威：[实际源范围、冻结及后续发布](handoffs/2026-09-17-qa-independent-source-scope.md)、[脱敏证据](../tests/qa_regression/source_scope_candidate_20260917.json)。

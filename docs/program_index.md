@@ -1186,3 +1186,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 程序：[启动只读连接:L59](../tools/qa_readonly_pg.py#L59)、[SELECT封装:L46](../tools/qa_readonly_pg.py#L46)、[数据库来源诊断:L52](../tools/probe_qa_readonly_pg.py#L52)、[源DOCX元数据审计:L12](../tools/audit_qa_source_docx_readonly.py#L12)、[整行标题识别:L149](../tools/build_three_rules_hierarchical_kb.py#L149)。四个审计入口迁移，manifest输出使用白名单；源解析只改变类别/标题分界，不改条款原文。151项及独立审查通过，生产知识库/代理尚未更新。
 权威：[确认缺陷、发布范围与未验证项](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。
+
+## REQ-QA-SOURCE-SCOPE-20260917：独立源校验程序
+
+程序：[独立OOXML源范围及item/chunk绑定](../tools/qa_source_scope_contract.py)、[私有keyword候选冻结](../tools/freeze_qa_source_scope_candidate.py)、[精确岗位/规程源解析](../tools/build_three_rules_hierarchical_kb.py)。符号行号TODO-LINES。校验器不调用builder抽取函数；标题政策数据显式共享，非语义oracle。私有文件不能覆盖或公开上传，冻结使用同一BytesIO校验身份与解析。
+权威：[实现、实际检查和未完成发布](handoffs/2026-09-17-qa-independent-source-scope.md)、[脱敏证据](../tests/qa_regression/source_scope_candidate_20260917.json)。202项及独立审查通过，生产知识库未变。

@@ -3333,3 +3333,8 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 
 151 passed：52项[只读审计](../tests/test_qa_readonly_pg.py)、55项[原书标题与源解析](../tests/test_three_rules_heading_boundaries.py)、44项既有文档合同。真实数据库默认/当前事务均readonly=on；原DOCX旧解析与生产96fd哈希相同，修复后fbf583哈希不同、两制度章补回123片段。比较旧authority退出1是必须受控重建知识库的信号，不放宽为语义通过。
 权威：[命令、逐类检查与未完成验收](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。独立审查PASS；未生产写入、未复问原题、不更新线上准确率。
+
+## REQ-QA-SOURCE-SCOPE-20260917：独立源及冻结回归
+
+实际202 passed：新增[原始位置/范围mutation](../tests/test_qa_source_scope_contract.py)、[身份与私有冻结边界](../tests/test_qa_source_candidate_freeze.py)，并覆盖标题、启动只读和既有文档合同。实际原书28章/4663item、5587chunk绑定通过，缺失/额外item为0；topic完整性及语义不宣称通过。
+权威：[可复现命令与候选hash](handoffs/2026-09-17-qa-independent-source-scope.md)、[机器证据](../tests/qa_regression/source_scope_candidate_20260917.json)。独立审查PASS，0数据库/模型/问题操作，822原题未复测。
