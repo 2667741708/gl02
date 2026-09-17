@@ -1226,3 +1226,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [读取器](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:133)新增_requested_chapters；_regulation_scopes第189行、_chapter_coverage第210行，公开execute_document_question第463行。纯确定性选择不增加SQL/模型；旧V33源门禁及其他9候选文件字节保留。
 
 当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+[作用域字面保护](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:120)、[规程范围](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:207)、[覆盖门](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:258)、[原子选择](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:280)、[公开入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:575)。其余9候选文件与V34逐字节相同。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。

@@ -3373,3 +3373,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 新增22项；V33初19项实际16fail/3pass，补充规程作用域3项修复前3fail。修复后合并378 passed（28.86秒），独立静态复审PASS。中途5例测试适配器属性误用已单列，不算产品失败；ask已有独立单SELECT断言。更新读取器后私有原源11组14次保真验证再次通过（15.17秒），0生产/模型请求。
 
 当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记录。最终400 passed/34.85秒；随后只加全JSON断言的22项再次通过/5.92秒，运行代码不变。独立审查复核完整not-chosen控制流后纠正初判并PASS。实际私有原源11组14读再次通过/15.07秒。0模型/生产请求，不推导线上准确率。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。

@@ -251,7 +251,7 @@
       "title": "原文知识路由独立于现场数据",
       "state": "production_coverage_verified_semantic_partial",
       "evidence": "V11有效803题真实单发送全部原文覆盖和来源/版本合同通过；30源标准答案冲突阻断",
-      "next_gate": "V34本机378项/复审PASS：精确书名、完整章节列表/范围、岗位编号冲突、子句规程过滤和缺组合partial；SSH身份/路线均超时，生产重核、固定底座管理器/DB独立授权/迁移发布及8093守卫更新待完成；822原失败/partial题尚未复问，30标准冲突/topic/语义审核保留",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
       "case_ids": [
         "TPL-48827B99541672E2",
         "TPL-9AB9414BFC82E504"
@@ -263,7 +263,8 @@
       "initial_linked_semantic_counts": {
         "failed": 90
       },
-      "local_document_scope_resolution": "document_scope_resolution_20260917.json"
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
     },
     {
       "order": 12,
@@ -272,7 +273,7 @@
       "title": "禁止用聊天或回归记录替代权威知识",
       "state": "deployed_partial_verified",
       "evidence": "V12制度原文与实时/用户数据子任务隔离，原文由独立执行器完成",
-      "next_gate": "V34本机378项/复审PASS：精确书名、完整章节列表/范围、岗位编号冲突、子句规程过滤和缺组合partial；SSH身份/路线均超时，生产重核、固定底座管理器/DB独立授权/迁移发布及8093守卫更新待完成；822原失败/partial题尚未复问，30标准冲突/topic/语义审核保留",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
       "case_ids": [
         "TPL-2941ED6E73448D66"
       ],
@@ -284,7 +285,8 @@
       "initial_linked_semantic_counts": {
         "failed": 106
       },
-      "local_document_scope_resolution": "document_scope_resolution_20260917.json"
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
     },
     {
       "order": 13,
@@ -299,7 +301,7 @@
       "local_keyword_release": "keyword_source_release_preparation_20260917.json",
       "local_keyword_transaction": "keyword_source_transaction_20260917.json",
       "local_source_release_entry": "source_release_entry_20260917.json",
-      "next_gate": "V34本机378项/复审PASS：精确书名、完整章节列表/范围、岗位编号冲突、子句规程过滤和缺组合partial；SSH身份/路线均超时，生产重核、固定底座管理器/DB独立授权/迁移发布及8093守卫更新待完成；822原失败/partial题尚未复问，30标准冲突/topic/语义审核保留",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
       "case_ids": [
         "TPL-B1DDFC78E40D26DD",
         "TPL-81261F34B14214DC"
@@ -312,7 +314,8 @@
         "failed": 2
       },
       "local_original_source_reader": "original_source_reader_20260917.json",
-      "local_document_scope_resolution": "document_scope_resolution_20260917.json"
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
     },
     {
       "order": 14,
@@ -321,7 +324,7 @@
       "title": "避免通用知识补写正式制度",
       "state": "deployed_partial_verified",
       "evidence": "纯制度及V12/V13未知制度复合题均明确澄清，不补写条款",
-      "next_gate": "V34本机378项/复审PASS：精确书名、完整章节列表/范围、岗位编号冲突、子句规程过滤和缺组合partial；SSH身份/路线均超时，生产重核、固定底座管理器/DB独立授权/迁移发布及8093守卫更新待完成；822原失败/partial题尚未复问，30标准冲突/topic/语义审核保留",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
       "case_ids": [
         "TPL-3FE672D48EEF6AA0",
         "TPL-740647EE648698B0"
@@ -336,7 +339,8 @@
       },
       "local_document_scope_resolution": "document_scope_resolution_20260917.json",
       "prior_scoped_state": "production_verified",
-      "new_boundary_defect": "V33书名字串误绑本机复现；先前生产验收未覆盖该边界，不等于已重新现场失败"
+      "new_boundary_defect": "V33书名字串误绑本机复现；先前生产验收未覆盖该边界，不等于已重新现场失败",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
     },
     {
       "order": 15,
@@ -372,7 +376,7 @@
       "local_keyword_release": "keyword_source_release_preparation_20260917.json",
       "local_keyword_transaction": "keyword_source_transaction_20260917.json",
       "local_source_release_entry": "source_release_entry_20260917.json",
-      "next_gate": "V34本机378项/复审PASS：精确书名、完整章节列表/范围、岗位编号冲突、子句规程过滤和缺组合partial；SSH身份/路线均超时，生产重核、固定底座管理器/DB独立授权/迁移发布及8093守卫更新待完成；822原失败/partial题尚未复问，30标准冲突/topic/语义审核保留",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
       "case_ids": [],
       "depends_on": [
         "QAOPT-K03"
@@ -380,7 +384,8 @@
       "repair_and_acceptance_plan": "文档和 oracle 分别版本化；89 题标准阻断对照岗位原文逐条确认，记录修正理由和旧标准。验收：同问不同标准/错编号不自动改答案。",
       "initial_linked_semantic_counts": {},
       "local_original_source_reader": "original_source_reader_20260917.json",
-      "local_document_scope_resolution": "document_scope_resolution_20260917.json"
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
     },
     {
       "order": 17,

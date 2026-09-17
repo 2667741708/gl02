@@ -491,3 +491,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 不要将带原书字串的未知标题映射到现有源；章节code与岗位冲突先澄清。多子句answer缺某岗位时检查regulation作用范围及missing_chapters，不能把剩余非空原文判全部完成。本轮SSH身份/备用路线仍超时，0远端操作；恢复后按固定流程只读重核，不重发未知发送题。
 
 当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+同一句存在多个规程时先过滤再排序，不能让错误规程exact命中覆盖正确规程prefix命中。路径1/1.1必须精确比较，不能包含匹配11/11.1。规程role有文本仍须逐类型检查缺项；歧义类型不抹掉另一唯一核验结果。生产探测超时不等于服务器故障，未知发送仍禁止重放。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。

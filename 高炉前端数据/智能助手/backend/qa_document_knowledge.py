@@ -117,6 +117,21 @@ def _atomic_selector(question: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def _scope_question(question):
+    match = re.search(r'关于“(.+)”需要记住', question)
+    if not match:
+        return question
+    # Quoted clause words are evidence references, not new roles/filters.
+    return question[:match.start(1)] + ' ' * len(match.group(1)) + question[match.end(1):]
+
+
+def _negative_regulation_pattern():
+    term = '(?:' + '|'.join(re.escape(value) for value in REGULATIONS) + ')'
+    return (r'(?:不要|不需要|不引用|不使用|别用|别引用|排除|不包括|不含|不是)'
+            r'\s*(?:(?:引用|使用|查阅|读取|按|依据|查询)\s*)?'
+            '(?P<terms>' + term + '(?:' + r'\s*[、,，和及与]\s*' + term + ')*)')
+
+
 class DocumentScopeError(ValueError):
     pass
 
@@ -132,6 +147,8 @@ def _chapter_catalog(indexed):
 
 def _requested_chapters(question, chapters):
     """Resolve the complete bounded explicit scope, never silently drop a code."""
+    question = re.sub(_negative_regulation_pattern(), lambda match: ' ' * len(match.group(0)),
+                      _scope_question(question))
     requested = {name for _, name in chapters if name in question}
     if not requested:
         requested = {name for _, name in chapters if len(name.removeprefix('高炉')) >= 3
@@ -182,38 +199,79 @@ def _scope_error(intro, manifest, error):
                 'chapter_reference_conflict': '章节编号与相邻岗位名称不一致，请确认准确范围；未擅自选其中一个。',
                 'chapter_role_ambiguous': '工长岗位存在多个范围，请指定准确岗位。',
                 'chapter_range_invalid': '章节范围起止倒置，请确认准确范围。',
-                'chapter_request_exceeds_limit': '章节选择超出受控上限，请缩小范围。'}
+                'chapter_request_exceeds_limit': '章节选择超出受控上限，请缩小范围。',
+                'regulation_scope_conflict': '同一范围的规程同时被要求和排除，请确认准确范围。'}
     return _outcome(intro + messages[str(error)], 'needs_clarification', str(error), [manifest])
 
 
+def _regulation_scope(question, roles):
+    text = _scope_question(question)
+    for role in roles:
+        if role not in REGULATIONS:
+            continue
+        other = '|'.join(re.escape(term) for term in REGULATIONS if term != role)
+        # "岗位交接班制度的安全操作规程": the first token names the
+        # chapter, rather than requesting an additional regulation.
+        text = re.sub(re.escape(role) + r'(?=\s*(?:的|中|中的)?\s*(?:' + other + '))',
+                      lambda match: ' ' * len(match.group(0)), text)
+    excluded = set()
+    def remove_negative(match):
+        excluded.update(term for term in REGULATIONS if term in match.group('terms'))
+        return ' ' * len(match.group(0))
+    positive_text = re.sub(_negative_regulation_pattern(), remove_negative, text)
+    included = {term for term in REGULATIONS if term in positive_text}
+    if included.intersection(excluded):
+        raise DocumentScopeError('regulation_scope_conflict')
+    return {'include': included or None, 'exclude': excluded}
+
+
+def _regulation_allowed(regulation, scope):
+    return regulation not in scope['exclude'] and (scope['include'] is None or regulation in scope['include'])
+
+
 def _regulation_scopes(question, requested, chapters):
-    global_terms = {term for term in REGULATIONS if term in question}
-    scopes = {name: global_terms or None for name in requested}
-    clauses = re.split(r'[;；]|同时|以及|并且', question)
+    clauses = re.split(r'[;；]|同时|以及|并且', _scope_question(question))
     if len(clauses) < 2 or len(requested) < 2:
-        return scopes
-    seen = set()
+        return {name: _regulation_scope(question, requested) for name in requested}
+    scopes = {}
     for clause in clauses:
         names = set(_requested_chapters(clause, [(code, name) for code, name in chapters if name in requested]))
-        terms = {term for term in REGULATIONS if term in clause} or None
+        if not names:
+            continue
+        scope = _regulation_scope(clause, names)
         for name in names:
-            if name not in seen:
-                scopes[name] = terms
-                seen.add(name)
-            elif scopes[name] is None or terms is None:
-                scopes[name] = None
+            if name not in scopes:
+                scopes[name] = scope
             else:
-                scopes[name] = scopes[name] | terms
+                previous = scopes[name]
+                explicit = (previous['include'] or set()) | (scope['include'] or set())
+                excluded = previous['exclude'] | scope['exclude']
+                if explicit.intersection(excluded):
+                    raise DocumentScopeError('regulation_scope_conflict')
+                included = None if previous['include'] is None or scope['include'] is None else explicit
+                scopes[name] = {'include': included, 'exclude': excluded}
+    for name in set(requested) - set(scopes):
+        scopes[name] = _regulation_scope(question, [name])
     return scopes
 
 
-def _chapter_coverage(result, requested, selected):
+def _chapter_coverage(result, requested, selected, scopes):
     returned = {item['chapter'] for item in selected}
     missing = sorted(set(requested) - returned)
+    missing_types = {}
+    for name in requested:
+        types = {item['regulation'] for item in selected if item['chapter'] == name}
+        absent = sorted((scopes[name]['include'] or set()) - types)
+        if absent:
+            missing_types[name] = absent
     result['completion']['coverage'].update(requested_chapters=len(requested),
-                                             available_chapters=len(returned), missing_chapters=missing)
-    if missing:
-        result['answer'] += '\n\n所选规程下以下岗位/章节没有已核验条款：' + '、'.join(missing) + '。未将其省略后判为全部完成。'
+                                             available_chapters=len(returned), missing_chapters=missing,
+                                             missing_regulations_by_chapter=missing_types,
+                                             excluded_regulations_by_chapter={name: sorted(scopes[name]['exclude']) for name in requested})
+    if missing or missing_types:
+        labels = [name + ' / ' + '、'.join(types) for name, types in missing_types.items()]
+        labels.extend(name for name in missing if name not in missing_types)
+        result['answer'] += '\n\n以下请求范围没有已核验条款：' + '；'.join(labels) + '。未将其省略后判为全部完成。'
         if result['completion']['terminal_state'] == 'completed':
             result['completion'].update(terminal_state='partial', reason='requested_chapters_partially_available')
     return result
@@ -243,6 +301,7 @@ def _original_atomic(conn, question, intro, manifest, indexed=None, selected_rol
     if len(requested_roles) != 1:
         return _outcome(intro + "请明确唯一岗位后读取所引条款，未借用其他岗位的同句原文。",
                         "needs_clarification", "atomic_role_unresolved", [manifest])
+    scope = _regulation_scope(question, requested_roles)
     matches = {}
     for raw in rows:
         row = dict(raw)
@@ -252,7 +311,11 @@ def _original_atomic(conn, question, intro, manifest, indexed=None, selected_rol
         path = re.search(r"^【层级路径】(.+)$", header, re.M)
         if not role or role.group(1).strip() != requested_roles[0] or not regulation:
             continue
-        if parent and (not path or _label(parent[0] + parent[1]) not in _label(path.group(1))):
+        if not _regulation_allowed(regulation.group(1).strip(), scope):
+            continue
+        path_parts = [_numbered_line(part) for part in re.split(r'\s*[>＞]\s*', path.group(1))] if path else []
+        if parent and not any(part and part[0] == parent[0] and _label(part[1]).startswith(_label(parent[1]))
+                              for part in path_parts):
             continue
         content = canonical_text(row.get("content")).strip()
         parsed = _numbered_line(content.split("\n", 1)[0])
@@ -265,17 +328,67 @@ def _original_atomic(conn, question, intro, manifest, indexed=None, selected_rol
         named_term = _label(re.split(r"[:：]", raw_wording, maxsplit=1)[0])
         rank = 3 if wording == wanted else (2 if named_term == wanted else 1)
         matches[(regulation.group(1).strip(), content)] = (rank, row)
+    requested_types = [term for term in REGULATIONS if term in (scope['include'] or set())]
+    if len(requested_types) > 1:
+        chosen, missing, ambiguous = [], [], []
+        for requested_type in requested_types:
+            candidates = [(content, rank, row) for (regulation, content), (rank, row) in matches.items()
+                          if regulation == requested_type]
+            if not candidates:
+                missing.append(requested_type)
+                continue
+            best = max(item[1] for item in candidates)
+            candidates = [item for item in candidates if item[1] == best]
+            if len(candidates) != 1:
+                ambiguous.append(requested_type)
+            else:
+                content, _, row = candidates[0]
+                chosen.append((requested_type, content, row))
+        coverage = {'requested_regulations': requested_types, 'excluded_regulations': sorted(scope['exclude']),
+                    'missing_regulations': missing, 'ambiguous_regulations': ambiguous,
+                    'matched_scopes': len(chosen), 'table_blocks_preserved': True}
+        if not chosen:
+            return _outcome(intro + '所选岗位、规程及层级下未唯一确认所引原文，请核对范围和完整原句；未借用其他范围。',
+                            'needs_clarification', 'atomic_reference_ambiguous' if ambiguous else 'atomic_reference_not_found',
+                            [manifest], coverage)
+        if any(len(content) > MAX_BLOCK_CHARS for _, content, _ in chosen):
+            return _outcome(intro + '完整条款或表格超出受控范围，未裁切原文。',
+                            'dependency_blocked', 'atomic_block_exceeds_limit', [manifest], coverage)
+        pages, chars = [[]], 0
+        for item in chosen:
+            size = len(item[1])
+            if pages[-1] and chars + size > PAGE_CHARS:
+                pages.append([])
+                chars = 0
+            pages[-1].append(item)
+            chars += size
+        page_match = re.search(r'第\s*(\d+)\s*页', question)
+        page = int(page_match.group(1)) if page_match and len(page_match.group(1)) <= 3 else (-1 if page_match else 1)
+        if not 1 <= page <= len(pages):
+            return _outcome(intro + f'可用页码为1–{len(pages)}，请核对页码。', 'needs_clarification',
+                            'page_out_of_range', [manifest], coverage)
+        returned = pages[page - 1]
+        body = '\n\n'.join(f'【{requested_roles[0]} / {regulation}】\n' + content for regulation, content, _ in returned)
+        gap = ('\n\n未找到所引条款的规程：' + '、'.join(missing)) if missing else ''
+        gap += ('\n\n所引条款仍有歧义的规程：' + '、'.join(ambiguous)) if ambiguous else ''
+        coverage.update(chunk_ids=[str(row['chunk_id']) for _, _, row in returned],
+                        pages=len(pages), page=page, returned_scopes=len(returned))
+        if len(pages) > 1:
+            gap += f'\n\n原文共{len(pages)}页，本次第{page}页；表格未裁切，其他页面须分别读取，未将单页标为全部完成。'
+        return _outcome(intro + '以下为各所选规程中唯一匹配的完整原文条款：\n\n' + body + gap,
+                        'partial' if missing or ambiguous or len(pages) > 1 else 'completed', 'verified_original_atomic_scopes', [manifest], coverage)
     if matches:
         best_rank = max(value[0] for value in matches.values())
         matches = {key: value for key, value in matches.items() if value[0] == best_rank}
     if len(matches) != 1:
-        return _outcome(intro + "未唯一确认所引原文条款，请补充规程类型、章节路径或完整原句。", "needs_clarification", "atomic_reference_ambiguous" if matches else "atomic_reference_not_found", [manifest])
+        return _outcome(intro + "所选岗位、规程或层级下未唯一确认所引原文，请核对范围和完整原句；未借用其他范围。", "needs_clarification", "atomic_reference_ambiguous" if matches else "atomic_reference_not_found", [manifest])
     (regulation, content), (_, row) = next(iter(matches.items()))
     if len(content) > MAX_BLOCK_CHARS:
         return _outcome(intro + "完整条款或表格超出受控范围，未裁切原文。", "dependency_blocked", "atomic_block_exceeds_limit", [manifest])
     return _outcome(intro + f"【{requested_roles[0]} / {regulation}】\n以下为唯一匹配的完整原文条款：\n\n" + content,
                     "completed", "verified_original_atomic", [manifest],
-                    {"chunk_id": str(row["chunk_id"]), "matched_scopes": 1, "table_blocks_preserved": True})
+                    {"chunk_id": str(row["chunk_id"]), "matched_scopes": 1, "table_blocks_preserved": True,
+                     'requested_regulations': requested_types, 'excluded_regulations': sorted(scope['exclude'])})
 
 
 def _original_subsection(selected, reference, intro, manifest):
@@ -366,10 +479,10 @@ def _execute_document_question_in_snapshot(conn: Any, question: str, plan: dict[
                             'dependency_blocked', gate['reason'], [manifest], {'authority_index': gate})
         try:
             selected_roles = _requested_chapters(question, _chapter_catalog(indexed))
+            atomic_result = _original_atomic(conn, question, intro, manifest, indexed if snapshot is not None else None,
+                                             selected_roles=selected_roles)
         except DocumentScopeError as exc:
             return _scope_error(intro, manifest, exc)
-        atomic_result = _original_atomic(conn, question, intro, manifest, indexed if snapshot is not None else None,
-                                         selected_roles=selected_roles)
         if atomic_result is not None:
             return atomic_result
     if doc_id == ACCIDENT:
@@ -401,15 +514,14 @@ def _execute_document_question_in_snapshot(conn: Any, question: str, plan: dict[
     try:
         requested = _requested_chapters(question, chapters)
         regulation_scopes = _regulation_scopes(question, requested, chapters)
+        global_scope = _regulation_scope(question, []) if not requested else None
     except DocumentScopeError as exc:
         return _scope_error(intro, manifest, exc)
     selected = [item for item in pieces if not requested or item["chapter"] in requested]
-    regulations = [term for term in REGULATIONS if term in question]
     if requested:
-        selected = [item for item in selected if regulation_scopes[item['chapter']] is None
-                    or item['regulation'] in regulation_scopes[item['chapter']]]
-    elif regulations:
-        selected = [item for item in selected if item["regulation"] in regulations]
+        selected = [item for item in selected if _regulation_allowed(item['regulation'], regulation_scopes[item['chapter']])]
+    else:
+        selected = [item for item in selected if _regulation_allowed(item['regulation'], global_scope)]
     if not selected:
         return _outcome(intro + "该岗位/规程组合没有已核验原文；未用其他岗位或报表替代。",
                         "dependency_blocked", "requested_scope_missing", [manifest])
@@ -433,9 +545,9 @@ def _execute_document_question_in_snapshot(conn: Any, question: str, plan: dict[
                         'dependency_blocked', scope_gate['reason'], [manifest], {'selected_scope': scope_gate})
     references = _references(question)
     if len(references) > 1:
-        return _chapter_coverage(_original_subsections(selected, references, intro, manifest), requested, selected)
+        return _chapter_coverage(_original_subsections(selected, references, intro, manifest), requested, selected, regulation_scopes)
     if references:
-        return _chapter_coverage(_original_subsection(selected, references[0], intro, manifest), requested, selected)
+        return _chapter_coverage(_original_subsection(selected, references[0], intro, manifest), requested, selected, regulation_scopes)
     pages: list[list[dict[str, Any]]] = [[]]
     chars = 0
     for item in selected:
@@ -457,7 +569,7 @@ def _execute_document_question_in_snapshot(conn: Any, question: str, plan: dict[
     result = _outcome(intro + "以下为所选范围的原文，未补写正式条款：\n\n" + body + more,
                     "partial" if len(pages) > 1 else "completed", "verified_original_page", [manifest],
                     {"pages": len(pages), "page": page, "selected_parts": len(selected), "returned_parts": len(pages[page - 1]), "table_blocks_preserved": True})
-    return _chapter_coverage(result, requested, selected)
+    return _chapter_coverage(result, requested, selected, regulation_scopes)
 
 
 def execute_document_question(conn: Any, question: str, plan: dict[str, Any]) -> dict[str, Any] | None:

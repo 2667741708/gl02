@@ -1310,3 +1310,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 正式书名按精确别名注册，未知带“三规二制”字样的引号书名也不能借用正式原书。多个章节/范围必须完整解析，冲突或未知澄清；多子句按各自规程范围读取。QAOPT-K04因新标题边界本机复现，重新deployed_partial_verified；旧生产验收仅覆盖此前子集，本轮不销项。
 
 当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+条款引用必须先符合请求岗位/规程。否定规程不能当正向要求，引号内原句仅作字面选择。多个规程逐项核验；有唯一原文则保留并明确缺失/歧义partial，无可核原文才澄清。问题状态保持原台账，本轮0销项。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。

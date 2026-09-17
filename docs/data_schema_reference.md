@@ -259,3 +259,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL变化。请求级章节与规程作用域为确定性内存结构，来自已核同一数据库快照；正式binding/release/全量after摘要继续必需。缺组合不删除源行或改标准，22项语义选择测试使用合成原文，另私有真实原源验证使用原生产投影常量。
 
 当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+无DDL变化。请求级include/exclude集合仅用于内存选择，不写数据库或泄漏进JSON。正式原源binding、applied release、全量after与单MVCC快照门禁不变；不改原题ID/裁判标准/源冲突记录。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。

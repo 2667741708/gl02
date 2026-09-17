@@ -423,3 +423,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无新路由。书名未知在任何DB查询前needs_clarification/document_reference_unresolved；chapter_unknown、chapter_range_invalid、chapter_reference_conflict明确澄清。已请求岗位在规程筛选后缺失时保留可读原文，terminal_state=partial，coverage含requested_chapters/available_chapters/missing_chapters；available是范围可用数，不冒充当前页全部已回答。
 
 当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+无新HTTP路由。coverage新增missing_regulations_by_chapter/excluded_regulations_by_chapter；多原子结果含missing_regulations/ambiguous_regulations及page/pages。唯一内容与缺项并存时partial；矛盾范围regulation_scope_conflict澄清。整表保留，单页不冒充所有页已答；全结果严格JSON可序列化。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
