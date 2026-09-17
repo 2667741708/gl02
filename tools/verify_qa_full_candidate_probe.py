@@ -36,6 +36,23 @@ ORDINARY_CASES = {
     'ordinary_unrelated_bound_topic': (False, 1),
     'ordinary_supplied_data_bound_isolated': (False, 0),
 }
+FOLLOWUP_CASES = {
+    'followup_explicit_window': ('owned_live_followup', 30),
+    'followup_inherited_window': ('owned_live_followup', 120),
+    'followup_continue': ('owned_live_followup', 120),
+    'followup_latest_resets_window': ('owned_live_followup', None),
+    'followup_statistics': ('owned_live_followup', 120),
+    'followup_missing_object': ('needs_clarification', 30),
+    'followup_stale_object': ('needs_clarification', 30),
+    'followup_foreign_ancestry': ('needs_clarification', 30),
+    'followup_missing_latest': ('needs_clarification', None),
+    'followup_stale_latest': ('needs_clarification', None),
+    'followup_foreign_latest': ('needs_clarification', None),
+    'followup_supplied_data_resets_scope': ('not_applicable', None),
+    'followup_disabled_code_scope': ('disabled_code_only', None),
+    'followup_clarification_json': None,
+    'followup_clarification_sse': None,
+}
 
 
 def validate(report, candidate, manifest, probe_sha256):
@@ -96,6 +113,41 @@ def validate(report, candidate, manifest, probe_sha256):
             and type(row.get('mock_page_archives')) is int and row['mock_page_archives'] == 1
             and row.get('page_archive_isolated_from_evidence') is True,
             'Ordinary source isolation or bound authority not verified')
+    if manifest.get('owned_followup_plan_propagated'):
+        followups = contracts.get('owned_followup_cases') or []
+        require(len(followups) == len(FOLLOWUP_CASES)
+            and {row.get('id') for row in followups} == set(FOLLOWUP_CASES), 'Complete owned followup evidence required')
+        require(contracts.get('owned_followup_mocked_boundaries') == ['authentication_session',
+            'database_connection', 'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start',
+            'mcp_prefetch_provider', 'mcp_configuration_result'], 'Unreviewed followup mocked boundaries')
+        for row in followups:
+            require(row.get('passed') is True and row.get('functional_contract_passed') is True
+                and row.get('model_answer_generated') is False
+                and type(row.get('sensor_context_read_count')) is int and row['sensor_context_read_count'] == 0
+                and row.get('sensor_context_read_kinds') == []
+                and type(row.get('mock_page_archives')) is int and row['mock_page_archives'] == 1
+                and row.get('page_archive_isolated_from_evidence') is True
+                and type(row.get('mock_model_requests')) is int and row['mock_model_requests'] == 0
+                and type(row.get('mock_prefetch_queries')) is int,
+                'Followup source archival or no-model boundary not verified')
+            expected = FOLLOWUP_CASES[row['id']]
+            if expected is None:
+                require(type(row.get('status')) is int and row['status'] == 200
+                    and row.get('answer_route') == 'owned_followup_needs_clarification'
+                    and row.get('mock_prefetch_queries') == 0
+                    and (row.get('events') == [] if row['id'].endswith('_json')
+                        else row.get('events') == ['start', 'start', 'delta', 'final', 'done']),
+                    'Final deterministic followup clarification not verified')
+            else:
+                state, minutes = expected
+                require(row.get('resolution_state') == state
+                    and row.get('selected_objects') == (['DP_total'] if state == 'owned_live_followup' else [])
+                    and (row.get('minutes') is None if minutes is None
+                        else type(row.get('minutes')) is int and row['minutes'] == minutes)
+                    and type(row.get('mock_prefetch_queries')) is int
+                    and row['mock_prefetch_queries'] == (1 if state == 'owned_live_followup' else 0)
+                    and row.get('fresh_evidence_required') is True,
+                    'Owned object window ancestry or fresh-query contract not verified')
     if manifest.get('shared_proxy_integration'):
         shared = report.get('shared_abc_contracts') or {}
         shared_rows = shared.get('cases') or []
@@ -150,6 +202,7 @@ def validate(report, candidate, manifest, probe_sha256):
         'native_contracts_passed': len(CASES),
         'native_ordinary_prepare_contracts_passed': len(ORDINARY_CASES),
         'native_shared_contracts_passed': len(SHARED_CASES) if manifest.get('shared_proxy_integration') else 0,
+        'native_owned_followup_contracts_passed': len(FOLLOWUP_CASES) if manifest.get('owned_followup_plan_propagated') else 0,
         'semantic_accuracy_inferred': False}
 
 
@@ -171,4 +224,5 @@ if __name__ == '__main__':
         'native_contracts_passed': scope['native_contracts_passed'],
         'native_ordinary_prepare_contracts_passed': scope['native_ordinary_prepare_contracts_passed'],
         'native_shared_contracts_passed': scope['native_shared_contracts_passed'],
+        'native_owned_followup_contracts_passed': scope['native_owned_followup_contracts_passed'],
         'transitive_dependencies': len(scope['required_reads']), 'production_ready_inferred': False}))

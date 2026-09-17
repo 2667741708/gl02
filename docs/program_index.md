@@ -1364,3 +1364,10 @@ probe_qa_shared_proxy_delta_readonly证明全AST差异仅3函数/1导入；build
 qa_task_plan.sensor_context_policy和bound_rule_context_requested新增2辅助函数；build_qa_ordinary_context_candidate只修改冻结proxy的prepare/build_hidden组装并证明其他全AST不变。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V49对象追问执行（2026-09-17）
+
+qa_task_plan.resolve_owned_followup新增纯辅助函数；build_qa_owned_followup_candidate修改冻结proxy七函数并证明剩余全AST/14模块不变，任务计划穿透同步/异步MCP和提示词来源层。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

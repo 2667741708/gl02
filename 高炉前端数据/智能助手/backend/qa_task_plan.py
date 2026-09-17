@@ -577,3 +577,76 @@ def bound_rule_context_requested(question: str, plan: dict[str, Any] | None = No
         r'|(?:绑定的?|这个|这条|这项|那个|那条|那项|上述|刚才)[^；。]{0,8}(?:规则|评分|公式|得分|权重|归一化)'
         r'|(?<![A-Za-z0-9_])(?:A[1-9]|B(?:1[0-3]|[1-9])|C(?:1[01]|[1-9]))(?![A-Za-z0-9_])[^；。]{0,12}(?:规则|评分|得分|分数|触发|公式|权重|归一化)',
         instruction))
+
+
+def resolve_owned_followup(question: str, plan: dict[str, Any], context: dict[str, Any],
+        known_objects: list[str], *, code_only: bool = False) -> dict[str, Any]:
+    """Resolve a referential read from server-loaded owned ancestry, never old values.
+
+    The caller must load context with load_owned_tool_context and update its
+    active instruction first. This pure resolver does not authenticate a client.
+    """
+    result = {'task_plan': dict(plan), 'state': 'not_applicable', 'outcome': None}
+    if code_only:
+        disabled = dict(plan)
+        disabled.update(allow_prefetch=False, allow_mcp_tools=False, search_knowledge=False,
+            allowed_sources=[], allowed_tool_domains=[], reason='disabled_code_only')
+        result.update(task_plan=disabled,state='disabled_code_only')
+        return result
+    if plan.get('no_live_lookup') or plan.get('all_tools_disabled'):
+        return result
+    if set(plan.get('intents') or []) & {'user_supplied_data', 'document_knowledge',
+            'conversation_history', 'period_report'}:
+        return result
+    if 'live_readonly_data' in (plan.get('source_exclusions') or []):
+        return result
+    if '[服务端对话状态：' in str(question or ''):
+        return result
+    if (sensor_context_policy(plan)['enabled'] and plan.get('allow_mcp_tools') is True
+            and bool(plan.get('entities'))):
+        result['state'] = 'already_explicit_live'
+        return result
+    instruction = str(plan.get('instruction_text') or '')
+    if bound_rule_context_requested(question, plan):
+        return result
+    if not re.match(r'^\s*(?:刚才|上面|那个|这个|它们?|这些|上述变量|继续|再看|画出来|画一下|来张图|换成|改成|换散点)', instruction):
+        return result
+    if re.search(r'换个话题|新问题|另一个问题|不要继承|忘掉|原理|通常|一般|概念|含义|翻译|代码|脚本|密码|凭据|连接串|删除|写入|更新数据库', instruction):
+        return result
+    goal = context.get('analysis_goal')
+    if goal not in {'latest', 'history', 'statistics', 'correlation', 'plot'}:
+        return result
+    if not re.search(r'趋势|走势|波动|变化|最近|过去|现在|当前|最新|多少|平均|统计|最高|最低|画|图|比较|对比|相关|继续', instruction):
+        return result
+    objects = context.get('selected_objects')
+    inheritance = context.get('inheritance')
+    provenance = context.get('inheritance_provenance')
+    object_provenance = provenance.get('objects') if isinstance(provenance, dict) else None
+    sources = object_provenance.get('sources') if isinstance(object_provenance, dict) else None
+    valid_objects = (isinstance(objects, list) and bool(objects)
+        and all(isinstance(name, str) and name and name in known_objects for name in objects)
+        and len(set(objects)) == len(objects))
+    owned_sources = (valid_objects and isinstance(sources, dict) and set(sources) == set(objects)
+        and all(type(sources[name]) is int and sources[name] > 0 for name in objects))
+    valid_inheritance = (isinstance(inheritance, dict) and inheritance.get('objects') is True
+        and context.get('inheritance_reason') == 'explicit_followup'
+        and context.get('pending_clarification') is None)
+    if not (owned_sources and valid_inheritance):
+        clarification_plan = dict(plan)
+        clarification_plan.update(allow_prefetch=False, allow_mcp_tools=False,
+            search_knowledge=False, allowed_sources=[], allowed_tool_domains=[],
+            reason='owned_followup_needs_clarification')
+        result['task_plan'] = clarification_plan
+        result['state'] = 'needs_clarification'
+        result['outcome'] = {'ok': True, 'tool_used': False,
+            'answer': '请明确要查看哪个数据对象或测点；此前对象缺失、过期或无法核验，本次未查询现场数据，也未沿用旧数值。',
+            'answer_route': 'owned_followup_needs_clarification',
+            'answer_contract': 'needs_clarification', 'needs_clarification': True}
+        return result
+    resolved = dict(plan)
+    resolved.update(primary_intent='live_data', intents=['live_data'], search_knowledge=False,
+        allow_prefetch=True, allow_mcp_tools=True, allowed_sources=['live_readonly_data'],
+        allowed_tool_domains=['live_readonly_data'], entities=list(objects), unresolved_entities=[],
+        reason='owned_referential_followup')
+    result.update(task_plan=resolved, state='owned_live_followup')
+    return result

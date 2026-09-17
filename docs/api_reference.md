@@ -561,3 +561,10 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 问答prepare普通场景不读取现场来源，自带页面快照仍归档；绑定ABC证据仅为主动指定规则问题，旧批次不代表新现场。公共ABC接口和首轮严格Schema链路保留。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V49对象追问执行（2026-09-17）
+
+JSON/SSE缺对象追问在同请求内返回owned_followup_needs_clarification，HTTP200仅表示完成澄清，不表示数据问题已正确回答。无新公开请求字段；owner校验保持。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

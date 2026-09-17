@@ -202,6 +202,7 @@ def run(payload):
         'ok': imported == ['ollama_proxy_server', 'bf_data_mcp_server'] and error is None and not attempted and not changed_dependencies and not pin_mismatches
             and (contracts is None or (all(row['passed'] for row in contracts['cases'])
                 and all(row['passed'] for row in contracts.get('ordinary_context_cases', []))))
+            and (contracts is None or all(row['passed'] for row in contracts.get('owned_followup_cases', [])))
             and (shared_contracts is None or all(row['passed'] for row in shared_contracts['cases'])),
         'native_python': '.'.join(str(x) for x in sys.version_info[:3]),
         'stdlib_platform_metadata_prepared': True,
@@ -422,8 +423,13 @@ def request_contracts(proxy):
             if text.startswith('select m.id from qa_messages m join qa_conversations c'):
                 room, subject, *ids = params
                 return Cursor([{'id': row['id']} for row in state['messages'] if row['conversation_id'] == room and subject == owner and row['role'] == 'user' and row['id'] in ids])
+            if text.startswith('select m.id, m.hidden_context_json from qa_messages m'):
+                room,subject = params
+                return Cursor([{'id':row['id'],'hidden_context_json':row['hidden_context_json']}
+                    for row in reversed(state['messages']) if row['conversation_id'] == room
+                    and subject == owner and row['role'] == 'user' and row.get('hidden_context_json') is not None][:8])
             if text.startswith('select id, conversation_id, role, content, created_at, snapshot_id from qa_messages'):
-                return Cursor(state['messages'])
+                return Cursor([row for row in state['messages'] if row['conversation_id'] == params[0]])
             if text.startswith('select') and any(part in text for part in ('from furnace_snapshots', 'from qa_messages', 'from qa_conversation_origins')):
                 return Cursor()
             raise RuntimeError('Synthetic database does not implement this query')
@@ -666,8 +672,104 @@ def request_contracts(proxy):
     finally:
         proxy.search_knowledge = original_search
 
+    followup_cases = SourceBoundCases()
+    original_prefetch = proxy.qa_mcp_prefetch
+    original_enabled, original_mode = proxy.QA_MCP_TOOLS_ENABLED, proxy.QA_MCP_TOOL_MODE
+    prefetch_queries = []
+    def prefetch_provider(question):
+        prefetch_queries.append(question)
+        return {'used': False, 'reason': 'synthetic_followup_prefetch_unavailable'}
+    def seed_owned_context(*, stale=False, foreign=False):
+        prior_id = 2 if foreign else 1
+        previous = proxy.qa_context_state.bind_persisted_context(proxy.update_tool_context(None,
+            '查询总压差最近两小时趋势', detected_objects=['DP_total'], duration_minutes=120,
+            now=proxy.time.time()-(601 if stale else 5)), prior_id)
+        if foreign:
+            # A past source in another room tests ownership. A future ID would
+            # be normalized to the persisted anchor by the existing migration.
+            previous['inheritance_provenance']['objects']['sources']['DP_total'] = 1
+            state['messages'].append({'id':1,'conversation_id':'synthetic_foreign_room',
+                'role':'user','content':'SYNTHETIC_FOREIGN_TURN','created_at':timestamp,
+                'snapshot_id':None,'hidden_context_json':None})
+        state['messages'].append({'id':prior_id,'conversation_id':conversation_id,'role':'user',
+            'content':'SYNTHETIC_PRIOR_OBJECT','created_at':timestamp,'snapshot_id':None,
+            'hidden_context_json':json.dumps({'mcp_conversation_context':previous})})
+    proxy.qa_mcp_prefetch = prefetch_provider
+    proxy.QA_MCP_TOOLS_ENABLED, proxy.QA_MCP_TOOL_MODE = True, 'auto'
+    proxy.threading.Thread.start = lambda self: heartbeat_schedules.append(self.name)
+    try:
+        for identifier,question,seed,stale,foreign,expected_state,minutes in [
+                ('followup_explicit_window','这个最近30分钟的趋势如何？',True,False,False,'owned_live_followup',30),
+                ('followup_inherited_window','画出来',True,False,False,'owned_live_followup',120),
+                ('followup_continue','继续',True,False,False,'owned_live_followup',120),
+                ('followup_latest_resets_window','它现在是多少？',True,False,False,'owned_live_followup',None),
+                ('followup_statistics','这个平均是多少？',True,False,False,'owned_live_followup',120),
+                ('followup_missing_object','这个最近30分钟的趋势如何？',False,False,False,'needs_clarification',30),
+                ('followup_stale_object','这个最近30分钟的趋势如何？',True,True,False,'needs_clarification',30),
+                ('followup_foreign_ancestry','这个最近30分钟的趋势如何？',True,False,True,'needs_clarification',30),
+                ('followup_missing_latest','它现在是多少？',False,False,False,'needs_clarification',None),
+                ('followup_stale_latest','它现在是多少？',True,True,False,'needs_clarification',None),
+                ('followup_foreign_latest','它现在是多少？',True,False,True,'needs_clarification',None),
+                ('followup_supplied_data_resets_scope',data_question,True,False,False,'not_applicable',None),
+                ('followup_disabled_code_scope','给出查询当前炉顶压力的Python代码示例。',True,False,False,'disabled_code_only',None)]:
+            reset(); prefetch_queries.clear()
+            if seed: seed_owned_context(stale=stale,foreign=foreign)
+            handler = Probe(question)
+            prepared = handler.prepare_qa_chat({'conversation_id':conversation_id,
+                '_qa_owner_subject':owner,'_qa_access_mode':'authenticated','use_mcp_tools':True,
+                'current_snapshot':{'source_time':timestamp,'values':{'synthetic_page_marker':'PAGE_ARCHIVE_IS_NOT_ANALYSIS_EVIDENCE'}}},
+                question,include_conversations=False)
+            hidden = prepared['hidden_context']; tool_context = hidden.get('mcp_conversation_context') or {}
+            effective = prepared.get('execution_task_plan') or hidden.get('qa_task_plan') or {}
+            resolved = hidden.get('followup_resolution_state')
+            enabled = expected_state == 'owned_live_followup'
+            expected_objects = ['DP_total'] if enabled else []
+            window = tool_context.get('time_range')
+            actual_minutes = window.get('minutes') if isinstance(window,dict) else None
+            clarification = prepared.get('context_resolution_result') or {}
+            followup_cases.append({'id':identifier,'passed':resolved == expected_state
+                and effective.get('allow_prefetch') is enabled and effective.get('allow_mcp_tools') is enabled
+                and prepared.get('use_mcp_tools') is enabled
+                and tool_context.get('selected_objects') == expected_objects
+                and actual_minutes == minutes and len(prefetch_queries) == (1 if enabled else 0)
+                and not state['calls'] and tool_context.get('last_evidence') == []
+                and (clarification.get('needs_clarification') is True if expected_state == 'needs_clarification' else not clarification),
+                'model_answer_generated':False,'resolution_state':resolved,
+                'selected_objects':tool_context.get('selected_objects'),'minutes':actual_minutes,
+                'mock_prefetch_queries':len(prefetch_queries),'mock_model_requests':len(state['calls']),
+                'fresh_evidence_required':tool_context.get('evidence_reuse') is False})
+        for stream in (False,True):
+            reset(); prefetch_queries.clear()
+            question = '这个最近30分钟的趋势如何？'
+            handler = Probe(question,stream=stream)
+            proxy.Handler.do_POST(handler)
+            raw = handler.wfile.getvalue().decode('utf-8')
+            if stream:
+                payloads = [json.loads(line[6:]) for line in raw.splitlines() if line.startswith('data: ')]
+                response = next((p for p in payloads if p.get('answer_route') == 'owned_followup_needs_clarification'),{})
+                events = [line[7:] for line in raw.splitlines() if line.startswith('event: ')]
+                final_contract = 'final' in events and 'done' in events and 'delta' in events
+            else:
+                response = json.loads(raw); events = []; final_contract = True
+            followup_cases.append({'id':'followup_clarification_'+('sse' if stream else 'json'),
+                'passed':handler.statuses == [200] and final_contract
+                    and response.get('answer_route') == 'owned_followup_needs_clarification'
+                    and '请明确' in json.dumps(response,ensure_ascii=False)
+                    and not state['calls'] and not prefetch_queries,
+                'model_answer_generated':False,'mock_model_requests':len(state['calls']),
+                'mock_prefetch_queries':len(prefetch_queries),'status':handler.statuses[-1],
+                'events':events,'answer_route':response.get('answer_route')})
+    finally:
+        proxy.qa_mcp_prefetch = original_prefetch
+        proxy.QA_MCP_TOOLS_ENABLED, proxy.QA_MCP_TOOL_MODE = original_enabled, original_mode
+        proxy.threading.Thread.start = start_thread
+
     return {'state': 'synthetic_contract_only', 'cases': cases,
         'ordinary_context_cases': ordinary_cases,
+        'owned_followup_cases': followup_cases,
+        'owned_followup_mocked_boundaries':['authentication_session','database_connection',
+            'sensor_snapshot_provider','ollama_transport','heartbeat_thread_start',
+            'mcp_prefetch_provider','mcp_configuration_result'],
         'ordinary_context_mocked_boundaries': ['authentication_session', 'database_connection',
             'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start', 'keyword_knowledge_provider'],
         'mocked_boundaries': ['authentication_session', 'database_connection', 'sensor_snapshot_provider', 'ollama_transport', 'heartbeat_thread_start'],

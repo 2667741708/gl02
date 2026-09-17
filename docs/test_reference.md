@@ -3511,3 +3511,10 @@ tests/test_qa_full_candidate_probe.py与tests/test_qa_full_candidate_probe_evide
 33模块861项回归、14金标schema、16候选/60实际依赖原生加载与25合成合同通过；6普通prepare合同不生成模型答案，不计生产准确率。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V49对象追问执行（2026-09-17）
+
+34模块905回归、14金标schema、16候选/60实际依赖及40原生合成合同通过，15追问场景含三个缺失latest反例。外部模拟与真实准确率分开。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

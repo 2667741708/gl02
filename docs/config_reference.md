@@ -817,3 +817,10 @@ sensor_context_policy schema qa-sensor-context-source-gate-v1；不新增环境�
 无新增环境变量或模型配置；sensor_context_policy仅接受完整正向来源计划，fixed e4身份及禁止切换、fallback、同名换权重保持。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V49对象追问执行（2026-09-17）
+
+没有新增配置、模型或Prompt底座切换；固定e4及禁fallback/同名换权重不变。最新生产metadata瞬时符合后再次漂移，保持部署及原题发送阻断。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

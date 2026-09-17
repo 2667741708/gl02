@@ -764,3 +764,10 @@ python -B -X utf8 tools/build_qa_shared_proxy_candidate.py --revision rN只构�
 python -B -X utf8 tools/build_qa_ordinary_context_candidate.py --revision rN只构建新编号本机候选。verify同时要求10QA/9共享/6普通准备来源证据，不能据此授权部署。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V49对象追问执行（2026-09-17）
+
+python -B -X utf8 tools/build_qa_owned_followup_candidate.py --revision rN只构建未存在编号本机候选；verify要求10QA/9共享/6普通准备/15追问合同，不能据此授权部署。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

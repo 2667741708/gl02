@@ -629,3 +629,10 @@ SSH已恢复但固定底座仍被阻断：比较固定摘要与tags→ps→tags�
 下游MCP禁用不代表prepare未读炉况；须同时核对provider/snapshot读取计数、页面归档与证据隔离。缺对象追问不得靠通用快照猜测对象，其生产绑定单列未完成。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V49对象追问执行（2026-09-17）
+
+持久化对象状态不代表实际路由使用该对象：同时核对execution TaskPlan、时间窗预检对象、prefetch次数和最终出口。缺对象澄清必须清空所有预取/工具/知识来源权限。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

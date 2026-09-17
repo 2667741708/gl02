@@ -1448,3 +1448,10 @@ REQ-QA-SHARED-PROXY-INTEGRATION-20260917：发布候选必须保留生产并行A
 REQ-QA-ORDINARY-CONTEXT-SOURCE-GATE-20260917：普通准备取数必须有正向TaskPlan现场授权；明确绑定ABC解释保留服务器权威证据，页面归档不授予来源。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V49对象追问执行（2026-09-17）
+
+REQ-QA-OWNED-FOLLOWUP-EXECUTION-20260917：仅owner加载且有效的对象来源能升级短追问；窗口按当前指令更新，最新值清旧窗口，缺对象先澄清并撤销取数权限。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

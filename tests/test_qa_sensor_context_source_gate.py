@@ -3,6 +3,7 @@ import ast
 from contextlib import nullcontext
 from datetime import datetime, timedelta, timezone
 import json
+import re
 from pathlib import Path
 import sys
 import time
@@ -62,7 +63,7 @@ def exercise(question, *, prior=False, browser_snapshot=True, mode='', owned=Tru
         state['browser_snapshot_reads'].append(identity)
         return {'id': identity, 'source_time': '2026-01-01T00:00:00+00:00'}
 
-    namespace = {'Any': object, 'time': time, 'db_connect': lambda: nullcontext(Connection()),
+    namespace = {'Any': object, 'time': time, 're': re, 'db_connect': lambda: nullcontext(Connection()),
         'qa_task_plan': qa_task_plan, 'qa_evidence_policy': qa_evidence_policy,
         'insert_snapshot': insert, 'snapshot_by_id': by_id,
         'sanitize_model_exposure': lambda exc: type(exc).__name__,

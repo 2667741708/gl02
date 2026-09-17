@@ -82,7 +82,9 @@ def test_unrelated_quoted_negative_or_exclusive_source_request_does_not_inherit_
 
 
 def test_frozen_candidate_has_exact_two_changed_modules_and_preserves_whole_other_ast():
-    candidate, manifest = latest_frozen_candidate(ROOT)
+    latest, latest_manifest = latest_frozen_candidate(ROOT)
+    candidate = ROOT / '.codex_runtime/qa-routing-v48/candidate-r1'
+    manifest = json.loads((candidate / 'package_manifest.private.json').read_bytes())
     assert manifest['sensor_context_gate'] == 'qa-sensor-context-source-gate-v2'
     assert len(manifest['inherited_v47_files_byte_identical']) == 14
     for name in manifest['inherited_v47_files_byte_identical']:
@@ -93,10 +95,12 @@ def test_frozen_candidate_has_exact_two_changed_modules_and_preserves_whole_othe
     assert manifest['model_digest'] == 'e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124'
     assert all(manifest[key] is False for key in ('model_switch_allowed',
         'fallback_model_allowed', 'same_name_weight_replacement_allowed'))
+    assert latest_manifest['sensor_context_gate'] == manifest['sensor_context_gate']
+    assert latest_manifest['model_digest'] == manifest['model_digest']
 
 
 def test_planner_proof_rejects_other_top_level_semantic_changes():
-    candidate, _ = latest_frozen_candidate(ROOT)
+    candidate = ROOT / '.codex_runtime/qa-routing-v48/candidate-r1'
     current = (candidate / 'qa_task_plan.py').read_text(encoding='utf-8')
     with pytest.raises(AssertionError, match='Existing task planning'):
         validate_planner((PRIOR / 'qa_task_plan.py').read_bytes(), current + '\nUNREVIEWED = True\n')

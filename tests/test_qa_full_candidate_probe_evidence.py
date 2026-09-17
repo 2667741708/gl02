@@ -9,7 +9,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests')]
 from qa_frozen_candidate import latest_frozen_candidate
-from verify_qa_full_candidate_probe import CASES, SHARED_CASES, ORDINARY_CASES, validate
+from verify_qa_full_candidate_probe import CASES, SHARED_CASES, ORDINARY_CASES, FOLLOWUP_CASES, validate
 
 
 def evidence():
@@ -57,6 +57,26 @@ def evidence():
                 'persisted_sensor_review_provider', 'operator_permission_result', 'http_response_capture'],
             'cases': [{'id': key, 'passed': True, 'status': values[0], 'mock_db_read_count': values[1],
                 'mock_operator_checks': values[2]} for key, values in SHARED_CASES.items()]}
+    if manifest.get('owned_followup_plan_propagated'):
+        report['request_contracts']['owned_followup_mocked_boundaries'] = ['authentication_session',
+            'database_connection','sensor_snapshot_provider','ollama_transport','heartbeat_thread_start',
+            'mcp_prefetch_provider','mcp_configuration_result']
+        followups = []
+        for key,expected in FOLLOWUP_CASES.items():
+            row = {'id':key,'passed':True,'functional_contract_passed':True,'model_answer_generated':False,
+                'sensor_context_read_count':0,'sensor_context_read_kinds':[],
+                'mock_page_archives':1,'page_archive_isolated_from_evidence':True,'mock_model_requests':0,
+                'mock_prefetch_queries':0}
+            if expected is None:
+                row.update(status=200,answer_route='owned_followup_needs_clarification',
+                    events=[] if key.endswith('_json') else ['start','start','delta','final','done'])
+            else:
+                state,minutes = expected
+                row.update(resolution_state=state,minutes=minutes,fresh_evidence_required=True,
+                    selected_objects=['DP_total'] if state == 'owned_live_followup' else [],
+                    mock_prefetch_queries=1 if state == 'owned_live_followup' else 0)
+            followups.append(row)
+        report['request_contracts']['owned_followup_cases'] = followups
     return report, candidate, manifest, probe_sha
 
 
@@ -125,6 +145,16 @@ def test_valid_evidence_exports_only_dependency_read_scope_without_authorization
     lambda r: r['request_contracts']['ordinary_context_cases'][0].update(mock_page_archives=0),
     lambda r: r['request_contracts']['ordinary_context_cases'][0].update(model_answer_generated=True),
     lambda r: r['request_contracts']['ordinary_context_cases'][0].update(page_archive_isolated_from_evidence=False),
+    lambda r: r['request_contracts'].pop('owned_followup_cases'),
+    lambda r: r['request_contracts']['owned_followup_cases'].pop(),
+    lambda r: r['request_contracts'].pop('owned_followup_mocked_boundaries'),
+    lambda r: r['request_contracts']['owned_followup_cases'][0].update(mock_model_requests=1),
+    lambda r: r['request_contracts']['owned_followup_cases'][0].update(sensor_context_read_count=5),
+    lambda r: r['request_contracts']['owned_followup_cases'][0].update(mock_prefetch_queries=False),
+    lambda r: r['request_contracts']['owned_followup_cases'][0].update(selected_objects=['P_top']),
+    lambda r: r['request_contracts']['owned_followup_cases'][0].update(minutes=120),
+    lambda r: r['request_contracts']['owned_followup_cases'][0].update(fresh_evidence_required=False),
+    lambda r: r['request_contracts']['owned_followup_cases'][-1].update(events=['start','done']),
     lambda r: r['module_hashes'].pop('高炉前端数据/智能助手/backend/qa_prompt_binding.py'),
     lambda r: r['module_hashes']['高炉前端数据/智能助手/backend/qa_prompt_binding.py'].update(sha256='b' * 64),
     lambda r: r['module_hashes']['高炉前端数据/智能助手/backend/qa_request_control.py'].update(source='dependency_readonly'),
