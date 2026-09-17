@@ -3409,3 +3409,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 初始22项11fail/11pass；新增数学29项及历史质量4反例。最终10模块225pass/18.27秒，独立Luna low复审PASS，金标schema14项通过。首次扩展218pass/3fail为2个AST测试依赖遗漏及1个旧成功fixture，已保留过程并补反例；不与V37/557项合并成当前运行数。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+初始23项17fail/6pass；新增43项含实际代理alias、实体冻结、MCP门、时窗和时钟输入测试。最终13模块286pass/27.70秒，Luna low复审PASS、共享22标记通过。r2虽276pass但范围审查FAIL，过程保留并新增10例；本机通过不是线上正确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

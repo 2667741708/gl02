@@ -15,7 +15,7 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v3-source-scope"
+VERSION = "qa-task-plan-v4-user-data-scope"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
@@ -45,7 +45,15 @@ _KNOWLEDGE_TERMS = (
     "依据", "知识", "如何", "怎么", "方案", "报警", "告警",
 )
 _NO_LIVE_PATTERN = re.compile(r"(?:不要|不需要|无需|不必|不用|禁止|不)\s*(?:查(?:询)?|读取|访问|调用|检索|连接)[^，。；;\n]{0,12}(?:实时|现场|生产|数据库|数据|工具)")
-_USER_DATA_PATTERN = re.compile(r"(?:只|仅)(?:用|看|根据|依据|基于)[^，。；;\n]{0,16}(?:我给|我提供|这些数|假设|已给|提供的)")
+_USER_DATA_PATTERN = re.compile(
+    r"(?:只|仅)(?:用|看|根据|依据|基于)(?:"
+    r"[^，。；;\n]{0,16}(?:我给|我提供|这些数|假设|已给|提供的)"
+    r"|\s*(?:下面|以下|这组|这份|这批|这些|上述|给定)[^，。；;\n]{0,8}(?:数据|数值|记录))"
+)
+_PROVIDED_DATA_PATTERN = re.compile(
+    r"(?:我(?:给出|提供|给)的|(?:下面|以下)(?:是|为|的))[^，。；;\n：:]{0,12}(?:数据|数值)"
+    r"|(?:这组|这些|这批|这份)[^，。；;\n：:]{0,12}(?:数据|数值)(?=\s*(?:是|为|[:：=]|[-+]?\d|[“\"\[]))"
+)
 _ALL_TOOLS_PATTERN = re.compile(
     r"(?:不要|不需要|无需|不必|不用|禁止|不)\s*"
     r"(?:(?:查(?:询)?|读取|访问|调用|检索|连接|使用|用)\s*)?"
@@ -117,15 +125,17 @@ def _contains_any(text: str, terms: tuple[str, ...]) -> bool:
 
 
 def _is_no_live_request(instruction: str) -> bool:
-    return bool(_NO_LIVE_PATTERN.search(instruction) or _USER_DATA_PATTERN.search(instruction)
-                or _ALL_TOOLS_PATTERN.search(instruction))
+    return bool(_NO_LIVE_PATTERN.search(instruction) or _ALL_TOOLS_PATTERN.search(instruction))
 
 
 def lookup_constraints(question: str) -> dict[str, bool]:
-    instruction = _instruction_text(str(question or ""))
-    return {"no_live_lookup": _is_no_live_request(instruction),
+    text = str(question or "")
+    instruction = _instruction_text(text)
+    scope = user_data_scope(text)
+    return {"no_live_lookup": _is_no_live_request(instruction) or scope["exclusive"]
+            or (scope["present"] and not scope["live_clauses"]),
             "all_tools_disabled": bool(_ALL_TOOLS_PATTERN.search(instruction)
-                                       or _USER_DATA_PATTERN.search(instruction))}
+                                       or scope["exclusive"])}
 
 
 def instruction_clauses(text: str) -> list[str]:
@@ -147,6 +157,51 @@ def instruction_clauses(text: str) -> list[str]:
     if text[start:].strip():
         result.append(text[start:].strip())
     return result
+
+
+def user_data_scope(text: str) -> dict[str, Any]:
+    """Keep supplied inputs distinct from explicitly requested external reads."""
+    instruction = _instruction_text(str(text or ""))
+    present = bool(_USER_DATA_PATTERN.search(instruction) or _PROVIDED_DATA_PATTERN.search(instruction))
+    live_clauses = []
+    external_source_requested = False
+    global_exclusive = any(
+        re.search(r"(?:本轮|全程|整个回答|所有子任务|全部问题)\s*$", instruction[max(0, match.start() - 12):match.start()])
+        for match in _USER_DATA_PATTERN.finditer(instruction)
+    )
+    if present:
+        for clause in instruction_clauses(str(text or "")):
+            masked = _instruction_text(clause)
+            if _USER_DATA_PATTERN.search(masked) or _PROVIDED_DATA_PATTERN.search(masked):
+                continue
+            if (any(span.startswith("《") for span in _quoted_spans(clause))
+                    or _contains_any(masked, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS)):
+                if _contains_any(masked, _DOCUMENT_ACTIONS + _LIVE_ACTIONS + ("列出", "导出")):
+                    external_source_requested = True
+                continue
+            # A later request to query/plot "these data" refers to supplied
+            # inputs, unless it explicitly names an external source.
+            if (re.search(r"(?:这些|这组|上述|给定|提供的)[^，。；;\n]{0,8}(?:数据|数值)", masked)
+                    and not re.search(r"现场|数据库|实测|传感器|实时接口|生产系统", masked)):
+                continue
+            read_requested = re.search(r"查询|查一下|查下|读取|调取|检索|获取|查看|看一下|看看", masked)
+            current_value_requested = (re.search(r"当前|现在|目前|最新|实时", masked)
+                                       and re.search(r"是多少|多少|高不高|低不低|稳不稳", masked))
+            if (read_requested or current_value_requested) and _explicit_live_request(masked):
+                live_clauses.append(masked)
+                external_source_requested = True
+    exclusive = global_exclusive or (bool(_USER_DATA_PATTERN.search(instruction)) and not external_source_requested)
+    return {"present": present, "live_clauses": live_clauses, "exclusive": bool(exclusive)}
+
+
+def live_query_text(question: str) -> str:
+    text = str(question or "")
+    scope = user_data_scope(text)
+    if not scope["present"]:
+        return text
+    if lookup_constraints(text)["no_live_lookup"]:
+        return ""
+    return "；".join(scope["live_clauses"])
 
 
 def _independent_temporal_data_task(text: str) -> bool:
@@ -206,10 +261,12 @@ def build_task_plan(question: str) -> dict[str, Any]:
     text = str(question or "").strip()
     quoted = _quoted_spans(text)
     instruction = _instruction_text(text).strip()
-    entity_resolution = qa_entity_resolution.resolve_requested_entities(instruction)
+    user_scope = user_data_scope(text)
+    live_instruction = "；".join(user_scope["live_clauses"]) if user_scope["present"] else instruction
+    entity_resolution = qa_entity_resolution.resolve_requested_entities(live_instruction)
     constraints = lookup_constraints(text)
     no_live = constraints["no_live_lookup"]
-    wants_user_data = bool(_USER_DATA_PATTERN.search(instruction))
+    wants_user_data = user_scope["present"]
     book_reference = any(span.startswith("《") for span in quoted)
     wants_document = (_contains_any(instruction, _DOCUMENT_TERMS) or book_reference) and (
         _contains_any(instruction, _DOCUMENT_ACTIONS) or "按" in instruction or "根据" in instruction

@@ -459,3 +459,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无新增HTTP接口；正常数学不再被code_disabled短路。混合数学+代码保留正常子任务，完成状态partial/policy_limited及blocked_subtasks=code_generation_or_execution保持。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+无新增HTTP接口。任务计划区分user_message与live_readonly_data，原始问题保留给最终答案及子任务完成校验；仅向prefetch/对象/时间解析传递外部子句。明确全局工具禁令保持tool_policy_conflict。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

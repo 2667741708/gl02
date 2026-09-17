@@ -295,3 +295,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无结构或数据修改。历史完成成功测试前置条件补齐已要求的质量及采集标记；缺质量/未知质量/缺采集时间/缺只读策略仍partial，已有值可保留，不更改生产完成门槛。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+无DDL或生产数据改动。台账prior_local_candidate_v38保留V38冻结证据，current_local_candidate为V39-r3；33项state和生产历史结果保持不变，用户给定数值不伪装成现场记录。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

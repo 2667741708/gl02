@@ -715,3 +715,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 无新增开关或模型配置。qa-evidence-no-code-v8-math-functions保持原Prompt全文和同一模型pin；数学名词不等于可执行函数，不能通过数学表述放行Python/脚本/SQL/伪代码。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+无新增开关；名称chiqiongblastfuenace:latest及固定digest不变，模型切换/备用回退/同名换权重禁止。user-data scope只调整来源路由，禁代码、单用户和keyword合同不变。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

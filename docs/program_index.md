@@ -1262,3 +1262,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [code_requested](../高炉前端数据/智能助手/backend/qa_evidence_policy.py:56)局部区分数学名词；[生成器](../tools/build_qa_math_function_candidate.py:13)只更新policy，冻结15文件中14文件与V37一致；实际代理qa_answer_route未修改。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+[user_data_scope](../高炉前端数据/智能助手/backend/qa_task_plan.py:162)与live_query_text限定外部来源；[生成器](../tools/build_qa_user_data_scope_candidate.py:26)对实际冻结代理施加6处可逆接缝，13文件逐字节继承V38；alias、时窗、时钟、分析扩展和实体冻结均使用外部子任务。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

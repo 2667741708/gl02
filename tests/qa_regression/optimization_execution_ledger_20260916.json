@@ -39,12 +39,12 @@
     "full_semantic_pass_inferred": false
   },
   "current_local_candidate": {
-    "version": "v38-r2",
+    "version": "v39-r3",
     "state": "local_tested_reviewed_frozen_not_production_applied",
-    "related_tests_passed": 225,
+    "related_tests_passed": 286,
     "production_semantic_effectiveness_verified": false,
-    "evidence": "math_function_policy_20260917.json",
-    "manifest_sha256": "3feea7b8101e189a2f75315e6583fb167f3e7ae6c8d9820b9720973ab6d6595b",
+    "evidence": "user_data_source_scope_20260917.json",
+    "manifest_sha256": "4d84a7e47cfd09fe2fc1e7d6ddea85a68977465fdba0dfbee50de5315f073a86",
     "fixed_base_identity_unchanged": true
   },
   "rows": [
@@ -66,7 +66,9 @@
         "failed": 2
       },
       "local_compound_source_scope": "compound_source_scope_20260917.json",
-      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed",
+      "local_user_data_source_scope": "user_data_source_scope_20260917.json",
+      "local_user_data_source_scope_state": "v39_r3_reviewed_286_tests_passed_not_deployed"
     },
     {
       "order": 2,
@@ -188,7 +190,9 @@
         "QAOPT-E02"
       ],
       "repair_and_acceptance_plan": "无工具解释、用户给定数据和已核实证据可直接回答；新实时事实才查询。验收：禁实时请求零数据调用，数学复算正确。",
-      "initial_linked_semantic_counts": {}
+      "initial_linked_semantic_counts": {},
+      "local_user_data_source_scope": "user_data_source_scope_20260917.json",
+      "local_user_data_source_scope_state": "v39_r3_reviewed_286_tests_passed_not_deployed"
     },
     {
       "order": 8,
@@ -683,7 +687,9 @@
       "initial_linked_semantic_counts": {},
       "local_fixed_model_override": "fixed_model_override_20260917.json",
       "local_math_function_policy": "math_function_policy_20260917.json",
-      "local_math_function_policy_state": "v38_r2_reviewed_225_tests_passed_not_deployed"
+      "local_math_function_policy_state": "v38_r2_reviewed_225_tests_passed_not_deployed",
+      "local_user_data_source_scope": "user_data_source_scope_20260917.json",
+      "local_user_data_source_scope_state": "v39_r3_reviewed_286_tests_passed_not_deployed"
     },
     {
       "order": 31,
@@ -870,6 +876,15 @@
     "production_semantic_effectiveness_verified": false,
     "evidence": "compound_source_scope_20260917.json",
     "manifest_sha256": "dc5615e765d63c084edd35b7e75532101d41e9e8dc5e61a75e249cce397362ec",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v38": {
+    "version": "v38-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 225,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "math_function_policy_20260917.json",
+    "manifest_sha256": "3feea7b8101e189a2f75315e6583fb167f3e7ae6c8d9820b9720973ab6d6595b",
     "fixed_base_identity_unchanged": true
   }
 }

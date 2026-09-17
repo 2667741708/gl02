@@ -527,3 +527,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 数学被code_disabled误拒时先核code_requested对“函数”的解释，勿解除代码禁令或换模型。保持代码语言标记与执行/实现请求拦截；历史有值仍partial时核quality/collected_at/read_policy，不靠非空或旧成功fixture证明完成。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+给定数据被误查现场时先核scope和live_query_text，再查实际alias/分析bundle/时窗/路由enrichment；不能通过模型切换解决。局部仅/只约束不得误清独立来源，明确全局禁令不得绕过。查询“这些数据”必须保留引用范围。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
