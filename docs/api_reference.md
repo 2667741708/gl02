@@ -450,3 +450,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无新增HTTP接口。正式原文入口在任何SQL前检查all_tools_disabled，返回dependency_blocked/document_lookup_policy_blocked；明确原文未读取。全局禁令传播到制度子句和历史remainder；仅禁止现场查询仍允许对应历史/报表工具。历史读取保留owner和当前消息ID截止。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+无新增HTTP接口；正常数学不再被code_disabled短路。混合数学+代码保留正常子任务，完成状态partial/policy_limited及blocked_subtasks=code_generation_or_execution保持。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

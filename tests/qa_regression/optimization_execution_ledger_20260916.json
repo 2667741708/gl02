@@ -39,13 +39,12 @@
     "full_semantic_pass_inferred": false
   },
   "current_local_candidate": {
-    "version": "v37-r2",
+    "version": "v38-r2",
     "state": "local_tested_reviewed_frozen_not_production_applied",
-    "focused_tests_passed": 110,
-    "related_tests_passed": 557,
+    "related_tests_passed": 225,
     "production_semantic_effectiveness_verified": false,
-    "evidence": "compound_source_scope_20260917.json",
-    "manifest_sha256": "dc5615e765d63c084edd35b7e75532101d41e9e8dc5e61a75e249cce397362ec",
+    "evidence": "math_function_policy_20260917.json",
+    "manifest_sha256": "3feea7b8101e189a2f75315e6583fb167f3e7ae6c8d9820b9720973ab6d6595b",
     "fixed_base_identity_unchanged": true
   },
   "rows": [
@@ -211,7 +210,9 @@
         "failed": 48
       },
       "local_compound_source_scope": "compound_source_scope_20260917.json",
-      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed",
+      "local_math_function_policy": "math_function_policy_20260917.json",
+      "local_math_function_policy_state": "v38_r2_reviewed_225_tests_passed_not_deployed"
     },
     {
       "order": 9,
@@ -680,7 +681,9 @@
       ],
       "repair_and_acceptance_plan": "绑定服务端最终系统 Prompt、模板版本、请求策略及故障夹具。验收：每条回复可追溯实际 Prompt hash，不只绑定源文件名。",
       "initial_linked_semantic_counts": {},
-      "local_fixed_model_override": "fixed_model_override_20260917.json"
+      "local_fixed_model_override": "fixed_model_override_20260917.json",
+      "local_math_function_policy": "math_function_policy_20260917.json",
+      "local_math_function_policy_state": "v38_r2_reviewed_225_tests_passed_not_deployed"
     },
     {
       "order": 31,
@@ -858,5 +861,15 @@
       "rerun_for_v36": false,
       "source_reader_and_gate_unchanged": true
     }
+  },
+  "prior_local_candidate_v37": {
+    "version": "v37-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "focused_tests_passed": 110,
+    "related_tests_passed": 557,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "compound_source_scope_20260917.json",
+    "manifest_sha256": "dc5615e765d63c084edd35b7e75532101d41e9e8dc5e61a75e249cce397362ec",
+    "fixed_base_identity_unchanged": true
   }
 }

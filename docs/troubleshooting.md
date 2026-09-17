@@ -518,3 +518,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 先检查禁令适用范围及公开计划：禁止现场查询不等于禁止历史/报表；禁止所有工具/数据库必须在纯历史、制度SQL、MCP和预取入口全部生效。历史无匹配时核对选择词是否误含整段指令；不要放宽owner或消息截止。底座身份不符时阻止调用，不能换模型绕过。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+数学被code_disabled误拒时先核code_requested对“函数”的解释，勿解除代码禁令或换模型。保持代码语言标记与执行/实现请求拦截；历史有值仍partial时核quality/collected_at/read_policy，不靠非空或旧成功fixture证明完成。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

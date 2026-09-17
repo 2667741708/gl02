@@ -21,7 +21,8 @@ def latest():
                            'result': {'ok': True, 'query_type': 'latest', 'items': [
                                {'requested_variable': 'P_top', 'ok': True,
                                 'variable': {'variable_name': 'P_top', 'unit': 'kPa'},
-                                'latest': {'value': 12.0, 'ts': '2026-09-16T12:00:00'},
+                                'latest': {'value': 12.0, 'ts': '2026-09-16T12:00:00',
+                                           'quality': 'good', 'collected_at': '2026-09-16T12:00:01'},
                                 'source': {'service': 'test_sensor', 'read_policy': 'readonly'}}]}}]}
 
 
@@ -45,6 +46,24 @@ def test_no_match_history_and_revalidated_latest_both_complete():
     assert out['completion']['history_subtasks'][0]['history_status'] == 'no_match'
     assert '12kPa' in answer and '旧格式答案' not in answer
     assert '2026-09-16T12:00:00' in answer and 'test_sensor' in answer
+
+
+@pytest.mark.parametrize('mutation,missing', [
+ ('missing_quality', 'quality_meaning'), ('unknown_quality', 'quality_meaning'),
+ ('missing_collection', 'collection_time'), ('missing_read_policy', 'readonly_policy'),
+])
+def test_saved_value_without_quality_provenance_remains_partial(mutation, missing):
+    result = latest()
+    row = result['tool_trace'][0]['result']['items'][0]
+    if mutation == 'missing_quality': row['latest'].pop('quality')
+    elif mutation == 'unknown_quality': row['latest']['quality'] = 'unmapped'
+    elif mutation == 'missing_collection': row['latest'].pop('collected_at')
+    else: row['source'].pop('read_policy')
+    answer, out = compound.compose('旧格式答案', result, prepared(pack()))
+    assert out['completion']['complete'] is False
+    assert out['completion']['terminal_state'] == 'partial'
+    assert missing in out['completion']['missing_evidence_fields']['P_top']
+    assert '12kPa' in answer and 'test_sensor' in answer
 
 
 @pytest.mark.parametrize('mutation', ['failed', 'nonfinite', 'wrong_object', 'missing_time', 'missing_source',

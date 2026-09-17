@@ -1,0 +1,105 @@
+{
+  "schema": "bf.qa.math-function-policy-public-evidence.v1",
+  "requirement_id": "REQ-QA-MATH-FUNCTION-POLICY-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_tested_reviewed_frozen_not_production_applied",
+  "candidate": "v38-r2",
+  "issue_ids": [
+    "QAOPT-R08",
+    "QAOPT-T03"
+  ],
+  "defect_reproduction": {
+    "cases": 22,
+    "failed": 11,
+    "passed": 11,
+    "defect": "Mathematical function nouns were classified as code, including mixed math/code requests."
+  },
+  "verification": {
+    "new_math_regression_cases": 29,
+    "new_history_quality_counterexamples": 4,
+    "focused_passed": 93,
+    "focused_elapsed_seconds": 4.51,
+    "focused_preceded_frozen_proxy_tests": true,
+    "related_passed": 225,
+    "related_elapsed_seconds": 18.27,
+    "related_modules": 10,
+    "test_command": "python -X utf8 -m pytest -q --tb=short --basetemp=.codex_runtime/qa-math-functions-final-20260917-r3 tests/test_qa_math_function_policy.py tests/test_qa_evidence_policy.py tests/test_qa_compound_source_scope.py tests/test_qa_task_plan.py tests/test_qa_v12_safety.py tests/test_qa_final_completion.py tests/test_qa_history_compound.py tests/test_qa_history_projection.py tests/test_qa_fixed_model_identity.py tests/test_qa_history_completion.py",
+    "first_extended_run": {
+      "passed": 218,
+      "failed": 3,
+      "elapsed_seconds": 19.03,
+      "adapter_missing_dependencies": 2,
+      "outdated_positive_history_fixture": 1,
+      "product_completion_contract_weakened": false
+    },
+    "independent_static_review": "PASS gpt-5.6-luna low including frozen candidate and fixture correction",
+    "gold_task_schema_validation_passed": 14,
+    "real_model_generation_executed": false
+  },
+  "contracts": {
+    "mathematical_function_requests_allowed": true,
+    "explicit_code_requests_blocked": true,
+    "function_implementation_and_execution_blocked": true,
+    "mixed_math_subtask_preserved": true,
+    "mixed_code_subtask_remains_partial": true,
+    "mathematical_output_notation_preserved": true,
+    "history_missing_quality_provenance_remains_partial": true,
+    "system_prompt_byte_unchanged": true,
+    "proxy_byte_unchanged": true,
+    "source_reader_gate_binding_and_fixed_identity_byte_unchanged": true
+  },
+  "private_candidate": {
+    "files": 15,
+    "manifest_sha256": "3feea7b8101e189a2f75315e6583fb167f3e7ae6c8d9820b9720973ab6d6595b",
+    "inherited_v37_files_byte_identical": 14,
+    "changed_module_sha256": "4d618d7555de6c64093148b74372ac893730af27b157d27afe356f35db6a0888",
+    "additional_runtime_read_set_preserved": true,
+    "production_sealed": false,
+    "production_dependency_refresh_required": true
+  },
+  "generator_sha256": {
+    "tools/build_qa_math_function_candidate.py": "6c2073d4ca3c39afb1547bf3bd85978422c41ed0942eb66b6886313efebc37fd",
+    "tests/test_qa_math_function_policy.py": "f5d764c1272e5bd72bc4aa0a8ed0024c5f7af28e8b925d6300fbe2238998a407",
+    "tests/test_qa_history_completion.py": "9210118317a9038273c2bb464d361b01409b9e33ecf71defbdc2ff7ace686d0c",
+    "高炉前端数据/智能助手/backend/qa_evidence_policy.py": "4d618d7555de6c64093148b74372ac893730af27b157d27afe356f35db6a0888"
+  },
+  "evaluation_scope": "Local mathematical/code classification, actual proxy routing and completion contracts only.",
+  "not_tested": [
+    "production_MCP_execution",
+    "real_final_answer_accuracy",
+    "latency_cost",
+    "pass5",
+    "production_single_user_concurrency"
+  ],
+  "model_name": "chiqiongblastfuenace:latest",
+  "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+  "model_switch_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "fallback_model_allowed": false,
+  "production_identity_and_routes": "no_verified_reachable_route",
+  "production_current_state_freshly_verified": false,
+  "production_applied": false,
+  "production_writes": 0,
+  "question_posts": 0,
+  "assistant_model_calls": 0,
+  "issues_closed": 0,
+  "original_failure_partial_cohort": 822,
+  "real_retest_requests": 0,
+  "semantic_improvement_verified": false,
+  "initial_results_matched_same_base_claimed": false,
+  "privacy": "Only public code synthetic tests hashes contracts and counts; no raw clauses QA measurements identities credentials or private artifacts.",
+  "encoding_policy": {
+    "requirement_id": "OPS-QA-CORPUS-TEXT-POLICY-20260917",
+    "prior_path_guard": "failed_missing_text_eol_attributes_all_15_files_already_utf8_lf",
+    "source": "Current main-worktree text-policy contract; existing main changes preserved.",
+    "files_sha256": {
+      ".gitattributes": "44e66b8ecfe5926064a0ed45171961f9178558475e42a8bb97ff718c1b329efe",
+      ".editorconfig": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669"
+    },
+    "source_semantically_verified": true,
+    "binary_lfs_rules_preserved": true,
+    "historical_files_renormalized": false,
+    "main_worktree_modified": false,
+    "production_eol_preflight_still_required": true
+  }
+}

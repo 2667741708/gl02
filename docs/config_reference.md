@@ -706,3 +706,12 @@ contract SHA固定；配置从受控root读取且hash必须一致，BF_QA_KNOWLE
 无新增环境开关；公开任务计划包含no_live_lookup和all_tools_disabled。仅禁止现场查询不取消明确请求的资料、历史或报表；禁止全部工具时同时关闭prefetch/MCP/keyword资料检索和制度内部SQL。唯一固定底座名称及摘要继承V36，不允许备用或同名换权重。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+无新增开关或模型配置。qa-evidence-no-code-v8-math-functions保持原Prompt全文和同一模型pin；数学名词不等于可执行函数，不能通过数学表述放行Python/脚本/SQL/伪代码。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

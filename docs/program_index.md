@@ -1253,3 +1253,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py:203)、[制度入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:581)、[制度复合](../高炉前端数据/智能助手/backend/qa_document_compound.py:13)、[历史计划](../高炉前端数据/智能助手/backend/qa_history_compound.py:52)、[历史选择词](../高炉前端数据/智能助手/backend/qa_history_projection.py:16)及[候选生成器](../tools/build_qa_compound_scope_candidate.py:55)为变更入口。冻结代理只改3个谓词，反向恢复后其余AST一致，22项共享功能标记保留。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+[code_requested](../高炉前端数据/智能助手/backend/qa_evidence_policy.py:56)局部区分数学名词；[生成器](../tools/build_qa_math_function_candidate.py:13)只更新policy，冻结15文件中14文件与V37一致；实际代理qa_answer_route未修改。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

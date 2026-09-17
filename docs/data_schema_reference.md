@@ -286,3 +286,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无新增或修改数据库结构；本轮只修正允许读库的条件与历史检索词。隔离真实PostgreSQL/vector夹具验证已有增量源发布、绑定及单快照读合同，不表示生产DB迁移/发布已授权或执行。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+无结构或数据修改。历史完成成功测试前置条件补齐已要求的质量及采集标记；缺质量/未知质量/缺采集时间/缺只读策略仍partial，已有值可保留，不更改生产完成门槛。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

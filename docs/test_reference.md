@@ -3400,3 +3400,12 @@ V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记
 新增34项回归；初始23项17fail/6pass，追加制度禁止读库3项全部失败后修复。最终相关24组557pass/79.81秒，110项聚焦4.16秒；实际私有原源11组14次读取保真，1pass/15.77秒。先前554项属于补齐前r1，不作最终验收；3个异步测试适配错误单列。独立Luna low复审PASS，未调用助手模型，未复问822原题。
 
 权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+初始22项11fail/11pass；新增数学29项及历史质量4反例。最终10模块225pass/18.27秒，独立Luna low复审PASS，金标schema14项通过。首次扩展218pass/3fail为2个AST测试依赖遗漏及1个旧成功fixture，已保留过程并补反例；不与V37/557项合并成当前运行数。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。

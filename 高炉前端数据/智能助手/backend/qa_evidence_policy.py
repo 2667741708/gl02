@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 
-VERSION = 'qa-evidence-no-code-v7-source-scope'
+VERSION = 'qa-evidence-no-code-v8-math-functions'
 NO_CODE = '当前暂不提供代码、脚本、SQL 或命令示例，也不执行代码。可以继续用中文步骤、数学计算或已有数据分析来帮助你。'
 PROMPT = '''你是“炽穹·高炉炼铁大模型”，面向高炉现场的问答、知识解释和数据分析助手。
 直接完整回答用户实际提出的问题。信息充分时直接回答，不为展示能力而调用工具。
@@ -57,6 +57,17 @@ def code_requested(question):
     text = current_text(question).lower()
     # Negating a code request must not turn ordinary arithmetic into coding.
     text = re.sub(r'(?:不要|不需要|无需|不必|禁止|不)[^，。；;\n]{0,12}(?:代码|程序|脚本|sql|命令|执行|运行)', '', text)
+    # Mathematical function nouns are not requests for executable functions.
+    # Mask only the noun, preserving explicit code/language/script markers and
+    # keeping implementation or execution requests subject to the code gate.
+    function_program_request = re.search(
+        r'(?:执行|运行|实现|编写|撰写|调试|修复|补全|改写)[^，。；;\n]{0,32}函数'
+        r'|函数[^，。；;\n]{0,16}(?:示例|实现|怎么写)', text)
+    if not function_program_request:
+        text = re.sub(
+            r'(?:一次|二次|反比例|对数|指数|三角|幂|数学|分段)函数'
+            r'|函数(?=\s*(?:值|图像|表达式|定义域|值域|的(?:斜率|截距|导数|极值|定义域|值域)))'
+            r'|函数(?=\s*[fgh]\s*[（(])', '数学对象', text)
     actions = r'(?:写|生成|展示|给出|提供|输出|执行|运行|补全|改写|修改|调试|修复|实现|转换成|翻译成|改成|换成)'
     code = r'(?:代码|伪代码|脚本|sql|命令|程序|python|javascript|powershell|bash|函数|js\b|shell|c\+\+|java\b)'
     return bool(re.search(actions + r'[^，。；;\n]{0,32}' + code, text)
