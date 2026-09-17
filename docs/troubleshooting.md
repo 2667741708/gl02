@@ -500,3 +500,12 @@ original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_dri
 同一句存在多个规程时先过滤再排序，不能让错误规程exact命中覆盖正确规程prefix命中。路径1/1.1必须精确比较，不能包含匹配11/11.1。规程role有文本仍须逐类型检查缺项；歧义类型不抹掉另一唯一核验结果。生产探测超时不等于服务器故障，未知发送仍禁止重放。
 
 当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+身份检查不能用传入name/digest改变冻结对象。看到fixed_model_identity_not_ready时复核唯一固定pin与驻留，禁止换底座求通过。旧动态驻留/双模型窗口已退役；连接失败先只读身份/路线探测，无命令派发不得推断生产故障。未知发送题永不自动重放。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。

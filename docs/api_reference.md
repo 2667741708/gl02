@@ -432,3 +432,12 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 无新HTTP路由。coverage新增missing_regulations_by_chapter/excluded_regulations_by_chapter；多原子结果含missing_regulations/ambiguous_regulations及page/pages。唯一内容与缺项并存时partial；矛盾范围regulation_scope_conflict澄清。整表保留，单页不冒充所有页已答；全结果严格JSON可序列化。
 
 当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+无新路由或错误码。非固定name/digest入口参数立即FixedModelUnavailable，code=fixed_model_identity_not_ready，不访问上游。显式同pin继续GET tags→ps→tags/单驻留核验，模型请求体的调用方model仍被代理替换为固定身份；身份漂移阻断后续生成。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。

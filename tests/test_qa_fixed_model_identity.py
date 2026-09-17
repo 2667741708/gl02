@@ -60,3 +60,25 @@ def test_cancellation_is_not_retried():
         raise RuntimeError('cancelled')
     with pytest.raises(RuntimeError, match='cancelled'):
         fixed.resolve(lambda _: pytest.fail('No GET'), lambda _: pytest.fail('No GET'), checkpoint=checkpoint)
+
+
+@pytest.mark.parametrize('name,digest', [
+    ('alternative:latest', OTHER),
+    (fixed.MODEL_NAME, OTHER),
+    ('alternative:latest', PIN),
+    (None, PIN),
+    (fixed.MODEL_NAME, None),
+])
+def test_callers_cannot_override_immutable_identity_even_if_both_gets_agree(name, digest):
+    calls = []
+    def fetch(_):
+        calls.append('GET')
+        return payload(digest, name)
+    with pytest.raises(fixed.FixedModelUnavailable):
+        fixed.resolve(fetch, fetch, name=name, digest=digest, sleep=lambda _: None)
+    assert calls == [], 'Foreign identity must be rejected before any upstream operation'
+
+
+def test_explicit_exact_pin_is_compatible():
+    assert fixed.resolve(lambda _: payload(PIN), lambda _: payload(PIN),
+                         name=fixed.MODEL_NAME, digest=PIN, sleep=lambda _: None) == fixed.MODEL_NAME

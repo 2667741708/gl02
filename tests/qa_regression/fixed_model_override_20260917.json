@@ -1,0 +1,78 @@
+{
+  "schema": "bf.qa.fixed-model-override-public-evidence.v1",
+  "requirement_id": "REQ-QA-FIXED-MODEL-OVERRIDE-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_tested_reviewed_frozen_not_production_applied",
+  "candidate": "v36-r1",
+  "issue_ids": [
+    "QAOPT-O01",
+    "QAOPT-T03",
+    "QAOPT-T05"
+  ],
+  "generator_sha256": {
+    "高炉前端数据/智能助手/backend/qa_fixed_model_identity.py": "58ed219087a64140b989cc5d4c48c72f1f4b039660530bf71871b938c4de8217",
+    "tests/test_qa_fixed_model_identity.py": "97e4f1887033c4a8c8fbd6e843ec442080394604553a3f667545cbd02420230a"
+  },
+  "defect_reproduction": {
+    "previous_module_version": "qa-fixed-model-identity-v1",
+    "cases": 17,
+    "failed": 5,
+    "passed": 12,
+    "new_cases": 6,
+    "defect": "Explicit caller name/digest overrides accepted alternative or missing identity if synthetic tags and residency agreed."
+  },
+  "verification": {
+    "focused_identity_passed": 17,
+    "focused_elapsed_seconds": 0.05,
+    "related_tests_passed": 61,
+    "related_elapsed_seconds": 38.05,
+    "test_command": "python -X utf8 -m pytest -q --tb=short --basetemp=.codex_runtime/qa-fixed-pin-override-20260917-r1 tests/test_qa_fixed_model_identity.py tests/test_qa_v27_fixed_base_candidate.py tests/test_qa_single_model_guard.py tests/test_qa_fixed_manager_install_transaction.py tests/test_qa_fixed_model_window.py",
+    "earlier_fixture_run": {
+      "passed": 38,
+      "setup_errors": 23,
+      "reason": "Default pytest temporary directory denied by Windows ACL; no product assertions ran for affected cases.",
+      "resolution": "Use unique worktree-private basetemp; no ACL modification or deletion of shared temporary paths."
+    },
+    "independent_static_review": "PASS gpt-5.6-luna low",
+    "real_model_generation_executed": false,
+    "production_manager_executed": false,
+    "manager_and_window_checks": "Actual PowerShell functions under isolated synthetic harness; never production tools or tasks."
+  },
+  "private_candidate": {
+    "files": 10,
+    "manifest_sha256": "d624e06065f0f9752b7d4b44464171f391e4ace6ca94c18f718db9c018510aee",
+    "inherited_v35_files_byte_identical": 9,
+    "fixed_module_import_and_zero_get_rejection_verified": true,
+    "production_sealed": false,
+    "production_dependency_refresh_required": true
+  },
+  "contracts": {
+    "identity_parameter_override_allowed": false,
+    "explicit_exact_pin_compatible": true,
+    "foreign_or_missing_identity_get_requests": 0,
+    "tags_ps_tags_checks_preserved": true,
+    "total_get_budget_preserved": true,
+    "cancellation_propagation_preserved": true,
+    "historical_two_base_window_retired": true,
+    "source_reader_and_gate_bytes_preserved": true
+  },
+  "model_name": "chiqiongblastfuenace:latest",
+  "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+  "model_switch_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "fallback_model_allowed": false,
+  "production_identity_and_route_probes": "failed_no_command_dispatched",
+  "production_current_state_freshly_verified": false,
+  "production_applied": false,
+  "production_writes": 0,
+  "question_posts": 0,
+  "model_calls": 0,
+  "issues_closed": 0,
+  "separate_manager_task_authorization_received": false,
+  "database_write_authorization_received": false,
+  "original_failure_partial_cohort": 822,
+  "real_retest_requests": 0,
+  "semantic_improvement_verified": false,
+  "initial_results_matched_same_base_claimed": false,
+  "privacy": "No original source clauses conversations measurements identities credentials or private artifacts are published."
+}

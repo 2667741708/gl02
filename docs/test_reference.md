@@ -3382,3 +3382,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记录。最终400 passed/34.85秒；随后只加全JSON断言的22项再次通过/5.92秒，运行代码不变。独立审查复核完整not-chosen控制流后纠正初判并PASS。实际私有原源11组14读再次通过/15.07秒。0模型/生产请求，不推导线上准确率。
 
 当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+5覆盖反例在旧17项运行实际5fail/12pass，修复17pass。相关五组最终61pass/38.05秒；先前38pass/23默认Temp权限夹具错误单列，改用工作树独立basetemp，未修改共享ACL或删目录。独立Luna low语义PASS；实际PowerShell隔离harness不代表生产经理执行。V35/400为历史未重跑，不虚构合并461或原题准确率。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。

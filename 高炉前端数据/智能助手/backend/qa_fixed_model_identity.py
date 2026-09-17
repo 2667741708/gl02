@@ -6,7 +6,7 @@ from typing import Any
 
 from qa_model_readiness import ModelUnavailable
 
-VERSION = 'qa-fixed-model-identity-v1'
+VERSION = 'qa-fixed-model-identity-v2'
 MODEL_NAME = 'chiqiongblastfuenace:latest'
 # The actually resident base and V26 frozen resident identity, not the mutable alias.
 MODEL_DIGEST = 'e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124'
@@ -30,7 +30,11 @@ def _resident(rows: Any, digest: str) -> bool:
 def resolve(fetch_tags: Any, fetch_resident: Any, *, checkpoint: Any = lambda: None,
             timeout: float = 6, clock: Any = time.monotonic, sleep: Any = time.sleep,
             name: str = MODEL_NAME, digest: str = MODEL_DIGEST) -> str:
-    """GET tags -> ps -> tags with one total budget; never load or choose another base."""
+    """GET tags -> ps -> tags for the fixed pin; callers cannot choose another base."""
+    # Keep explicit exact-pin callers compatible, but reject alternate, missing,
+    # or malformed identities before callbacks or any upstream GET can run.
+    if name != MODEL_NAME or digest != MODEL_DIGEST:
+        raise FixedModelUnavailable('固定问答底座不能由调用参数覆盖；本次没有访问或切换模型。')
     deadline = clock() + timeout
 
     def fetch(callback):

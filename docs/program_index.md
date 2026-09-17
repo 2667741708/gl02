@@ -1235,3 +1235,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 [作用域字面保护](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:120)、[规程范围](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:207)、[覆盖门](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:258)、[原子选择](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:280)、[公开入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:575)。其余9候选文件与V34逐字节相同。
 
 当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+[resolve身份入口](../高炉前端数据/智能助手/backend/qa_fixed_model_identity.py:30)在回调前拒绝非硬编码pin；版本qa-fixed-model-identity-v2。V36继承V35其余9文件，完整源门禁/规程分页代码逐字节相同；代理每轮和fallback仍重新核验。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。

@@ -1319,3 +1319,12 @@ V28保留固定同一底座身份检查，仅修复统计预取、证据完整�
 条款引用必须先符合请求岗位/规程。否定规程不能当正向要求，引号内原句仅作字面选择。多个规程逐项核验；有唯一原文则保留并明确缺失/歧义partial，无可核原文才澄清。问题状态保持原台账，本轮0销项。
 
 当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+固定底座名称/digest同时是不可覆盖身份，不因调用参数、当前alias或另一个驻留版本而变化。身份不一致在任何模型GET/POST前拒绝，显式同pin保留；只修本机边界，不宣称线上锁定或原题改善。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。

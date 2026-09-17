@@ -268,3 +268,12 @@ private-source-release-entry契约仅私有，绑定action/operation/root/host/D
 无DDL变化。请求级include/exclude集合仅用于内存选择，不写数据库或泄漏进JSON。正式原源binding、applied release、全量after与单MVCC快照门禁不变；不改原题ID/裁判标准/源冲突记录。
 
 当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+无DDL变化。台账current_local_candidate由旧V26部署状态更新为实际V36本机候选，旧字段完整保留在prior_scoped_local_candidate；production_commit保持历史最后核验V26并明确连接失败。33条问题state不变，不把本机通过当生产销项。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
