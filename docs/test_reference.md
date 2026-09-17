@@ -3291,3 +3291,9 @@ V5真实八题2通过/4部分/2失败，七题SSE落盘，第八题只读恢复�
 
 状态：本机候选52项检查及独立审查通过，未部署；生产仍V26。唯一e4ad74…底座，Switch/替代fallback禁用，每次模型POST与复测plan核验相同digest；旧双批准池窗口已停用。恢复任务仍曾自行漂移版本0，不能声称生产已锁定。管理器/计划任务维护独立授权，安装失败不能再启用旧切换策略。
 当前权威：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)、[候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)。前代r2批准fallback候选仅保留历史复现，禁止部署。
+
+## REQ-QA-STATISTICS-EVIDENCE-20260917：V28统计证据与答复
+
+状态：本机候选，生产仍为V26；最后核对2026-09-17。关联QAOPT-E01/E02/E03/E04/E05。
+V28保留固定同一底座身份检查，仅修复统计预取、证据完整性和确定性答复三个函数。完整保留stddev/单位/质量及来源窗口；非零微量不舍入成0；缺单位仅继承现有精确合同并披露，Held端点不证明整窗质量或炉况稳定。直接答复同样校验请求对象、来源和时间窗，未核实不得输出正式STDDEV/CV/趋势。没有新增API或配置，不改模型、生产数据库或ABC33合同。
+权威：[实施、回归及未完成项](handoffs/2026-09-17-qa-v28-statistics-evidence.md)、[机器检查证据](../tests/qa_regression/statistical_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_statistics_evidence.py)。本机通过不得写成线上准确率提高；822原失败/部分题尚未发送。

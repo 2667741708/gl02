@@ -1,12 +1,14 @@
 # 智能助手：先看证据、再决定工具的回归集
 
 - 需求：REQ-QA-EVIDENCE-FIRST-REGRESSION-20260915。
-- 状态：32 条合成用例；全量问题收集已冻结，1 条发送状态不确定并保持隔离、不自动重放；路由 V3 本机候选已进入聚焦回归，尚未部署生产。
-- 最后核对：2026-09-16。
+- 状态：核心32条合成用例保留；全量问题收集已冻结，1条发送状态不确定继续隔离；生产V26已部署。固定同一底座的管理器/V27及继承该约束的V28统计修复为本机候选，尚未部署，原822失败/部分题复测尚未发送。
+- 最后核对：2026-09-17。
 - 最新：[全量问题统计](issue_statistics_20260916.md)、[33项执行台账](optimization_execution_ledger_20260916.md)、
   [33项整改清单](optimization_checklist_20260916.md)、
   [TaskPlan路由合同](task_plan_contracts_20260916.json)和
-  [V3本机候选交接](../../docs/handoffs/2026-09-16-qa-routing-v3-local-candidate.md)。
+  [V26生产验收](routing_v26_production_20260917.json)、
+  [固定同一底座合同](../../docs/handoffs/2026-09-17-qa-single-base-model-policy.md)和
+  [V28统计证据修复](../../docs/handoffs/2026-09-17-qa-v28-statistics-evidence.md)。
 - 机器权威：[cases.v1.json](cases.v1.json)、[fixtures.v1.json](fixtures.v1.json)。
 - 适用范围：普通问答的路由、已有证据利用、最终回答及恢复；不替代生产控制、ABC33 严格首问或线上数据验收。
 - 数据政策：核心 32 题使用合成数据；导入模板保留来源索引并对历史炉号、地址及凭据形态脱敏。禁止提交线上原始会话、真实炉号、身份、内部地址、Cookie、令牌、密码、连接串或生产环境文件。脱敏后的展示文本不是本次实际执行文本，使用 case_id 与受控原文证据关联。
