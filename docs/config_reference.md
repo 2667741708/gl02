@@ -834,3 +834,9 @@ REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅�
 没有新增配置、模型或Prompt底座切换；固定e4及禁fallback/同名换权重不变。最新生产metadata瞬时符合后再次漂移，保持部署及原题发送阻断。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。
+
+## V51数组识别与影响范围（2026-09-18）
+
+REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：没有新增配置，不改模型、Prompt或工具轮数。固定e4、禁切换/回退/同名换权重、禁代码与600秒待确认规则保持；16模块中15个继承V50，仅来源语法及两规划函数变化。本轮用户选择本机面板，服务器不新增服务，生产8093未切换。
+
+[冻结、回归、生产只读采样及剩余验收](handoffs/2026-09-18-qa-numeric-vector-scope.md)。原822题收集完成，语义结果未知；此前模型漂移和未发送段落为历史快照，不据此自动恢复底座或重发。

@@ -1488,3 +1488,9 @@ OPS-QA-QUIET-ORIGINAL-RETEST-20260918：远端独立隐藏进程 PID9808 已启�
 ## OPS-QA-RESTORE-FROZEN-BASE-20260917：2026-09-18执行补充
 
 本次明确授权后固定e4底座别名及唯一驻留恢复完成，冻结manager只预热一次，不更换或删除权重。8093原822题进程开始；8094依赖查询异常保留，不允许借此fallback、重新预热或重放已claim操作。[控制器与生产结果](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)、[CIM状态边界](../tools/unload_qa_unapproved_resident_once.ps1)、[连贯恢复](../tools/restore_qa_frozen_base_once.ps1)、[退出等待回归](../tests/test_qa_frozen_base_restore.py)。
+
+## V51给定数值数组来源与当前收集状态（2026-09-18）
+
+REQ-QA-NUMERIC-VECTOR-SCOPE-20260918 / BUG-QA-LITERAL-VECTOR-LIVE-LOOKUP-20260918：给定具名数组不拆散、不误获现场权限；独立实时、历史、报表及原文子任务保持各自授权。38新增合同通过，本机冻结未部署；固定底座与禁代码边界保持。当前只读确认原失败/部分题822/822已收齐，此前“尚未发题”属于启动阶段记录；最终答案审阅未完成，不声明准确率或33项销项。
+
+[实现、验证、面板和生产边界](handoffs/2026-09-18-qa-numeric-vector-scope.md)；[脱敏机器证据](../tests/qa_regression/numeric_vector_source_scope_20260918.json)。用户选择本机面板，服务器不新增服务，本轮0生产写入/停启/模型操作/原题重发。

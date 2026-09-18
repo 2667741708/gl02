@@ -3552,3 +3552,9 @@ OPS-QA-QUIET-ORIGINAL-RETEST-20260918：test_qa_single_base_background.py **36 p
 BUG-QA-CIM-TASK-STATE-20260918：[卸载边界回归](../tests/test_qa_unapproved_resident_unload.py) **61 passed/42.37秒**；严格Disabled/1且布尔false，拒绝未知、运行、排队及非布尔字段。OPS-QA-RESTORE-FROZEN-BASE-20260917：[实际AST边界与退出等待](../tests/test_qa_frozen_base_restore.py) **15 passed/11.13秒**，等待仅GET，耗尽及身份改变拒绝，无模拟中的模型POST。
 
 [生产审计、独立审查与线上原题边界](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)。76本机合同检查不计入原题准确率。
+
+## V51给定数组来源回归（2026-09-18）
+
+REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：[新增38项](../tests/test_qa_numeric_vector_scope.py#L31)覆盖给定数据、混合实时、独立记录源、候选/引文反例、排他/代码边界及实际代理别名。有效修复前22失败/10通过，修复后38通过（新增6实际代理合同）；继承链针对性72通过，相关37模块结果与命令见[脱敏证据](../tests/qa_regression/numeric_vector_source_scope_20260918.json)。14 gold仅验证schema。
+
+[失败夹具记录、冻结和未验证项](handoffs/2026-09-18-qa-numeric-vector-scope.md)。822/822线上回复已收齐；没有重发或审阅最终答案，不能计为822成功，也不能把本机合同解释为生产准确率。V51尚未部署及原生Python3.11验收。

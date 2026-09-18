@@ -16,7 +16,7 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v9-supplied-record-scope"
+VERSION = "qa-task-plan-v10-numeric-vector-scope"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
@@ -72,6 +72,19 @@ _NUMERIC_VALUE_QUESTION = re.compile(
     r"(?:是否(?:是|为)|是不是)\s*[-+]?\d"
     r"|(?:是|为)\s*[-+]?\d+(?:\.\d+)?\s*"
     r"(?:千帕|兆帕|帕|摄氏度|华氏度|度|℃|℉|kpa|mpa|pa|%|百分比)?\s*[吗么][？?]?\s*$", re.I
+)
+# Protect complete literal vectors from clause splitting; never evaluate them.
+# Missing markers are still supplied inputs, not permission to replace them
+# with production measurements. Numerical validity belongs to computation.
+_VECTOR_VALUE = r"(?:[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|null|none|nan|[-+]?(?:inf|infinity)|缺失|无效)"
+_NUMERIC_VECTOR_PATTERN = re.compile(
+    r"[A-Za-z_\u4e00-\u9fff][A-Za-z_0-9\u4e00-\u9fff]{0,39}"
+    r"(?:\s*[（(][^()（）\n]{1,16}[）)])?\s*(?:[:：=]|分别为|分别是|为|是)\s*"
+    r"\[\s*(?:" + _VECTOR_VALUE + r"(?:\s*[,，、;；]\s*" + _VECTOR_VALUE + r")*)?\s*\]", re.I
+)
+_VECTOR_QUESTION_SUFFIX = re.compile(
+    r"^\s*(?:千帕|兆帕|帕|摄氏度|华氏度|度|℃|℉|kpa|mpa|pa|%|吨|千克|kg|t|米|m|立方米)?\s*"
+    r"(?:[吗么?？]|是否(?:属实|正确|为真|准确)|是不是)", re.I
 )
 _ALL_TOOLS_PATTERN = re.compile(
     r"(?:不要|不需要|无需|不必|不用|禁止|不)\s*"
@@ -179,8 +192,15 @@ def lookup_constraints(question: str) -> dict[str, Any]:
 def instruction_clauses(text: str) -> list[str]:
     """Split outer instructions; preserve literal source titles and quotations."""
     stack, result, start = [], [], 0
+    vectors = [(match.start(), match.end()) for match in _NUMERIC_VECTOR_PATTERN.finditer(text)]
+    vector_index = 0
     pairs = {"《": "》", "“": "”", "‘": "’", '"': '"', "'": "'"}
     for i, ch in enumerate(text):
+        while vector_index < len(vectors) and i >= vectors[vector_index][1]:
+            vector_index += 1
+        if (not stack and vector_index < len(vectors)
+                and vectors[vector_index][0] <= i < vectors[vector_index][1]):
+            continue
         if stack and ch == stack[-1]:
             stack.pop()
         elif ch in pairs:
@@ -327,6 +347,11 @@ def _declared_input_clause(clause: str) -> bool:
             or re.search(r"查询|查看|读取|调取|检索|查一下|查下|获取|核实|确认|验证", instruction)
             or _NUMERIC_VALUE_QUESTION.search(instruction)):
         return False
+    for match in _NUMERIC_VECTOR_PATTERN.finditer(instruction):
+        head = instruction[:match.end()].split('[', 1)[0]
+        if (not re.search(r"是否|是不是", head)
+                and not _VECTOR_QUESTION_SUFFIX.match(instruction[match.end():])):
+            return True
     if _DECLARED_INPUT_PATTERN.search(instruction):
         return True
     for pattern in (_LITERAL_INPUT_PATTERN, _VALUE_CHANGE_INPUT_PATTERN):

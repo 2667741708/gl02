@@ -1405,3 +1405,9 @@ OPS-QA-QUIET-ORIGINAL-RETEST-20260918：[run_qa_single_base_background.run](../t
 OPS-QA-RESTORE-FROZEN-BASE-20260917：[restore_qa_frozen_base_once](../tools/restore_qa_frozen_base_once.ps1) 中Assert-RestoreBoundary/Wait-RestoreEmpty与一次性claim用于已授权、已核验后来重载驻留的单次退出及冻结Repair。等待只读GET，不重试POST、不重放claim、不删权重、不启停服务。符号行号TODO-LINES。
 
 [审计、独立复核及8094依赖边界](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)；[实际AST回归](../tests/test_qa_frozen_base_restore.py)。
+
+## V51给定数值数组来源（2026-09-18）
+
+REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：[instruction_clauses](../高炉前端数据/智能助手/backend/qa_task_plan.py#L192)保护完整数组；[_declared_input_clause](../高炉前端数据/智能助手/backend/qa_task_plan.py#L329)识别提供值并拒绝查询/引文/候选问句。外部来源与owner上下文规划不改。[冻结器](../tools/build_qa_numeric_vector_candidate.py#L18)核验V50摘要、15模块逐字节继承及两函数AST边界。
+
+[验证与未部署边界](handoffs/2026-09-18-qa-numeric-vector-scope.md)；[回归](../tests/test_qa_numeric_vector_scope.py#L31)。生产仍V26，原题复测收齐822/822，未审阅最终答案。

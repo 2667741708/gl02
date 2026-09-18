@@ -2,6 +2,7 @@
 import ast
 import asyncio
 import copy
+import hashlib
 from pathlib import Path
 import subprocess
 import sys
@@ -124,7 +125,19 @@ def test_candidate_keeps_fourteen_modules_and_all_other_planner_and_proxy_semant
         assert build_proxy((PRIOR/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (v49/'ollama_proxy_server.py').read_text(encoding='utf-8')
         validate_planner((PRIOR/'qa_task_plan.py').read_bytes(), (v49/'qa_task_plan.py').read_bytes())
         assert build_pending((v49/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (candidate/'ollama_proxy_server.py').read_text(encoding='utf-8')
-        validate_pending((v49/'qa_task_plan.py').read_bytes(), (candidate/'qa_task_plan.py').read_bytes())
+        pending_candidate = candidate
+        if manifest.get('numeric_vector_input_scope') is True:
+            from build_qa_numeric_vector_candidate import PRIOR as v50, PRIOR_SHA, validate_planner as validate_vectors
+            assert hashlib.sha256((v50/'package_manifest.private.json').read_bytes()).hexdigest() == PRIOR_SHA
+            assert manifest['prior_manifest_sha256'] == PRIOR_SHA
+            inherited = set(manifest['files']) - {'qa_task_plan.py'}
+            assert set(manifest['inherited_v50_files_byte_identical']) == inherited
+            assert len(inherited) == 15
+            for name in inherited:
+                assert (candidate/name).read_bytes() == (v50/name).read_bytes()
+            validate_vectors((v50/'qa_task_plan.py').read_bytes(), (candidate/'qa_task_plan.py').read_bytes())
+            pending_candidate = v50
+        validate_pending((v49/'qa_task_plan.py').read_bytes(), (pending_candidate/'qa_task_plan.py').read_bytes())
     else:
         assert build_proxy((PRIOR/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (candidate/'ollama_proxy_server.py').read_text(encoding='utf-8')
         validate_planner((PRIOR/'qa_task_plan.py').read_bytes(),(candidate/'qa_task_plan.py').read_bytes())

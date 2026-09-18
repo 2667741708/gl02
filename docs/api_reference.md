@@ -568,3 +568,9 @@ completion新增可选missing_evidence_fields对象，按对象列出unit、qual
 JSON/SSE缺对象追问在同请求内返回owned_followup_needs_clarification，HTTP200仅表示完成澄清，不表示数据问题已正确回答。无新公开请求字段；owner校验保持。
 
 [实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。
+
+## V51数组来源规划合同（2026-09-18）
+
+REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：仅用户数组的TaskPlan来源为user_message，无现场预取、MCP及默认知识检索。独立现场子任务只用其自身原文解析查询对象；历史、报表、原文任务保持原授权。没有新增请求字段、路由或数据库结构。TaskPlan版本为qa-task-plan-v10-numeric-vector-scope，V51本机候选未部署。
+
+[38项来源合同及实际代理别名验证](handoffs/2026-09-18-qa-numeric-vector-scope.md)。当前原失败/部分题收齐822/822仅是收集完成，不是回答正确率。本机面板走独立回环端口；生产状态未知时拒绝沙盒生成，未修改8093接口。
