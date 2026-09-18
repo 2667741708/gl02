@@ -5,6 +5,8 @@
 事项：OPS-QA-QUIET-ORIGINAL-RETEST-20260918、REQ-QA-PAIRED-FAILURE-RETEST-20260916。
 权威来源：远端 launch.json、progress.json、真实进程身份与源文件摘要；[管理器生产安装](2026-09-17-qa-single-base-manager-production-install.md)、[首次最终语义摘要](../../tests/qa_regression/initial_semantic_summary_20260917.json)。适用范围：启动复测程序及静默等待；不代表固定驻留恢复、V50 路由部署或新准确率验证完成。
 
+后续更新：2026-09-18 用户已明确授权单次恢复锁定底座。下文“授权待回复”是启动时历史状态；当前授权及连接中断、尚未执行远端写操作的事实以[底座恢复授权记录](2026-09-18-qa-base-restore-authorization.md)为准。
+
 ## 1. 已实际启动
 
 - 主机：已通过 Reliable SSH 重新核验的 jngt_22012 / 220.12。
