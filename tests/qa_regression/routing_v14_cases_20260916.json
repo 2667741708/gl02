@@ -1,0 +1,9 @@
+{
+  "schema": "bf.qa.targeted-cases.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "reviews": [
+    {"case_id":"TPL-V14-KB-LIVE","question":"请完整说明《三规二制》中高炉工长“1 工作前”的全部规定；查看当前炉顶压力是多少。","expected":{"criteria":["full original 1.1/1.2/1.3", "pressure kPa/time/source", "canonical unit provenance explicit", "no value conversion", "zero model calls", "no unrequested metrics or normal judgement"]}},
+    {"case_id":"TPL-V14-UNKNOWN-LIVE","question":"请完整说明《不存在的正式规程》的全部条款；查看当前炉顶压力是多少。","expected":{"criteria":["unknown formal source clarified", "pressure kPa/time/source", "canonical unit provenance explicit", "zero model calls", "overall partial", "no unrequested metrics"]}},
+    {"case_id":"TPL-V14-KB-USER","question":"请完整说明《三规二制》中高炉工长“1 工作前”的全部规定；仅根据我提供的数值10、20、30计算平均值，不查询实时数据。","expected":{"criteria":["mean 20", "full original clauses", "zero external tools", "no production measurements"]}}
+  ]
+}

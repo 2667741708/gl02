@@ -1,3 +1,34 @@
 # Web 3D assets are binary release files; keep them in Git LFS rather than Git blobs.
 高炉前端数据/models/*.glb filter=lfs diff=lfs merge=lfs -text
 PT/高炉3D模型/模型资产库/09_高炉本体133点Billboard_cn/*.glb filter=lfs diff=lfs merge=lfs -text
+
+# Deployment control-plane files must remain byte-stable on Windows checkouts.
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+*.cfg text eol=lf
+*.bat text eol=lf
+*.cmd text eol=lf
+*.conf text eol=lf
+*.css text eol=lf
+*.csv text eol=lf
+*.html text eol=lf
+*.ini text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.mjs text eol=lf
+*.ps1 text eol=lf
+*.py text eol=lf
+*.sql text eol=lf
+*.toml text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.txt text eol=lf
+*.xml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+.codex/skills/deploy-8093-guarded-update/** text eol=lf
+tools/remote_22012_session.py text eol=lf
+tools/sync_deploy_8093_guarded_update_skill.ps1 text eol=lf

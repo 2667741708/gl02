@@ -1,0 +1,33 @@
+{
+  "schema": "bf.qa.local-candidate-review.v1",
+  "evaluation_id": "qa-routing-v4-local-20260916",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "issues": ["QAOPT-R03", "QAOPT-R04", "QAOPT-R05"],
+  "stage": "local_candidate_verified_production_pending",
+  "local_python": "3.13",
+  "production_python": "3.11",
+  "production_commit_verified_readonly": "70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9",
+  "baseline_sha256": {
+    "proxy": "abd7cc463c42a7e1c707e1b840b33c9040b33cb850ac7719b164732329af6e67",
+    "task_plan": "bc34986d7a8cb7ff5af11d073809fce623b4cd924865484d5bf98cd9255510e8",
+    "mcp": "35e35f540077e615d5a6213b3a81dbaf875be6d7257d4428ae2b2acb6a6bee31"
+  },
+  "checks": {
+    "related_pytest": {"passed": 98, "total": 98},
+    "final_trace_adapter_recheck": {"passed": 4, "total": 4},
+    "task_plan_contract": {"passed": 15, "total": 15},
+    "mcp_gold_structure_only": {"passed": 14, "total": 14}
+  },
+  "production_requests": 0,
+  "automatic_replays": 0,
+  "production_changed": false,
+  "core_evaluations": {
+    "sensor_grounded_inference": "production_not_tested",
+    "deterministic_computation": "synthetic_independent_recompute_verified",
+    "multi_mcp_orchestration": "not_tested_same_server_serial_steps_only",
+    "final_answer_faithfulness": "synthetic_contract_verified_production_pending"
+  },
+  "performance": {"p50": "not_tested", "p95": "not_tested", "pass_k": "not_tested"},
+  "not_tested": ["production_python_runtime", "production_semantic_answers", "model_residency_race", "concurrency", "long_report_synthesis", "compound_source_completion"],
+  "evidence": "docs/handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md"
+}

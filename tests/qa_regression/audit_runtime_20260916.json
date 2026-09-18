@@ -1,0 +1,49 @@
+{
+  "checked_at": "2026-09-16T11:27:19.639238",
+  "batch_status": [
+    {
+      "batch": "r1",
+      "state": "running",
+      "completed": 7,
+      "alive": false
+    },
+    {
+      "batch": "r2",
+      "state": "blocked",
+      "completed": 299,
+      "alive": false
+    },
+    {
+      "batch": "r3",
+      "state": "completed",
+      "completed": 953,
+      "alive": false
+    }
+  ],
+  "result_version_groups": [
+    {
+      "count": 1259,
+      "version": {
+        "catalog_object_count": 153,
+        "catalog_sha256": "36ee45a0b9e4c032b7b1da6be26578602c50779ffe7feadc640fae99d954195c",
+        "model": "chiqiongblastfuenace:latest",
+        "program_commit": "4d4f937d80b305348a1441e31b8d6c13a26fd653",
+        "runtime_hashes": {
+          "mcp_host/server_registry.json": "149340c3ffbbdac28a6db7d917102ffe1681a15ac557bea96077887d7b2c15c0",
+          "mcp_tool_policy.py": "d44b2cf0c7e5a0acd34126a5d9e58aca1e73837c4c4c8fcf2241fd1602599d47",
+          "mcp_tool_selection.py": "50eded25f48e7bedde8953e5120e406daaf6682acff2399e93bcb7864e684033",
+          "ollama_proxy_server.py": "c94dc585cd0d319ae9ef2235620acd7802d880f569510dac43c2e571a0e6298c",
+          "qa_evidence_policy.py": "442ea9df0f2ab41738b8b9613491dcc4838890800974f96c3d8ccf27a2369d4d",
+          "qa_request_control.py": "0853b77655247030436f0a55a9c973503dc6a853280f3f9aa09d28be6cbeb901"
+        }
+      }
+    }
+  ],
+  "current_hashes": {
+    "ollama_proxy_server.py": "c94dc585cd0d319ae9ef2235620acd7802d880f569510dac43c2e571a0e6298c",
+    "qa_evidence_policy.py": "442ea9df0f2ab41738b8b9613491dcc4838890800974f96c3d8ccf27a2369d4d",
+    "mcp_tool_selection.py": "50eded25f48e7bedde8953e5120e406daaf6682acff2399e93bcb7864e684033",
+    "qa_request_control.py": "0853b77655247030436f0a55a9c973503dc6a853280f3f9aa09d28be6cbeb901",
+    "mcp_host/server_registry.json": "149340c3ffbbdac28a6db7d917102ffe1681a15ac557bea96077887d7b2c15c0"
+  }
+}

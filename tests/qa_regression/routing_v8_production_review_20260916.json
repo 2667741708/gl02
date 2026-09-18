@@ -1,0 +1,22 @@
+{
+  "schema":"bf.qa.production-semantic-review.v1",
+  "requirement_id":"REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version":"routing-v8",
+  "production_commit":"379aefb120c84e12302e180503deebfacc9d88e5",
+  "execution_id":"qa-routing-v8-20260916-r1",
+  "requests":9,"sse_done":9,"automatic_post_retries":0,
+  "passed":5,"partial":3,"failed":1,
+  "reviews":[
+    {"case_id":"TPL-V8-K01","status":"pass","reason":"Actual original safety regulation, source/version and complete bounded scope; no live calls."},
+    {"case_id":"TPL-V8-K02","status":"pass","reason":"Verified 28-chapter directory without invented role."},
+    {"case_id":"TPL-V8-K03","status":"pass","reason":"Full stored accident document, original-only source and hash gate."},
+    {"case_id":"TPL-V8-K04","status":"pass","reason":"Unknown formal document explicitly needs clarification; no fabricated official provisions."},
+    {"case_id":"TPL-V8-K05","status":"partial","page_contract":"pass","reason":"Whole original blocks preserved; page 1 of 4; remaining pages explicitly incomplete."},
+    {"case_id":"TPL-V8-K06","status":"partial","page_contract":"pass","reason":"Whole original next blocks preserved; page 2 of 4; no automatic continuation."},
+    {"case_id":"TPL-V8-E01","status":"pass","reason":"Provided-input mean and formula correct; no live calls; hypothetical input does not establish real abnormality. Broad statistical-test wording needs qualification."},
+    {"case_id":"TPL-V8-R08","status":"partial","reason":"Code refused but authorized current query skipped; answer uses injected snapshot. Fixed route is required."},
+    {"case_id":"TPL-3FE672D48EEF6AA0","status":"fail","reason":"Quoted numbered subsection request returns entire role regulations and pagination instead of the requested subsection."}
+  ],
+  "excluded":["833 knowledge semantic denominator","one legacy uncertain POST"],
+  "privacy":"Only case identifiers and sanitized findings; no raw answers, measurements, identities or credentials."
+}

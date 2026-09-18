@@ -1,0 +1,27 @@
+{
+  "schema": "bf.qa.candidate.edits.v1",
+  "requirement_id": "REQ-QA-NO-CODE-EVIDENCE-BASELINE-20260915",
+  "baseline_sha256": "e669bfa34a885806eae53edd3ef9b4618c5bad06f78dc292b551a5615acdd6c9",
+  "edits": [
+    {
+      "old": "    \"\"\"Run exactly one tool-free model synthesis over verified MCP facts and prompt evidence.\"\"\"\n\n    messages = list(working_messages)",
+      "new": "    \"\"\"Run one model synthesis over compact verified facts, without planning scaffolding.\"\"\"\n\n    messages = [{\"role\": \"system\", \"content\": qa_evidence_policy.ANALYSIS_PROMPT}]"
+    },
+    {
+      "old": "    except Exception:\n        fallback = (\n            f\"{factual_answer}\\n\\n\"\n            \"模型综合分析暂不可用；以上仅为已核验的只读查询事实，本次未形成风险判断。\"\n        )\n        return fallback, \"failed_factual_fallback\", {}",
+      "new": "    except Exception as exc:\n        diagnostic = {\"error_type\": type(exc).__name__, \"http_status\": getattr(exc, \"code\", None)}\n        emit_host_log(\"qa.analysis.failed\", **diagnostic)\n        fallback = (\n            f\"{factual_answer}\\n\\n\"\n            \"模型综合分析暂不可用；以上仅为已核验的只读查询事实，本次未形成风险判断。\"\n        )\n        return fallback, \"failed_factual_fallback\", diagnostic"
+    },
+    {
+      "old": "    if tool_name == \"get_gl02_variable_info\":\n",
+      "new": "    if tool_name == \"get_latest_furnace_snapshot\":\n        return qa_evidence_policy.snapshot_facts(payload)\n\n    if tool_name == \"get_gl02_variable_info\":\n"
+    },
+    {
+      "old": "    body_statistics_plan = qa_mcp_body_temperature_statistics_plan(text)\n    if body_statistics_plan:\n        return body_statistics_plan\n    user_text = text.split",
+      "new": "    if (not qa_evidence_policy.no_live_lookup(text) and \"炉况\" in text\n            and any(v in text for v in (\"当前\", \"现在\", \"目前\"))\n            and not qa_mcp_variables(text)):\n        return {\"tool\": \"get_latest_furnace_snapshot\", \"arguments\": {}}\n    body_statistics_plan = qa_mcp_body_temperature_statistics_plan(text)\n    if body_statistics_plan:\n        return body_statistics_plan\n    user_text = text.split"
+    },
+    {
+      "old": "    if qa_answer_route(question) == QA_ANSWER_ROUTE_ANALYSIS:\n        facts = qa_usable_tool_facts(messages)\n",
+      "new": "    if qa_answer_route(question) == QA_ANSWER_ROUTE_ANALYSIS or qa_usable_tool_facts(messages):\n        facts = qa_usable_tool_facts(messages)\n"
+    }
+  ]
+}

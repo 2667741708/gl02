@@ -1,0 +1,132 @@
+{
+  "schema": "bf.qa.runtime-fixed-pin-public-evidence.v1",
+  "requirement_id": "REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917",
+  "checked_at": "2026-09-17 10:00:59 UTC",
+  "state": "local_probe_tested_reviewed_production_readonly_fixed_pin_blocked",
+  "issue_ids": [
+    "QAOPT-O01",
+    "QAOPT-T01",
+    "QAOPT-T05"
+  ],
+  "fixed_identity": {
+    "name": "chiqiongblastfuenace:latest",
+    "digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+    "switch_allowed": false,
+    "fallback_allowed": false,
+    "same_name_weight_replacement_allowed": false,
+    "dynamic_baseline_allowed": false
+  },
+  "defect_reproduction": {
+    "cases": 7,
+    "failed": 3,
+    "passed": 4,
+    "elapsed_seconds": 0.29,
+    "defect": "Alias/resident equality accepted other weights; an alias change after the resident read was not checked."
+  },
+  "verification": {
+    "related_passed": 33,
+    "elapsed_seconds": 0.15,
+    "independent_static_review": "PASS gpt-5.6-luna low",
+    "test_command": "python -X utf8 -m pytest -q tests/test_qa_runtime_probe_fixed_pin.py tests/test_qa_fixed_model_identity.py --tb=short --basetemp=.codex_runtime/qa-runtime-fixed-pin-final-20260917-r3",
+    "semantic_accuracy_inferred": false
+  },
+  "production_readonly": {
+    "connection_identity_verified": true,
+    "production_commit": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+    "proxy_sha256": "47b7e75f6a4c2b932ac21b0dd9628d4c049f7a6f2ee083537bbedf1a6c57f431",
+    "runtime_version": "v26",
+    "current_local_candidate": "v44-r2",
+    "candidate_not_applied": true,
+    "scope_files": 32,
+    "required_read_files_missing": 0,
+    "legacy_proxy_status_ok": true,
+    "legacy_status_does_not_prove_fixed_pin": true,
+    "fixed_identity_ready": false,
+    "latest_model_metadata": {
+      "alias_before": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ],
+      "resident": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ],
+      "alias_after": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ]
+    },
+    "earlier_alias_resident_mismatch_observed": true,
+    "recovery_task_enabled": true,
+    "recovery_task_running": true,
+    "reviewed_fixed_manager_installed": false,
+    "source_dependencies": {
+      "schema": "bf.qa.keyword-source-dependencies-readonly.v1",
+      "foreign_keys": [
+        {
+          "source_schema": "bf_assistant",
+          "source_table": "rag_chunk",
+          "target_schema": "bf_assistant",
+          "target_table": "rag_document",
+          "delete_action": "c"
+        },
+        {
+          "source_schema": "bf_assistant",
+          "source_table": "rag_chunk_embedding",
+          "target_schema": "bf_assistant",
+          "target_table": "rag_chunk",
+          "delete_action": "c"
+        }
+      ],
+      "active_user_triggers": [],
+      "vector_type": {
+        "udt_name": "vector",
+        "udt_schema": "public"
+      },
+      "database_writes": 0,
+      "model_calls": 0,
+      "question_posts": 0
+    },
+    "r3_collection": {
+      "total": 953,
+      "completed": 953,
+      "state": "completed",
+      "original_process_absent": true
+    },
+    "protected_services_unchanged_by_this_operation": true,
+    "original_failed_partial_plan": {
+      "planned": 822,
+      "attempted_this_operation": 0,
+      "semantic_accuracy_available": false
+    }
+  },
+  "actions": {
+    "question_posts": 0,
+    "model_calls": 0,
+    "database_writes": 0,
+    "production_writes": 0,
+    "model_switches": 0,
+    "model_unloads": 0,
+    "service_restarts": 0,
+    "scheduled_task_changes": 0
+  },
+  "not_tested": [
+    "production_answer_accuracy",
+    "production_guarded_deployment",
+    "fixed_manager_installation",
+    "model_residency_repair",
+    "source_database_release",
+    "atomic_pre_generation_model_pin_guard_in_production"
+  ],
+  "artifact_sha256": {
+    "tools/probe_qa_paired_runtime_readonly.py": "27647a0d13985a3ecae2b979e43d241356dfd94d8983b4da0bda0f01dfbf5c46",
+    "tests/test_qa_runtime_probe_fixed_pin.py": "fcef168d5820c543620ac799bdc02e3f07906348557c63d833ea96b416e89265"
+  },
+  "v44_frozen_runtime_closure_byte_unchanged": true
+}

@@ -1,0 +1,105 @@
+{
+  "schema": "bf.qa.production-routing-retest-review.v1",
+  "requirement_id": "REQ-QA-ROUTING-ASSISTANT-UPDATE-20260916",
+  "reviewed_at": "2026-09-16",
+  "production_commit": "70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9",
+  "production_pid": 9768,
+  "scope": "the 16 manually reviewed routing failures from routing_failures_20260915.json",
+  "privacy": "raw answers, production values, conversation contents, identities and credentials remain in the ignored private runtime directory",
+  "request_accounting": {
+    "post_requests": 16,
+    "automatic_retries": 0,
+    "sse_done": 14,
+    "explicit_sse_error": 1,
+    "http_contract_rejection": 1,
+    "unaccounted": 0
+  },
+  "verdict_counts": {
+    "passed": 2,
+    "partial": 6,
+    "failed": 7,
+    "blocked_client_contract": 1
+  },
+  "reviews": [
+    {
+      "case_id": "TPL-00F9E60C73D8BE83",
+      "verdict": "blocked_client_contract",
+      "finding": "The first acceptance client omitted the required same-origin header and received a determinate qa_origin_required response. The question was not replayed."
+    },
+    {
+      "case_id": "TPL-A60B0CD794D49E48",
+      "verdict": "partial",
+      "finding": "The code guard no longer swallowed the pressure answer, but the read-only tool path degraded and the answer relied on the injected snapshot with an explicit freshness limitation."
+    },
+    {
+      "case_id": "TPL-FD3912331A49B991",
+      "verdict": "partial",
+      "finding": "History intent routed to search_qa_messages, but the grounding fallback exposed raw tool JSON instead of a concise user answer."
+    },
+    {
+      "case_id": "TPL-3877C5B34E972AA0",
+      "verdict": "partial",
+      "finding": "History intent and tool selection were corrected, but the grounding fallback again returned raw tool JSON and overlong history content."
+    },
+    {
+      "case_id": "TPL-4EB4CE7FC45519A5",
+      "verdict": "failed",
+      "finding": "The history request ended with an MCP request lifecycle error and no history answer."
+    },
+    {
+      "case_id": "TPL-61F40958498914A0",
+      "verdict": "failed",
+      "finding": "The deterministic sensor query still requested only CO; CO2 and H2 were omitted."
+    },
+    {
+      "case_id": "TPL-933773C8C24B2E93",
+      "verdict": "failed",
+      "finding": "No four-point half-hour query ran, so the answer could not compare the A-D throat temperatures."
+    },
+    {
+      "case_id": "TPL-C98A215EA8BB5EAC",
+      "verdict": "failed",
+      "finding": "The deterministic sensor query still requested only the north stock rod and omitted the south value."
+    },
+    {
+      "case_id": "TPL-26CC8346013E1DEA",
+      "verdict": "failed",
+      "finding": "No two-window history query ran; the answer only declared that the injected snapshot was insufficient."
+    },
+    {
+      "case_id": "TPL-E1C7A67C947531E9",
+      "verdict": "partial",
+      "finding": "The answer correctly refused to claim a baseline comparison without evidence, but it did not retrieve the recent window or a historical baseline."
+    },
+    {
+      "case_id": "TPL-8DA6777B502376D4",
+      "verdict": "failed",
+      "finding": "The workflow still stopped after listing recent reports and did not read and summarize the newest report."
+    },
+    {
+      "case_id": "TPL-B2833049FF8C163A",
+      "verdict": "passed",
+      "finding": "The response used the authoritative diagnosis context and included the diagnosis timestamp."
+    },
+    {
+      "case_id": "TPL-E765DF3B76316A3B",
+      "verdict": "passed",
+      "finding": "The response covered diagnosis, blast volume, blast pressure and pulverized-coal injection, and related them using the injected evidence."
+    },
+    {
+      "case_id": "TPL-4CA73F09C24F631B",
+      "verdict": "failed",
+      "finding": "A pre-request healthy status was followed by an explicit model-not-resident SSE error after preparation, reproducing the residency race."
+    },
+    {
+      "case_id": "TPL-18F38D141C29CF15",
+      "verdict": "partial",
+      "finding": "The no-live-data question correctly avoided tools and produced a general analysis, but the model ended with done_reason=length and an incomplete final sentence."
+    },
+    {
+      "case_id": "TPL-0F1075D1C8967EA5",
+      "verdict": "partial",
+      "finding": "The visible answer refused hidden and raw context disclosure, but the final SSE envelope still carried an oversized shared-guest conversation object and needs explicit field projection."
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "schema": "bf.qa.routing-production-review.v1",
+  "checked_at": "2026-09-16",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version": "v17",
+  "production_commit": "ab0dafa3f2008b819ed40211b43a17858ecf654c",
+  "focused_tests_passed": 133,
+  "requests": 5,
+  "automatic_post_retries": 0,
+  "counts": {
+    "passed": 5
+  },
+  "review_method": "Explicit independent post-release semantic review; nonempty and SSE done do not imply passing.",
+  "results": [
+    {
+      "case_id": "TPL-V17-HISTORY-DOCUMENT",
+      "state": "passed",
+      "answer_sha256": "658038101e256d82ed59d72c8ccd737f55f4a665a2a1d57be0787de4ab5de140",
+      "answer_chars": 4248,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "isolated_history_compound",
+      "terminal_state": "completed",
+      "model_request_count": 0,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V17-HISTORY-LIVE",
+      "state": "passed",
+      "answer_sha256": "71024eab5cfca03f2e7d2d6341143f3dd32f6884bc32bce9b8876bc105e49824",
+      "answer_chars": 3162,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "isolated_history_compound",
+      "terminal_state": "completed",
+      "model_request_count": 0,
+      "tool_start_count": 1,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V17-HISTORY-UNKNOWN",
+      "state": "passed",
+      "answer_sha256": "7d001f4044a9fd7d131aec735e520a665a0e02a82be58cff7009a6ab53c3431f",
+      "answer_chars": 4159,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "isolated_history_compound",
+      "terminal_state": "partial",
+      "model_request_count": 0,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V17-HISTORY-USER",
+      "state": "passed",
+      "answer_sha256": "7585e7c886fc0f6c9bb4788074f13ee76d03d9ad163068d106afeed6a3234f8b",
+      "answer_chars": 342,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "isolated_history_compound",
+      "terminal_state": "partial",
+      "model_request_count": 1,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V17-NOMATCH-LIVE",
+      "state": "passed",
+      "answer_sha256": "50f7130e9728f9f436734777c444f903db7cb7e75517e6d7ef7a8bb99e7c3374",
+      "answer_chars": 315,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "isolated_history_compound",
+      "terminal_state": "completed",
+      "model_request_count": 0,
+      "tool_start_count": 1,
+      "message_count": 2,
+      "messages_projection": "turn"
+    }
+  ],
+  "deployment": {
+    "ok": true,
+    "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+    "backup": "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\backups\\qa-routing-v17-20260916-r1-20260916-213658",
+    "rollback_applied": false,
+    "guard_paused": true,
+    "guard_restored": true,
+    "readiness_checks": [
+      {
+        "attempt": 1,
+        "proxy_ok": true,
+        "ollama_ok": true,
+        "model_ok": true
+      }
+    ],
+    "old_8093_pid": 7392,
+    "new_8093_pid": 6716,
+    "protected_before": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "protected_after": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "http_8093": 200,
+    "installed_hashes": {
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_history_compound.py": "A7B1CD2CDE3B9CE53DF5E6611164E3330DAE7AF0C604E6F627A191072E99AB9A"
+    }
+  },
+  "privacy": "No raw answers, conversation payloads, production measurements or identities."
+}

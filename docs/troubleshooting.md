@@ -1,5 +1,41 @@
 # 排障手册
 
+## OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917：生产 HEAD 更新但助手范围未改变
+
+先经 Reliable SSH 读取生产 Git 更新日志及实际路径差异，核对基线是当前分支祖先，再检查候选 write_set、实际运行 read_set、范围内 staged/unstaged/untracked、依赖和候选摘要。仅 CSS 等范围外更新保留并允许继续；实际助手或依赖变化则重建和审查候选。新版 `Assert-Baselines` 使用已绑定摘要的只读审计器，不用全局 HEAD 等值阻止无关提交。模型身份、原始问题一次发送和服务验收仍是独立条件。[当前证据与处理规则](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
+## V24 最新值重复规划与残余缺陷（2026-09-17）
+
+最新值已成功却重复查点位时，核对“使用工具”布尔值是否先于预取完整性判断；简单读取可复用类型化事实，历史/比较/图表不可据单点完成。缺单位保留partial；图表0工具而否认能力须修TaskPlan/执行路由。统计答案末尾未完成、Held质量与微量舍入方向冲突单列，不关闭可信校验。复测5题后驻留身份未核实已停止，402题逐条无发送记录。[逐项处理和原题结果](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。
+
+## REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917：正常比较被答复无法连接系统
+
+若半小时压差比较/单点温度稳不稳的工具调用为0，先查TaskPlan `allow_prefetch/allow_mcp_tools`及执行层，不先扩大模型工具轮数。V23补单窗观察；有工具成功却可信守卫拒绝是另外的完成/证据问题，不能取消校验。模型已驻留但latest digest变化、标签与实际驻留不一致也须分开处理。[问题与闭环](handoffs/2026-09-17-qa-v23-single-window-routing.md)。
+
+## ERR-QA-MODEL-ALIAS-DRIFT-20260916：健康但模型版本不断变化
+
+先只读比较11434的tags与ps digest、模型active-state及恢复事件，而不是仅比较latest名称。`BFOllamaModelSelectionRecovery`可在候选失败后覆盖公共别名，另行暂停/恢复`BFOllama11434HealthCheck`；二者不能混淆。V21程序已发布，复测4题后在第5题发送前阻断。已发送题不得重放；模型任务维护须独立授权，再续跑未发送409题。[具体证据与恢复边界](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。
+
+## 模型检查失败不等于模型卸载（2026-09-16）
+
+Q-QA-QWEN-READINESS-CONCURRENCY-ORACLE-20260916：先区分成功读取/api/ps但批准模型缺席，与查询超时/HTTP失败/异常结构。当前resolve_resident吞fetch异常为空列表，model_ok=false原因不充分。本轮业务模型确认是允许且驻留的Qwen系列。[诊断证据与解决方案](handoffs/2026-09-16-qa-qwen-readiness-concurrency-oracle-plan.md)。旧冻结报告保留，后续按更细原因判定。
+
+## V20 指代趋势追问（2026-09-16）
+
+规划器新增“这个/那个/这些/它们/刚才/上面”指代识别，明确新对象仍优先当前问题。V19失败的30分钟追问现走确定性统计；真实五题与数据库只读来源各5/5通过，模型趋势解释被可信守卫拒绝单列。仅更新8093代理，模型配置不变；整体33项仍执行中。[权威证据](handoffs/2026-09-16-qa-routing-v20-production.md)。
+
+## V18–V19 多轮来源与适配器修复（2026-09-16）
+
+若问答准备失败提示CursorAdapter没有rowcount，定位上下文绑定UPDATE，使用RETURNING id准确核验。若只返回趋势时间范围，仍按答案失败收集；检查planner指代词及确定性执行路径。模型preflight失败不创建POST claim、不重放已提交题。 [权威证据](handoffs/2026-09-16-qa-routing-v18-v19-production.md)。
+
+## V17 历史复合错误 partial（2026-09-16）
+
+历史与其他子任务有结果而整体 partial 时，先检查原文执行器的完成字段和实时分支的 pending 合同。不得以答案非空强行 completed：应检查原文来源清单，或实际 latest 工具载荷的请求对象、单位、时间和只读来源。V16 三失败在 V17 新轮复测通过。[权威排障证据](handoffs/2026-09-16-qa-routing-v17-production.md)。
+
+## 原文少答一章或最新追问沿用历史窗口
+
+V15已补逐章节完成和最新窗口重置。先核对当前生产提交及三个文件哈希，再查`completion.subsection_subtasks`、来源完整性和继承依据；不要重发已发送/不确定题。超出只读检查时限时使用`check_qa_knowledge_candidate_readonly.py --summary --offset N --limit 100`分批核对，0 POST/模型/数据库写入；结果不能推断全题语义通过。[V15权威交接](handoffs/2026-09-16-qa-routing-v15-production.md)。
+
 ## 8093/8094 炉况卡显示“智能分析暂不可用”
 
 2026-08-06已确认过一种明确根因：共享 `ollama_proxy_server.py` 已是支持v3单炉况调用的新版，但远端 `diagnosis_model_review.py` 和 `diagnosis_ai_analysis_api.py` 仍是旧版，形成模块版本错位；8094同时缺少启用环境变量。表现为Ollama健康正常，但分析长期停在准备态，或接口直接返回 `enabled=false`。
@@ -355,3 +391,258 @@ python tools\assistant_8093_auto_recovery.py diagnose --allow-agents-password --
    `preparing → prepared → delta → final → done`。对应版本为 Git `d24543a` / 标签
    `prod-8093-abc33-http400-20260814-r2`；若再次出现 400，先比较浏览器实际加载的
    `bf-abc33-assistant-dialog.js` 缓存版本和响应 `error_code`，不要自动重发。
+
+## V25智能助手更新与首次全题统计（2026-09-17）
+
+状态：V25已部署；首次1233题判定已合并。最新权威方案见 [33项优化与核对方案](handoffs/2026-09-17-qa-full-optimization-plan.md)。
+
+明确钟点/跨午夜窗口不回落最近一小时，历史记录和质量保留；18点绘图已进入正确路由，但生产工具只返回16点且生命周期降级遗漏图，仍待修复。
+
+本机159检查、14黄金题结构、4写24读/490 AST/22标记、8093受控发布和CAS通过。新版822原失败/部分题复测只发1题且失败，821题证明未发。首次完整正确269/可判1091=24.66%，不能报告优化后全量准确率。
+
+## V26图表证据修复及固定模型复测（2026-09-17）
+
+状态：V26已部署，174本机检查和独立审查通过；822原失败/部分题发送前因Qwen身份变化拦截，零发送。线上语义修复效果未确认。
+需求：REQ-QA-CHART-COVERAGE-20260917、OPS-QA-FIXED-MODEL-WINDOW-20260917。
+最新权威来源：[V26部署与固定模型复测方案](handoffs/2026-09-17-qa-v26-model-window.md)、[33项优化方案](handoffs/2026-09-17-qa-full-optimization-plan.md)、[V26生产哈希](../tests/qa_regression/routing_v26_production_20260917.json)、[822未发题证据](../tests/qa_regression/routing_v26_unattempted_dependencies_20260917.json)。
+执行器见 [窗口owner](../tools/run_qa_fixed_model_window.ps1)、[独立启动器](../tools/start_qa_fixed_model_window.ps1)、[只读准备器](../tools/prepare_qa_fixed_model_window.py)；11项真实控制流/截止预算隔离测试通过，另有8项身份/续跑合同回归通过。窗口仅本机准备，计划任务操作尚未授权执行；继续保留V25历史记录，不以非空答复计算正确率。
+
+## 历史：模型恢复稳定性本机候选（2026-09-17，已取代）
+
+需求OPS-QA-MODEL-REPAIR-STABILITY-20260917，关联QAOPT-O01。健康批准驻留优先、候选失败alias/state恢复、最长15分钟冷却、暂停失败恢复责任及Switch实际alias回滚已形成r2本机候选；32其他函数和顶层mutex/dispatch保持，26隔离回归与独立代码审查通过，未部署管理器。
+当前生产仍为V26，822失败/部分题均未发送。真实任务/模型验收和管理器变更独立授权仍待完成；本机检查不等同线上语义成功。
+权威来源：[候选和26项证据](handoffs/2026-09-17-qa-model-repair-stability.md)、[候选冻结元数据](../tests/qa_regression/model_repair_stability_candidate_20260917.json)、[构建器](../tools/build_qa_model_repair_candidate.ps1)、[聚焦回归](../tests/test_qa_model_repair_policy.py)。
+
+## REQ-QA-SINGLE-BASE-MODEL-20260917：固定同一底座
+
+状态：本机候选52项检查及独立审查通过，未部署；生产仍V26。唯一e4ad74…底座，Switch/替代fallback禁用，每次模型POST与复测plan核验相同digest；旧双批准池窗口已停用。恢复任务仍曾自行漂移版本0，不能声称生产已锁定。管理器/计划任务维护独立授权，安装失败不能再启用旧切换策略。
+当前权威：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)、[候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)。前代r2批准fallback候选仅保留历史复现，禁止部署。
+
+## REQ-QA-STATISTICS-EVIDENCE-20260917：V28统计证据与答复
+
+状态：本机候选，生产仍为V26；最后核对2026-09-17。关联QAOPT-E01/E02/E03/E04/E05。
+V28保留固定同一底座身份检查，仅修复统计预取、证据完整性和确定性答复三个函数。完整保留stddev/单位/质量及来源窗口；非零微量不舍入成0；缺单位仅继承现有精确合同并披露，Held端点不证明整窗质量或炉况稳定。直接答复同样校验请求对象、来源和时间窗，未核实不得输出正式STDDEV/CV/趋势。没有新增API或配置，不改模型、生产数据库或ABC33合同。
+权威：[实施、回归及未完成项](handoffs/2026-09-17-qa-v28-statistics-evidence.md)、[机器检查证据](../tests/qa_regression/statistical_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_statistics_evidence.py)。本机通过不得写成线上准确率提高；822原失败/部分题尚未发送。
+
+## REQ-QA-FINAL-COMPLETION-20260917：V29最终答复完成状态
+
+状态：本机r2候选、92项聚焦回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E05/O04/T03。
+统一识别模型截断、未知终止、空答案和末行空标题；工具后解释未完成时保留事实并标部分，MCP降级仍最多一次无工具回合。普通免工具问答保留原有一次有界补答；JSON/SSE核对实际最终answer，图表/文档追加不能擦除已记录的空标题。固定底座、V28统计合同及其他AST保留，无新增配置、工具重试或数据库变更。
+权威：[实施、实际检查及剩余边界](handoffs/2026-09-17-qa-v29-final-completion.md)、[候选机器证据](../tests/qa_regression/final_completion_candidate_20260917.json)、[真实函数回归](../tests/test_qa_final_completion.py)。处理器接缝为AST与合同检查，尚未执行线上处理器/822原题语义验收；这些问题未销项。
+
+## REQ-QA-WINDOW-QUALITY-20260917：V30质量窗口证据
+
+状态：本机r2候选、独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E02/E04/E06。
+数据库在原统计SELECT同一tag/窗口中追加质量计数，非空数值为分母，空值行单列；原参数、查询次数和数值公式保持。pSpace/派生只声明实际返回样本，不声称整窗完整。质量总和、类型、schema/basis及请求窗口必须匹配，未知标签不猜测为Good，不由Held/Bad或派生标记判正式稳定/风险等级。固定同一底座与V29完成状态保持，没有新配置或数据库迁移。
+权威：[实施、质量范围与验收边界](handoffs/2026-09-17-qa-v30-window-quality.md)、[机器证据](../tests/qa_regression/window_quality_candidate_20260917.json)、[实际MCP函数回归](../tests/test_qa_window_quality.py)。本机合同尚未在真实数据库或原822题验证，不标线上有效或销项。
+
+
+## REQ-QA-RENDERER-CONTRACT-20260917：V31答复格式与字段兼容
+
+状态：本机冻结候选、126项相关回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E02/E03/E05。
+传感器字符串列表按实际工具拆分、去重，保持80个上限，请求与外层结果规范化列表必须一致；顶层字符串和非字符串项不放宽为合法调用。单位仅从明确元数据绑定继承规范合同并披露，原单位优先、不换算或猜描述。异常结果容器逐项明示并保留相邻有效事实；对象、来源、只读策略与窗口门禁保持。仅修改一个代理函数和统计证据模块，无新增API、配置、工具或模型回合，固定同一底座保持。
+权威：[确认缺陷、程序与未完成验收](handoffs/2026-09-17-qa-v31-renderer-contract.md)、[机器回归证据](../tests/qa_regression/renderer_contract_candidate_20260917.json)、[实际冻结函数回归](../tests/test_qa_renderer_contract.py)。本机通过不能用于线上准确率或问题销项；禁切换管理器安装、8093部署及822原题复测仍待完成。
+
+
+## REQ-QA-LATEST-EVIDENCE-20260917：V32最新值与完成合同
+
+状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
+最新读取异常时依次核对请求/外层变量列表、元数据绑定、来源和策略、有限数值、观测时间，再核单位/质量释义/采集标记。部分字段缺失保留有效事实，逐项说明，不重复查全量或靠模型补字段。顶温派生核四组件及时间/均值；混时不当同一时刻均值。模型身份或驻留波动先GET核查并停止新发送，不切换底座。
+权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+## BUG-QA-REGULATION-CLAUSE-DROP-20260917：制度短条款缺失
+
+先核原始DOCX、源解析标题分界及索引血缘，再核模型或路由。27/28章旧解析把多数<=80字内容当标题跳过；生产派生full_text与同一索引覆盖不能发现源抽取遗漏。整行标题修复本机151项及独立审查通过，补回123片段，但生产知识库未更新。来源路径标记仅说明记录的路径不存在，不说明原书不存在。
+只读审计必须使用启动readonly连接，不能调用会初始化schema的raw_pg_connect后才SET READ ONLY；审计失败停止，不通过建schema或修改权限让检查继续。
+权威：[具体修复与受控知识库发布步骤](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。
+
+## REQ-QA-SOURCE-SCOPE-20260917：源范围失败
+
+源item遗漏/重排、岗位/规程错绑、原子或章节缺尾、表格切断及源hash漂移均停止候选冻结，不切换模型继续测试。目录、正文中岗位提及和单列表格不能作岗位标题；原书19章写法差异仅使用明确限定映射。原书位置校验独立于派生全文/索引；topic仅子集校验，不能宣称全覆盖。
+权威：[边界、实际校验和发布恢复步骤](handoffs/2026-09-17-qa-independent-source-scope.md)、[冻结证据](../tests/qa_regression/source_scope_candidate_20260917.json)。r1/r2私有冻结文件保留不覆盖；生产发布、回滚和真实问答验收尚待完成。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：发布/绑定阻断
+
+旧版本/hash/索引/vector计数漂移停止准备并只读复核；固定源绑定失败不能靠同名模型或旧正文哈希放行。数据库没有岗位/源块专列，应核固定enriched源头、manifest及所有实际检索字段；调用方额外源元数据也不能矛盾。准备入口明确非DB快照，实际入口必须来源路径一致。提交不确定不重放；回滚需要完整before归档和精确after无漂移证明，当前执行器未实现、归档未保存。
+权威：[当前门禁、实际schema和待实现事务](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[脱敏证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。不运行旧vectorize脚本，不切换或加载embedding模型。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：提交不确定及回滚阻断
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+commit异常使用新启动只读连接recover_release；journal不存在仍not_recorded_unresolved，禁止自动重放。after漂移、before归档损坏、跨文档ID冲突、未知外键/触发器或schema不符均停止写入，不以源正文hash代替完整快照。固定底座身份异常停止模型调用，不加载其他底座。执行器本机已实现，生产入口/归档/迁移尚未应用。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：入口恢复
+
+状态：2026-09-17本机验证，生产未执行。
+operation_already_claimed禁止第二次连接；DB身份/config/SHA/keyword或固定模型策略不符停止写入。提交成功但收据失败也只读recover，缺release仍unresolved。生产写入授权与迁移未完成，不能重放私有包或用其他模型继续。
+当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。
+
+
+## REQ-QA-ORIGINAL-SOURCE-READER-20260917：制度原书读取门禁
+
+状态：2026-09-17本机验证/复审并冻结，生产未接入。
+
+original_source_binding_unavailable/fixed_projection_mismatch/after_snapshot_drift表示源依赖未核，不是模型故障。先只读检查迁移/发布/完整快照，不能换模型或用旧片段填正式条款。本轮Reliable SSH身份和路线均超时，仅判传输中断；0生产改动/重发，恢复后先重新只读核查。
+
+当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+不要将带原书字串的未知标题映射到现有源；章节code与岗位冲突先澄清。多子句answer缺某岗位时检查regulation作用范围及missing_chapters，不能把剩余非空原文判全部完成。本轮SSH身份/备用路线仍超时，0远端操作；恢复后按固定流程只读重核，不重发未知发送题。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+同一句存在多个规程时先过滤再排序，不能让错误规程exact命中覆盖正确规程prefix命中。路径1/1.1必须精确比较，不能包含匹配11/11.1。规程role有文本仍须逐类型检查缺项；歧义类型不抹掉另一唯一核验结果。生产探测超时不等于服务器故障，未知发送仍禁止重放。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+身份检查不能用传入name/digest改变冻结对象。看到fixed_model_identity_not_ready时复核唯一固定pin与驻留，禁止换底座求通过。旧动态驻留/双模型窗口已退役；连接失败先只读身份/路线探测，无命令派发不得推断生产故障。未知发送题永不自动重放。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+先检查禁令适用范围及公开计划：禁止现场查询不等于禁止历史/报表；禁止所有工具/数据库必须在纯历史、制度SQL、MCP和预取入口全部生效。历史无匹配时核对选择词是否误含整段指令；不要放宽owner或消息截止。底座身份不符时阻止调用，不能换模型绕过。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+数学被code_disabled误拒时先核code_requested对“函数”的解释，勿解除代码禁令或换模型。保持代码语言标记与执行/实现请求拦截；历史有值仍partial时核quality/collected_at/read_policy，不靠非空或旧成功fixture证明完成。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+给定数据被误查现场时先核scope和live_query_text，再查实际alias/分析bundle/时窗/路由enrichment；不能通过模型切换解决。局部仅/只约束不得误清独立来源，明确全局禁令不得绕过。查询“这些数据”必须保留引用范围。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-DECLARED-INPUT-SCOPE-20260917：声明输入与现场核验
+
+状态：2026-09-17本机327项相关回归/独立审查通过，V40-r2冻结，生产未应用。
+
+假设/已知数值被误查现场时先核输入声明；反向检查“当前值是180吗”仍核验实测。时间反例必须保留，不能把从7点到8点当温度变化；从/由数值变化要求变化动词及两个测量数值。旧两题通过不足以关闭R07。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
+
+
+## REQ-QA-RESPONSE-STYLE-SOURCE-SCOPE-20260917：回答形式与资料来源
+
+状态：2026-09-17本机395项相关回归/独立审查通过，V41-r1冻结，生产未应用。
+
+普通完整说明被要求提供书名时先检查是否把回答形式当成来源。测试代理必须包含外层allow_mcp_tools与内部谓词；最新冻结包全15哈希必须验证，历史快照保持独立固定绑定，禁止回退旧候选掩盖变化。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-CONCEPT-SCOPE-20260917：来源概念与具体记录
+
+状态：2026-09-17本机436项相关回归/独立审查通过，V42-r1冻结，生产未应用。
+
+日报是什么或聊天记录用途触发读取时检查概念与记录定位。不能全局删除报表/历史来源；同一请求里的实际记录必须保留。时间、个人、引用、ID及读取动作优先，整个过滤按引号感知子句执行。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-EXCLUSION-SCOPE-20260917：来源排除与子任务继承
+
+状态：2026-09-17本机498项相关回归、原源保真及独立审查通过，V43-r6冻结，生产未应用。
+
+不要查聊天/日报/制度仍触发查询时查禁令是否丢于拆分重建。禁止某书与禁止全部知识库须分开；实际别名同源应读前阻止。切句动作来自已登记源域动作表，具名列表共享否定不得误吞另一允许书。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SUPPLIED-RECORD-SCOPE-20260917：已给记录数据与来源核验
+
+状态：2026-09-17本机546项相关回归、原源保真和独立审查通过，V44-r2冻结，生产未应用。
+
+用户贴出日报/聊天记录数据仍要求工具时，检查声明子句是否加入外部来源意图；核实所给数据与真实来源一致不能被误吞。仅确认均值/极差/漏项不等于读取原始记录。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+SSH已恢复但固定底座仍被阻断：比较固定摘要与tags→ps→tags，而非只看同名或旧status.ok。旧恢复任务仍活跃，独立授权治理后重新只读核验，不自动切换绕过。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+复测缺实际系统Prompt凭证时，核对服务端prompt_binding而非用户输入hash。比较prepared与各实际请求摘要，规划/降级/repair不同是正常；request_built不冒充发送成功。legacy/未知摘要缓存应拒绝命中；固定摘要不符停止新调用。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+片段测试全绿但完整导入缺模块时，禁止伪造依赖或回落旧proxy。运行哈希绑定的RAM完整加载探针，真实缺失模块/I/O尝试/依赖源变化均阻断。Windows stdlib OS元数据在候选guard之前预热，不放开候选进程权限。固定身份不一致继续阻断原题复问。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+0 MCP工具仍可能prepare提前读炉况；检查sensor_context_policy及snapshot兜底。归档失败不得开启实时兜底；当前新生产共享proxy先合并再密封。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+类方法整体dedent会改变三引号字符串值，须按原类作用域解析；public_rule的权威输入为score_released，score_available是输出。默认Windows子Python须显式-X utf8。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+下游MCP禁用不代表prepare未读炉况；须同时核对provider/snapshot读取计数、页面归档与证据隔离。缺对象追问不得靠通用快照猜测对象，其生产绑定单列未完成。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V50测点确认和准备权限顺序（2026-09-17）
+
+REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅由整句精确目录别名确认，保留目标/窗口并重新取数；解析在全部sensor读取之前执行。有效确认也不注入通用传感器；失效、跨会话及页面禁工具关闭预取和来源。两新增纯函数、prepare单函数变更与14模块逐字节继承通过冻结检查；55原生只读合成合同通过，实际取数/最终回答/并发和部署未验收。
+
+[实施/复现/剩余门](handoffs/2026-09-17-qa-pending-object-confirmation.md)；[机器证据](../tests/qa_regression/pending_object_confirmation_20260917.json)。无关Git提交按路径范围保留；固定底座检查独立，33项不销项。
+
+## V49对象追问执行（2026-09-17）
+
+持久化对象状态不代表实际路由使用该对象：同时核对execution TaskPlan、时间窗预检对象、prefetch次数和最终出口。缺对象澄清必须清空所有预取/工具/知识来源权限。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

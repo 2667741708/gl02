@@ -1,0 +1,151 @@
+{
+  "schema": "bf.qa.v22.independent-observations.v1",
+  "requirement_id": "REQ-QA-PAIRED-FAILURE-RETEST-20260916",
+  "production_commit": "e43c5c9010c82fe4324c15602d62b1f2eefde3c4",
+  "method": "Explicit primary-agent decisions after complete question/answer/tool-result review; script only projects decisions and checks identities.",
+  "planned": 416,
+  "attempted": 6,
+  "proven_unsent": 410,
+  "stable_identity_sampled": 5,
+  "stable_sample_correct_complete": 3,
+  "stable_sample_accuracy": 0.6,
+  "transport_complete": 6,
+  "transport_rate": 1.0,
+  "accuracy_scope": "Five observed stable samples only, including two controls; not 405 baseline failure recovery or full assistant accuracy.",
+  "first_405_failed_attempted": 0,
+  "initial_828_rule_screening_accuracy_accepted": false,
+  "rows": [
+    {
+      "case_id": "TPL-FACD6F5FE05C74FC",
+      "status": "failed",
+      "reason": "要求当前半小时三段压差对比，实际工具0次，未提供比较并错误宣称未连接实时系统。",
+      "issue_ids": [
+        "QAOPT-R01",
+        "QAOPT-R03"
+      ],
+      "result_sha256": "35674805368189a87cf7163c6dae07cfce7397ccbdbc95111e574243c1df3aed",
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      },
+      "route": "evidence_without_tools",
+      "transport_complete": true,
+      "eligible_stable_sample": true
+    },
+    {
+      "case_id": "TPL-01EEE414179DB624",
+      "status": "failed",
+      "reason": "要求单个炉体温度半小时稳定性，实际工具0次，缺数据且错误宣称无法访问已授权传感器。",
+      "issue_ids": [
+        "QAOPT-R01",
+        "QAOPT-R03"
+      ],
+      "result_sha256": "dbb7e408e563d53aadbc6849aa89464e00d4e07823d58fff4a3b7baaf967f7c0",
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      },
+      "route": "evidence_without_tools",
+      "transport_complete": true,
+      "eligible_stable_sample": true
+    },
+    {
+      "case_id": "TPL-F84133F736C1F86F",
+      "status": "passed",
+      "reason": "完整半小时统计、单位与只读来源同成功工具结果对应；CV按标准差/均值复算一致，首末/回归冲突与最近方向范围明确。",
+      "issue_ids": [],
+      "result_sha256": "b42572d83f3477e15003b6fc17b373044318a5f5aa5d42a7a0c403f1f56fe582",
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      },
+      "route": "grounded_fact_only",
+      "transport_complete": true,
+      "eligible_stable_sample": true
+    },
+    {
+      "case_id": "LIVE-001",
+      "status": "passed",
+      "reason": "完整说明允许工艺/数据/诊断用途及证据限制，明确不生成或执行代码，不查实时。",
+      "issue_ids": [],
+      "result_sha256": "5b45887c6c078c035f3be092b32dbcc90724c658c6920b0c9db42b5fcbf09b5a",
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      },
+      "route": "capability_intro",
+      "transport_complete": true,
+      "eligible_stable_sample": true
+    },
+    {
+      "case_id": "LIVE-002",
+      "status": "passed",
+      "reason": "仅用给定2/4/6逐步计算均值4与总体标准差sqrt(8/3)，分母为3；无现场查询或程序示例。",
+      "issue_ids": [],
+      "result_sha256": "bd648e3346e20905c09045324adf549c93340901b03d815df52b43fc3eb438ad",
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "post_turn_identity": "matched"
+      },
+      "route": "evidence_without_tools",
+      "transport_complete": true,
+      "eligible_stable_sample": true
+    },
+    {
+      "case_id": "LIVE-003",
+      "status": "partial",
+      "reason": "假设数据变化量与不可单凭顶压认定恶化的结论正确；其控制/风量不变即阻力不变等条件性解释过强，且请求后模型身份未核实。",
+      "issue_ids": [
+        "QAOPT-E06",
+        "QAOPT-O01"
+      ],
+      "result_sha256": "3793637d715c641970b4e7f4e6bbaa0cbc10b16b0c8c511f32577a08fba4d313",
+      "model_identity_samples": {
+        "before_identity": {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        },
+        "after_identity": null,
+        "post_turn_identity": "drift_or_unavailable"
+      },
+      "route": "evidence_without_tools",
+      "transport_complete": true,
+      "eligible_stable_sample": false
+    }
+  ]
+}

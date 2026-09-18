@@ -1,0 +1,609 @@
+{
+  "schema": "bf.qa.full-inventory.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "checked_at": "2026-09-16T11:26:31.313656",
+  "status": "collection_accounted_pending_answer_review",
+  "source_rows": 1418,
+  "source_files": 77,
+  "source_status": {
+    "ready": 1260,
+    "skipped": 11,
+    "contract_only": 84,
+    "duplicate": 56,
+    "fixture_only": 7
+  },
+  "collection": {
+    "collected": 1259,
+    "interrupted_unknown": 1,
+    "skipped": 11,
+    "contract_only": 84,
+    "duplicate": 56,
+    "fixture_only": 7
+  },
+  "contract_only_kinds": {
+    "user_prompt": 31,
+    "code_block": 40,
+    "system_template": 13
+  },
+  "review": {
+    "pending_semantic_review": 828,
+    "confirmed_failed_fixed_response": 330,
+    "confirmed_failed_manual": 75,
+    "not_reviewed": 159,
+    "oracle_invalid_structural_line": 26
+  },
+  "collected": 1259,
+  "nonempty": 1258,
+  "overall_accuracy": null,
+  "groups": {
+    "knowledge": {
+      "source_rows": 833,
+      "source_status": {
+        "ready": 818,
+        "duplicate": 15
+      },
+      "collection": {
+        "collected": 818,
+        "duplicate": 15
+      },
+      "review": {
+        "confirmed_failed_manual": 34,
+        "pending_semantic_review": 485,
+        "confirmed_failed_fixed_response": 299
+      },
+      "routes": {
+        "general_model": 79,
+        "model_without_tools_after_mcp_failure": 231,
+        "model_without_tools_after_mcp_failure_failed": 219,
+        "partial_grounded_analysis": 85,
+        "grounding_guard_rejected": 40,
+        "mcp_grounded_analysis_fallback": 64,
+        "mcp_grounded_analysis": 37,
+        "analysis_required": 30,
+        "grounded_fact_only": 5,
+        "realtime_failed_closed": 22,
+        "cross_source_deterministic_formatter": 1,
+        "deterministic_heat_dependency_failure": 5
+      },
+      "tool_cases": 513,
+      "tool_calls": 1283,
+      "flags": {
+        "knowledge_history_tool": 436,
+        "knowledge_test_marker_search": 2,
+        "tool_timeout": 322,
+        "tool_error": 322,
+        "lifecycle_error": 217,
+        "fallback_failed_route": 219,
+        "knowledge_report_tool": 147,
+        "knowledge_report_directory_answer": 67,
+        "success_then_lifecycle_error": 37,
+        "no_code_response": 21,
+        "guard_rejected_route": 40,
+        "realtime_refusal": 86,
+        "knowledge_sensor_or_chart_tool": 73,
+        "knowledge_no_document_capability": 1
+      },
+      "latency": {
+        "p50": 43.046,
+        "p95": 121.157,
+        "max": 178.734
+      }
+    },
+    "nonknowledge": {
+      "source_rows": 585,
+      "source_status": {
+        "ready": 442,
+        "skipped": 11,
+        "contract_only": 84,
+        "duplicate": 41,
+        "fixture_only": 7
+      },
+      "collection": {
+        "collected": 441,
+        "interrupted_unknown": 1,
+        "skipped": 11,
+        "contract_only": 84,
+        "duplicate": 41,
+        "fixture_only": 7
+      },
+      "review": {
+        "pending_semantic_review": 343,
+        "confirmed_failed_fixed_response": 31,
+        "confirmed_failed_manual": 41,
+        "oracle_invalid_structural_line": 26
+      },
+      "routes": {
+        "grounded_fact_only": 153,
+        "general_model": 24,
+        "partial_grounded_analysis": 26,
+        "model_without_tools_after_mcp_failure_failed": 44,
+        "grounding_guard_rejected": 48,
+        "mcp_grounded_analysis": 43,
+        "deterministic_formatter_with_grounded_model_explanation": 5,
+        "realtime_failed_closed": 30,
+        "model_without_tools_after_mcp_failure": 32,
+        "deterministic_heat_dependency_failure": 5,
+        "model_planner_then_deterministic_formatter": 10,
+        "cross_source_with_analysis": 1,
+        "mcp_grounded_analysis_fallback": 4,
+        "deterministic_preflight_gate": 11,
+        "cross_source_deterministic_formatter": 4,
+        "no_final_route": 1
+      },
+      "tool_cases": 361,
+      "tool_calls": 527,
+      "flags": {
+        "tool_timeout": 66,
+        "tool_error": 78,
+        "lifecycle_error": 41,
+        "fallback_failed_route": 44,
+        "guard_rejected_route": 48,
+        "realtime_refusal": 34,
+        "no_code_response": 32,
+        "success_then_lifecycle_error": 6,
+        "incomplete_json": 1,
+        "structural_arrow": 26,
+        "no_answer": 1
+      },
+      "latency": {
+        "p50": 7.016,
+        "p95": 94.828,
+        "max": 150.765
+      }
+    }
+  },
+  "routes": {
+    "grounded_fact_only": 158,
+    "general_model": 103,
+    "partial_grounded_analysis": 111,
+    "model_without_tools_after_mcp_failure_failed": 263,
+    "grounding_guard_rejected": 88,
+    "mcp_grounded_analysis": 80,
+    "deterministic_formatter_with_grounded_model_explanation": 5,
+    "realtime_failed_closed": 52,
+    "model_without_tools_after_mcp_failure": 263,
+    "deterministic_heat_dependency_failure": 10,
+    "model_planner_then_deterministic_formatter": 10,
+    "cross_source_with_analysis": 1,
+    "mcp_grounded_analysis_fallback": 68,
+    "deterministic_preflight_gate": 11,
+    "cross_source_deterministic_formatter": 5,
+    "no_final_route": 1,
+    "analysis_required": 30
+  },
+  "flags": {
+    "tool_timeout": 388,
+    "tool_error": 400,
+    "lifecycle_error": 258,
+    "fallback_failed_route": 263,
+    "guard_rejected_route": 88,
+    "realtime_refusal": 120,
+    "no_code_response": 53,
+    "success_then_lifecycle_error": 43,
+    "incomplete_json": 1,
+    "knowledge_history_tool": 436,
+    "knowledge_test_marker_search": 2,
+    "knowledge_report_tool": 147,
+    "knowledge_report_directory_answer": 67,
+    "knowledge_sensor_or_chart_tool": 73,
+    "knowledge_no_document_capability": 1,
+    "structural_arrow": 26,
+    "no_answer": 1
+  },
+  "tool_calls": 1810,
+  "tool_name_counts": {
+    "get_gl02_variable_info": 7,
+    "search_business_objects": 103,
+    "find_gl02_variables": 51,
+    "query_gl02_sensors": 231,
+    "plot_gl02_analysis": 16,
+    "get_latest_furnace_snapshot": 24,
+    "list_recent_reports": 158,
+    "plot_gl02_trends": 31,
+    "gl02ext__query_body_temperature_statistics": 5,
+    "list_gl02_static_pressure_points": 4,
+    "get_latest_gl02_value": 24,
+    "query_gl02_feature_statistics": 20,
+    "list_gl02_available_variables": 4,
+    "query_gl02_statistics": 10,
+    "imes__search_imes_variables": 13,
+    "imes__list_imes_business_objects": 9,
+    "search_qa_messages": 973,
+    "read_report_excerpt": 44,
+    "imes__resolve_spoken_heat_reference": 11,
+    "imes__query_heat_chemistry": 10,
+    "imes__get_current_heat_context": 6,
+    "imes__resolve_imes_natural_language": 11,
+    "imes__query_imes_variables": 2,
+    "imes__list_imes_database_profiles": 8,
+    "list_business_objects": 9,
+    "query_sinter_feed_chemistry": 1,
+    "imes__get_current_previous_heat_si_summary": 7,
+    "imes__imes_relay_status": 2,
+    "query_bf2_operation_log_report": 3,
+    "query_gl02_history": 2,
+    "imes__query_current_heat_chemistry": 1,
+    "query_heat_chemistry": 1,
+    "plot_gl02_body_temperature_matrix": 6,
+    "get_business_object": 2,
+    "imes__query_hot_metal_chemistry_by_heat": 1
+  },
+  "tool_error_counts": {
+    "TimeoutError": 462,
+    "NO_DRAWABLE_DATA": 3,
+    "TOOL_POLICY_REJECTED": 3,
+    "INSUFFICIENT_VARIABLES": 1
+  },
+  "latency": {
+    "p50": 23.391,
+    "p95": 115.875,
+    "max": 178.734
+  },
+  "latency_scope": "raw collection including structural oracle-invalid rows; not cleaned valid-task performance",
+  "manual_failure_cases": [
+    "TPL-00D19D36ED184B7C",
+    "TPL-00F9E60C73D8BE83",
+    "TPL-0BF027E015754E21",
+    "TPL-0DD6ED5A8049E4B6",
+    "TPL-0EDF300C940987EB",
+    "TPL-0EEFB8ED9A29E554",
+    "TPL-0F1075D1C8967EA5",
+    "TPL-0F3B72EDE439BD33",
+    "TPL-11CFDECFC4A6A802",
+    "TPL-11F6C2E3DDD207BC",
+    "TPL-18399CD0A0FDD84D",
+    "TPL-18F38D141C29CF15",
+    "TPL-1A91673F85279AC5",
+    "TPL-1FC0AF73CFDEC56F",
+    "TPL-26CC8346013E1DEA",
+    "TPL-2941ED6E73448D66",
+    "TPL-2945C0479E5AA40A",
+    "TPL-312365E3836A63CF",
+    "TPL-31A40BF0C39381C9",
+    "TPL-3482A8EE5B37D413",
+    "TPL-37FA162BCC7D2532",
+    "TPL-3877C5B34E972AA0",
+    "TPL-3A02EAA7FA93AFEC",
+    "TPL-3D55DDF5C7EAE4B1",
+    "TPL-3EF41666AA2AA09A",
+    "TPL-3F71EF4AE829B406",
+    "TPL-3FE672D48EEF6AA0",
+    "TPL-48827B99541672E2",
+    "TPL-4CA73F09C24F631B",
+    "TPL-4EB4CE7FC45519A5",
+    "TPL-61F40958498914A0",
+    "TPL-7199ADD9883B18D3",
+    "TPL-740647EE648698B0",
+    "TPL-79F7FD9CA65536B7",
+    "TPL-7A5E5B1C2350866A",
+    "TPL-7CBE3D558CAAD686",
+    "TPL-81261F34B14214DC",
+    "TPL-86EB16D455D798EB",
+    "TPL-8B7C1859A362E3DD",
+    "TPL-8C4E95CD3696FCC9",
+    "TPL-8DA6777B502376D4",
+    "TPL-90EE7B371FE7A879",
+    "TPL-933773C8C24B2E93",
+    "TPL-9350A36260D7589A",
+    "TPL-93F38E930DFF0610",
+    "TPL-94D18AC99322D452",
+    "TPL-9AB9414BFC82E504",
+    "TPL-9AE8A19F5E9B013B",
+    "TPL-A60B0CD794D49E48",
+    "TPL-AE9F0420FB3D1189",
+    "TPL-B1DDFC78E40D26DD",
+    "TPL-B2833049FF8C163A",
+    "TPL-B6358FE6D9300275",
+    "TPL-B7308A7EA1AF4F22",
+    "TPL-B838D55F62D0F02B",
+    "TPL-BCA3335AC5ED904A",
+    "TPL-BD6F5FB0277D3822",
+    "TPL-BEFF144CB0DB67E1",
+    "TPL-C5DF79304112ED85",
+    "TPL-C6724F4D7C4AB190",
+    "TPL-C98A215EA8BB5EAC",
+    "TPL-C9B957F57204C2C4",
+    "TPL-CD0AD52EA976A140",
+    "TPL-D1FB28CE1B9C21E1",
+    "TPL-DE3A348E8836BC03",
+    "TPL-DFBF6ECA9F77E4A1",
+    "TPL-E1C7A67C947531E9",
+    "TPL-E5DB029B9B3B8DAC",
+    "TPL-E765DF3B76316A3B",
+    "TPL-ED788A23FD13D06F",
+    "TPL-EE9BDE0EB2830161",
+    "TPL-F4939324AC3D3D5F",
+    "TPL-F6D8CBD7DAD56EFE",
+    "TPL-FD3912331A49B991",
+    "TPL-FE10E65E18FBF2B6"
+  ],
+  "missing_sources": [
+    "docs/MCP_115变量诊断指标测试问题集.md"
+  ],
+  "issue_coverage": [
+    {
+      "id": "QAOPT-R01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "统一任务决策，阻止关键词抢路由",
+      "linked_cases": 73,
+      "confirmed_failed_cases": 2
+    },
+    {
+      "id": "QAOPT-R02",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "历史问答与业务证据分离",
+      "linked_cases": 3,
+      "confirmed_failed_cases": 3
+    },
+    {
+      "id": "QAOPT-R03",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "完整解析多对象及范围",
+      "linked_cases": 3,
+      "confirmed_failed_cases": 3
+    },
+    {
+      "id": "QAOPT-R04",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "多时间窗与历史基线",
+      "linked_cases": 2,
+      "confirmed_failed_cases": 2
+    },
+    {
+      "id": "QAOPT-R05",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "报表工作流读取正文",
+      "linked_cases": 1,
+      "confirmed_failed_cases": 1
+    },
+    {
+      "id": "QAOPT-R06",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "权威诊断和复合问题覆盖",
+      "linked_cases": 2,
+      "confirmed_failed_cases": 2
+    },
+    {
+      "id": "QAOPT-R07",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "无工具、用户数据与已有证据优先",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-R08",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "禁代码策略不误伤正常回答",
+      "linked_cases": 53,
+      "confirmed_failed_cases": 48
+    },
+    {
+      "id": "QAOPT-R09",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "统一能力说明与Prompt目标",
+      "linked_cases": 1,
+      "confirmed_failed_cases": 1
+    },
+    {
+      "id": "QAOPT-R10",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "多轮范围继承与主题切换",
+      "linked_cases": 2,
+      "confirmed_failed_cases": 2
+    },
+    {
+      "id": "QAOPT-K01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "原文知识路由独立于现场数据",
+      "linked_cases": 161,
+      "confirmed_failed_cases": 90
+    },
+    {
+      "id": "QAOPT-K02",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "禁止用聊天或回归记录替代权威知识",
+      "linked_cases": 436,
+      "confirmed_failed_cases": 106
+    },
+    {
+      "id": "QAOPT-K03",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "完整章节及表格读取",
+      "linked_cases": 2,
+      "confirmed_failed_cases": 2
+    },
+    {
+      "id": "QAOPT-K04",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "避免通用知识补写正式制度",
+      "linked_cases": 3,
+      "confirmed_failed_cases": 3
+    },
+    {
+      "id": "QAOPT-K05",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "报表目录不能回答制度问题",
+      "linked_cases": 147,
+      "confirmed_failed_cases": 24
+    },
+    {
+      "id": "QAOPT-K06",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "知识数据质量和更新可追踪",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-E01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "成功证据不能被生命周期异常清空",
+      "linked_cases": 263,
+      "confirmed_failed_cases": 249
+    },
+    {
+      "id": "QAOPT-E02",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "有类型的证据与适用范围",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-E03",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "字段级事实校验与合理舍入",
+      "linked_cases": 88,
+      "confirmed_failed_cases": 47
+    },
+    {
+      "id": "QAOPT-E04",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "固定计算与统计定义",
+      "linked_cases": 1,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-E05",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "输出字段边界及完整性",
+      "linked_cases": 1,
+      "confirmed_failed_cases": 1
+    },
+    {
+      "id": "QAOPT-E06",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "多源证据冲突与分析深度",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-O01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "模型就绪与请求间竞态",
+      "linked_cases": 1,
+      "confirmed_failed_cases": 1
+    },
+    {
+      "id": "QAOPT-O02",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "工具超时和故障域隔离",
+      "linked_cases": 657,
+      "confirmed_failed_cases": 289
+    },
+    {
+      "id": "QAOPT-O03",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "工具参数schema及步骤依赖",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-O04",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "状态、耗时与可观测性",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-O05",
+      "priority": "P1",
+      "evidence_state": "not_tested",
+      "title": "并发与角色边界",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-T01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "题目状态、分母与未知发送隔离",
+      "linked_cases": 1,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-T02",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "导入错误与评测污染",
+      "linked_cases": 28,
+      "confirmed_failed_cases": 2
+    },
+    {
+      "id": "QAOPT-T03",
+      "priority": "P1",
+      "evidence_state": "not_tested",
+      "title": "系统Prompt绑定与故障夹具",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-T04",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "全答案审阅、持出集与重复可靠性",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-T05",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "版本冻结、候选对比与受控发布",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    },
+    {
+      "id": "QAOPT-T06",
+      "priority": "P2",
+      "evidence_state": "not_tested",
+      "title": "范围缺口与长期运营",
+      "linked_cases": 0,
+      "confirmed_failed_cases": 0
+    }
+  ],
+  "unmeasured": [
+    "whole-answer semantic accuracy",
+    "knowledge original-text coverage",
+    "all claims fidelity",
+    "tool/parameter exact-match with reviewed gold",
+    "pass^5",
+    "six-user concurrency",
+    "guest/operator/admin parity",
+    "TTFT and token cost",
+    "all raw-series independent statistics"
+  ],
+  "private_input_sha256": "69da8608c281b7ab840a82cc38c0d711f394cf76a882db16c155c1fd0b83f5d3",
+  "counting_rules": [
+    "counts are not accuracy",
+    "flags overlap",
+    "tool errors count calls, not cases",
+    "duplicate sources do not generate requests",
+    "fixed-response failures do not determine underlying root cause",
+    "other collected cases require semantic review"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "bf.qa.production-retest-review.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "execution_id": "qa-routing-v4-20260916-r1",
+  "production_commit": "f79b13ccf79d3b522c5a7a253989c9915df74aa4",
+  "requests": 6,
+  "automatic_post_retries": 0,
+  "sse_done": 6,
+  "unaccounted_requests": 0,
+  "pre_send_readiness_interruptions": 2,
+  "passed": 3,
+  "partial": 1,
+  "failed": 2,
+  "reviews": [
+    {"case_id": "TPL-61F40958498914A0", "verdict": "passed", "evidence": "三个成分进入同一批查询并逐项返回时间、质量和来源；单位缺失显式声明"},
+    {"case_id": "TPL-C98A215EA8BB5EAC", "verdict": "passed", "evidence": "南北探尺同批查询并均返回值、单位、时间和来源"},
+    {"case_id": "TPL-E1C7A67C947531E9", "verdict": "passed", "evidence": "查询增强统计获得最近窗口和真实30日基线；明确历史比较与异常判断边界"},
+    {"case_id": "TPL-933773C8C24B2E93", "verdict": "failed", "defect": "观测式温差问句未通过TaskPlan动作门；无工具且输出未经权威验证的工艺判断"},
+    {"case_id": "TPL-26CC8346013E1DEA", "verdict": "failed", "defect": "两个窗口均发送并成功，但渲染器错误期待item.result；生产实际为扁平item，导致有效统计被丢弃"},
+    {"case_id": "TPL-8DA6777B502376D4", "verdict": "partial", "defect": "完成列表及正文读取，未识别元数据行内摘要，退回长正文摘录"}
+  ],
+  "raw_evidence_policy": "原始回答、会话及生产数值仅在Git忽略的本机目录；本文件只保留脱敏判定"
+}

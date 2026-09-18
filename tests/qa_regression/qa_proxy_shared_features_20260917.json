@@ -1,0 +1,8 @@
+{
+  "schema": "bf.deploy.shared-feature-contract.v1",
+  "contract_id": "qa-proxy-production-v21-preservation-20260917",
+  "features": {
+    "qa_existing_routing": {"artifacts": {"proxy": ["import qa_task_plan", "import qa_entity_resolution", "import qa_time_window_plan", "import qa_report_workflow", "import qa_document_knowledge", "import qa_document_compound", "import qa_history_projection", "import qa_history_compound", "import qa_verified_facts", "import qa_completion", "import qa_response_projection", "import qa_prompt_sources", "import qa_model_readiness", "import qa_evidence_policy"]}},
+    "qa_existing_access_and_asr": {"artifacts": {"proxy": ["import qa_request_control", "import qa_registered_accounts", "import qa_asr_personalization", "from qa_asr_client import", "qa_session_required", "c.owner_subject = ?", "application/json", "_MCP_DATA_IMPORT_LOCK"]}}
+  }
+}

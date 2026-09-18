@@ -1,0 +1,301 @@
+{
+  "schema": "bf.qa.sensor-context-source-gate-public-evidence.v1",
+  "requirement": "REQ-QA-SENSOR-CONTEXT-SOURCE-GATE-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_frozen_reviewed_not_deployed_shared_rebase_and_fixed_pin_required",
+  "candidate": "v46-r2",
+  "manifest_sha256": "a98a564b758a2e9dbb6640c81d1d04f6cb921030b0ebf2d4ae49d64f15867a6a",
+  "prior_candidate": "v45-r2",
+  "changed_modules": [
+    "ollama_proxy_server.py"
+  ],
+  "changed_functions": [
+    "prepare_qa_chat"
+  ],
+  "other_modules_inherited_byte_identical": 15,
+  "proxy_sha256": "57747ae1488a6de0e1d616f1fd91d467e73d2140533f56522e8585a43d1c6b9e",
+  "fixed_identity": {
+    "name": "chiqiongblastfuenace:latest",
+    "digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124"
+  },
+  "model_switch_allowed": false,
+  "fallback_model_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "pre_fix_native_contracts": {
+    "functional_passed": 10,
+    "source_contracts_failed": 8,
+    "unexpected_mock_sensor_reads_per_failed_case": 5,
+    "production_data_read": false,
+    "cases": [
+      {
+        "id": "full_json_supplied_data",
+        "functional_passed": true,
+        "source_passed": false,
+        "mock_sensor_reads": 5
+      },
+      {
+        "id": "full_json_code_disabled",
+        "functional_passed": true,
+        "source_passed": false,
+        "mock_sensor_reads": 5
+      },
+      {
+        "id": "full_json_cross_owner_denied",
+        "functional_passed": true,
+        "source_passed": true,
+        "mock_sensor_reads": 0
+      },
+      {
+        "id": "full_json_wrong_weight_denied",
+        "functional_passed": true,
+        "source_passed": false,
+        "mock_sensor_reads": 5
+      },
+      {
+        "id": "full_json_single_user_busy",
+        "functional_passed": true,
+        "source_passed": true,
+        "mock_sensor_reads": 0
+      },
+      {
+        "id": "full_json_duplicate_id_denied",
+        "functional_passed": true,
+        "source_passed": false,
+        "mock_sensor_reads": 5
+      },
+      {
+        "id": "full_json_cancel_before_persist",
+        "functional_passed": true,
+        "source_passed": false,
+        "mock_sensor_reads": 5
+      },
+      {
+        "id": "full_sse_supplied_data",
+        "functional_passed": true,
+        "source_passed": false,
+        "mock_sensor_reads": 5
+      },
+      {
+        "id": "full_sse_code_disabled",
+        "functional_passed": true,
+        "source_passed": false,
+        "mock_sensor_reads": 5
+      },
+      {
+        "id": "full_sse_wrong_weight_denied",
+        "functional_passed": true,
+        "source_passed": false,
+        "mock_sensor_reads": 5
+      }
+    ]
+  },
+  "post_fix_native_contracts": {
+    "native_python": "3.11.9",
+    "frozen_modules": 16,
+    "project_dependencies": 59,
+    "probe_sha256": "c042b9dc8ede7d10aa03f57088f6a68ecb20648ce372a9fe7eb9f8eb89d42a71",
+    "passed": 10,
+    "source_restricted_mock_sensor_reads": 0,
+    "page_snapshot_archival_preserved": true,
+    "page_snapshot_evidence_isolated": true,
+    "mocked_boundaries": [
+      "authentication_session",
+      "database_connection",
+      "sensor_snapshot_provider",
+      "ollama_transport",
+      "heartbeat_thread_start"
+    ],
+    "cases": [
+      {
+        "id": "full_json_supplied_data",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_json_code_disabled",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_json_cross_owner_denied",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 0,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_json_wrong_weight_denied",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_json_single_user_busy",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 0,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_json_duplicate_id_denied",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_json_cancel_before_persist",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_sse_supplied_data",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_sse_code_disabled",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      },
+      {
+        "id": "full_sse_wrong_weight_denied",
+        "passed": true,
+        "sensor_context_read_count": 0,
+        "mock_page_archives": 1,
+        "page_archive_isolated_from_evidence": true
+      }
+    ],
+    "real_database_verified": false,
+    "real_model_answer_verified": false,
+    "real_concurrency_verified": false
+  },
+  "local_regression": {
+    "modules": 31,
+    "passed": 760,
+    "elapsed_seconds": 105.99,
+    "command": [
+      "python",
+      "-B",
+      "-X",
+      "utf8",
+      "-m",
+      "pytest",
+      "-q",
+      "--tb=short",
+      "--basetemp=.codex_runtime/qa-full-import-20260917/pytest-v46-related-r2",
+      "tests/test_qa_supplied_record_scope.py",
+      "tests/test_qa_source_exclusion_scope.py",
+      "tests/test_qa_source_concept_scope.py",
+      "tests/test_qa_response_style_source_scope.py",
+      "tests/test_qa_declared_input_scope.py",
+      "tests/test_qa_user_supplied_scope.py",
+      "tests/test_qa_task_plan.py",
+      "tests/test_qa_compound_source_scope.py",
+      "tests/test_qa_evidence_policy.py",
+      "tests/test_qa_math_function_policy.py",
+      "tests/test_qa_history_compound.py",
+      "tests/test_qa_history_projection.py",
+      "tests/test_qa_history_completion.py",
+      "tests/test_qa_v12_safety.py",
+      "tests/test_qa_final_completion.py",
+      "tests/test_qa_fixed_model_identity.py",
+      "tests/test_qa_history_compound_seams.py",
+      "tests/test_qa_single_window_routing.py",
+      "tests/test_qa_document_knowledge.py",
+      "tests/test_qa_prompt_binding.py",
+      "tests/test_qa_runtime_probe_fixed_pin.py",
+      "tests/test_qa_exclusive_use.py",
+      "tests/test_qa_window_quality.py",
+      "tests/test_qa_v27_fixed_base_candidate.py",
+      "tests/test_qa_sensor_context_source_gate.py",
+      "tests/test_qa_followup_planning.py",
+      "tests/test_qa_context_provenance.py",
+      "tests/test_qa_context_provenance_seams.py",
+      "tests/test_qa_context_boundaries.py",
+      "tests/test_qa_full_candidate_probe.py",
+      "tests/test_qa_full_candidate_probe_evidence.py"
+    ],
+    "gold_schema_passed": 14,
+    "new_source_gate_tests": 24,
+    "evidence_reject_tests_added": 9,
+    "independent_review": "gpt-5.6-luna low PASS bounded static review"
+  },
+  "scope_limitations": [
+    "ordinary and nonrestricted contextual questions retain their previous snapshot path",
+    "request page snapshot archive failure remains an explicit request failure without live fallback",
+    "no real model accuracy, DB behavior or concurrent-user acceptance inferred"
+  ],
+  "production_readonly_gate": {
+    "observed_at_utc": "2026-09-17 11:26:15 UTC",
+    "commit": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+    "runtime_hashes": {
+      "高炉前端数据/智能助手/backend/ollama_proxy_server.py": "d84cfe9d67ded7344e9c15b9de10c807d6d3846fc872b8f53d66b8bfaffe8382",
+      "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "42d81acb60a0d3b28897c55e5c692e71f75ca5cf262dc8088fa4d1dcc6817884"
+    },
+    "fixed_identity_ready": false,
+    "observed_identity_metadata": {
+      "tags_before": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ],
+      "resident": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ],
+      "tags_after": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ]
+    },
+    "shared_proxy_delta": {
+      "before": "df9dde1abe06b386906a2bfad508403732fd40ae",
+      "after": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+      "before_sha256": "47b7e75f6a4c2b932ac21b0dd9628d4c049f7a6f2ee083537bbedf1a6c57f431",
+      "after_sha256": "d84cfe9d67ded7344e9c15b9de10c807d6d3846fc872b8f53d66b8bfaffe8382",
+      "changed_symbols": [
+        "Handler",
+        "Handler.handle_furnace_rule_detail",
+        "Handler.handle_public_furnace_rule_breakdown",
+        "with_public_detail_semantics"
+      ],
+      "added_imports": [
+        "from furnace_display_policy import build_display_policy, build_unified_summary, display_name as furnace_display_name"
+      ]
+    },
+    "candidate_shared_proxy_rebase_required": true,
+    "latest_shared_feature_gate_complete": false
+  },
+  "original_question_posts": 0,
+  "real_model_calls": 0,
+  "production_writes": 0,
+  "issue_closures": 0,
+  "original_failed_or_partial_cases_resent": 0,
+  "production_semantic_effectiveness_verified": false,
+  "deployment_authorized_by_this_artifact": false,
+  "required_next_gates": [
+    "preserve latest production ABC33 shared-proxy change in candidate",
+    "fresh native transitive dependency hashes before seal",
+    "immutable approved base readiness",
+    "separately authorized recovery task and DB source release operations",
+    "8093 guarded recordability EOL scope and shared-feature acceptance",
+    "single-send original-case final-answer review"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema": "bf.qa.regression.run.v1",
+  "run": {
+    "run_id": "example-only-no-model",
+    "execution_kind": "synthetic_example",
+    "model": "none",
+    "model_version": "none",
+    "program_commit": "example_not_a_program_run",
+    "prompt_version": "example-v1",
+    "tool_schema_version": "fixture-capabilities-v1",
+    "cases_sha256": "afcf7fce1f033211e4f2a5554b4aaf060fb8d50e451d1307cf270abab835edb3",
+    "fixtures_sha256": "90b44cc55b0e36b1519ab2a66ea7adca7ef8473040dd8e80f82ee96b5165eea1"
+  },
+  "results": [
+    {
+      "case_id": "QA-006",
+      "terminated": true,
+      "outcome": "completed",
+      "answer": "1. 合成快照顶压为250.08千帕，数据时间为2030年1月1日10点。",
+      "tool_calls": [],
+      "automatic_retries": 0,
+      "elapsed_seconds": 2,
+      "evidence_ids": [
+        "fresh.pressure"
+      ],
+      "claims": [
+        {
+          "fact_id": "fresh.pressure",
+          "value": 250.08,
+          "unit": "kPa"
+        }
+      ]
+    }
+  ]
+}

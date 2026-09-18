@@ -108,8 +108,8 @@ def test_deterministic_latest_formatter_uses_formal_chinese_labels():
          "latest":{"value":6.3,"ts":"2026-07-26T18:00:00"}}
         ]}""",
     )
-    assert "冷风压力：461.2kPa" in answer
-    assert "富氧率：6.3%" in answer
+    assert "冷风压力（P_blast_cold）：461.2kPa" in answer
+    assert "富氧率（O2_rate）：6.3%" in answer
 
 
 def test_private_routing_suffix_enables_deterministic_chart_without_changing_user_text():

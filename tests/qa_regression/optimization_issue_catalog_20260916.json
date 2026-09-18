@@ -1,0 +1,927 @@
+{
+  "schema": "bf.qa.optimization-issues.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "status": "proposed_not_implemented",
+  "issues": [
+    {
+      "id": "QAOPT-R01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "统一任务决策，阻止关键词抢路由",
+      "evidence": "制度引文中的风量/曲线触发实时查询；代码核实预取早于知识门禁",
+      "case_ids": [
+        "TPL-11F6C2E3DDD207BC",
+        "TPL-DE3A348E8836BC03"
+      ],
+      "implementation": "V2 proxy:4283 qa_answer_route、6548 qa_mcp_prefetch、9288 qa_should_search_knowledge、15405–15430请求准备",
+      "required_changes": [
+        "在预取前建立TaskPlan，保留指令与引文跨度",
+        "各分支只消费同一任务计划；dispatcher硬执行来源/工具允许列表",
+        "结构校验失败不得默认转实时查询"
+      ],
+      "acceptance_checks": [
+        "原文任务不因引文里的曲线、当前、操作等词触发传感器或图表工具",
+        "同一物理词在不同任务中能走正确路径"
+      ],
+      "regression_tests": [
+        "制度原文/实时风量/历史问答三联对照",
+        "含歧义时必要澄清、未知任务不猜测"
+      ],
+      "depends_on": [],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R02",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "历史问答与业务证据分离",
+      "evidence": "历史问答题被传感器词截走",
+      "case_ids": [
+        "TPL-FD3912331A49B991",
+        "TPL-3877C5B34E972AA0",
+        "TPL-4EB4CE7FC45519A5"
+      ],
+      "implementation": "V2 proxy:4283、5884；search_qa_messages注册与owner过滤位置TODO-LINES",
+      "required_changes": [
+        "history为独立意图，只在用户要求回忆时允许",
+        "检索限当前owner；与制度知识来源隔离"
+      ],
+      "acceptance_checks": [
+        "历史问答题不查询传感器",
+        "其他owner和测试房间的记录不能进入答案"
+      ],
+      "regression_tests": [
+        "相同关键词的历史问答/当前值配对",
+        "无历史时准确说明"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R03",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "完整解析多对象及范围",
+      "evidence": "三气体只查一个、A-D只查A、南北只查北",
+      "case_ids": [
+        "TPL-61F40958498914A0",
+        "TPL-933773C8C24B2E93",
+        "TPL-C98A215EA8BB5EAC"
+      ],
+      "implementation": "V2 proxy:5271/5331/5400",
+      "required_changes": [
+        "目录解析返回完整有序集合并去重",
+        "展开A-D、南北、两铁口；未知对象保留缺项或澄清"
+      ],
+      "acceptance_checks": [
+        "精确别名100%正确；无虚构ID",
+        "要求对象逐项覆盖或明确缺项"
+      ],
+      "regression_tests": [
+        "三气体、四方位、成对对象",
+        "混合已知未知对象、对象名重叠"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R04",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "多时间窗与历史基线",
+      "evidence": "对比题只有一个时间窗，基线题没有基线",
+      "case_ids": [
+        "TPL-26CC8346013E1DEA",
+        "TPL-E1C7A67C947531E9"
+      ],
+      "implementation": "V2 proxy:5884 qa_mcp_sensor_query_plan",
+      "required_changes": [
+        "时间窗列表显式表达，固定Asia/Shanghai时间锚点",
+        "基线独立取证；定义窗口边界、采样和缺失规则"
+      ],
+      "acceptance_checks": [
+        "两个不重叠窗口均有证据",
+        "无基线不能断言相对基线偏高"
+      ],
+      "regression_tests": [
+        "30分钟对前30分钟、跨日窗口",
+        "基线缺失、时区和边界样本"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-R03"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R05",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "报表工作流读取正文",
+      "evidence": "日报摘要只输出文件列表",
+      "case_ids": [
+        "TPL-8DA6777B502376D4"
+      ],
+      "implementation": "V2 proxy:5980 qa_mcp_recent_reports_plan；list_recent_reports/read_report_excerpt",
+      "required_changes": [
+        "定位→选定→读取正文→摘要建立依赖",
+        "列表只满足列报表，不能满足读摘要",
+        "区分修改时间、报告日期和覆盖时段"
+      ],
+      "acceptance_checks": [
+        "摘要能追溯到正确报表正文",
+        "空目录、正文不可读时明确终态"
+      ],
+      "regression_tests": [
+        "最新日报、上一份、特定日期",
+        "重复文件名/修改时间晚于报告日期"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R06",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "权威诊断和复合问题覆盖",
+      "evidence": "诊断被PI替代；关系分析遗漏诊断和喷煤",
+      "case_ids": [
+        "TPL-B2833049FF8C163A",
+        "TPL-E765DF3B76316A3B"
+      ],
+      "implementation": "V2 proxy:4336、5884/5891；权威诊断只读工具",
+      "required_changes": [
+        "拆分诊断、指标、关系判断等子任务",
+        "权威诊断带时间；单一代理指标不能冒充综合结论",
+        "完成合同按需求项而非调用数"
+      ],
+      "acceptance_checks": [
+        "每个子问题有答案或具体缺项",
+        "事实、统计关系、条件性解释分开"
+      ],
+      "regression_tests": [
+        "诊断+三指标+时间",
+        "诊断过期、传感器窗口不一致"
+      ],
+      "depends_on": [
+        "QAOPT-R03",
+        "QAOPT-R04",
+        "QAOPT-E02"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R07",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "无工具、用户数据与已有证据优先",
+      "evidence": "已建立合成合同；完整真实模型回归尚未执行",
+      "case_ids": [],
+      "implementation": "qa_evidence_policy；V2 proxy:build_hidden_qa_messages约9407；mcp_conversation_context.py定位待实施复核",
+      "required_changes": [
+        "区分general/user_data/context_data/live_data来源",
+        "充分已有证据不调外部工具；补查只针对缺项",
+        "用户禁止实时查询时执行调用层禁令"
+      ],
+      "acceptance_checks": [
+        "无工具题外部调用为0",
+        "给定数据和假设不伪装实测；证据不足时澄清"
+      ],
+      "regression_tests": [
+        "同一问题足证据/缺证据配对",
+        "不要查实时数据、只依据本表"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-E02"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R08",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "禁代码策略不误伤正常回答",
+      "evidence": "中文数据请求最终被禁代码固定提示替换",
+      "case_ids": [
+        "TPL-00F9E60C73D8BE83",
+        "TPL-A60B0CD794D49E48"
+      ],
+      "implementation": "qa_evidence_policy.py:95；mcp_tool_selection.py:164；V2 proxy:9146/15879",
+      "required_changes": [
+        "内部JSON兜底改中文事实输出",
+        "代码意图与实际代码内容分别检查",
+        "混合请求仅拒绝代码子任务，保留允许部分"
+      ],
+      "acceptance_checks": [
+        "普通查询、公式、表格和图链接不误拒",
+        "代码示例、SQL、脚本及执行均关闭"
+      ],
+      "regression_tests": [
+        "事实表包含围栏来源但用户未要求代码",
+        "分析+写代码混合请求、提示注入"
+      ],
+      "depends_on": [
+        "QAOPT-E03"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R09",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "统一能力说明与Prompt目标",
+      "evidence": "知识题声称没有文档能力；分支目标不一致",
+      "case_ids": [
+        "TPL-00D19D36ED184B7C"
+      ],
+      "implementation": "qa_evidence_policy.PROMPT；V2 proxy:9407 build_hidden_qa_messages及各分支系统Prompt",
+      "required_changes": [
+        "统一基础目标，按实际能力注册表生成能力说明",
+        "分支只补任务合同，不覆盖基础目标",
+        "按完成度组织篇幅，禁止统一硬截断冒充完整"
+      ],
+      "acceptance_checks": [
+        "所有分支允许知识解释、数学与数据判断",
+        "不存在只能查数据库/无文档能力的错误声明"
+      ],
+      "regression_tests": [
+        "你能做什么、原文问答、给定数据",
+        "降级分支仍遵守相同能力边界"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-K01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-R10",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "多轮范围继承与主题切换",
+      "evidence": "短追问已有多种错误输出；状态继承根因待夹具核实",
+      "case_ids": [
+        "TPL-18399CD0A0FDD84D",
+        "TPL-3482A8EE5B37D413"
+      ],
+      "implementation": "mcp_conversation_context.py update_tool_context/enrich_routing_question；V2 proxy:15405/15411",
+      "required_changes": [
+        "结构化记录对象、窗口、来源、版本和用户约束",
+        "换成两小时只替换窗口；切主题清除无关槽位",
+        "不直接把旧服务端状态文本当新指令拼接"
+      ],
+      "acceptance_checks": [
+        "追问修改正确字段、不丢对象",
+        "跨owner不继承，过期数据不当当前"
+      ],
+      "regression_tests": [
+        "上一份/过去一小时/哪个波动大",
+        "从制度切实时、从炉次切传感器"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-E02"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-K01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "原文知识路由独立于现场数据",
+      "evidence": "制度问题收到实时数据库未核实提示",
+      "case_ids": [
+        "TPL-48827B99541672E2",
+        "TPL-9AB9414BFC82E504"
+      ],
+      "implementation": "V2 proxy:9288/9382；bf_knowledge_rag.py search_knowledge（本机参考，生产行号TODO-LINES）",
+      "required_changes": [
+        "文档原文任务只允许权威知识来源",
+        "移除预取已用就跳过知识的全局否决",
+        "文档可用而现场工具故障时仍回答文档任务"
+      ],
+      "acceptance_checks": [
+        "现场数据库不可用不阻断已有规程查询",
+        "引用内容不作为实时工具指令"
+      ],
+      "regression_tests": [
+        "规程含风量/趋势/当前/操作等词",
+        "断开现场工具的知识问答夹具"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-K02",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "禁止用聊天或回归记录替代权威知识",
+      "evidence": "制度题检索search_qa_messages，参数包含测试标记",
+      "case_ids": [
+        "TPL-2941ED6E73448D66"
+      ],
+      "implementation": "知识来源策略；search_qa_messages；回归会话标签及过滤（新增设计）",
+      "required_changes": [
+        "区分document/chat/report/test证据域",
+        "只在history意图开放聊天检索",
+        "测试会话显式标记、默认排除；oracle不入模型"
+      ],
+      "acceptance_checks": [
+        "制度回答来源均属于批准文档版本",
+        "评测答案和历史模型输出不自循环成知识"
+      ],
+      "regression_tests": [
+        "向测试聊天注入错误制度后再提问",
+        "正常历史回忆仍按授权工作"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-T02"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-K03",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "完整章节及表格读取",
+      "evidence": "答案称只取得标题、未含正文（实际检索片段仍需复核）；章节编号被当数量要求已确认",
+      "case_ids": [
+        "TPL-B1DDFC78E40D26DD",
+        "TPL-81261F34B14214DC"
+      ],
+      "implementation": "bf_knowledge_rag.py、build_bf_knowledge_index.py；V2 proxy:9382",
+      "required_changes": [
+        "建立document/version/role/section_path及parent-child索引",
+        "标题命中展开正文/子章节；表格保留表头、单位、注释",
+        "全文过长分段呈现并标覆盖范围"
+      ],
+      "acceptance_checks": [
+        "全章要求的条款与表格覆盖100%或明确缺页",
+        "章节5不解释成五项操作"
+      ],
+      "regression_tests": [
+        "父章、叶子条款、跨页表格",
+        "同名章节不同岗位/版本"
+      ],
+      "depends_on": [
+        "QAOPT-K01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-K04",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "避免通用知识补写正式制度",
+      "evidence": "原文任务返回泛化规定或无法核实的细节",
+      "case_ids": [
+        "TPL-3FE672D48EEF6AA0",
+        "TPL-740647EE648698B0"
+      ],
+      "implementation": "知识答案合同与引用校验（新增）；V2 proxy知识回答分支",
+      "required_changes": [
+        "原文/归纳/一般解释分别标注",
+        "引用绑定文档版本、章节和原文跨度",
+        "无正文时说明不足，禁止补写制度中的数字、步骤"
+      ],
+      "acceptance_checks": [
+        "原文断言都能定位；不编造制度内容",
+        "引用正确但正文错误仍判失败"
+      ],
+      "regression_tests": [
+        "正文缺失、互相冲突的版本",
+        "相似工艺通用知识不能替代原文"
+      ],
+      "depends_on": [
+        "QAOPT-K03",
+        "QAOPT-E03"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-K05",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "报表目录不能回答制度问题",
+      "evidence": "多条制度题返回同一报表列表及兜底提示",
+      "case_ids": [
+        "TPL-0EDF300C940987EB",
+        "TPL-D557F64791BE6C42"
+      ],
+      "implementation": "TaskPlan来源允许列表；V2 proxy:5980/6548；list_recent_reports",
+      "required_changes": [
+        "按任务限定报告与制度的证据域",
+        "显式跨源请求才联合使用",
+        "检查答案内容与请求对象一致性"
+      ],
+      "acceptance_checks": [
+        "制度原文题不以日报目录收尾",
+        "报告涉及制度时仍区分引用和报表观察"
+      ],
+      "regression_tests": [
+        "制度规定/最近日报/结合两者三个对照"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-K01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-K06",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "知识数据质量和更新可追踪",
+      "evidence": "833来源行中15重复；检索完整性与文档版本尚需全量核验",
+      "case_ids": [],
+      "implementation": "build_bf_knowledge_index.py、bf_knowledge_rag.py、知识库索引元数据",
+      "required_changes": [
+        "导入时校验正文长度、标题/正文关系、字符乱码、表格结构",
+        "保留文档版本和hash；更新后失效相关缓存",
+        "知识索引测试与问答测试分别计分"
+      ],
+      "acceptance_checks": [
+        "每个索引条目可追溯，标题空正文可检测",
+        "文档更新不会混合旧新条款"
+      ],
+      "regression_tests": [
+        "空正文/乱码/重复章节/版本替换"
+      ],
+      "depends_on": [
+        "QAOPT-K03"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-E01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "成功证据不能被生命周期异常清空",
+      "evidence": "快照成功后最终只剩MCP生命周期异常",
+      "case_ids": [
+        "TPL-4CA73F09C24F631B"
+      ],
+      "implementation": "V2 proxy:7768 qa_usable_tool_facts、7793 qa_mcp_final_fallback、9254 run_qa_mcp_tool_loop",
+      "required_changes": [
+        "请求级EvidenceLedger独立于MCP会话清理",
+        "区分执行、生成和清理阶段异常",
+        "仅一次无工具最终降级；失败仍保留确定性事实"
+      ],
+      "acceptance_checks": [
+        "成功工具事实在所有后续异常中保持可见",
+        "缺项明确，不能把成功标成全部无数据"
+      ],
+      "regression_tests": [
+        "工具1成功工具2超时、清理抛错",
+        "降级模型也失败"
+      ],
+      "depends_on": [
+        "QAOPT-E02"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-E02",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "有类型的证据与适用范围",
+      "evidence": "旧方案只比全文数字，缺对象/时间/来源绑定",
+      "case_ids": [],
+      "implementation": "请求级证据结构（新增）；mcp_tool_selection.py:138",
+      "required_changes": [
+        "记录对象、字段、值、单位、时间窗、质量、来源、权限",
+        "派生值携带输入证据ID和公式",
+        "事实、目录、文档、用户假设不同证据类型"
+      ],
+      "acceptance_checks": [
+        "目录不能证明当前数值；旧值不能证明当前状态",
+        "缺失不转0，不一致来源明确列出"
+      ],
+      "regression_tests": [
+        "同值不同指标、同指标不同时间",
+        "低质量/过期/不同owner证据"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-E03",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "字段级事实校验与合理舍入",
+      "evidence": "纯模块复现舍入误拒、相同数字换指标仍接受",
+      "case_ids": [],
+      "implementation": "mcp_tool_selection.py:138 answer_is_grounded；tools/reproduce_qa_v2_guard_conflict.py",
+      "required_changes": [
+        "按断言对象、字段、单位、时间和来源逐项核对",
+        "数值容差来自显示精度/业务定义",
+        "程序生成事实表；模型解释独立校验"
+      ],
+      "acceptance_checks": [
+        "合理舍入通过，错误指标/单位/时间拒绝",
+        "对全文断言覆盖而不只校验少数引用"
+      ],
+      "regression_tests": [
+        "42.500123显示42.5",
+        "温度42.5改为顶压42.5必须拒绝"
+      ],
+      "depends_on": [
+        "QAOPT-E02"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-E04",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "固定计算与统计定义",
+      "evidence": "已有单例派生计算复算，原始序列全量复算未做",
+      "case_ids": [
+        "TPL-496B774E90F8EA09"
+      ],
+      "implementation": "批准的固定计算工具；合成fixtures；统计定义文档",
+      "required_changes": [
+        "固定函数处理均值/标准差/差值/变化率/相关性",
+        "明确样本标准差、样本数、窗口、缺失和零分母",
+        "数学允许，任意代码执行禁止"
+      ],
+      "acceptance_checks": [
+        "计算可独立复算；误差符合声明容差",
+        "相关性不解释成因果"
+      ],
+      "regression_tests": [
+        "不规则采样、缺测、异常值、零分母",
+        "用户给定数组与数据库统计对照"
+      ],
+      "depends_on": [
+        "QAOPT-E02",
+        "QAOPT-E03"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-E05",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "输出字段边界及完整性",
+      "evidence": "后台包请求输出残缺原始JSON并被标verified",
+      "case_ids": [
+        "TPL-0F1075D1C8967EA5"
+      ],
+      "implementation": "V2输出组装与公开字段投影；精确过滤位置实施前TODO-LINES",
+      "required_changes": [
+        "输出只允许授权字段，隐藏上下文请求不绕过投影",
+        "按结构检查完整性，不按固定字符截断",
+        "不对未验证文本赋verified"
+      ],
+      "acceptance_checks": [
+        "无隐藏包/凭据/跨owner输出",
+        "合法可见字段完整，残缺JSON不标可信"
+      ],
+      "regression_tests": [
+        "正常表格/公开字段请求",
+        "隐藏上下文、编码绕过、超长输出"
+      ],
+      "depends_on": [
+        "QAOPT-E03"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-E06",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "多源证据冲突与分析深度",
+      "evidence": "综合分析缺少时间对齐和矛盾处理验收",
+      "case_ids": [],
+      "implementation": "TaskPlan完成合同、EvidenceLedger、合成分析fixtures",
+      "required_changes": [
+        "多源统一时间锚点和单位",
+        "冲突不能自动挑有利值；按来源权威与时效列出差异",
+        "输出结论、依据、可能解释、反证/缺口、下一步"
+      ],
+      "acceptance_checks": [
+        "不以单指标替代综合判断",
+        "数据不足时给条件判断而非伪造确定性"
+      ],
+      "regression_tests": [
+        "诊断与传感器相反、质量与时序冲突",
+        "充足证据/不足证据成对题"
+      ],
+      "depends_on": [
+        "QAOPT-R06",
+        "QAOPT-E04"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-O01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "模型就绪与请求间竞态",
+      "evidence": "状态探测成功但SSE无模型答案；批次曾等待模型",
+      "case_ids": [
+        "TPL-18F38D141C29CF15"
+      ],
+      "implementation": "V2 proxy:1415模型门禁；tools/run_qa_template_batch.py:model_ready",
+      "required_changes": [
+        "确定性路径不受全局模型门禁阻断",
+        "需要模型时有界排队、取消及准确错误阶段",
+        "状态快照与真实生成可用性分别记录"
+      ],
+      "acceptance_checks": [
+        "模型不可用时仍能返回已有确定性事实",
+        "不自动重放已发送SSE"
+      ],
+      "regression_tests": [
+        "模型在探测后卸载、队列超时",
+        "仅数据题不依赖模型"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-E01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-O02",
+      "priority": "P1",
+      "evidence_state": "confirmed",
+      "title": "工具超时和故障域隔离",
+      "evidence": "全量提取存在大量TimeoutError；尚不能据此断定数据库宕机",
+      "case_ids": [],
+      "implementation": "MCP调度及工具适配层；run_qa_mcp_tool_loop",
+      "required_changes": [
+        "按服务/工具/阶段记录超时、schema、策略、连接错误",
+        "定义每类预算，错误工具短期熔断，恢复只用健康探测",
+        "不要为无关工具增加调用次数"
+      ],
+      "acceptance_checks": [
+        "每次失败可定位到真实阶段",
+        "局部故障不阻断其他来源；不掩盖错误"
+      ],
+      "regression_tests": [
+        "单服务慢、连接清理异常、策略拒绝"
+      ],
+      "depends_on": [
+        "QAOPT-E01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-O03",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "工具参数schema及步骤依赖",
+      "evidence": "原报告指出数组/参数猜测风险，需按轨迹逐项确认",
+      "case_ids": [],
+      "implementation": "MCP工具schema注册、参数验证、计划执行器",
+      "required_changes": [
+        "按真实schema检查对象、数组、枚举、时间、账户profile",
+        "服务端从授权上下文绑定敏感参数",
+        "依赖已验证上游输出，同stdio服务串行"
+      ],
+      "acceptance_checks": [
+        "协议结构100%通过；无越权参数",
+        "无依赖跨源可并行，有依赖不得提前执行"
+      ],
+      "regression_tests": [
+        "数组误传字符串、未知profile",
+        "上游失败阻止依赖步骤"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-E02"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-O04",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "状态、耗时与可观测性",
+      "evidence": "非空错误提示和旧running状态易被误判为成功",
+      "case_ids": [],
+      "implementation": "SSE合同、前端回答状态、脱敏审计",
+      "required_changes": [
+        "区分完整/部分/待澄清/受限/错误/中断未知",
+        "记录计划版本、request/step/stage、TTFT/查询/生成耗时",
+        "进度报告必须核对存活，不只读state"
+      ],
+      "acceptance_checks": [
+        "每条结果可追踪到版本和证据",
+        "页面不把有文字或工具ok显示为完整成功"
+      ],
+      "regression_tests": [
+        "异常后有文字、旧running死进程",
+        "用户取消/连接EOF"
+      ],
+      "depends_on": [
+        "QAOPT-E01",
+        "QAOPT-T01"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-O05",
+      "priority": "P1",
+      "evidence_state": "not_tested",
+      "title": "并发与角色边界",
+      "evidence": "当前串行私有管理员批次未覆盖6并发和访客/操作员一致性",
+      "case_ids": [],
+      "implementation": "会话owner/Origin；连接池；请求去重；前端SSE",
+      "required_changes": [
+        "隔离候选测试6并发、单航班、取消与资源释放",
+        "覆盖guest/operator/admin明确授权差异",
+        "保持匿名共享房间与私有owner边界"
+      ],
+      "acceptance_checks": [
+        "死锁/池超时/错误重复为0",
+        "越权及跨owner泄露为0；匿名不能获得私有上下文"
+      ],
+      "regression_tests": [
+        "六并发相同/不同题",
+        "相同会话多窗口、过期认证、取消"
+      ],
+      "depends_on": [
+        "QAOPT-O03",
+        "QAOPT-O04"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-T01",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "题目状态、分母与未知发送隔离",
+      "evidence": "1418来源项含重复/合同/夹具；另1条发送状态未知",
+      "case_ids": [
+        "TPL-10C8C8FAF2C694EF"
+      ],
+      "implementation": "templates.v1.json；batch claims/progress/result；resume_r3_review_20260915.json",
+      "required_changes": [
+        "每来源行给出状态，重复指向唯一执行题",
+        "completed仅代表采集；审阅独立",
+        "未知发送不得重放，只有证明未发送才能续跑"
+      ],
+      "acceptance_checks": [
+        "来源分母、执行分母、有效分母可复算",
+        "不把重复/未测/阻断计为通过"
+      ],
+      "regression_tests": [
+        "r1 stale running、r2 PI发送前拦截",
+        "断线后有用户消息无助手消息"
+      ],
+      "depends_on": [],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-T02",
+      "priority": "P0",
+      "evidence_state": "confirmed",
+      "title": "导入错误与评测污染",
+      "evidence": "箭头说明行被当问题；聊天工具曾尝试检索测试标记，存在评测污染风险",
+      "case_ids": [
+        "TPL-ED01B1D5ACB947E6",
+        "TPL-2941ED6E73448D66"
+      ],
+      "implementation": "tools/import_qa_prompt_sources.py、collector、测试会话隔离",
+      "required_changes": [
+        "结构说明/代码块/系统模板不直接作为用户问题发送",
+        "保留原记录和审计重分类，不删失败",
+        "oracle/rubric不入被测模型，测试历史不作为业务知识"
+      ],
+      "acceptance_checks": [
+        "纯口语预检完整目录，PI等不能误分类",
+        "误导入题单列oracle_invalid"
+      ],
+      "regression_tests": [
+        "箭头/路径/助手示例/缺占位符",
+        "重复问法和测试金标泄漏"
+      ],
+      "depends_on": [],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-T03",
+      "priority": "P1",
+      "evidence_state": "not_tested",
+      "title": "系统Prompt绑定与故障夹具",
+      "evidence": "13系统模板、7故障夹具未完成真实运行；合同验证不能替代",
+      "case_ids": [],
+      "implementation": "模板目录、实际分支Prompt、qa_regression.py夹具适配器",
+      "required_changes": [
+        "逐模板绑定真实入口、变量与版本",
+        "故障夹具在隔离候选真实调用链注入",
+        "区分contract_only/fixture_only/model_with_fixtures"
+      ],
+      "acceptance_checks": [
+        "13模板都有运行证据或明确阻断",
+        "7故障场景按恢复合同验证"
+      ],
+      "regression_tests": [
+        "空变量、超长上下文、Prompt目标冲突",
+        "部分失败、全失败、EOF与取消"
+      ],
+      "depends_on": [
+        "QAOPT-R09",
+        "QAOPT-O04"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-T04",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "全答案审阅、持出集与重复可靠性",
+      "evidence": "多数结果尚未独立语义审阅，不能报告整体正确率",
+      "case_ids": [],
+      "implementation": "逐题台账、独立review文件、评分器",
+      "required_changes": [
+        "路由/参数/执行/忠实/完整/解释分别判分",
+        "关键故障夹具pass^5，变体和持出题避免记题",
+        "知识与非知识分组，不用总均分掩盖缺陷"
+      ],
+      "acceptance_checks": [
+        "每题有可核验判据，未审阅显式pending",
+        "已确认缺陷与反例全部通过才销项"
+      ],
+      "regression_tests": [
+        "重复错误答案跨不同问题检测",
+        "同数据不同问法/同问法不同证据"
+      ],
+      "depends_on": [
+        "QAOPT-T01",
+        "QAOPT-T02",
+        "QAOPT-E03"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-T05",
+      "priority": "P1",
+      "evidence_state": "design_gap",
+      "title": "版本冻结、候选对比与受控发布",
+      "evidence": "当前要求先收集后修复，生产V2和模型配置必须稳定",
+      "case_ids": [],
+      "implementation": "版本hash清单、独立worktree、deploy-8093-guarded-update",
+      "required_changes": [
+        "冻结原始基线和审阅后再做本机候选",
+        "固定数据比较V2与候选，线上每题每版本独立一次",
+        "生产切换按8093受控备份/原子替换/finally恢复/验收/回滚"
+      ],
+      "acceptance_checks": [
+        "每次修改可映射issue/test/version",
+        "受保护服务PID保持；未授权服务不变"
+      ],
+      "regression_tests": [
+        "发布候选预检、回滚演练",
+        "动态数据时刻变化不计作算法提升"
+      ],
+      "depends_on": [
+        "QAOPT-T04",
+        "QAOPT-O05"
+      ],
+      "status": "planned_not_implemented"
+    },
+    {
+      "id": "QAOPT-T06",
+      "priority": "P2",
+      "evidence_state": "not_tested",
+      "title": "范围缺口与长期运营",
+      "evidence": "来源清单有1份缺失文档；token/TTFT/成本并非本批次完整采集",
+      "case_ids": [],
+      "implementation": "sources目录、审计埋点、持续回归维护",
+      "required_changes": [
+        "缺文档/未绑定模板/未测性能显式列阻断",
+        "每次新增真实缺陷先脱敏再转合成用例",
+        "建立按任务类型的延迟、误调工具、成功率趋势"
+      ],
+      "acceptance_checks": [
+        "未测不计满分，指标有分子分母和版本",
+        "新增题保留来源及评测合同"
+      ],
+      "regression_tests": [
+        "缺来源恢复后增量导入",
+        "只修改展示不重放全部线上问答"
+      ],
+      "depends_on": [
+        "QAOPT-T01",
+        "QAOPT-O04"
+      ],
+      "status": "planned_not_implemented"
+    }
+  ]
+}

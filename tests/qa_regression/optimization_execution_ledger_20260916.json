@@ -1,0 +1,1259 @@
+{
+  "schema": "bf.qa.optimization-execution-ledger.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "checked_at": "2026-09-17",
+  "proposed_unmapped_triage_supplement": "unmapped_triage_supplement_20260917.json",
+  "proposed_unmapped_triage_state": "9_partial_triaged_0_root_causes_confirmed_0_closed_original_judgments_unchanged",
+  "production_commit": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+  "production_retest": {
+    "passed": 2,
+    "partial": 6,
+    "failed": 7,
+    "blocked_client_contract": 1
+  },
+  "latest_production_retest": {
+    "schema": "bf.qa.paired-observations.v1",
+    "version": "v26",
+    "checked_at": "2026-09-17",
+    "production_commit": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+    "planned": 822,
+    "attempted": 0,
+    "transport_complete": 0,
+    "passed": 0,
+    "partial": 0,
+    "failed": 0,
+    "proven_unsent": 822,
+    "initial_failed": 636,
+    "initial_partial": 186,
+    "full_dataset_accuracy_available": false,
+    "reason": "Approved Qwen alias changed before the first send; strict identity gate blocked the batch.",
+    "rows": [],
+    "evidence": "routing_v26_paired_observations_20260917.json",
+    "dependency_records": "routing_v26_unattempted_dependencies_20260917.json"
+  },
+  "knowledge_collection": {
+    "source": 833,
+    "valid_once_only_requests": 803,
+    "original_coverage_contract_verified": 803,
+    "oracle_conflicts_blocked": 30,
+    "full_semantic_pass_inferred": false
+  },
+  "current_local_candidate": {
+    "version": "v45-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 643,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "actual_prompt_binding_20260917.json",
+    "manifest_sha256": "a27bd42e7130ac7ba784f982b0b9240846cb1cf2c22f49e6d27809da505abb59",
+    "fixed_base_identity_unchanged": true
+  },
+  "rows": [
+    {
+      "order": 1,
+      "issue_id": "QAOPT-R01",
+      "priority": "P0",
+      "title": "统一任务决策，阻止关键词抢路由",
+      "state": "deployed_partial_verified",
+      "evidence": "V12制度子任务隔离、未知来源澄清；V13简单读取独立完成; V23全文审核：TPL-342113EAB17420C6 failed",
+      "next_gate": "结构未知与全部复合子任务覆盖门",
+      "case_ids": [
+        "TPL-11F6C2E3DDD207BC",
+        "TPL-DE3A348E8836BC03"
+      ],
+      "depends_on": [],
+      "repair_and_acceptance_plan": "统一外层任务计划，固定来源、对象、时间窗、子任务和完成条件；所有降级分支读取同一计划。验收：复合问题逐项覆盖，引用或关键词不抢路由。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      },
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed",
+      "local_user_data_source_scope": "user_data_source_scope_20260917.json",
+      "local_user_data_source_scope_state": "v39_r3_reviewed_286_tests_passed_not_deployed",
+      "local_declared_input_scope": "declared_input_scope_20260917.json",
+      "local_declared_input_scope_state": "v40_r2_reviewed_327_tests_passed_not_deployed",
+      "local_response_style_source_scope": "response_style_source_scope_20260917.json",
+      "local_response_style_source_scope_state": "v41_r1_reviewed_395_tests_passed_not_deployed",
+      "local_source_concept_scope": "source_concept_scope_20260917.json",
+      "local_source_concept_scope_state": "v42_r1_reviewed_436_tests_passed_not_deployed",
+      "local_source_exclusion_scope": "source_exclusion_scope_20260917.json",
+      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed",
+      "local_supplied_record_scope": "supplied_record_scope_20260917.json",
+      "local_supplied_record_scope_state": "v44_r2_reviewed_546_tests_passed_not_deployed",
+      "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
+      "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
+      "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked",
+      "local_owned_followup_execution": "owned_followup_execution_20260917.json",
+      "local_owned_followup_execution_state": "v49_r6_905_tests_40_native_synthetic_contracts_passed_production_identity_drift_blocked"
+    },
+    {
+      "order": 2,
+      "issue_id": "QAOPT-R02",
+      "priority": "P0",
+      "title": "历史问答与业务证据分离",
+      "state": "deployed_partial_verified",
+      "evidence": "V7身份隔离历史通过；V16独立历史/当前编排已部署，V17三种历史+当前/原文真实完成通过，无匹配明确，禁工具策略保留",
+      "next_gate": "不可分历史推断及全来源复合持出集",
+      "case_ids": [
+        "TPL-FD3912331A49B991",
+        "TPL-3877C5B34E972AA0",
+        "TPL-4EB4CE7FC45519A5"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "repair_and_acceptance_plan": "聊天历史仅作对话证据，业务事实另查权威源；owner 和消息截止 ID 固定。验收：历史+当前任务分别有来源，跨用户历史不可见。",
+      "initial_linked_semantic_counts": {
+        "failed": 3
+      },
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed"
+    },
+    {
+      "order": 3,
+      "issue_id": "QAOPT-R03",
+      "priority": "P1",
+      "title": "完整解析多对象及范围",
+      "state": "deployed_partial_verified",
+      "evidence": "V6实际A-D统计已返回；缺单位、零值和稀疏覆盖已明确标记; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-342113EAB17420C6 failed；TPL-C5DF79304112ED85 failed V24图表原题仍failed；中文钟点/高度与方位范围仍需修复。; V25真实绘图原题：18个请求点进入路由，工具仅16点且最终图表遗漏，不能标解决。; V26工具上限/完整类型化证据/异常图表保留已部署，本机174检查通过；822题发送前身份拦截，真实效果未确认。",
+      "next_gate": "固定已批准Qwen模型的授权测试窗口内，原18点绘图题和822原失败/部分题逐题复测，非空不算通过",
+      "case_ids": [
+        "TPL-61F40958498914A0",
+        "TPL-933773C8C24B2E93",
+        "TPL-C98A215EA8BB5EAC"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "repair_and_acceptance_plan": "保留全对象集合，高度和方位分别解析；工具不得静默截断列表。验收：18 个请求点=18 个返回/明确失败点，未知层位先澄清。",
+      "initial_linked_semantic_counts": {
+        "failed": 3
+      }
+    },
+    {
+      "order": 4,
+      "issue_id": "QAOPT-R04",
+      "priority": "P1",
+      "title": "多时间窗与历史基线",
+      "state": "production_verified",
+      "evidence": "V5真实相邻两窗统计、差值及相对变化通过；V4真实30日基线通过",
+      "next_gate": "扩展多对象、缺失数据及窗口覆盖回归",
+      "case_ids": [
+        "TPL-26CC8346013E1DEA",
+        "TPL-E1C7A67C947531E9"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-R03"
+      ],
+      "repair_and_acceptance_plan": "明确日期钟点优先于滚动窗口和旧上下文；相邻窗统一冻结时钟，基线质量独立审查。验收：起止时间精确、跨午夜正确、缺基线不冒充正常。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      }
+    },
+    {
+      "order": 5,
+      "issue_id": "QAOPT-R05",
+      "priority": "P1",
+      "title": "报表工作流读取正文",
+      "state": "production_verified",
+      "evidence": "V5真实最新日报摘要提取通过；缺摘要单独partial合同已验证",
+      "next_gate": "扩大报表类型并保持正文依赖和权威边界",
+      "case_ids": [
+        "TPL-8DA6777B502376D4"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "repair_and_acceptance_plan": "目录检索后读取实际报表正文；缺正文和类型不符分别记录。验收：摘要可追溯到该报告，不用文件名替代正文。",
+      "initial_linked_semantic_counts": {
+        "failed": 1
+      }
+    },
+    {
+      "order": 6,
+      "issue_id": "QAOPT-R06",
+      "priority": "P1",
+      "title": "权威诊断和复合问题覆盖",
+      "state": "production_verified",
+      "evidence": "2条诊断/复合分析题均通过生产复测",
+      "next_gate": "扩大持出集，保持每子任务完成合同",
+      "case_ids": [
+        "TPL-B2833049FF8C163A",
+        "TPL-E765DF3B76316A3B"
+      ],
+      "depends_on": [
+        "QAOPT-R03",
+        "QAOPT-R04",
+        "QAOPT-E02"
+      ],
+      "repair_and_acceptance_plan": "诊断从权威批次加载，复合任务生成有依赖的只读步骤。验收：每个子任务有结果或明确缺项，不仅回答最容易的一问。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      },
+      "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked"
+    },
+    {
+      "order": 7,
+      "issue_id": "QAOPT-R07",
+      "priority": "P1",
+      "title": "无工具、用户数据与已有证据优先",
+      "state": "deployed_partial_verified",
+      "evidence": "V12顶压调节控制和风温/焦比/喷煤条件性因果两题独立语义通过，0外部工具",
+      "next_gate": "V40 declared inputs current verification and clock/date source boundaries require real final-answer retest; preserve previous two-question production evidence.",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-E02"
+      ],
+      "repair_and_acceptance_plan": "无工具解释、用户给定数据和已核实证据可直接回答；新实时事实才查询。验收：禁实时请求零数据调用，数学复算正确。",
+      "initial_linked_semantic_counts": {},
+      "local_user_data_source_scope": "user_data_source_scope_20260917.json",
+      "local_user_data_source_scope_state": "v39_r3_reviewed_286_tests_passed_not_deployed",
+      "local_declared_input_scope": "declared_input_scope_20260917.json",
+      "local_declared_input_scope_state": "v40_r2_reviewed_327_tests_passed_not_deployed",
+      "prior_production_verified_state_before_declared_input_reopen": {
+        "state": "production_verified",
+        "evidence": "V12顶压调节控制和风温/焦比/喷煤条件性因果两题独立语义通过，0外部工具",
+        "next_gate": "扩展工艺持出集和稳定性"
+      },
+      "reopened_reason": "New local declared-input counterexamples contradict full-scope completion; the two historical production questions remain verified only for their original subset.",
+      "local_response_style_source_scope": "response_style_source_scope_20260917.json",
+      "local_response_style_source_scope_state": "v41_r1_reviewed_395_tests_passed_not_deployed",
+      "local_source_concept_scope": "source_concept_scope_20260917.json",
+      "local_source_concept_scope_state": "v42_r1_reviewed_436_tests_passed_not_deployed",
+      "local_source_exclusion_scope": "source_exclusion_scope_20260917.json",
+      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed",
+      "local_supplied_record_scope": "supplied_record_scope_20260917.json",
+      "local_supplied_record_scope_state": "v44_r2_reviewed_546_tests_passed_not_deployed",
+      "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
+      "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
+      "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked",
+      "local_owned_followup_execution": "owned_followup_execution_20260917.json",
+      "local_owned_followup_execution_state": "v49_r6_905_tests_40_native_synthetic_contracts_passed_production_identity_drift_blocked"
+    },
+    {
+      "order": 8,
+      "issue_id": "QAOPT-R08",
+      "priority": "P0",
+      "title": "禁代码策略不误伤正常回答",
+      "state": "deployed_partial_verified",
+      "evidence": "V9/V12正常数据查询保留，代码子请求独立拒绝并标策略部分完成 V24禁代码承诺及合法算式76项关联回归通过；真实图表题未再提供代码，图表任务本身仍failed。",
+      "next_gate": "保留禁执行和禁生成代码，扩展混合类型",
+      "case_ids": [
+        "TPL-00F9E60C73D8BE83",
+        "TPL-A60B0CD794D49E48"
+      ],
+      "depends_on": [
+        "QAOPT-E03"
+      ],
+      "repair_and_acceptance_plan": "代码执行与代码示例独立禁用，拒绝该子任务同时完成允许的查询/统计/图表。验收：不承诺提供代码，不误拒普通问题。",
+      "initial_linked_semantic_counts": {
+        "failed": 48
+      },
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed",
+      "local_math_function_policy": "math_function_policy_20260917.json",
+      "local_math_function_policy_state": "v38_r2_reviewed_225_tests_passed_not_deployed",
+      "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
+      "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
+      "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked",
+      "local_owned_followup_execution": "owned_followup_execution_20260917.json",
+      "local_owned_followup_execution_state": "v49_r6_905_tests_40_native_synthetic_contracts_passed_production_identity_drift_blocked"
+    },
+    {
+      "order": 9,
+      "issue_id": "QAOPT-R09",
+      "priority": "P1",
+      "title": "统一能力说明与Prompt目标",
+      "state": "deployed_partial_verified",
+      "evidence": "V8统一能力目标与允许证据，禁实时不抹掉允许的原文知识; V23全文审核：TPL-C5DF79304112ED85 failed V24图表原题仍0工具且错误否认数据库/图表能力，必须修正任务路由和能力来源，不能标resolved。",
+      "next_gate": "核对所有复合与降级分支",
+      "case_ids": [
+        "TPL-00D19D36ED184B7C"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-K01"
+      ],
+      "repair_and_acceptance_plan": "能力说明由工具注册、授权和实时健康派生，与 Prompt 目标一致。验收：已接通查询/绘图时不虚假否认能力，故障准确说明具体限制。",
+      "initial_linked_semantic_counts": {
+        "failed": 1
+      }
+    },
+    {
+      "order": 10,
+      "issue_id": "QAOPT-R10",
+      "priority": "P1",
+      "title": "多轮范围继承与主题切换",
+      "state": "deployed_partial_verified",
+      "evidence": "V19来源绑定生产6/6通过；V20修正规划器指代词，真实30分钟追问/最新/换题/用户分析5/5及数据库来源5/5通过",
+      "next_gate": "operator/admin真实多轮与指代持出集；并发发送应按用户限定独占拒绝",
+      "case_ids": [
+        "TPL-18399CD0A0FDD84D",
+        "TPL-3482A8EE5B37D413"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-E02"
+      ],
+      "repair_and_acceptance_plan": "多轮仅继承已确认对象/窗口/来源，换题清空不适用上下文。验收：追问/最新值/主题切换及用户数据任务均独立可复现。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      },
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed",
+      "local_owned_followup_execution": "owned_followup_execution_20260917.json",
+      "local_owned_followup_execution_state": "v49_r6_905_tests_40_native_synthetic_contracts_passed_production_identity_drift_blocked"
+    },
+    {
+      "order": 11,
+      "issue_id": "QAOPT-K01",
+      "priority": "P0",
+      "title": "原文知识路由独立于现场数据",
+      "state": "production_coverage_verified_semantic_partial",
+      "evidence": "V11有效803题真实单发送全部原文覆盖和来源/版本合同通过；30源标准答案冲突阻断",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
+      "case_ids": [
+        "TPL-48827B99541672E2",
+        "TPL-9AB9414BFC82E504"
+      ],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "repair_and_acceptance_plan": "正式知识采用岗位、文档版本、章节和条款定位，检索与现场数据路由独立。验收：原文证据和语义答案分别审核，覆盖不算正确。",
+      "initial_linked_semantic_counts": {
+        "failed": 90
+      },
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
+    },
+    {
+      "order": 12,
+      "issue_id": "QAOPT-K02",
+      "priority": "P0",
+      "title": "禁止用聊天或回归记录替代权威知识",
+      "state": "deployed_partial_verified",
+      "evidence": "V12制度原文与实时/用户数据子任务隔离，原文由独立执行器完成",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
+      "case_ids": [
+        "TPL-2941ED6E73448D66"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-T02"
+      ],
+      "repair_and_acceptance_plan": "权威知识排除聊天及测试标准答案，原文源单独登记。验收：回归集和旧助手回答不能成为正式制度引用。",
+      "initial_linked_semantic_counts": {
+        "failed": 106
+      },
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
+    },
+    {
+      "order": 13,
+      "issue_id": "QAOPT-K03",
+      "priority": "P1",
+      "title": "完整章节及表格读取",
+      "state": "deployed_partial_verified",
+      "evidence": "V15多章节逐项原文真实通过、缺章partial；选中章节缺尾及缓存删改失效门部署；本轮确认27/28章源抽取丢短条款，本机解析修复未发布知识库",
+      "local_source_repair": "readonly_audit_source_repair_20260917.json",
+      "local_source_repair_state": "202_tests_reviewed_independent_source_scope_r2_frozen_not_applied_to_production",
+      "local_source_scope": "source_scope_candidate_20260917.json",
+      "local_keyword_release": "keyword_source_release_preparation_20260917.json",
+      "local_keyword_transaction": "keyword_source_transaction_20260917.json",
+      "local_source_release_entry": "source_release_entry_20260917.json",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
+      "case_ids": [
+        "TPL-B1DDFC78E40D26DD",
+        "TPL-81261F34B14214DC"
+      ],
+      "depends_on": [
+        "QAOPT-K01"
+      ],
+      "repair_and_acceptance_plan": "全文章节及表格按结构边界读取，校验开头/结尾/连续性及多章节完整覆盖。验收：不漏尾、不串岗、不丢表头和单位。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      },
+      "local_original_source_reader": "original_source_reader_20260917.json",
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
+    },
+    {
+      "order": 14,
+      "issue_id": "QAOPT-K04",
+      "priority": "P0",
+      "title": "避免通用知识补写正式制度",
+      "state": "deployed_partial_verified",
+      "evidence": "纯制度及V12/V13未知制度复合题均明确澄清，不补写条款",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
+      "case_ids": [
+        "TPL-3FE672D48EEF6AA0",
+        "TPL-740647EE648698B0"
+      ],
+      "depends_on": [
+        "QAOPT-K03",
+        "QAOPT-E03"
+      ],
+      "repair_and_acceptance_plan": "未知正式制度先说明资料缺失；一般工艺解释必须标明非正式条款。验收：不编造制度编号、阈值或操作授权。",
+      "initial_linked_semantic_counts": {
+        "failed": 3
+      },
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "prior_scoped_state": "production_verified",
+      "new_boundary_defect": "V33书名字串误绑本机复现；先前生产验收未覆盖该边界，不等于已重新现场失败",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json",
+      "local_compound_source_scope": "compound_source_scope_20260917.json",
+      "local_compound_source_scope_state": "v37_r2_reviewed_557_tests_passed_not_deployed",
+      "local_response_style_source_scope": "response_style_source_scope_20260917.json",
+      "local_response_style_source_scope_state": "v41_r1_reviewed_395_tests_passed_not_deployed",
+      "local_source_concept_scope": "source_concept_scope_20260917.json",
+      "local_source_concept_scope_state": "v42_r1_reviewed_436_tests_passed_not_deployed",
+      "local_source_exclusion_scope": "source_exclusion_scope_20260917.json",
+      "local_source_exclusion_scope_state": "v43_r6_reviewed_498_tests_passed_not_deployed",
+      "local_supplied_record_scope": "supplied_record_scope_20260917.json",
+      "local_supplied_record_scope_state": "v44_r2_reviewed_546_tests_passed_not_deployed"
+    },
+    {
+      "order": 15,
+      "issue_id": "QAOPT-K05",
+      "priority": "P1",
+      "title": "报表目录不能回答制度问题",
+      "state": "deployed_partial_verified",
+      "evidence": "纯制度绕开报表/聊天；复合分支过滤正式原文问题与旧聊天，独立原文合成",
+      "next_gate": "全部来源组合持出回归",
+      "case_ids": [
+        "TPL-0EDF300C940987EB",
+        "TPL-D557F64791BE6C42"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-K01"
+      ],
+      "repair_and_acceptance_plan": "报表和制度来源域分离，复合问题分别组织证据。验收：报表目录不能冒充制度内容，存在两来源时不漏问。",
+      "initial_linked_semantic_counts": {
+        "failed": 24
+      }
+    },
+    {
+      "order": 16,
+      "issue_id": "QAOPT-K06",
+      "priority": "P1",
+      "title": "知识数据质量和更新可追踪",
+      "state": "deployed_partial_verified",
+      "evidence": "V15派生全文行覆盖及选中岗位跨索引缺尾门；实际833只读803覆盖候选通过/30冲突单列；本轮确认原DOCX源抽取遗漏，派生全文与索引互证不足以证明原书完整",
+      "local_source_repair": "readonly_audit_source_repair_20260917.json",
+      "local_source_repair_state": "startup_readonly_live_verified_independent_source_scope_r2_frozen_production_knowledge_unchanged",
+      "local_source_scope": "source_scope_candidate_20260917.json",
+      "local_keyword_release": "keyword_source_release_preparation_20260917.json",
+      "local_keyword_transaction": "keyword_source_transaction_20260917.json",
+      "local_source_release_entry": "source_release_entry_20260917.json",
+      "next_gate": "V35本机400项/22项全JSON检查/复审PASS：规程先过滤、否定范围、引号字面、精确层级、多规程缺项及歧义partial、完整分页；生产身份/路线超时，固定底座管理器及DB分别授权/迁移发布/8093守卫验收仍待完成；822原失败partial题0复问，30标准冲突和语义/topic审核保留",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-K03"
+      ],
+      "repair_and_acceptance_plan": "文档和 oracle 分别版本化；89 题标准阻断对照岗位原文逐条确认，记录修正理由和旧标准。验收：同问不同标准/错编号不自动改答案。",
+      "initial_linked_semantic_counts": {},
+      "local_original_source_reader": "original_source_reader_20260917.json",
+      "local_document_scope_resolution": "document_scope_resolution_20260917.json",
+      "local_document_regulation_scope": "document_regulation_scope_20260917.json"
+    },
+    {
+      "order": 17,
+      "issue_id": "QAOPT-E01",
+      "priority": "P0",
+      "title": "成功证据不能被生命周期异常清空",
+      "state": "deployed_partial_verified",
+      "local_statistics_candidate": "statistical_evidence_candidate_20260917.json",
+      "local_statistics_candidate_state": "v28_r4_reviewed_108_tests_passed_not_deployed_no_real_answers",
+      "evidence": "V19实际适配器绑定修复；V20已知指代趋势不再走失败绘图规划，确定性统计完整返回; V23全文审核：TPL-01EEE414179DB624 partial；TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24原题温度由failed变partial，真实读数保留；压力由partial变passed，99.219秒→0.094秒；均0追加工具/0模型，单位缺项保持partial。; V25真实绘图原题：18个请求点进入路由，工具仅16点且最终图表遗漏，不能标解决。; V26工具上限/完整类型化证据/异常图表保留已部署，本机174检查通过；822题发送前身份拦截，真实效果未确认。",
+      "next_gate": "固定已批准Qwen模型的授权测试窗口内，原18点绘图题和822原失败/部分题逐题复测，非空不算通过",
+      "case_ids": [
+        "TPL-4CA73F09C24F631B"
+      ],
+      "depends_on": [
+        "QAOPT-E02"
+      ],
+      "repair_and_acceptance_plan": "完整类型化工具结果先追加保存，再生成界面/模型摘录；生命周期错误保留成功事实及图表。验收：成功生成的图与真实数据不会被失败回合清空。",
+      "initial_linked_semantic_counts": {
+        "failed": 249
+      }
+    },
+    {
+      "order": 18,
+      "issue_id": "QAOPT-E02",
+      "priority": "P1",
+      "title": "有类型的证据与适用范围",
+      "state": "deployed_partial_verified",
+      "local_latest_evidence_candidate": "latest_evidence_candidate_20260917.json",
+      "local_latest_evidence_candidate_state": "v32_r2_reviewed_284_tests_passed_not_deployed_no_real_answers",
+      "local_renderer_contract_candidate": "renderer_contract_candidate_20260917.json",
+      "local_renderer_contract_candidate_state": "v31_reviewed_126_tests_passed_not_deployed_no_real_answers",
+      "local_window_quality_candidate": "window_quality_candidate_20260917.json",
+      "local_window_quality_candidate_state": "v30_r2_reviewed_102_tests_passed_not_deployed_no_real_answers",
+      "local_statistics_candidate": "statistical_evidence_candidate_20260917.json",
+      "local_statistics_candidate_state": "v28_r4_reviewed_108_tests_passed_not_deployed_no_real_answers",
+      "evidence": "V6当前对象及A-D统计EvidenceItem绑定对象/时间/单位/来源; V23全文审核：TPL-E1C7A67C947531E9 partial",
+      "next_gate": "全部工具证据追加账本",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-R01"
+      ],
+      "repair_and_acceptance_plan": "证据绑定对象、窗口、来源、单位、质量、适用范围及原始哈希。验收：当前单点不能证明历史趋势，目录不能证明实时数据。",
+      "initial_linked_semantic_counts": {}
+    },
+    {
+      "order": 19,
+      "issue_id": "QAOPT-E03",
+      "priority": "P0",
+      "title": "字段级事实校验与合理舍入",
+      "state": "deployed_partial_verified",
+      "local_latest_evidence_candidate": "latest_evidence_candidate_20260917.json",
+      "local_latest_evidence_candidate_state": "v32_r2_reviewed_284_tests_passed_not_deployed_no_real_answers",
+      "local_renderer_contract_candidate": "renderer_contract_candidate_20260917.json",
+      "local_renderer_contract_candidate_state": "v31_reviewed_126_tests_passed_not_deployed_no_real_answers",
+      "local_statistics_candidate": "statistical_evidence_candidate_20260917.json",
+      "local_statistics_candidate_state": "v28_r4_reviewed_108_tests_passed_not_deployed_no_real_answers",
+      "evidence": "V14实际压力单位/时间/来源及规范单位血缘独立通过，未知制度partial；未登记单位partial合同通过",
+      "next_gate": "全部工具单位/派生量血缘",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-E02"
+      ],
+      "repair_and_acceptance_plan": "数值、单位和派生量逐字段核对；缺单位保持缺项，舍入不改变方向。验收：温标/CV/零值和微小变化可独立复算且保留血缘。",
+      "initial_linked_semantic_counts": {
+        "partial": 1,
+        "failed": 47
+      }
+    },
+    {
+      "order": 20,
+      "issue_id": "QAOPT-E04",
+      "priority": "P1",
+      "title": "固定计算与统计定义",
+      "state": "deployed_partial_verified",
+      "local_window_quality_candidate": "window_quality_candidate_20260917.json",
+      "local_window_quality_candidate_state": "v30_r2_reviewed_102_tests_passed_not_deployed_no_real_answers",
+      "local_statistics_candidate": "statistical_evidence_candidate_20260917.json",
+      "local_statistics_candidate_state": "v28_r4_reviewed_108_tests_passed_not_deployed_no_real_answers",
+      "evidence": "V5相邻两窗/V6确定性统计及公式样本数质量限制; V23全文审核：TPL-FACD6F5FE05C74FC partial；TPL-01EEE414179DB624 partial; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24压差对比仍partial，缺单位与直接比较结论；单点温度解释末尾未完成，微量舍入/方向及Held质量单列。",
+      "next_gate": "统一跨工具派生计算与冲突",
+      "case_ids": [
+        "TPL-496B774E90F8EA09"
+      ],
+      "depends_on": [
+        "QAOPT-E02",
+        "QAOPT-E03"
+      ],
+      "repair_and_acceptance_plan": "固定计算器统一均值、总体标准差、首末变化、回归和局部趋势；明确冲突与质量。验收：Held、稀疏覆盖和近零均值不会判成正式稳定等级。",
+      "initial_linked_semantic_counts": {}
+    },
+    {
+      "order": 21,
+      "issue_id": "QAOPT-E05",
+      "priority": "P0",
+      "title": "输出字段边界及完整性",
+      "state": "deployed_partial_verified",
+      "local_latest_evidence_candidate": "latest_evidence_candidate_20260917.json",
+      "local_latest_evidence_candidate_state": "v32_r2_reviewed_284_tests_passed_not_deployed_no_real_answers",
+      "local_renderer_contract_candidate": "renderer_contract_candidate_20260917.json",
+      "local_renderer_contract_candidate_state": "v31_reviewed_126_tests_passed_not_deployed_no_real_answers",
+      "local_final_completion_candidate": "final_completion_candidate_20260917.json",
+      "local_final_completion_candidate_state": "v29_r2_reviewed_92_tests_passed_not_deployed_no_real_answers",
+      "local_statistics_candidate": "statistical_evidence_candidate_20260917.json",
+      "local_statistics_candidate_state": "v28_r4_reviewed_108_tests_passed_not_deployed_no_real_answers",
+      "evidence": "V15多章、V17历史复合、V20多轮代表题答案完成独立通过；趋势模型解释拒绝单列 V24图表答案completed却实际failed，温度分析结尾未完成；仍需覆盖MCP最终答案终态校验。; V25真实绘图原题：18个请求点进入路由，工具仅16点且最终图表遗漏，不能标解决。; V26工具上限/完整类型化证据/异常图表保留已部署，本机174检查通过；822题发送前身份拦截，真实效果未确认。",
+      "next_gate": "固定已批准Qwen模型的授权测试窗口内，原18点绘图题和822原失败/部分题逐题复测，非空不算通过",
+      "case_ids": [
+        "TPL-0F1075D1C8967EA5"
+      ],
+      "depends_on": [
+        "QAOPT-E03"
+      ],
+      "repair_and_acceptance_plan": "所有最终出口检查任务覆盖、截断、结束原因和缺项；传输完成与语义成功分开。验收：未完成句子或缺图回答不能标 complete。",
+      "initial_linked_semantic_counts": {
+        "failed": 1
+      }
+    },
+    {
+      "order": 22,
+      "issue_id": "QAOPT-E06",
+      "priority": "P1",
+      "title": "多源证据冲突与分析深度",
+      "state": "deployed_partial_verified",
+      "local_window_quality_candidate": "window_quality_candidate_20260917.json",
+      "local_window_quality_candidate_state": "v30_r2_reviewed_102_tests_passed_not_deployed_no_real_answers",
+      "evidence": "单点不推趋势、窗口均值不冒充同步温差、V12控制与热平衡条件性因果通过; V23全文审核：TPL-FACD6F5FE05C74FC partial",
+      "next_gate": "跨源冲突和时效矩阵",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-R06",
+        "QAOPT-E04"
+      ],
+      "repair_and_acceptance_plan": "多源时间、数值和制度冲突显式展示；区分描述性观察与有阈值的风险判断。验收：对比题有直接结论和适用限制，不仅堆统计。",
+      "initial_linked_semantic_counts": {}
+    },
+    {
+      "order": 23,
+      "issue_id": "QAOPT-O01",
+      "priority": "P0",
+      "title": "模型就绪与请求间竞态",
+      "state": "dependency_blocked",
+      "evidence": "V21复测4题后latest digest变化阻断；只读证明自动Repair候选失败后切换:1/:0，标签与实际驻留曾不一致；就绪true仍不能证明固定版本; V23全文审核：TPL-BE97AA4EAD567003 failed; V23r2 TPL-A60B0CD794D49E48部分，成功最新值保留但重复规划近百秒、单位缺失，后身份未核实 V24第5题后身份未核实停止；只读恢复时模型曾恢复批准:0，随后latest切为批准:1；402题无claim证明未发。; V25首题后身份未核实停止，821题无claim证明未发。; V26首题前批准Qwen版本1切为0，822题均无claim/result；恢复任务先改alias再热身，两候选HTTP发送失败后未提交状态。 本轮新增单底座强约束；只读后续实际驻留再次漂移为版本0，禁止把该版本当替代。固定管理器/V27本机52检查通过，尚未部署。",
+      "next_gate": "只读连接已恢复，生产V26；固定摘要不匹配，旧恢复任务仍运行。管理器/任务、11434驻留纠正与DB各按独立授权验收；禁止自动切换绕过。8093守卫发布后才复测822原失败/部分题；首次同digest配对未经证明，0生产销项。",
+      "case_ids": [
+        "TPL-18F38D141C29CF15"
+      ],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-E01"
+      ],
+      "repair_and_acceptance_plan": "固定唯一e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124底座，Switch和fallback禁用；每次模型POST前tags/ps/tags核验；安装失败Recovery禁用，不能重新启用旧切换策略；验收同题同底座且身份前后不变",
+      "initial_linked_semantic_counts": {
+        "failed": 1
+      },
+      "local_model_manager_candidate_evidence": "model_repair_stability_candidate_20260917.json",
+      "local_candidate_state": "superseded_26_check_r2_not_deployable",
+      "single_base_candidate_evidence": "single_base_model_candidate_20260917.json",
+      "single_base_candidate_state": "reviewed_52_checks_not_deployed",
+      "local_fixed_model_override": "fixed_model_override_20260917.json",
+      "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
+      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed",
+      "native_full_candidate_runtime_evidence": "full_candidate_runtime_20260917.json",
+      "native_full_candidate_runtime_state": "16_modules_59_dependencies_10_synthetic_handlers_verified_no_production_closure",
+      "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
+      "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
+      "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked",
+      "local_owned_followup_execution": "owned_followup_execution_20260917.json",
+      "local_owned_followup_execution_state": "v49_r6_905_tests_40_native_synthetic_contracts_passed_production_identity_drift_blocked"
+    },
+    {
+      "order": 24,
+      "issue_id": "QAOPT-O02",
+      "priority": "P1",
+      "title": "工具超时和故障域隔离",
+      "state": "deployed_partial_verified",
+      "evidence": "执行器已有独立超时/每服务预算；V12成功证据保留和失败不扩散合同通过",
+      "next_gate": "MCP注册/会话/流式故障矩阵",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-E01"
+      ],
+      "repair_and_acceptance_plan": "注册、连接、工具、模型和流式分别限时，失败只影响依赖步骤；同请求允许一次有证据降级。验收：成功步骤保留，断线未知不自动 POST 重放。",
+      "initial_linked_semantic_counts": {
+        "partial": 12,
+        "failed": 289,
+        "insufficient_evidence": 7
+      }
+    },
+    {
+      "order": 25,
+      "issue_id": "QAOPT-O03",
+      "priority": "P1",
+      "title": "工具参数schema及步骤依赖",
+      "state": "deployed_contract_verified",
+      "evidence": "V12实际部署StepPlan依赖绑定、声明上游和环检查；67项DAG/完整性测试通过; V25真实绘图原题：18个请求点进入路由，工具仅16点且最终图表遗漏，不能标解决。; V26工具上限/完整类型化证据/异常图表保留已部署，本机174检查通过；822题发送前身份拦截，真实效果未确认。",
+      "next_gate": "固定已批准Qwen模型的授权测试窗口内，原18点绘图题和822原失败/部分题逐题复测，非空不算通过",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-R01",
+        "QAOPT-E02"
+      ],
+      "repair_and_acceptance_plan": "工具 schema、参数范围和 DAG 依赖在执行前校验，显式拒绝超限；完整证据与模型投影分开。验收：18 点列表不缩为16，长 JSON 不被剪成非法证据。",
+      "initial_linked_semantic_counts": {}
+    },
+    {
+      "order": 26,
+      "issue_id": "QAOPT-O04",
+      "priority": "P1",
+      "title": "状态、耗时与可观测性",
+      "state": "deployed_partial_verified",
+      "local_final_completion_candidate": "final_completion_candidate_20260917.json",
+      "local_final_completion_candidate_state": "v29_r2_reviewed_92_tests_passed_not_deployed_no_real_answers",
+      "evidence": "V11受控turn投影实际803题和定向题均仅返回当前2条消息；浏览器默认全历史兼容保留",
+      "next_gate": "浏览器有界消息合并与历史分页，现场UI验收",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-E01",
+        "QAOPT-T01"
+      ],
+      "repair_and_acceptance_plan": "turn/step/item 统一状态、耗时和故障类型；浏览器有界合并与历史分页。验收：可区分数据空、超时、模型变化和答案不完整，不泄漏身份/凭据。",
+      "initial_linked_semantic_counts": {},
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed"
+    },
+    {
+      "order": 27,
+      "issue_id": "QAOPT-O05",
+      "priority": "P1",
+      "title": "并发与角色边界",
+      "state": "deployed_partial_verified",
+      "evidence": "V21已受控发布：精确控制模块、受保护PID及生产CAS通过；独占9项和关联35项本机通过；真实双角色409/取消验收待测",
+      "next_gate": "固定模型版本后完成真实双角色409、取消实际停止释放与owner隔离；不排队、不重放",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-O03",
+        "QAOPT-O04"
+      ],
+      "repair_and_acceptance_plan": "按用户要求全服务同时仅一个问答 owner，另一人立即409，不排队；取消确认实际结束再释放。验收：真实双角色隔离、并发409和取消释放均通过。",
+      "initial_linked_semantic_counts": {}
+    },
+    {
+      "order": 28,
+      "issue_id": "QAOPT-T01",
+      "priority": "P0",
+      "title": "题目状态、分母与未知发送隔离",
+      "state": "implemented_verified",
+      "evidence": "1418行分母、1259已收集和1条不确定发送已独立记录",
+      "next_gate": "只读连接已恢复，生产V26；固定摘要不匹配，旧恢复任务仍运行。管理器/任务、11434驻留纠正与DB各按独立授权验收；禁止自动切换绕过。8093守卫发布后才复测822原失败/部分题；首次同digest配对未经证明，0生产销项。",
+      "case_ids": [
+        "TPL-10C8C8FAF2C694EF"
+      ],
+      "depends_on": [],
+      "repair_and_acceptance_plan": "全题唯一 ID、发送 claim、程序/模型/Prompt/结果哈希冻结。验收：全题对账，首次未知题永不重发，续跑仅限证明未发。",
+      "initial_linked_semantic_counts": {},
+      "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
+      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed",
+      "native_full_candidate_runtime_evidence": "full_candidate_runtime_20260917.json",
+      "native_full_candidate_runtime_state": "16_modules_59_dependencies_10_synthetic_handlers_verified_no_production_closure"
+    },
+    {
+      "order": 29,
+      "issue_id": "QAOPT-T02",
+      "priority": "P0",
+      "title": "导入错误与评测污染",
+      "state": "implemented_partial_verified",
+      "evidence": "原分母保留；833知识源明确30个编号/同问不同标准答案冲突，禁止当失败重发或自动改标准",
+      "next_gate": "版本化修正经原文独立审核",
+      "case_ids": [
+        "TPL-ED01B1D5ACB947E6",
+        "TPL-2941ED6E73448D66"
+      ],
+      "depends_on": [],
+      "repair_and_acceptance_plan": "结构误导入26条剔除评分但保留事实；标准冲突和证据不足单列。验收：分母可复算，不把无效行、无答案或无法判定当成功。",
+      "initial_linked_semantic_counts": {
+        "failed": 2
+      }
+    },
+    {
+      "order": 30,
+      "issue_id": "QAOPT-T03",
+      "priority": "P1",
+      "title": "系统Prompt绑定与故障夹具",
+      "state": "partial",
+      "local_final_completion_candidate": "final_completion_candidate_20260917.json",
+      "local_final_completion_candidate_state": "v29_r2_reviewed_92_tests_passed_not_deployed_no_real_answers",
+      "evidence": "TaskPlan/故障夹具已建立；系统Prompt版本绑定仍需全链路证明",
+      "next_gate": "本机实际请求/准备/隐藏上下文/JSON/SSE/缓存摘要链已验证；固定底座、管理器/任务、11434与源库各独立门禁通过后，8093受控发布；原题单次发送核对服务器实际prompt_binding，不以用户问题hash或本机合同代替线上证明。",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-R09",
+        "QAOPT-O04"
+      ],
+      "repair_and_acceptance_plan": "绑定服务端最终系统 Prompt、模板版本、请求策略及故障夹具。验收：每条回复可追溯实际 Prompt hash，不只绑定源文件名。",
+      "initial_linked_semantic_counts": {},
+      "local_fixed_model_override": "fixed_model_override_20260917.json",
+      "local_math_function_policy": "math_function_policy_20260917.json",
+      "local_math_function_policy_state": "v38_r2_reviewed_225_tests_passed_not_deployed",
+      "local_user_data_source_scope": "user_data_source_scope_20260917.json",
+      "local_user_data_source_scope_state": "v39_r3_reviewed_286_tests_passed_not_deployed",
+      "local_declared_input_scope": "declared_input_scope_20260917.json",
+      "local_declared_input_scope_state": "v40_r2_reviewed_327_tests_passed_not_deployed",
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed",
+      "native_full_candidate_runtime_evidence": "full_candidate_runtime_20260917.json",
+      "native_full_candidate_runtime_state": "16_modules_59_dependencies_10_synthetic_handlers_verified_no_production_closure",
+      "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
+      "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
+      "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked"
+    },
+    {
+      "order": 31,
+      "issue_id": "QAOPT-T04",
+      "priority": "P1",
+      "title": "全答案审阅、持出集与重复可靠性",
+      "state": "initial_review_complete_version_retests_open",
+      "evidence": "gpt-5.6-luna 828/828实际逐题审核完成，269通过/186部分/231失败/89标准阻断/53证据不足；合并首次有效1233题，636失败。89标准阻断不等同89条标准冲突，833知识来源审计另有30条原文/标准冲突。",
+      "next_gate": "822原失败/部分题新版完整复测与持出集，不凭非空计算准确率",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-T01",
+        "QAOPT-T02",
+        "QAOPT-E03"
+      ],
+      "repair_and_acceptance_plan": "已完成828逐题审核；每版继续审核原失败/部分题，再增加持出集。验收：完整正确率、完整有用回答率、传输率分开，模型不同分层。",
+      "initial_linked_semantic_counts": {}
+    },
+    {
+      "order": 32,
+      "issue_id": "QAOPT-T05",
+      "priority": "P1",
+      "title": "版本冻结、候选对比与受控发布",
+      "state": "implemented_verified",
+      "evidence": "V3至V20受控切换/保护PID/CAS；V18/V19失败冻结，V20新五题独立通过；实际适配器和续跑claim去重门保持 V24精确3写/24读、497代理AST和22共享标记、受保护PID/HTTP/哈希及生产CAS验收通过；5发送+402逐题阻断冻结。; V25精确4写24读、490 AST/22标记、受保护PID/HTTP/哈希和生产CAS通过。",
+      "next_gate": "只读连接已恢复，生产V26；固定摘要不匹配，旧恢复任务仍运行。管理器/任务、11434驻留纠正与DB各按独立授权验收；禁止自动切换绕过。8093守卫发布后才复测822原失败/部分题；首次同digest配对未经证明，0生产销项。",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-T04",
+        "QAOPT-O05"
+      ],
+      "repair_and_acceptance_plan": "冻结最小写/读集合，独立审查、recordability、共享功能合同、8093守卫和CAS。验收：版本/哈希/HTTP/PID可核对，失败回滚不自动重试同候选。",
+      "initial_linked_semantic_counts": {},
+      "local_fixed_model_override": "fixed_model_override_20260917.json",
+      "local_fixed_pin_runtime_probe": "runtime_fixed_pin_20260917.json",
+      "local_fixed_pin_runtime_probe_state": "33_contract_tests_and_review_passed_production_pin_blocked_no_original_resends",
+      "local_actual_prompt_binding": "actual_prompt_binding_20260917.json",
+      "local_actual_prompt_binding_state": "v45_r2_reviewed_643_contract_tests_passed_not_deployed",
+      "native_full_candidate_runtime_evidence": "full_candidate_runtime_20260917.json",
+      "native_full_candidate_runtime_state": "16_modules_59_dependencies_10_synthetic_handlers_verified_no_production_closure",
+      "local_sensor_context_source_gate": "sensor_context_source_gate_20260917.json",
+      "local_sensor_context_source_gate_state": "v46_r2_760_tests_10_native_synthetic_handlers_passed_shared_rebase_and_production_pin_blocked",
+      "local_shared_proxy_integration": "shared_proxy_integration_20260917.json",
+      "local_shared_proxy_integration_state": "v47_r1_808_tests_19_native_synthetic_handlers_passed_production_pin_blocked",
+      "local_ordinary_context_gate": "ordinary_context_source_gate_20260917.json",
+      "local_ordinary_context_gate_state": "v48_r1_861_tests_25_native_synthetic_contracts_passed_production_pin_blocked",
+      "local_owned_followup_execution": "owned_followup_execution_20260917.json",
+      "local_owned_followup_execution_state": "v49_r6_905_tests_40_native_synthetic_contracts_passed_production_identity_drift_blocked"
+    },
+    {
+      "order": 33,
+      "issue_id": "QAOPT-T06",
+      "priority": "P2",
+      "title": "范围缺口与长期运营",
+      "state": "ongoing",
+      "evidence": "回归集已公开并可扩展，长期范围和SLO仍需运营",
+      "next_gate": "按新故障自动归类并每版发布覆盖/SLO报告",
+      "case_ids": [],
+      "depends_on": [
+        "QAOPT-T01",
+        "QAOPT-O04"
+      ],
+      "repair_and_acceptance_plan": "以新故障追加回归并记录覆盖空白和响应时间目标；定期按题型发布质量趋势。验收：新增题无原始生产数据/身份，历史报告可复现。",
+      "initial_linked_semantic_counts": {}
+    }
+  ],
+  "previous_targeted_retest": {
+    "version": "routing-v20",
+    "requests": 5,
+    "sse_done": 5,
+    "passed": 5,
+    "failed": 0,
+    "provenance_readonly_passed": 5,
+    "automatic_post_retries": 0
+  },
+  "production_retest_history": [
+    {
+      "version": "routing-v21",
+      "requests": 4,
+      "sse_done": 4,
+      "passed": 3,
+      "partial": 1,
+      "failed": 0,
+      "planned": 413,
+      "not_sent": 409,
+      "model_identity_drift": true,
+      "automatic_post_retries": 0,
+      "full_dataset_accuracy_available": false
+    }
+  ],
+  "historical_production_retests": [
+    {
+      "version": "routing-v23",
+      "requests": 9,
+      "sse_done": 9,
+      "passed": 2,
+      "partial": 4,
+      "failed": 3,
+      "planned": 407,
+      "not_sent": 398,
+      "model_identity_drift_or_unavailable": true,
+      "automatic_post_retries": 0,
+      "stable_sample": 7,
+      "stable_sample_correct_complete": 2,
+      "stable_sample_correct_complete_rate": 0.2857142857142857,
+      "first_405_failed_attempted": 7,
+      "full_dataset_accuracy_available": false,
+      "evidence": "routing_v23_paired_observations_20260917.json",
+      "dependency_records": "routing_v23_unattempted_dependencies_20260917.json"
+    }
+  ],
+  "manual_828_review_progress": {
+    "reviewed": 540,
+    "remaining": 288,
+    "passed": 157,
+    "partial": 131,
+    "failed": 122,
+    "insufficient_evidence": 41,
+    "oracle_blocked": 89,
+    "state": "intermediate_snapshot_not_final_accuracy",
+    "model": "gpt-5.6-luna"
+  },
+  "historical_v24_retest": {
+    "version": "routing-v24",
+    "requests": 5,
+    "sse_done": 5,
+    "partial": 3,
+    "passed": 1,
+    "failed": 1,
+    "planned": 407,
+    "not_sent": 402,
+    "model_identity_drift_or_unavailable": true,
+    "automatic_post_retries": 0,
+    "stable_sample": 4,
+    "stable_sample_correct_complete": 1,
+    "stable_sample_correct_complete_rate": 0.25,
+    "first_405_failed_attempted": 3,
+    "full_dataset_accuracy_available": false,
+    "evidence": "routing_v24_paired_observations_20260917.json",
+    "dependency_records": "routing_v24_unattempted_dependencies_20260917.json"
+  },
+  "initial_semantic_review_final": {
+    "valid_collected": 1233,
+    "counts": {
+      "passed": 269,
+      "partial": 186,
+      "failed": 636,
+      "insufficient_evidence": 53,
+      "oracle_blocked": 89
+    },
+    "independently_scoreable": 1091,
+    "correct_complete_rate_scoreable": 0.2465627864344638,
+    "failed_or_partial_retest": 822,
+    "evidence": "initial_semantic_summary_20260917.json"
+  },
+  "historical_v25_retest": {
+    "version": "routing-v25",
+    "planned": 822,
+    "requests": 1,
+    "sse_done": 1,
+    "passed": 0,
+    "partial": 0,
+    "failed": 1,
+    "not_sent": 821,
+    "stable_sample": 0,
+    "model_identity_drift_or_unavailable": true,
+    "automatic_post_retries": 0,
+    "full_dataset_accuracy_available": false,
+    "evidence": "routing_v25_paired_observations_20260917.json",
+    "dependency_records": "routing_v25_unattempted_dependencies_20260917.json"
+  },
+  "prior_scoped_local_candidate": {
+    "version": "v26",
+    "state": "deployed_semantic_retest_blocked",
+    "focused_tests_passed": 174,
+    "production_semantic_effectiveness_verified": false
+  },
+  "production_snapshot_state": "fresh_shared_proxy_integrated_locally_fixed_pin_blocked",
+  "prior_local_candidate_v36": {
+    "version": "v36",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "focused_tests_passed": 61,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "fixed_model_override_20260917.json",
+    "manifest_sha256": "d624e06065f0f9752b7d4b44464171f391e4ace6ca94c18f718db9c018510aee",
+    "previous_source_scope_suite": {
+      "version": "v35",
+      "tests_passed": 400,
+      "rerun_for_v36": false,
+      "source_reader_and_gate_unchanged": true
+    }
+  },
+  "prior_local_candidate_v37": {
+    "version": "v37-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "focused_tests_passed": 110,
+    "related_tests_passed": 557,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "compound_source_scope_20260917.json",
+    "manifest_sha256": "dc5615e765d63c084edd35b7e75532101d41e9e8dc5e61a75e249cce397362ec",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v38": {
+    "version": "v38-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 225,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "math_function_policy_20260917.json",
+    "manifest_sha256": "3feea7b8101e189a2f75315e6583fb167f3e7ae6c8d9820b9720973ab6d6595b",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v39": {
+    "version": "v39-r3",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 286,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "user_data_source_scope_20260917.json",
+    "manifest_sha256": "4d84a7e47cfd09fe2fc1e7d6ddea85a68977465fdba0dfbee50de5315f073a86",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v40": {
+    "version": "v40-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 327,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "declared_input_scope_20260917.json",
+    "manifest_sha256": "80b785bf18576273cb0ad65ae9b0e63bb57abb703c377d2c246043cc4bc1c44c",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v41": {
+    "version": "v41-r1",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 395,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "response_style_source_scope_20260917.json",
+    "manifest_sha256": "697a0c119288ec792465e7ce22156cd2ce6d89c6b7f58866431f42b84d6d80e3",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v42": {
+    "version": "v42-r1",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 436,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "source_concept_scope_20260917.json",
+    "manifest_sha256": "b7b74e1d68d986ca3ac98abf3acfe9f001d099854af1fb1129716b4175c714cf",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_local_candidate_v43": {
+    "version": "v43-r6",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 498,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "source_exclusion_scope_20260917.json",
+    "manifest_sha256": "83700b808250c8e56d795f4ba35dc0c57853edf24a5c9227a425d2a8f5622b38",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_production_snapshot_state_before_runtime_pin_probe": "historical_last_verified_v26_current_connection_gate_failed",
+  "latest_readonly_production_gate": {
+    "checked_at": "2026-09-17",
+    "observed_at_utc": "2026-09-17T12:58:40.881750+00:00",
+    "evidence": "owned_followup_execution_20260917.json",
+    "production_commit": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+    "fixed_identity_ready": false,
+    "production_permanent_model_lock_verified": false,
+    "connection_identity_verified": true,
+    "fresh_production_dependency_refresh_required": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0
+  },
+  "prior_local_candidate_v44": {
+    "version": "v44-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 546,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "supplied_record_scope_20260917.json",
+    "manifest_sha256": "9b9b797b82bd261bfbcce936e8f24aef5974f5b5f056e001633acc4b856a7ee6",
+    "fixed_base_identity_unchanged": true
+  },
+  "prior_production_commit_before_disjoint_dashboard": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+  "prior_readonly_production_gate_before_native_import": {
+    "checked_at": "2026-09-17",
+    "evidence": "actual_prompt_binding_20260917.json",
+    "production_commit": "e6530983531251e7290d045d96e1aead065585fb",
+    "backend_runtime_version": "v26",
+    "fixed_identity_ready": false,
+    "connection_identity_verified": true,
+    "disjoint_dashboard_commit_reviewed": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0
+  },
+  "latest_native_runtime_gate": {
+    "candidate": "v50-r3",
+    "state": "native_pending_confirmation_verified_fixed_identity_blocked",
+    "evidence": "pending_object_confirmation_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 60,
+    "synthetic_contracts_passed": 55,
+    "qa_contracts_passed": 10,
+    "shared_abc_contracts_passed": 9,
+    "ordinary_prepare_contracts_passed": 6,
+    "owned_followup_contracts_passed": 15,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true,
+    "pending_confirmation_contracts_passed": 15
+  },
+  "prior_readonly_production_gate_before_sensor_context_fix": {
+    "checked_at": "2026-09-17",
+    "evidence": "full_candidate_runtime_20260917.json",
+    "production_commit": "df9dde1abe06b386906a2bfad508403732fd40ae",
+    "backend_runtime_version": "v26",
+    "fixed_identity_ready": false,
+    "connection_identity_verified": true,
+    "disjoint_dashboard_commit_reviewed": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0
+  },
+  "prior_production_snapshot_state_before_shared_abc33_delta": "readonly_verified_v26_fixed_pin_blocked_legacy_recovery_active",
+  "prior_native_runtime_gate_before_sensor_context_fix": {
+    "candidate": "v45-r2",
+    "state": "native_full_import_and_synthetic_handler_verified_production_pin_blocked",
+    "evidence": "full_candidate_runtime_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 59,
+    "synthetic_contracts_passed": 10,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true
+  },
+  "latest_local_sensor_context_candidate": {
+    "version": "v46-r2",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 760,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "sensor_context_source_gate_20260917.json",
+    "manifest_sha256": "a98a564b758a2e9dbb6640c81d1d04f6cb921030b0ebf2d4ae49d64f15867a6a",
+    "fixed_base_identity_unchanged": true,
+    "candidate_shared_proxy_rebase_required": true
+  },
+  "prior_native_runtime_gate_before_shared_proxy_integration": {
+    "candidate": "v46-r2",
+    "state": "native_source_gate_verified_shared_rebase_and_production_pin_blocked",
+    "evidence": "sensor_context_source_gate_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 59,
+    "synthetic_contracts_passed": 10,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true,
+    "candidate_shared_proxy_rebase_required": true
+  },
+  "prior_readonly_production_gate_before_shared_proxy_integration": {
+    "checked_at": "2026-09-17",
+    "observed_at_utc": "2026-09-17 11:26:15 UTC",
+    "evidence": "sensor_context_source_gate_20260917.json",
+    "production_commit": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+    "backend_runtime_version": "prior_v26_qa_snapshot_plus_external_abc33_shared_delta_requires_review",
+    "fixed_identity_ready": false,
+    "connection_identity_verified": true,
+    "shared_proxy_changed": true,
+    "candidate_shared_proxy_rebase_required": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0
+  },
+  "latest_local_shared_proxy_candidate": {
+    "version": "v47-r1",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 808,
+    "production_semantic_effectiveness_verified": false,
+    "evidence": "shared_proxy_integration_20260917.json",
+    "manifest_sha256": "3deab6a3937a3a2afab099b0cabea0277c507176bf326f2529845a24116defe6",
+    "fixed_base_identity_unchanged": true,
+    "candidate_shared_proxy_rebase_required_for_pinned_head": false
+  },
+  "prior_production_snapshot_state_before_shared_proxy_integration": "fresh_shared_proxy_changed_candidate_rebase_required_fixed_pin_blocked",
+  "prior_native_runtime_gate_before_ordinary_context_gate": {
+    "candidate": "v47-r1",
+    "state": "native_shared_integration_verified_production_pin_blocked",
+    "evidence": "shared_proxy_integration_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 60,
+    "synthetic_contracts_passed": 19,
+    "qa_contracts_passed": 10,
+    "shared_abc_contracts_passed": 9,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true,
+    "candidate_shared_proxy_rebase_required_for_pinned_head": false
+  },
+  "prior_readonly_production_gate_before_ordinary_context_gate": {
+    "checked_at": "2026-09-17",
+    "observed_at_utc": "2026-09-17T11:59:06.747241+00:00",
+    "evidence": "shared_proxy_integration_20260917.json",
+    "production_commit": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+    "backend_runtime_version": "prior_v26_qa_snapshot_plus_external_abc33_shared_delta",
+    "fixed_identity_ready": false,
+    "connection_identity_verified": true,
+    "shared_proxy_changed": true,
+    "candidate_shared_proxy_rebase_required_for_pinned_head": false,
+    "fresh_production_dependency_refresh_required": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0
+  },
+  "latest_local_ordinary_context_candidate": {
+    "version": "v48-r1",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 861,
+    "evidence": "ordinary_context_source_gate_20260917.json",
+    "manifest_sha256": "ff6667172cdaac42f9335f5b28fbf382863ea2f39d9ce07a01584dc5b5abb3b8",
+    "fixed_base_identity_unchanged": true,
+    "production_semantic_effectiveness_verified": false
+  },
+  "prior_native_runtime_gate_before_owned_followup_execution": {
+    "candidate": "v48-r1",
+    "state": "native_ordinary_source_gate_verified_production_pin_blocked",
+    "evidence": "ordinary_context_source_gate_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 60,
+    "synthetic_contracts_passed": 25,
+    "qa_contracts_passed": 10,
+    "shared_abc_contracts_passed": 9,
+    "ordinary_prepare_contracts_passed": 6,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true
+  },
+  "prior_readonly_production_gate_before_owned_followup_execution": {
+    "checked_at": "2026-09-17",
+    "observed_at_utc": "2026-09-17T12:27:33.688450+00:00",
+    "evidence": "ordinary_context_source_gate_20260917.json",
+    "production_commit": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+    "fixed_identity_ready": false,
+    "connection_identity_verified": true,
+    "fresh_production_dependency_refresh_required": true,
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0
+  },
+  "latest_local_owned_followup_candidate": {
+    "version": "v49-r6",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 905,
+    "evidence": "owned_followup_execution_20260917.json",
+    "manifest_sha256": "73da30da0e2aebcfec7fafd8453598af11c4337a5ef538f29d3ae79854d70a42",
+    "fixed_base_identity_unchanged": true,
+    "production_semantic_effectiveness_verified": false
+  },
+  "prior_native_runtime_gate_before_pending_object_confirmation": {
+    "candidate": "v49-r6",
+    "state": "native_owned_followup_execution_verified_production_identity_drift_blocked",
+    "evidence": "owned_followup_execution_20260917.json",
+    "frozen_modules": 16,
+    "transitive_dependencies": 60,
+    "synthetic_contracts_passed": 40,
+    "qa_contracts_passed": 10,
+    "shared_abc_contracts_passed": 9,
+    "ordinary_prepare_contracts_passed": 6,
+    "owned_followup_contracts_passed": 15,
+    "production_semantic_effectiveness_verified": false,
+    "required_before_production_seal": true
+  },
+  "latest_local_pending_object_candidate": {
+    "version": "v50-r3",
+    "state": "local_tested_reviewed_frozen_not_production_applied",
+    "related_tests_passed": 975,
+    "manifest_sha256": "0b30d0f39df03eeee14e9660252398454f434d8e233fea13850a11aecf23c8d0",
+    "evidence": "pending_object_confirmation_20260917.json",
+    "fixed_base_identity_unchanged": true,
+    "production_semantic_effectiveness_verified": false
+  }
+}

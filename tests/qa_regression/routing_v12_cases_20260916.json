@@ -1,0 +1,13 @@
+{
+  "schema": "bf.qa.targeted-cases.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "reviews": [
+    {"case_id":"TPL-V12-CONTROL", "question":"不需要查询现场数据。解释炉顶压力与透气性的关系，是否顶压上升就说明透气性差？", "expected":{"criteria":["zero tool calls", "top pressure controlled by setpoint and valve", "cannot infer permeability from pressure alone", "pressure drop and flow evidence needed"]}},
+    {"case_id":"TPL-V12-HEAT", "question":"不需要查询现场数据。提高风温后焦比和煤比是否一定下降？请说明判断条件。", "expected":{"criteria":["zero tool calls", "conditional heat balance", "oxygen PCI feed controls", "no automatic production action"]}},
+    {"case_id":"TPL-V12-KB-LIVE", "question":"请完整说明《三规二制》中高炉工长“1 工作前”的全部规定；查看当前炉顶压力是多少。", "expected":{"criteria":["original clauses 1.1 1.2 1.3", "formal source independent of tools and model", "actual pressure with unit and timestamp", "document_subtasks coverage"]}},
+    {"case_id":"TPL-V12-UNKNOWN-LIVE", "question":"请完整说明《不存在的正式规程》的全部条款；查看当前炉顶压力是多少。", "expected":{"criteria":["unknown formal source clarification", "no invented clauses", "actual pressure preserved", "overall partial"]}},
+    {"case_id":"TPL-V12-KB-USER", "question":"请完整说明《三规二制》中高炉工长“1 工作前”的全部规定；仅根据我提供的数值10、20、30计算平均值，不查询实时数据。", "expected":{"criteria":["original clauses 1.1 1.2 1.3", "mean 20 from user data", "zero external tools", "no production measurements"]}},
+    {"case_id":"TPL-V12-MIXED-CODE", "question":"查看当前炉顶压力是多少；再写一段Python查询代码。", "expected":{"criteria":["actual allowed query preserved", "code generation refused", "overall policy limited partial"]}},
+    {"case_id":"TPL-V12-ATOMIC", "question":"高炉工长在“5 操作指南 > 5.3 炉料结构和操作炉型”中，关于“煤粉”需要记住哪些关键要求？请按原文回答。", "expected":{"criteria":["unique original coal clause or accurate scope clarification", "zero tool/model calls", "no fabricated clause"]}}
+  ]
+}

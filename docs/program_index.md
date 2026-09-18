@@ -1,5 +1,58 @@
 # 程序索引
 
+## 8093 助手部署范围审计 / 2026-09-17
+
+`OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917`：[audit](../tools/audit_qa_release_baseline_readonly.py#L29) 使用实际 Git 范围、依赖/候选摘要和 HEAD/分支稳定性检查；[部署前门禁](../tools/remote_guarded_deploy_qa_routing_v3_8093.ps1#L193) 核对审计器摘要及固定 repo/branch。[合同、测试和生产只读证据](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
+## REQ-QA-LATEST-PREFETCH-REUSE-20260917 / V24
+
+[qa_verified_facts.py](../高炉前端数据/智能助手/backend/qa_verified_facts.py)新增`reusable_latest_read`；[qa_evidence_policy.py](../高炉前端数据/智能助手/backend/qa_evidence_policy.py)补代码承诺清理；[候选构建器](../tools/build_qa_v24_latest_candidate.py)从当前生产字节只修改代理`qa_mcp_should_use_tools`，其他497节点保留，本机旧代理不能覆盖生产。[3写/24读与生产版本证据](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。行号TODO-LINES。
+
+## REQ-QA-STATISTICAL-SCOPE-20260917 / REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
+
+[qa_verified_facts.py](../高炉前端数据/智能助手/backend/qa_verified_facts.py)的`cv_contract/render_cv/trend_context`校验统计适用性并限定时间尺度；[qa_task_plan.py](../高炉前端数据/智能助手/backend/qa_task_plan.py)的`_explicit_live_request`补单窗观察且保留说明/用户数据边界。代理候选从当前生产字节确定性构建，497其他AST节点不变；本机旧代理不得直接覆盖生产。[V22/V23实施与作用域](handoffs/2026-09-17-qa-v23-single-window-routing.md)。行号TODO-LINES。
+
+## REQ-QA-INITIAL-828-SEMANTIC-REVIEW-20260916：审阅结果验收
+
+[validate_qa_initial_828_review.py](../tools/validate_qa_initial_828_review.py)仅核对完成报告是否覆盖原待审828唯一题、首次result_sha256、五类语义状态及禁公开字段。实际语义审阅由用户指定的单个`gpt-5.6-luna`子智能体完成，不调用生产，不以关键词规则替代语义判断；当前审阅进行中。
+
+## REQ-QA-PAIRED-FAILURE-RETEST-20260916：失败题复测工具
+
+`prepare_qa_paired_failure_retest.py`冻结原题与模型/目录/程序身份；`start_qa_paired_failure_batch.ps1`复用独立启动器；`run_qa_template_batch.py`串行单发送claim与发送前版本门。`export_qa_paired_round_readonly.py`和`assemble_qa_paired_snapshots.py`有界导出/验证私有证据；`record_qa_v21_observations.py`冻结已独立审核的4题脱敏报告。现有报告拒绝覆盖，当前409题未发送；[权威范围与命令](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。
+
+## REQ-QA-EXCLUSIVE-USE-20260916：问答独占门（V21已发布）
+
+[qa_request_control.py](../高炉前端数据/智能助手/backend/qa_request_control.py#L135)在现有注册锁内检查所有未完成请求，先拒绝其他发送，再进入原问答。锁不覆盖模型等待；取消保持占用直到实际finally结束。[生命周期测试](../tests/test_qa_exclusive_use.py)与[实施记录](handoffs/2026-09-16-qa-exclusive-use-local.md)。V21生产字节/PID/CAS验收通过，真实角色与取消现场行为待测。
+
+## V20 指代趋势追问（2026-09-16）
+
+规划器新增“这个/那个/这些/它们/刚才/上面”指代识别，明确新对象仍优先当前问题。V19失败的30分钟追问现走确定性统计；真实五题与数据库只读来源各5/5通过，模型趋势解释被可信守卫拒绝单列。仅更新8093代理，模型配置不变；整体33项仍执行中。[权威证据](handoffs/2026-09-16-qa-routing-v20-production.md)。
+
+## V18–V19 多轮来源与适配器修复（2026-09-16）
+
+`mcp_conversation_context.load_owned_tool_context/bind_persisted_context/persist_owned_context_binding`统一来源门；代理在add_message后绑定ID。适配器兼容使用RETURNING ID。测试及只读核查工具见交接，符号行号TODO-LINES。 [权威证据](handoffs/2026-09-16-qa-routing-v18-v19-production.md)。
+
+## V17 历史复合执行入口（2026-09-16）
+
+`qa_history_compound.split_request/execute/model_messages/normalize_present/compose` 管理历史与非历史子任务；生产代理 JSON/两条 SSE 使用相同合成接缝。完成归一化复用已核验原文合同或实际最新工具事实，不根据非空答案升级。[权威实施](handoffs/2026-09-16-qa-routing-v17-production.md)，符号行号 TODO-LINES。
+
+## 智能助手V15当前实现（2026-09-16）
+
+原文独立完整性门`qa_document_integrity.inspect/inspect_selected_scope`；多章节逐项完成`qa_document_knowledge._original_subsections`；最新读取及无效时钟窗口继承门`mcp_conversation_context.update_tool_context`。符号行号TODO-LINES。新增版本元数据统一在`tools/qa_routing_release_extensions.json`定义并由现有冻结发布器消费；仍要求精确三目标部署和远端只读验证。证据：[V15生产交接](handoffs/2026-09-16-qa-routing-v15-production.md)。
+
+## 智能助手V10–V14当前实现（2026-09-16）
+
+`REQ-QA-FULL-ISSUE-INVENTORY-20260916`：制度原文复合隔离`qa_document_compound`、可读失败证据`qa_tool_fallback`、两条消息投影`qa_response_projection`、已登记单位血缘/缺项终态`qa_verified_facts`、DAG依赖完整性`CrossSourcePlan`。符号行号TODO-LINES。
+生产代理差分必须复用`build_qa_routing_v11/v12/v13_candidate.py`及已接受生产快照，不能上传本机旧完整代理。
+当前合同及验证见[V10–V14交接](handoffs/2026-09-16-qa-routing-v10-v14-production.md)。
+
+## 智能助手证据优先回归集
+
+- `tools/qa_regression.py`：只读校验用例和合成夹具，生成规范用例列表，评分由可信收集器提供的候选运行记录；不连接模型、生产接口或数据库。
+- `tests/qa_regression/cases.v1.json` / `fixtures.v1.json`：问答合同与合成数据的唯一机器权威；`run.example.json` 仅演示格式。
+- `tests/test_qa_regression.py`：评分器的正反例及防误报检查。
+- 需求与边界：[回归集维护说明](../tests/qa_regression/README.md)，REQ-QA-EVIDENCE-FIRST-REGRESSION-20260915。
+
 ## 罐重设定 sensor_registry 登记
 
 - `tools/register_hopper_weight_set_points.py`：从正式 TSV 读取南北探尺、11 个罐重设定物理
@@ -1028,3 +1081,333 @@
 
 修改风险：ABC目录、因子公式或旧YAML变化后必须重新生成并验证；不得手工修改生成文件后不更新生成器。
 原8类历史实现缺失期间，禁止把硬门和Resolver语义从推测写成确定事实。
+
+## REQ-QA-ROUTING-ASSISTANT-UPDATE-20260916
+
+| 程序/合同 | 职责 | 修改风险 |
+|---|---|---|
+| [qa_task_plan.py](../高炉前端数据/智能助手/backend/qa_task_plan.py) | 在知识和工具路由前拆分指令/引文并生成来源、预取和工具域计划 | 新工具必须先归入证据域；未知写工具不得默认归为只读实时域 |
+| [qa_evidence_policy.py](../高炉前端数据/智能助手/backend/qa_evidence_policy.py) | 统一普通回答目标，保留数学和数据分析，阻止代码生成/执行 | 不能用任意 Markdown 围栏作为代码判据；混合回答不能整段抹除 |
+| [qa_evidence_claims.py](../高炉前端数据/智能助手/backend/qa_evidence_claims.py) | 对象/统计字段数值绑定和显示精度舍入 | 增加别名时要防同值跨对象误认；单位和时间尚未在此模块校验 |
+| [build_qa_routing_candidate.py](../tools/build_qa_routing_candidate.py) | 对精确 V2 生产基线应用可审查修改并输出本机 V3 候选 | 基线哈希变化必须停止并重新审查，不能放宽哈希门禁 |
+| [evaluate_qa_task_plan_contracts.py](../tools/evaluate_qa_task_plan_contracts.py) | 验证公开模板与合成反例的确定性路由合同 | 不得将线上原始答案、身份、生产数值或 oracle 传给模型 |
+| [run_qa_failed_retest_once.py](../tools/run_qa_failed_retest_once.py) | 对人工确认失败题执行逐题 claim、单次生产 SSE 和无重放核算 | 原始回答仅写入 Git 忽略目录；明确或不确定的已发送题均不得自动重发 |
+
+生产已记录为 `70b36c52c2ccddb1fa08429fc0fe6455cfff4ba9`。完整边界、16 题脱敏审阅和
+下一轮修复项见 [QA 路由 V3 生产更新与复测](./handoffs/2026-09-16-qa-routing-v3-production-and-retest.md)。
+
+### REQ-QA-FULL-ISSUE-INVENTORY-20260916 / QAOPT-R03
+
+| 程序/合同 | 职责 | 修改风险 |
+|---|---|---|
+| [qa_entity_resolution.py](../高炉前端数据/智能助手/backend/qa_entity_resolution.py) | 展开共享前缀列表、字母范围和成对对象，返回有序 canonical ID | 只允许显式审查的别名/范围；未知对象不得生成虚构ID |
+| [build_qa_routing_v4_candidate.py](../tools/build_qa_routing_v4_candidate.py) | 从已验收V3精确哈希生成V4候选，并将解析结果接入执行器 | 基线不符立即停止；不能顺带重写代理主文件其他逻辑 |
+| [build_qa_remediation_execution_ledger.py](../tools/build_qa_remediation_execution_ledger.py) | 校验33项状态覆盖并生成可核对执行台账 | 状态必须来自测试/生产证据，不能把计划标成已解决 |
+| [qa_time_window_plan.py](../高炉前端数据/智能助手/backend/qa_time_window_plan.py#L40) | QAOPT-R04固定锚点、两窗及基线工作流与确定性答案 | 基线质量门不能替代炉况报警；不得合并成单窗 |
+| [qa_report_workflow.py](../高炉前端数据/智能助手/backend/qa_report_workflow.py#L73) | QAOPT-R05目录→选定→正文→摘要摘录 | 依赖失败停止；目录、历史报表及实时数据分开 |
+
+V4构建器新增准确生产MCP SHA-256绑定与字符截断差分。本机旧代理/MCP不作整文件生产候选，细节见[V4交接](handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md)。
+## QA V8/V9 当前验收增量（2026-09-16）
+
+`qa_document_knowledge.execute_document_question/_original_subsection`：核验正式文档、唯一编号/标题范围及完整块分页；`qa_prompt_sources.build_source_messages`：保留允许证据与原prompt目标；`qa_evidence_policy.apply_request_boundary/boundary_result`：混合请求仅代码受限。`tools/build_qa_routing_v9_candidate.py`仅从已接受V8字节构建；发布模板支持V3至V9。符号行号TODO-LINES。见[V8/V9交接](handoffs/2026-09-16-qa-routing-v8-v9-production.md)。
+
+## QA V5 程序索引（2026-09-16，候选）
+
+- `backend/qa_history_projection.py::fetch_owned_history/history_outcome`：已认证owner限定SQL、排除当前消息、历史摘录投影。
+- `backend/qa_model_readiness.py::resolve_resident/public_error_fields`：允许驻留模型的有限只读复核、明确依赖阻断。
+- `tools/build_qa_routing_v5_candidate.py`：以准确V4生产字节构建七文件差分候选。
+- `prepare_qa_routing_v3_release.py`及三个受控发布脚本：兼容V3/V4/V5精确写集，不覆盖共享配置。
+
+以上backend路径相对`高炉前端数据/智能助手`；需求及测试见[V5交接](handoffs/2026-09-16-qa-routing-v5-local-candidate.md)。
+
+## QA V6程序索引（2026-09-16，候选）
+
+- `qa_verified_facts.py::EvidenceItem/prefetch_outcome/temperature_comparison`：对象/时间/来源/单位范围、确定性均值差及质量缺项。
+- `qa_completion.py::complete_model_response/public_completion`：JSON/SSE共用一次同请求压缩补答、独立完成状态。
+- `qa_history_projection.py::fetch_owned_history`：历史检索生成答案排除和回答角色过滤。
+- `mcp_conversation_context.py::update_tool_context`：明确追问继承、主题切换/过期重置、旧数值证据不复用。
+- `tools/build_qa_routing_v6_candidate.py`：精确V5生产代理补丁；发布脚本V6为五文件精确写集。上述backend路径相对`高炉前端数据/智能助手/backend`，定位行号TODO-LINES；[权威证据](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。
+
+## V25智能助手更新与首次全题统计（2026-09-17）
+
+状态：V25已部署；首次1233题判定已合并。最新权威方案见 [33项优化与核对方案](handoffs/2026-09-17-qa-full-optimization-plan.md)。
+
+明确钟点/跨午夜窗口不回落最近一小时，历史记录和质量保留；18点绘图已进入正确路由，但生产工具只返回16点且生命周期降级遗漏图，仍待修复。
+
+本机159检查、14黄金题结构、4写24读/490 AST/22标记、8093受控发布和CAS通过。新版822原失败/部分题复测只发1题且失败，821题证明未发。首次完整正确269/可判1091=24.66%，不能报告优化后全量准确率。
+
+## V26图表证据修复及固定模型复测（2026-09-17）
+
+状态：V26已部署，174本机检查和独立审查通过；822原失败/部分题发送前因Qwen身份变化拦截，零发送。线上语义修复效果未确认。
+需求：REQ-QA-CHART-COVERAGE-20260917、OPS-QA-FIXED-MODEL-WINDOW-20260917。
+最新权威来源：[V26部署与固定模型复测方案](handoffs/2026-09-17-qa-v26-model-window.md)、[33项优化方案](handoffs/2026-09-17-qa-full-optimization-plan.md)、[V26生产哈希](../tests/qa_regression/routing_v26_production_20260917.json)、[822未发题证据](../tests/qa_regression/routing_v26_unattempted_dependencies_20260917.json)。
+执行器见 [窗口owner](../tools/run_qa_fixed_model_window.ps1)、[独立启动器](../tools/start_qa_fixed_model_window.ps1)、[只读准备器](../tools/prepare_qa_fixed_model_window.py)；11项真实控制流/截止预算隔离测试通过，另有8项身份/续跑合同回归通过。窗口仅本机准备，计划任务操作尚未授权执行；继续保留V25历史记录，不以非空答复计算正确率。
+
+## 历史：模型恢复稳定性本机候选（2026-09-17，已取代）
+
+需求OPS-QA-MODEL-REPAIR-STABILITY-20260917，关联QAOPT-O01。健康批准驻留优先、候选失败alias/state恢复、最长15分钟冷却、暂停失败恢复责任及Switch实际alias回滚已形成r2本机候选；32其他函数和顶层mutex/dispatch保持，26隔离回归与独立代码审查通过，未部署管理器。
+当前生产仍为V26，822失败/部分题均未发送。真实任务/模型验收和管理器变更独立授权仍待完成；本机检查不等同线上语义成功。
+权威来源：[候选和26项证据](handoffs/2026-09-17-qa-model-repair-stability.md)、[候选冻结元数据](../tests/qa_regression/model_repair_stability_candidate_20260917.json)、[构建器](../tools/build_qa_model_repair_candidate.ps1)、[聚焦回归](../tests/test_qa_model_repair_policy.py)。
+
+## REQ-QA-SINGLE-BASE-MODEL-20260917：固定同一底座
+
+状态：本机候选52项检查及独立审查通过，未部署；生产仍V26。唯一e4ad74…底座，Switch/替代fallback禁用，每次模型POST与复测plan核验相同digest；旧双批准池窗口已停用。恢复任务仍曾自行漂移版本0，不能声称生产已锁定。管理器/计划任务维护独立授权，安装失败不能再启用旧切换策略。
+当前合同：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)。[最初候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)是历史快照，其安装器哈希不代表本轮候选；本轮任务由[完整修复提示词](handoffs/2026-09-17-model-identity-repair-agent-prompt.md)约束，最终本机候选及测试见[实施报告](handoffs/2026-09-17-model-identity-repair-implementation.md)。前代r2批准fallback候选仅保留历史复现，禁止部署。
+
+## REQ-QA-STATISTICS-EVIDENCE-20260917：V28统计证据与答复
+
+状态：本机候选，生产仍为V26；最后核对2026-09-17。关联QAOPT-E01/E02/E03/E04/E05。
+V28保留固定同一底座身份检查，仅修复统计预取、证据完整性和确定性答复三个函数。完整保留stddev/单位/质量及来源窗口；非零微量不舍入成0；缺单位仅继承现有精确合同并披露，Held端点不证明整窗质量或炉况稳定。直接答复同样校验请求对象、来源和时间窗，未核实不得输出正式STDDEV/CV/趋势。没有新增API或配置，不改模型、生产数据库或ABC33合同。
+权威：[实施、回归及未完成项](handoffs/2026-09-17-qa-v28-statistics-evidence.md)、[机器检查证据](../tests/qa_regression/statistical_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_statistics_evidence.py)。本机通过不得写成线上准确率提高；822原失败/部分题尚未发送。
+
+## REQ-QA-FINAL-COMPLETION-20260917：V29最终答复完成状态
+
+状态：本机r2候选、92项聚焦回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E05/O04/T03。
+统一识别模型截断、未知终止、空答案和末行空标题；工具后解释未完成时保留事实并标部分，MCP降级仍最多一次无工具回合。普通免工具问答保留原有一次有界补答；JSON/SSE核对实际最终answer，图表/文档追加不能擦除已记录的空标题。固定底座、V28统计合同及其他AST保留，无新增配置、工具重试或数据库变更。
+权威：[实施、实际检查及剩余边界](handoffs/2026-09-17-qa-v29-final-completion.md)、[候选机器证据](../tests/qa_regression/final_completion_candidate_20260917.json)、[真实函数回归](../tests/test_qa_final_completion.py)。处理器接缝为AST与合同检查，尚未执行线上处理器/822原题语义验收；这些问题未销项。
+
+## REQ-QA-WINDOW-QUALITY-20260917：V30质量窗口证据
+
+状态：本机r2候选、独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E02/E04/E06。
+数据库在原统计SELECT同一tag/窗口中追加质量计数，非空数值为分母，空值行单列；原参数、查询次数和数值公式保持。pSpace/派生只声明实际返回样本，不声称整窗完整。质量总和、类型、schema/basis及请求窗口必须匹配，未知标签不猜测为Good，不由Held/Bad或派生标记判正式稳定/风险等级。固定同一底座与V29完成状态保持，没有新配置或数据库迁移。
+权威：[实施、质量范围与验收边界](handoffs/2026-09-17-qa-v30-window-quality.md)、[机器证据](../tests/qa_regression/window_quality_candidate_20260917.json)、[实际MCP函数回归](../tests/test_qa_window_quality.py)。本机合同尚未在真实数据库或原822题验证，不标线上有效或销项。
+
+
+## REQ-QA-RENDERER-CONTRACT-20260917：V31答复格式与字段兼容
+
+状态：本机冻结候选、126项相关回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E02/E03/E05。
+传感器字符串列表按实际工具拆分、去重，保持80个上限，请求与外层结果规范化列表必须一致；顶层字符串和非字符串项不放宽为合法调用。单位仅从明确元数据绑定继承规范合同并披露，原单位优先、不换算或猜描述。异常结果容器逐项明示并保留相邻有效事实；对象、来源、只读策略与窗口门禁保持。仅修改一个代理函数和统计证据模块，无新增API、配置、工具或模型回合，固定同一底座保持。
+权威：[确认缺陷、程序与未完成验收](handoffs/2026-09-17-qa-v31-renderer-contract.md)、[机器回归证据](../tests/qa_regression/renderer_contract_candidate_20260917.json)、[实际冻结函数回归](../tests/test_qa_renderer_contract.py)。本机通过不能用于线上准确率或问题销项；禁切换管理器安装、8093部署及822原题复测仍待完成。
+
+
+## REQ-QA-LATEST-EVIDENCE-20260917：V32最新值与完成合同
+
+状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
+程序：[最新值门禁 qa_statistical_evidence.py:L212](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L212)、[逐字段披露:L236](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L236)、[直接工具完成合同:L286](../高炉前端数据/智能助手/backend/qa_statistical_evidence.py#L286)、[事实预取 qa_verified_facts.py:L101](../高炉前端数据/智能助手/backend/qa_verified_facts.py#L101)。候选仅修改代理两个及事实三个函数，其他AST与MCP/固定底座/完成/质量模块保留。
+权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+## 2026-09-17：只读审计及制度源解析
+
+程序：[启动只读连接:L59](../tools/qa_readonly_pg.py#L59)、[SELECT封装:L46](../tools/qa_readonly_pg.py#L46)、[数据库来源诊断:L52](../tools/probe_qa_readonly_pg.py#L52)、[源DOCX元数据审计:L12](../tools/audit_qa_source_docx_readonly.py#L12)、[整行标题识别:L149](../tools/build_three_rules_hierarchical_kb.py#L149)。四个审计入口迁移，manifest输出使用白名单；源解析只改变类别/标题分界，不改条款原文。151项及独立审查通过，生产知识库/代理尚未更新。
+权威：[确认缺陷、发布范围与未验证项](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。
+
+## REQ-QA-SOURCE-SCOPE-20260917：独立源校验程序
+
+程序：[独立OOXML源范围及item/chunk绑定](../tools/qa_source_scope_contract.py)、[私有keyword候选冻结](../tools/freeze_qa_source_scope_candidate.py)、[精确岗位/规程源解析](../tools/build_three_rules_hierarchical_kb.py)。符号行号TODO-LINES。校验器不调用builder抽取函数；标题政策数据显式共享，非语义oracle。私有文件不能覆盖或公开上传，冻结使用同一BytesIO校验身份与解析。
+权威：[实现、实际检查和未完成发布](handoffs/2026-09-17-qa-independent-source-scope.md)、[脱敏证据](../tests/qa_regression/source_scope_candidate_20260917.json)。202项及独立审查通过，生产知识库未变。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：源绑定及发布准备
+
+程序：[固定源绑定、确定性keyword行和准备/DB入口](../高炉前端数据/智能助手/backend/qa_knowledge_source_binding.py)、[私有单文档计划准备器](../tools/prepare_qa_keyword_source_release.py)、[增量归档/绑定表DDL候选](../schema/20260917_qa_keyword_source_release.sql)。符号行号TODO-LINES。纯模块及准备器不连接DB/模型，不发布；已补齐所有实际检索字段及可选解析源元数据检查。
+权威：[初次审查缺口、修复和执行器待办](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[253项及冻结证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。读取器尚未接入，生产未更新。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：事务库与只读依赖入口
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+程序：[调用者新连接事务库](../tools/qa_keyword_source_transaction.py)、[启动只读目录依赖探针](../tools/probe_qa_keyword_source_dependencies_readonly.py)。符号publish、rollback_release、recover_release、_begin、_schema；行号TODO-LINES。库不获取连接或凭据，不执行SSH或模型调用；生产入口尚未实现。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：受控执行入口
+
+状态：2026-09-17本机验证，生产未执行。
+新增[plan/publish/rollback/recover入口](../tools/qa_keyword_source_release_entry.py)，符号load_contract/_connection/_claim/run/main（TODO-LINES）。实例与配置核验、独占执行记录和恢复委托；不调用pool/schema初始化/模型，不创建DDL表。
+当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。
+
+
+## REQ-QA-ORIGINAL-SOURCE-READER-20260917：制度原书读取门禁
+
+状态：2026-09-17本机验证/复审并冻结，生产未接入。
+
+[单语句读取门禁](../高炉前端数据/智能助手/backend/qa_knowledge_reader_source_gate.py)的SNAPSHOT_SQL/projection/verify与[公开执行入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:360)使用同一帧；内部选择函数仅在已核快照内组织原文，层级测试不替代公开入口。新gate符号行号TODO-LINES。
+
+当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+[读取器](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:133)新增_requested_chapters；_regulation_scopes第189行、_chapter_coverage第210行，公开execute_document_question第463行。纯确定性选择不增加SQL/模型；旧V33源门禁及其他9候选文件字节保留。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+[作用域字面保护](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:120)、[规程范围](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:207)、[覆盖门](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:258)、[原子选择](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:280)、[公开入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:575)。其余9候选文件与V34逐字节相同。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+[resolve身份入口](../高炉前端数据/智能助手/backend/qa_fixed_model_identity.py:30)在回调前拒绝非硬编码pin；版本qa-fixed-model-identity-v2。V36继承V35其余9文件，完整源门禁/规程分页代码逐字节相同；代理每轮和fallback仍重新核验。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+[任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py:404)、[制度入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:582)、[制度复合](../高炉前端数据/智能助手/backend/qa_document_compound.py:13)、[历史计划](../高炉前端数据/智能助手/backend/qa_history_compound.py:54)、[历史选择词](../高炉前端数据/智能助手/backend/qa_history_projection.py:16)及[候选生成器](../tools/build_qa_compound_scope_candidate.py:55)为变更入口。冻结代理只改3个谓词，反向恢复后其余AST一致，22项共享功能标记保留。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+[code_requested](../高炉前端数据/智能助手/backend/qa_evidence_policy.py:56)局部区分数学名词；[生成器](../tools/build_qa_math_function_candidate.py:13)只更新policy，冻结15文件中14文件与V37一致；实际代理qa_answer_route未修改。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+[user_data_scope](../高炉前端数据/智能助手/backend/qa_task_plan.py:269)与live_query_text限定外部来源；[生成器](../tools/build_qa_user_data_scope_candidate.py:26)对实际冻结代理施加6处可逆接缝，13文件逐字节继承V38；alias、时窗、时钟、分析扩展和实体冻结均使用外部子任务。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-DECLARED-INPUT-SCOPE-20260917：声明输入与现场核验
+
+状态：2026-09-17本机327项相关回归/独立审查通过，V40-r2冻结，生产未应用。
+
+[_declared_input_clause](../高炉前端数据/智能助手/backend/qa_task_plan.py:308)区分声明、字面值、数值核验及时间；[_explicit_live_request](../高炉前端数据/智能助手/backend/qa_task_plan.py:364)保留当前数值问句。冻结[生成器](../tools/build_qa_declared_input_candidate.py:13)仅替换task_plan，15文件中14继承V39。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
+
+
+## REQ-QA-RESPONSE-STYLE-SOURCE-SCOPE-20260917：回答形式与资料来源
+
+状态：2026-09-17本机395项相关回归/独立审查通过，V41-r1冻结，生产未应用。
+
+[任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py:404)仅调整VERSION与_DOCUMENT_TERMS；[冻结生成器](../tools/build_qa_response_style_candidate.py)15文件中14继承V40。实际制度入口和代理外层MCP选择均有回归。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-CONCEPT-SCOPE-20260917：来源概念与具体记录
+
+状态：2026-09-17本机436项相关回归/独立审查通过，V42-r1冻结，生产未应用。
+
+[_conceptual_source_clause](../高炉前端数据/智能助手/backend/qa_task_plan.py:249)过滤概念子句；[任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py:404)保留实际历史/报表子任务。[生成器](../tools/build_qa_source_concept_candidate.py:13)15文件中14继承V41。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-EXCLUSION-SCOPE-20260917：来源排除与子任务继承
+
+状态：2026-09-17本机498项相关回归、原源保真及独立审查通过，V43-r6冻结，生产未应用。
+
+[来源约束](../高炉前端数据/智能助手/backend/qa_task_plan.py:202)、[具名书目](../高炉前端数据/智能助手/backend/qa_task_plan.py:213)、[继承](../高炉前端数据/智能助手/backend/qa_task_plan.py:231)和[正式入口](../高炉前端数据/智能助手/backend/qa_document_knowledge.py:582)构成读前校验。冻结15文件，4个修改/11个继承V42，代理字节不变。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SUPPLIED-RECORD-SCOPE-20260917：已给记录数据与来源核验
+
+状态：2026-09-17本机546项相关回归、原源保真和独立审查通过，V44-r2冻结，生产未应用。
+
+[_declared_input_clause](../高炉前端数据/智能助手/backend/qa_task_plan.py:308)识别来源核验；[任务计划](../高炉前端数据/智能助手/backend/qa_task_plan.py:404)不从纯声明子句生成外部来源意图。冻结15文件，14个继承V43，代理和所有其他模块不变。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+[身份判定](../tools/probe_qa_paired_runtime_readonly.py:24)、[路径边界](../tools/probe_qa_paired_runtime_readonly.py:13)、[metadata探测](../tools/probe_qa_paired_runtime_readonly.py:37)只读核验固定摘要；不上传远端源码、不生成或切换模型。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+[实际请求绑定](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:67)、[准备绑定](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:56)、[缓存版本](../高炉前端数据/智能助手/backend/qa_prompt_binding.py:20)由确定性候选构建器注入已审查proxy边界；不重建或覆盖旧单体。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+tools/qa_full_candidate_probe.py负责RAM源加载、只读I/O边界、执行源哈希及完整合成Handler合同；tools/build_qa_full_candidate_probe.py绑定最新冻结manifest/probe SHA并OEXCL生成私有脚本；tools/verify_qa_full_candidate_probe.py校验完整证据并导出59项传递依赖read_set，不授予部署授权。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+build_qa_sensor_context_candidate.py只改冻结prepare；完整探针统计sensor读取、归档次数及证据隔离，校验器拒绝缺证据。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+probe_qa_shared_proxy_delta_readonly证明全AST差异仅3函数/1导入；build_qa_shared_proxy_candidate按类作用域保留字面量；完整探针执行前校验2共享依赖pin。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+qa_task_plan.sensor_context_policy和bound_rule_context_requested新增2辅助函数；build_qa_ordinary_context_candidate只修改冻结proxy的prepare/build_hidden组装并证明其他全AST不变。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V50测点确认和准备权限顺序（2026-09-17）
+
+REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅由整句精确目录别名确认，保留目标/窗口并重新取数；解析在全部sensor读取之前执行。有效确认也不注入通用传感器；失效、跨会话及页面禁工具关闭预取和来源。两新增纯函数、prepare单函数变更与14模块逐字节继承通过冻结检查；55原生只读合成合同通过，实际取数/最终回答/并发和部署未验收。
+
+[实施/复现/剩余门](handoffs/2026-09-17-qa-pending-object-confirmation.md)；[机器证据](../tests/qa_regression/pending_object_confirmation_20260917.json)。无关Git提交按路径范围保留；固定底座检查独立，33项不销项。
+
+## V49对象追问执行（2026-09-17）
+
+qa_task_plan.resolve_owned_followup新增纯辅助函数；build_qa_owned_followup_candidate修改冻结proxy七函数并证明剩余全AST/14模块不变，任务计划穿透同步/异步MCP和提示词来源层。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。
+
+## QA发布预检与停服前模型身份（2026-09-17）
+
+record_qa_release_preflight.validate_preflight_evidence严格绑定auditor与git_record_guard证据；remote_guarded_deploy_qa_routing_v3_8093.Assert-FixedModelIdentity仅GET固定身份，在外层/锁内停服前及恢复后执行。
+
+关联REQ-QA-RELEASE-PREFLIGHT-BINDING-20260917、REQ-QA-PRESTOP-FIXED-MODEL-GATE-20260917；[真实行号、范围与验证](handoffs/2026-09-17-qa-release-preflight-and-model-gates.md)。不修改模型恢复任务，不证明生产已固定。
+
+## 固定底座管理器生产安装（2026-09-17）
+
+OPS-QA-SINGLE-BASE-GUARD-INSTALL-20260917：install_qa_single_base_manager.Invoke-ManagerAtomicReplace 使用明确备份路径；unload_qa_unapproved_resident_once.Assert-UnapprovedResidentUnloadBoundary 只为另行授权的单次错误驻留卸载准备；prepare_qa_single_base_failure_retest.freeze 绑定 822 原题、原结果和当前源码，零发问。
+
+核对位置：[原子替换](../tools/install_qa_single_base_manager.ps1#L49)、[卸载边界](../tools/unload_qa_unapproved_resident_once.ps1#L16)、[原题计划生成](../tools/prepare_qa_single_base_failure_retest.py#L17)；[生产读回、12项真实文件替换回归及56项卸载边界回归](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。源码已安装，实际驻留仍未恢复，生产应用仍为 V26。
+
+## 静默原题 supervisor（2026-09-18）
+
+OPS-QA-QUIET-ORIGINAL-RETEST-20260918：[run_qa_single_base_background.run](../tools/run_qa_single_base_background.py#L113) 封存验证、GET等待及一次batch；[start_qa_single_base_background](../tools/start_qa_single_base_background.ps1#L41) 用唯一claim和WMI创建独立pythonw。复用既有batch/collector，未修改生产助手代码或模型配置。
+
+[真实远端启动与状态来源](handoffs/2026-09-18-qa-quiet-background-retest.md)。
+
+## 指定底座连贯恢复（2026-09-18）
+
+OPS-QA-RESTORE-FROZEN-BASE-20260917：[restore_qa_frozen_base_once](../tools/restore_qa_frozen_base_once.ps1) 中Assert-RestoreBoundary/Wait-RestoreEmpty与一次性claim用于已授权、已核验后来重载驻留的单次退出及冻结Repair。等待只读GET，不重试POST、不重放claim、不删权重、不启停服务。符号行号TODO-LINES。
+
+[审计、独立复核及8094依赖边界](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)；[实际AST回归](../tests/test_qa_frozen_base_restore.py)。
+
+## V51给定数值数组来源（2026-09-18）
+
+REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：[instruction_clauses](../高炉前端数据/智能助手/backend/qa_task_plan.py#L192)保护完整数组；[_declared_input_clause](../高炉前端数据/智能助手/backend/qa_task_plan.py#L329)识别提供值并拒绝查询/引文/候选问句。外部来源与owner上下文规划不改。[冻结器](../tools/build_qa_numeric_vector_candidate.py#L18)核验V50摘要、15模块逐字节继承及两函数AST边界。
+
+[验证与未部署边界](handoffs/2026-09-18-qa-numeric-vector-scope.md)；[回归](../tests/test_qa_numeric_vector_scope.py#L31)。生产仍V26，原题复测收齐822/822，未审阅最终答案。

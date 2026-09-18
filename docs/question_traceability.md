@@ -1,5 +1,18 @@
 # 问题核查追踪
 
+## REQ-QA-EXCLUSIVE-USE-20260916：多角色并发限定
+
+按用户最新限定改为8093全角色共用一个活动问答名额，其他发送409使用中；不排队、不自动重放，取消实际停止才释放。9项独占测试、35项关联回归及独立审查通过；本机已实施，生产尚未更新，QAOPT-O05保留生产待验收。[记录](handoffs/2026-09-16-qa-exclusive-use-local.md)。
+
+## Q-QA-QWEN-READINESS-CONCURRENCY-ORACLE-20260916
+
+- 用户问题：模型驻留波动、多角色并发和知识标准冲突如何解决；要求允许Qwen驻留。
+- 本轮只读核对：业务别名模型family=qwen35，实际已驻留并在8093允许清单内；健康API本次正常。
+- 诊断更正：前轮model_ok临时false不足以证明模型卸载。当前resolve_resident将查询异常替换为空列表，应分开probe_timeout/failed与成功查询缺席。
+- 方案：准确就绪分类及按能力检查依赖、批准Qwen身份/驻留与有界推理队列、owner及共享访客多角色矩阵、30项oracle版本化逐题修正；803原文覆盖不等于全语义通过。
+- 权威方案：[2026-09-16 Qwen/并发/oracle解决方案](handoffs/2026-09-16-qa-qwen-readiness-concurrency-oracle-plan.md)。关联QAOPT-O01/O05/T02/T04。
+- 本轮无生产修改或新问答POST，后续实施按受控发布与独立答案核查。
+
 ## Q-FOREMAN-CURVE-POINT-MAPPING-20260814
 
 - 用户问题：工长趋势中部分曲线和传感器数值没有完全对应，要求重新核查正式点位清单。
@@ -1623,3 +1636,38 @@ AO/PBR？
 - 边界：ABC33是当前代码的直接导出；原8类普通公式按现存YAML还原，硬门与最终主次Resolver没有
   足够本地代码证据，手册明确标注未核实而没有猜测。
 - 验证：8+33章节完整，PDF 55页、约1.46MB，封面、B4和C11页面视觉检查通过；没有连接或修改220.12。
+
+## Q-QA-VERIFIED-ISSUE-PLAN-20260917
+
+- 用户问题：统计全部智能助手问题，并给出逐条可核对的路由与助手完善方案。
+- 关联需求：REQ-QA-FULL-ISSUE-INVENTORY-20260916。
+- 答复入口：[全量统计与实施方案](handoffs/2026-09-17-qa-verified-issue-plan.md)。
+- 可核对产物：[1418条索引与机器统计](../tests/qa_regression/verified_inventory_20260917.json)、[33项验收清单](../tests/qa_regression/verified_optimization_checklist_20260917.md)、[20类语义标签与9题待归类清单](../tests/qa_regression/semantic_issue_crosswalk_20260917.md)。
+- 验证：对账脚本核对1233条最终判定、分母恒等式、唯一ID和原结果哈希；14条金标结构校验通过。生产仅作Reliable SSH只读核查，V26恢复批次显示发送0、模型身份门禁阻断，不能报告新版全量准确率。
+- 边界：保留初次不确定发送题，禁止自动重放；模型及其他服务变更另按授权；本次统计与方案不改变生产。
+
+## Q-QA-LOCKED-QWEN38-LINEAGE-20260917
+
+- 用户问题：启动独立子智能体调查模型频繁切换，并确认 220.12 是否有 Qwen3.8 约 27B、锁定底座是否来自该模型。
+- 结论：已实际读取冻结 `31629f…` GGUF 的 `general.name=Qwen3.8-27B`；冻结版本 `:1/e4ad…` 仍存在。另一份 `:0/9111…` 的 API 来源标记为 `qwen3.5:27b`，不能以同名 `latest` 或 `qwen35` 架构标记混同底座。
+- 证据与边界：[来源核验](handoffs/2026-09-17-locked-qwen38-lineage-verification.md)、[固定底座合同与候选](handoffs/2026-09-17-qa-single-base-model-policy.md)。来源记录支持固定 GGUF 导入；业务微调血缘未核实。
+- 验证：Reliable SSH 读取 API、manifest/config 和 GGUF 头部/元数据，并核对固定上游 revision 文件摘要；未加载、切换或删除模型。[独立调查](handoffs/2026-09-17-model-identity-switch-independent-audit.md)确认每分钟 Repair 在后续检查失败后跨底座 fallback、成功前不写期望状态的循环。五组固定身份合同61项本机回归通过，生产永久锁定尚未验收。
+
+## Q-QA-MANAGER-PRODUCTION-INSTALL-20260917
+
+- 用户要求：完成生产安装，然后复测线上回答效果。
+- 已实施：新管理器独立安装成功，读回完整摘要与候选一致；受保护服务 PID 不变。r4 安装器缺陷替换前失败，经真实原子替换回归及独立审查修复，以新 r5 操作成功安装，未重放旧操作。
+- 剩余边界：实际旧错误驻留尚未恢复；11434 单次卸载与冻结底座预热另行明确授权后执行。822 原题计划已重新按单一 e4、当前生产源码和原题/结果摘要绑定准备，尚未发问，不能报告新的准确率。
+- 权威证据：[生产安装、失败记录与复测边界](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。
+
+## Q-QA-QUIET-ORIGINAL-RETEST-20260918
+
+- 用户要求：启动程序，让远程服务器默默复测原题。
+- 实施：独立隐藏后台进程PID9808已实际启动；822原失败/部分题封存，当前GET-only等待唯一锁定底座。源/目录漂移及发送不确定停止，不重启或重放，正常等待/运行无过程通知。
+- 边界：不将启动程序解释为11434卸载恢复授权；当前错误驻留未纠正，发题为0。生产助手应用仍V26。
+- 证据：[启动、检查、进度与静默跟进](handoffs/2026-09-18-qa-quiet-background-retest.md)。
+
+## Q-QA-AUTHORIZED-BASE-RESTORE-20260918
+
+- 用户明确允许底座恢复；范围为既定e4的驻留和latest别名恢复，不更换权重，不删除模型，不停启服务。
+- 生产CIM禁用状态码1兼容修复、单次卸载效果的只读恢复、新生产请求重载与连贯恢复证据见[授权恢复记录](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)。恢复后继续现有822原题进程，不能重复启动或重放状态不确定题。
