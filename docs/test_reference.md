@@ -3546,3 +3546,9 @@ BUG-QA-ATOMIC-REPLACE-NULL-BACKUP-20260917：test_qa_manager_atomic_replace.py �
 OPS-QA-QUIET-ORIGINAL-RETEST-20260918：test_qa_single_base_background.py **36 passed/0.38秒**，覆盖严格身份、布尔状态、状态查询期间漂移、原题排除、source/目录漂移、等待零调用、停止、不重复执行以及三次稳定观察只启动一次合成batch。全为无网络合成夹具。
 
 [JUnit、PowerShell检查、Python3.11服务器只读编译及真实PID](handoffs/2026-09-18-qa-quiet-background-retest.md)。实际822问答尚未发送，不能将36回归计为线上成功。
+
+## 已授权恢复的CIM兼容与连贯退出（2026-09-18）
+
+BUG-QA-CIM-TASK-STATE-20260918：[卸载边界回归](../tests/test_qa_unapproved_resident_unload.py) **61 passed/42.37秒**；严格Disabled/1且布尔false，拒绝未知、运行、排队及非布尔字段。OPS-QA-RESTORE-FROZEN-BASE-20260917：[实际AST边界与退出等待](../tests/test_qa_frozen_base_restore.py) **15 passed/11.13秒**，等待仅GET，耗尽及身份改变拒绝，无模拟中的模型POST。
+
+[生产审计、独立审查与线上原题边界](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)。76本机合同检查不计入原题准确率。

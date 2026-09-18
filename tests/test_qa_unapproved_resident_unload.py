@@ -23,7 +23,7 @@ def run(mode):
     return value
 
 
-@pytest.mark.parametrize('mode', ['healthy', 'extra_registered_tag'])
+@pytest.mark.parametrize('mode', ['healthy', 'extra_registered_tag', 'task_numeric_state'])
 def test_exact_fixed_installed_source_and_unapproved_single_resident_with_drained_task_are_valid(mode):
     assert not run(mode)['failed']
 
@@ -41,7 +41,8 @@ def test_exact_fixed_installed_source_and_unapproved_single_resident_with_draine
     'manager_wrong', 'manager_upper', 'manager_short', 'catalog_wrong', 'catalog_upper', 'catalog_short',
     'task_enabled', 'task_null_enabled', 'task_string_enabled', 'task_numeric_enabled',
     'task_running', 'task_running_case', 'task_ready', 'task_queued', 'task_unknown',
-    'task_empty', 'task_null_state', 'task_disabled_case', 'task_numeric_state',
+    'task_empty', 'task_null_state', 'task_disabled_case', 'task_numeric_unknown',
+    'task_numeric_queued', 'task_numeric_ready', 'task_numeric_running', 'task_numeric_invalid',
 ])
 def test_identity_shape_source_or_task_uncertainty_blocks_pure_boundary(mode):
     assert run(mode)['failed'], mode

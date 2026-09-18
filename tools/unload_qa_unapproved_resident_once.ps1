@@ -12,12 +12,13 @@ $Unapproved='9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb'
 $Name='chiqiongblastfuenace:latest'
 $Manager='F:/Ollama/model-switch/manage_ollama_model_switch.ps1'
 $Catalog='F:/Ollama/model-switch/model_catalog.json'
-$Evidence='F:/Ollama/model-switch/updates/unapproved-resident-unload-20260917-r1'
+$Evidence='F:/Ollama/model-switch/updates/unapproved-resident-unload-20260918-r2'
 function Assert-UnapprovedResidentUnloadBoundary {
     param([object]$Tags,[object]$Resident,[string]$ManagerHash,[string]$CatalogHash,[object]$TaskEnabled,[string]$TaskState)
     if ($ManagerHash -cne '1f871a8bbbaa553233d318b3d019a5a63e68be38d0f0caa7d29cca731d44434f' -or
             $CatalogHash -cne '723c4f2c6e5c2093060db8beaf5338dc857477a5b10d5db9f95ec79dfdc2f57a') { throw 'unload_source_identity_invalid' }
-    if ($TaskEnabled -isnot [bool] -or $TaskEnabled -or $TaskState -cne 'Disabled') { throw 'unload_recovery_not_drained' }
+    # MSFT_ScheduledTask.State is uint32 on the production CIM adapter: 1 = Disabled.
+    if ($TaskEnabled -isnot [bool] -or $TaskEnabled -or $TaskState -cnotin @('Disabled','1')) { throw 'unload_recovery_not_drained' }
     foreach ($List in @(@{value=$Tags},@{value=$Resident})) {
         if ($null -eq $List.value -or $List.value -is [string] -or $List.value -is [Collections.IDictionary] -or
                 $List.value -isnot [Collections.IEnumerable]) { throw 'unload_model_list_unknown' }

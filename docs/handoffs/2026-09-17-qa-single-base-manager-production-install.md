@@ -2,6 +2,8 @@
 
 状态：管理器生产源码安装成功；实际驻留恢复及线上复测尚未执行。最后核对：2026-09-17。
 
+此状态是2026-09-17安装快照；2026-09-18用户另行授权后，指定e4底座已恢复、现有822原题程序已启动，8094依赖查询异常单列。当前状态以[授权恢复和复测实证](2026-09-18-qa-authorized-frozen-base-restore.md)为准，原安装审计保留。
+
 事项：OPS-QA-SINGLE-BASE-GUARD-INSTALL-20260917、BUG-QA-ATOMIC-REPLACE-NULL-BACKUP-20260917、OPS-QA-RESTORE-FROZEN-BASE-20260917。
 权威来源：生产 r4/r5 安装审计、安装后独立只读文件摘要及 Ollama tags/ps；[恢复器实现](2026-09-17-model-identity-repair-implementation.md)、[固定底座规则](2026-09-17-qa-single-base-model-policy.md)。适用范围：模型管理器独立安装；不代表 V50 路由已部署，不代表最终答案正确率提升。
 

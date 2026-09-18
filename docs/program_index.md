@@ -1399,3 +1399,9 @@ OPS-QA-SINGLE-BASE-GUARD-INSTALL-20260917：install_qa_single_base_manager.Invok
 OPS-QA-QUIET-ORIGINAL-RETEST-20260918：[run_qa_single_base_background.run](../tools/run_qa_single_base_background.py#L113) 封存验证、GET等待及一次batch；[start_qa_single_base_background](../tools/start_qa_single_base_background.ps1#L41) 用唯一claim和WMI创建独立pythonw。复用既有batch/collector，未修改生产助手代码或模型配置。
 
 [真实远端启动与状态来源](handoffs/2026-09-18-qa-quiet-background-retest.md)。
+
+## 指定底座连贯恢复（2026-09-18）
+
+OPS-QA-RESTORE-FROZEN-BASE-20260917：[restore_qa_frozen_base_once](../tools/restore_qa_frozen_base_once.ps1) 中Assert-RestoreBoundary/Wait-RestoreEmpty与一次性claim用于已授权、已核验后来重载驻留的单次退出及冻结Repair。等待只读GET，不重试POST、不重放claim、不删权重、不启停服务。符号行号TODO-LINES。
+
+[审计、独立复核及8094依赖边界](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)；[实际AST回归](../tests/test_qa_frozen_base_restore.py)。

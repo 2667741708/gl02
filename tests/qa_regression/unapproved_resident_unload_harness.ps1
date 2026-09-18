@@ -83,6 +83,11 @@ switch ($Mode) {
     'task_null_state' { $TaskState=$null }
     'task_disabled_case' { $TaskState='disabled' }
     'task_numeric_state' { $TaskState='1' }
+    'task_numeric_unknown' { $TaskState='0' }
+    'task_numeric_queued' { $TaskState='2' }
+    'task_numeric_ready' { $TaskState='3' }
+    'task_numeric_running' { $TaskState='4' }
+    'task_numeric_invalid' { $TaskState='01' }
     'extra_registered_tag' { $Tags+=@([pscustomobject]@{name='synthetic:unused';digest='0'*64}) }
     'healthy' {}
     default { throw 'Unknown synthetic fixture mode' }

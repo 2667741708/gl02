@@ -1485,3 +1485,6 @@ OPS-QA-RESTORE-FROZEN-BASE-20260917：错误驻留禁止自动切回；单次卸
 OPS-QA-QUIET-ORIGINAL-RETEST-20260918：远端独立隐藏进程 PID9808 已启动并核验，封存822原题与单一e4输入，GET-only 等待三轮固定身份，随后只执行一次串行批次；零自动换模、重启或重放。正常等待/运行保持安静。
 
 [实际启动、hash、验证与剩余授权边界](handoffs/2026-09-18-qa-quiet-background-retest.md)。当前尚未发题，生产仍V26，不声称V50效果。
+## OPS-QA-RESTORE-FROZEN-BASE-20260917：2026-09-18执行补充
+
+本次明确授权后固定e4底座别名及唯一驻留恢复完成，冻结manager只预热一次，不更换或删除权重。8093原822题进程开始；8094依赖查询异常保留，不允许借此fallback、重新预热或重放已claim操作。[控制器与生产结果](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)、[CIM状态边界](../tools/unload_qa_unapproved_resident_once.ps1)、[连贯恢复](../tools/restore_qa_frozen_base_once.ps1)、[退出等待回归](../tests/test_qa_frozen_base_restore.py)。
