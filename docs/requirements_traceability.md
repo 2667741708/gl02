@@ -1497,3 +1497,9 @@ REQ-QA-NUMERIC-VECTOR-SCOPE-20260918 / BUG-QA-LITERAL-VECTOR-LIVE-LOOKUP-2026091
 ## REQ-QA-RETEST-ANSWER-ROUTING-20260921：822 条答案审阅与 V52 路由
 
 同一批 822 条生产 V26 复测结果已建立逐答案脱敏索引；184 条非知识回答完成全文人工审阅，638 条知识回答完成全文哈希、原始覆盖和独立来源范围合同核对。传输完成或答案非空不得推导语义通过。V52-r2 补充点位目录元数据路由、口语观察路由和中文逗号章节列表保护，已在固定底座下受控部署到 220.12:8093；16 个安装哈希、HTTP、模型身份、受保护监听和匿名 bootstrap 复核通过，原失败题尚未重发。权威统计和优化计划见[答案审阅交接](handoffs/2026-09-21-qa-retest-answer-review-and-routing-v52.md)，生产证据见[部署交接](handoffs/2026-09-21-qa-routing-v52-production-deployment.md)，逐题状态见[脱敏索引](../tests/qa_regression/retest_answer_review_20260921.json)。
+
+## REQ-QA-V52-SCHEDULED-FAILURE-RETEST-20260921：V52 定时复测与验收
+
+822 条既有失败/部分题在每天 22:30–07:30 的空闲窗口串行复测。最近 300 秒真实用户活动、GPU 利用率高于 5%、状态不可读、固定模型或 77 个生产运行 pin 不一致时，不 claim 下一题。每题最多一次 POST，任何已发送或发送状态不确定的题都不自动重放；`TPL-10C8C8FAF2C694EF` 永久排除。
+
+2026-09-21 22:31 首次进程 PID18428 完成 2 题后因瞬时监听枚举歧义 fail-closed；r2 PID19280 又完成 2 题后因代理文件瞬态读取不一致在 claim 前停止。四题均传输完整并以 claim/result 哈希排除。r3 PID6388 只续跑其余 818 题；hash 首次异常后必须连续三次恢复一致才能继续，持续异常仍阻断。V52 提交、77 个运行 pin、固定 e4 模型和 822 总题量现场核对通过，语义验收仍待全部收集完成。权威边界和复现证据见[定时复测交接](handoffs/2026-09-21-qa-v52-scheduled-failure-retest.md)。

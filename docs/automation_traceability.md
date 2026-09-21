@@ -1506,6 +1506,15 @@ Reliable SSH MCP的220.12固定实例启用一个常驻Plink会话、30秒SSH协
 - 复用门：复用前检查 producer/source SHA-256、目标身份、运行时、合同测试、有效期和失效条件；远端 PID、监听、当前文件哈希与生产配置仍必须现场刷新。
 - 实现：[Skill 主规则](../.codex/skills/deploy-8093-guarded-update/SKILL.md)、[详细保留策略](../.codex/skills/deploy-8093-guarded-update/references/reusable-artifact-retention.md)、[合同验证器](../.codex/skills/deploy-8093-guarded-update/scripts/validate_skill.ps1)。
 - 本次结论：`viewport-storage-state.json` 是浏览器鉴权夹具，`22012_BFV4PreviewProxy8093.remote.json` 是一次性远端配置快照；二者都不是每次 SSH 连接生成的文件。常规连接复用由 `tools/remote_22012_session.py` 和 LocalAppData 中受保护的 broker 状态承担。
+
+## OPS-QA-V52-SCHEDULED-FAILURE-RETEST-20260921
+
+- 远端 owner：r1 PID18428 与 r2 PID19280 各完成 2 个完整结果后 fail-closed 并退出；四题按哈希加入 prior。r3 PID6388 只续跑剩余 818 题。运行目录和输出均绑定各自 manifest/plan SHA；没有注册或修改 Windows 计划任务。
+- 调度：每天 22:30–07:30；真实用户近 300 秒活动、GPU 高于 5%、状态不可读、V52/固定模型/hash 漂移时等待且不 claim。
+- 投递：822 题串行，每题最多一次 POST，claim 先于发送；发送不确定立即 `blocked_no_replay`。
+- 跟进：现有 Codex heartbeat `automation` 更新为每 60 分钟只读检查。正常运行或等待保持安静；阻断时通知；全部收集后执行全文语义验收，完成后暂停自身。
+- 隔离：不更改 8093、8094、8768、8770、5432、11434 服务，不执行模型加载/切换/卸载/预热，不写业务数据库。
+- 权威：[启动交接](handoffs/2026-09-21-qa-v52-scheduled-failure-retest.md)。
 ## OPS-22012-BIDIRECTIONAL-SYNC-20260813
 
 - 任务：Codex 自动任务 `220-12`，每两小时只读检查 `10.30.220.12` 的 V4 生产项目是否出现源码或功能更新。

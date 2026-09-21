@@ -1417,3 +1417,13 @@ REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：[instruction_clauses](../高炉前端数�
 - `tools/build_qa_catalog_observation_candidate.py`：从 V51 密封 16 模块 V52 候选，只允许 planner 与代理四个已审函数变化；其余 14 模块逐字节继承。
 - V52 候选代理的 `qa_mcp_static_pressure_catalog_plan`、`qa_mcp_variable_catalog_plan`、`deterministic_mcp_answer`、`qa_mcp_tool_loop_async` 实现一次元数据查询、确定性输出及零模型目录回答。
 - `tools/build_retest_answer_review.py`：把私有完整答案审阅转成逐题哈希绑定的脱敏索引，拒绝重试、覆盖缺口和不匹配答案哈希。
+
+## V52 定时失败题复测（2026-09-21）
+
+- [计划冻结器](../tools/build_qa_v52_scheduled_retest.py)绑定 822 题、V52 提交、77 个运行文件、点位目录和唯一固定模型摘要。
+- [stage 密封器](../tools/seal_qa_v52_scheduled_stage.py)生成六文件精确 allowlist 和 manifest SHA-256。
+- [定时 supervisor](../tools/run_qa_v52_scheduled_background.py)执行夜间时间窗、真实用户、GPU、模型、Git 和文件哈希门禁；异常时停止且不重放。
+- [独立启动器](../tools/start_qa_v52_scheduled_retest.ps1)创建唯一输出 claim 和隐藏进程，不注册 Windows 任务、不停启 8093 或其他服务。
+- [脱敏摘要器](../tools/summarize_qa_scheduled_retest.py)只输出传输证据和哈希，保留后续完整答案语义审阅门。
+
+[生产启动与验收边界](handoffs/2026-09-21-qa-v52-scheduled-failure-retest.md)。

@@ -3565,3 +3565,12 @@ REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：[新增38项](../tests/test_qa_numeric_ve
 - `tests/test_qa_catalog_observation_scope.py`：验证目录只允许元数据、口语观察授权、概念/禁止取数不扩权及章节编号中文逗号保护。
 - `tests/test_qa_catalog_candidate.py`：验证一次有界目录查询、家族过滤、元数据边界声明和零模型目录回答。
 - 全量 QA 选择回归首轮为 2114 通过、1 失败；失败暴露章节编号中文逗号分句缺陷。修复后的章节/新增路由 23 项通过；最终全量复跑为 2116 通过、0 失败、1003 条按筛选条件未执行。
+
+## V52 定时复测控制流（2026-09-21）
+
+- [tests/test_qa_v52_scheduled_retest.py](../tests/test_qa_v52_scheduled_retest.py)：22 passed，覆盖跨午夜窗口、固定版本/摘要/822 题/排除题/时区 fail-closed、真实用户优先门禁、GPU 和模型门禁、Windows 标准 `nvidia-smi` 路径、无归属/无关 8093 监听过滤、已完成题哈希续跑、跨批传输汇总、运行文件瞬态/持续异常分流和脱敏摘要。
+- 本机执行 Python 与密封器均通过 `py_compile`；启动器通过 PowerShell 7 AST 解析。
+- 远端 Python 3.11 编译、PowerShell 7 AST、manifest/plan/77 pin/Git/点位目录/固定模型只读预检全部通过。
+- r1/r2 各收集 2 个完整单次结果后分别因监听枚举歧义和运行文件瞬态读取不一致 fail-closed；四条结果进入 r3 prior，r3 只含剩余 818 题。这只证明控制流和不重放恢复生效，不计语义成功率。
+
+[完整启动证据及收集后验收规则](handoffs/2026-09-21-qa-v52-scheduled-failure-retest.md)。
