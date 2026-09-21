@@ -1411,3 +1411,9 @@ OPS-QA-RESTORE-FROZEN-BASE-20260917：[restore_qa_frozen_base_once](../tools/res
 REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：[instruction_clauses](../高炉前端数据/智能助手/backend/qa_task_plan.py#L192)保护完整数组；[_declared_input_clause](../高炉前端数据/智能助手/backend/qa_task_plan.py#L329)识别提供值并拒绝查询/引文/候选问句。外部来源与owner上下文规划不改。[冻结器](../tools/build_qa_numeric_vector_candidate.py#L18)核验V50摘要、15模块逐字节继承及两函数AST边界。
 
 [验证与未部署边界](handoffs/2026-09-18-qa-numeric-vector-scope.md)；[回归](../tests/test_qa_numeric_vector_scope.py#L31)。生产仍V26，原题复测收齐822/822，未审阅最终答案。
+## V52 目录与观察路由（2026-09-21）
+
+- `qa_task_plan.py`：`_catalog_request`、`_catalog_only_request`、`_explicit_live_request` 和 `instruction_clauses` 负责目录/观察来源授权及章节列表保护。
+- `tools/build_qa_catalog_observation_candidate.py`：从 V51 密封 16 模块 V52 候选，只允许 planner 与代理四个已审函数变化；其余 14 模块逐字节继承。
+- V52 候选代理的 `qa_mcp_static_pressure_catalog_plan`、`qa_mcp_variable_catalog_plan`、`deterministic_mcp_answer`、`qa_mcp_tool_loop_async` 实现一次元数据查询、确定性输出及零模型目录回答。
+- `tools/build_retest_answer_review.py`：把私有完整答案审阅转成逐题哈希绑定的脱敏索引，拒绝重试、覆盖缺口和不匹配答案哈希。

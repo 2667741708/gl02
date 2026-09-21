@@ -16,7 +16,7 @@ import qa_entity_resolution
 import qa_time_window_plan
 
 
-VERSION = "qa-task-plan-v10-numeric-vector-scope"
+VERSION = "qa-task-plan-v11-catalog-observation-scope"
 
 _QUOTED_RE = re.compile(r"“[^”]*”|‘[^’]*’|\"[^\"]*\"|'[^']*'|《[^》]*》")
 _DOCUMENT_TERMS = (
@@ -39,7 +39,7 @@ _LIVE_ACTIONS = (
     "查询", "查看", "读取", "调取", "检索", "分析", "判断", "统计", "计算",
     "平均", "最大", "最小", "变化", "是多少", "多少", "有没有", "是否",
     "说一下", "告诉我", "给我说", "给出",
-    "查一下", "查下", "看一下", "画出来", "画出", "绘图", "可视化",
+    "查一下", "查下", "看一下", "看下", "看看", "画出来", "画出", "绘图", "绘制", "可视化",
 )
 _KNOWLEDGE_TERMS = (
     "原理", "机理", "原因", "为什么", "含义", "解释", "工艺", "规则", "阈值",
@@ -82,6 +82,9 @@ _NUMERIC_VECTOR_PATTERN = re.compile(
     r"(?:\s*[（(][^()（）\n]{1,16}[）)])?\s*(?:[:：=]|分别为|分别是|为|是)\s*"
     r"\[\s*(?:" + _VECTOR_VALUE + r"(?:\s*[,，、;；]\s*" + _VECTOR_VALUE + r")*)?\s*\]", re.I
 )
+_CHAPTER_LIST_PATTERN = re.compile(
+    r"第\s*\d{1,3}\s*(?:章\s*)?(?:[、,，]\s*(?:第\s*)?\d{1,3}\s*)+章"
+)
 _VECTOR_QUESTION_SUFFIX = re.compile(
     r"^\s*(?:千帕|兆帕|帕|摄氏度|华氏度|度|℃|℉|kpa|mpa|pa|%|吨|千克|kg|t|米|m|立方米)?\s*"
     r"(?:[吗么?？]|是否(?:属实|正确|为真|准确)|是不是)", re.I
@@ -115,6 +118,13 @@ _SOURCE_EXCLUSION_START = re.compile(
 # reviewed together.
 _HISTORY_TOOL_NAMES = {"search_qa_messages"}
 _REPORT_TOOL_NAMES = {"list_recent_reports", "read_report_excerpt"}
+_CATALOG_TOOL_NAMES = {
+    "list_business_objects", "search_business_objects", "get_business_object",
+    "find_gl02_variables", "get_gl02_variable_info", "list_gl02_available_variables",
+    "list_gl02_static_pressure_points",
+    "imes__list_imes_database_profiles", "imes__list_imes_business_objects",
+    "imes__search_imes_variables", "imes__explain_imes_variable",
+}
 _LIVE_READONLY_TOOL_NAMES = {
     "query_bf2_operation_log_report",
     "list_business_objects",
@@ -123,6 +133,7 @@ _LIVE_READONLY_TOOL_NAMES = {
     "find_gl02_variables",
     "get_gl02_variable_info",
     "list_gl02_available_variables",
+    "list_gl02_static_pressure_points",
     "get_latest_gl02_value",
     "query_gl02_history",
     "query_gl02_statistics",
@@ -192,7 +203,10 @@ def lookup_constraints(question: str) -> dict[str, Any]:
 def instruction_clauses(text: str) -> list[str]:
     """Split outer instructions; preserve literal source titles and quotations."""
     stack, result, start = [], [], 0
-    vectors = [(match.start(), match.end()) for match in _NUMERIC_VECTOR_PATTERN.finditer(text)]
+    vectors = sorted(
+        [(match.start(), match.end()) for match in _NUMERIC_VECTOR_PATTERN.finditer(text)]
+        + [(match.start(), match.end()) for match in _CHAPTER_LIST_PATTERN.finditer(text)]
+    )
     vector_index = 0
     pairs = {"《": "》", "“": "”", "‘": "’", '"': '"', "'": "'"}
     for i, ch in enumerate(text):
@@ -319,7 +333,7 @@ def user_data_scope(text: str) -> dict[str, Any]:
             read_requested = re.search(r"查询|查一下|查下|读取|调取|检索|获取|查看|看一下|看看", masked)
             current_value_requested = (re.search(r"当前|现在|目前|最新|实时", masked)
                                        and re.search(r"是多少|多少|高不高|低不低|稳不稳", masked))
-            if (read_requested or current_value_requested) and _explicit_live_request(masked):
+            if (read_requested or current_value_requested or _catalog_request(masked)) and _explicit_live_request(masked):
                 live_clauses.append(masked)
                 external_source_requested = True
     exclusive = global_exclusive or (bool(_USER_DATA_PATTERN.search(instruction)) and not external_source_requested)
@@ -387,13 +401,45 @@ def _independent_temporal_data_task(text: str) -> bool:
     return False
 
 
+def _catalog_request(instruction: str) -> bool:
+    """An explicit point inventory reads metadata, never current measurements."""
+    text = _instruction_text(instruction)
+    if _contains_any(text, _DOCUMENT_TERMS + _HISTORY_TERMS + _REPORT_TERMS):
+        return False
+    if re.search(r"通常|一般|原理|原因|含义|定义|概念", text):
+        return False
+    return bool(re.search(
+        r"(?:点位|测点|传感器|变量)[^；。\n]{0,16}(?:目录|列表|有哪些|可用|可查)"
+        r"|(?:有哪些|哪些|列出|列一下|可查|可用)[^；。\n]{0,20}(?:点位|测点|传感器|变量)"
+        r"|(?:炉顶|炉喉|静压|静压力|顶温|炉体温度)[^；。\n]{0,16}(?:哪些(?:具体)?点|有哪些点)", text))
+
+
+def _catalog_only_request(instruction: str) -> bool:
+    if not _catalog_request(instruction):
+        return False
+    # Keep independently requested live values, windows and plots available.
+    measurement = (r"(?:当前|现在|目前|最新|实时)[^；。\n]{0,16}(?:值|数值|多少|高不高|低不低)"
+                   r"|历史|均值|平均|统计|变化|趋势|走势|曲线|画图|绘图|绘制|相关性|相关系数|是否相关|波动"
+                   r"|最近[^；。\n]{0,8}(?:分钟|小时)|过去[^；。\n]{0,8}(?:分钟|小时)")
+    return not bool(re.search(measurement, instruction))
+
+
 def _explicit_live_request(instruction: str) -> bool:
+    if _catalog_request(instruction):
+        return True
     if not _contains_any(instruction, _LIVE_TERMS):
         return False
     if (not re.search(r"当前|现在|目前|最近|过去|今天|今日|昨天|最新|实时", instruction)
             and _contains_any(instruction, ("通常", "一般", "原理", "原因", "含义"))):
         return False
     if qa_time_window_plan.temporal_intent(instruction):
+        return True
+    # REQ-QA-RETEST-ANSWER-ROUTING-20260919: an anchored observation is a
+    # data request even without an imperative verb. Resolve actual IDs later.
+    if (re.search(r"当前|现在|目前|最新|最近|过去|近(?:半|一|两|\d)|近况", instruction)
+            and re.search(r"升了|降了|升高了|降低了|上升|下降|如何|怎么样|情况|近况|趋势图", instruction)
+            and re.search(r"顶压|炉顶压力|总压差|全炉压差|炉体温度|炉喉温度|风温|风量|温度|CO|CO₂|CO2|H₂|H2", instruction, re.I)
+            and not _contains_any(instruction, ("通常", "一般", "原理", "原因", "含义", "假设"))):
         return True
     # Numeric yes/no questions ask to verify a current measurement; do not
     # treat their candidate value as a supplied measurement to reason from.
@@ -459,6 +505,7 @@ def build_task_plan(question: str) -> dict[str, Any]:
             and _contains_any(instruction, _LIVE_ACTIONS)
         )
         wants_live = wants_live and (explicit_compound_live or _independent_temporal_data_task(text))
+    catalog_only = wants_live and _catalog_only_request(live_instruction)
 
     intents: list[str] = []
     if wants_document:
@@ -499,7 +546,7 @@ def build_task_plan(question: str) -> dict[str, Any]:
 
     search_knowledge = "document_knowledge" in intents or "general_knowledge" in intents
     allow_tools = bool(allowed_tool_domains)
-    allow_prefetch = "live_data" in intents
+    allow_prefetch = "live_data" in intents and not catalog_only
     if no_live:
         allow_prefetch = False
     if constraints["all_tools_disabled"]:
@@ -517,6 +564,7 @@ def build_task_plan(question: str) -> dict[str, Any]:
         "search_knowledge": search_knowledge,
         "allow_prefetch": allow_prefetch,
         "allow_mcp_tools": allow_tools,
+        "catalog_only": bool(catalog_only),
         "allowed_sources": allowed_sources,
         "allowed_tool_domains": allowed_tool_domains,
         "entities": list(entity_resolution.get("variables") or []),
@@ -538,6 +586,7 @@ def public_task_plan(plan: dict[str, Any] | None) -> dict[str, Any]:
         "search_knowledge": bool(source.get("search_knowledge")),
         "allow_prefetch": bool(source.get("allow_prefetch")),
         "allow_mcp_tools": bool(source.get("allow_mcp_tools")),
+        "catalog_only": bool(source.get("catalog_only")),
         "allowed_sources": list(source.get("allowed_sources") or []),
         "allowed_tool_domains": list(source.get("allowed_tool_domains") or []),
         "entities": list(source.get("entities") or []),
@@ -567,6 +616,8 @@ def tool_domain(tool_name: str) -> str:
 
 def tool_allowed(tool_name: str, plan: dict[str, Any] | None) -> bool:
     allowed = set((plan or {}).get("allowed_tool_domains") or [])
+    if (plan or {}).get("catalog_only") and str(tool_name or "").lower() not in _CATALOG_TOOL_NAMES:
+        return False
     return tool_domain(tool_name) in allowed
 
 
@@ -619,7 +670,7 @@ def resolve_owned_followup(question: str, plan: dict[str, Any], context: dict[st
             allowed_sources=[], allowed_tool_domains=[], reason='disabled_code_only')
         result.update(task_plan=disabled,state='disabled_code_only')
         return result
-    if plan.get('no_live_lookup') or plan.get('all_tools_disabled'):
+    if plan.get('no_live_lookup') or plan.get('all_tools_disabled') or plan.get('catalog_only'):
         return result
     if set(plan.get('intents') or []) & {'user_supplied_data', 'document_knowledge',
             'conversation_history', 'period_report'}:

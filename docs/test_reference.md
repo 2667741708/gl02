@@ -3558,3 +3558,10 @@ BUG-QA-CIM-TASK-STATE-20260918：[卸载边界回归](../tests/test_qa_unapprove
 REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：[新增38项](../tests/test_qa_numeric_vector_scope.py#L31)覆盖给定数据、混合实时、独立记录源、候选/引文反例、排他/代码边界及实际代理别名。有效修复前22失败/10通过，修复后38通过（新增6实际代理合同）；继承链针对性72通过，相关37模块结果与命令见[脱敏证据](../tests/qa_regression/numeric_vector_source_scope_20260918.json)。14 gold仅验证schema。
 
 [失败夹具记录、冻结和未验证项](handoffs/2026-09-18-qa-numeric-vector-scope.md)。822/822线上回复已收齐；没有重发或审阅最终答案，不能计为822成功，也不能把本机合同解释为生产准确率。V51尚未部署及原生Python3.11验收。
+## V52 答案审阅与目录/观察路由回归（2026-09-21）
+
+- `tests/qa_regression/retest_answer_review_20260921.json`：822 条逐答案脱敏记录；184 条人工全文审阅，638 条知识来源合同审阅。状态不把 HTTP 200 或非空答案记为通过。
+- `tests/test_build_retest_answer_review.py`：验证脱敏、哈希绑定、单次发送和知识范围告警不会被算作语义通过。
+- `tests/test_qa_catalog_observation_scope.py`：验证目录只允许元数据、口语观察授权、概念/禁止取数不扩权及章节编号中文逗号保护。
+- `tests/test_qa_catalog_candidate.py`：验证一次有界目录查询、家族过滤、元数据边界声明和零模型目录回答。
+- 全量 QA 选择回归首轮为 2114 通过、1 失败；失败暴露章节编号中文逗号分句缺陷。修复后的章节/新增路由 23 项通过；最终全量复跑为 2116 通过、0 失败、1003 条按筛选条件未执行。

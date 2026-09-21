@@ -3,6 +3,7 @@ import ast
 import asyncio
 import copy
 import hashlib
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -115,7 +116,19 @@ def test_pure_code_request_cannot_authorize_prefetch_or_persist_a_sensor_object(
 
 
 def test_candidate_keeps_fourteen_modules_and_all_other_planner_and_proxy_semantics():
-    candidate,manifest = latest_frozen_candidate(ROOT)
+    latest,latest_manifest = latest_frozen_candidate(ROOT)
+    candidate,manifest = latest,latest_manifest
+    if latest_manifest.get('catalog_observation_scope') is True:
+        from build_qa_catalog_observation_candidate import (
+            PRIOR as v51, build_proxy as build_catalog, validate_planner as validate_catalog)
+        assert build_catalog((v51/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (latest/'ollama_proxy_server.py').read_text(encoding='utf-8')
+        validate_catalog((v51/'qa_task_plan.py').read_bytes(), (latest/'qa_task_plan.py').read_bytes())
+        inherited = set(latest_manifest['files']) - {'qa_task_plan.py', 'ollama_proxy_server.py'}
+        assert set(latest_manifest['inherited_v51_files_byte_identical']) == inherited
+        for name in inherited:
+            assert (latest/name).read_bytes() == (v51/name).read_bytes()
+        candidate = v51
+        manifest = json.loads((v51/'package_manifest.private.json').read_bytes())
     assert manifest['owned_followup_plan_propagated'] is True
     assert len(manifest['inherited_v48_files_byte_identical']) == 14
     for name in manifest['inherited_v48_files_byte_identical']:
@@ -142,6 +155,7 @@ def test_candidate_keeps_fourteen_modules_and_all_other_planner_and_proxy_semant
         assert build_proxy((PRIOR/'ollama_proxy_server.py').read_text(encoding='utf-8')) == (candidate/'ollama_proxy_server.py').read_text(encoding='utf-8')
         validate_planner((PRIOR/'qa_task_plan.py').read_bytes(),(candidate/'qa_task_plan.py').read_bytes())
     assert manifest['model_digest'] == 'e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124'
+    assert latest_manifest['model_digest'] == manifest['model_digest']
 
 
 def test_actual_tool_loop_passes_owned_objects_into_temporal_preflight():

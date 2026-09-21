@@ -574,3 +574,6 @@ JSON/SSE缺对象追问在同请求内返回owned_followup_needs_clarification�
 REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：仅用户数组的TaskPlan来源为user_message，无现场预取、MCP及默认知识检索。独立现场子任务只用其自身原文解析查询对象；历史、报表、原文任务保持原授权。没有新增请求字段、路由或数据库结构。TaskPlan版本为qa-task-plan-v10-numeric-vector-scope，V51本机候选未部署。
 
 [38项来源合同及实际代理别名验证](handoffs/2026-09-18-qa-numeric-vector-scope.md)。当前原失败/部分题收齐822/822仅是收集完成，不是回答正确率。本机面板走独立回环端口；生产状态未知时拒绝沙盒生成，未修改8093接口。
+## V52 TaskPlan 目录元数据合同（2026-09-21）
+
+`public_task_plan` 新增布尔字段 `catalog_only`。为 true 时，只允许注册的点位/变量/业务对象元数据工具，不允许实时值、历史、统计、图表、快照或化验读取；`allow_prefetch=false`。成功目录调用直接返回 `verified_catalog_metadata`，答案路由为 `deterministic_static_pressure_catalog` 或 `deterministic_variable_catalog`，模型请求数为 0。该字段不接受客户端作为权限输入，仅由服务端问题规划派生。
