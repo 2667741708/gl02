@@ -606,3 +606,10 @@ can't subtract offset-naive and offset-aware datetimes
   8093 PID `240 → 15392`，真实固定首问只发送 1 次并返回
   `preparing → prepared → delta → final → done`，答案非空且不再 HTTP 400。远端 Git 提交
   `d24543a`，标签 `prod-8093-abc33-http400-20260814-r2`；8094/8768/8770/5432/11434 PID 未变。
+
+## 2026-09-17：只读审计与正式制度抽取缺陷
+
+- REQ-QA-READONLY-AUDIT-20260917：普通PG连接在只读事务设置前可能初始化schema；四个入口迁移到启动readonly并校验。manifest同时去除原文样例/用户路径输出，52项聚焦测试通过。
+- BUG-QA-REGULATION-CLAUSE-DROP-20260917：制度名fallback将短条款/表格当标题丢弃，句中规程引用也可能误分界。改整行明确标题和已核对源标题变体；55项源解析回归通过，原DOCX27/28章补回123片段。
+- 状态：本机合并151项及独立审查PASS；生产知识库未更新，无问题POST/数据库写入，不销项QAOPT-K03/K06或计为线上成功。
+- 权威：[根因、真实来源核查及后续发布门](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。

@@ -1,0 +1,97 @@
+{
+  "schema": "bf.qa.routing-production-review.v1",
+  "checked_at": "2026-09-16",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version": "v14",
+  "production_commit": "06db3d6db6371af381816cc1523cc294c0981a18",
+  "focused_tests_passed": 39,
+  "requests": 3,
+  "automatic_post_retries": 0,
+  "counts": {
+    "passed": 3
+  },
+  "review_method": "Explicit independent post-release semantic review; nonempty and SSE done do not imply passing.",
+  "results": [
+    {
+      "case_id": "TPL-V14-KB-LIVE",
+      "state": "passed",
+      "answer_sha256": "e9f486e66fd97f8430ae3438d3c178533120a9bae897d86ee69eb3322989fd74",
+      "answer_chars": 417,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "isolated_document_compound",
+      "terminal_state": "completed",
+      "model_request_count": 0,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V14-KB-USER",
+      "state": "passed",
+      "answer_sha256": "d60eed35b672327bfcdac99d86961de3672d9d3231458dcd3b60e5c2b8b36147",
+      "answer_chars": 302,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "isolated_document_compound",
+      "terminal_state": "completed",
+      "model_request_count": 1,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V14-UNKNOWN-LIVE",
+      "state": "passed",
+      "answer_sha256": "1c945ee02c17bbf7d0b0abc41cb8f0ed17c6bb0dd16abde1c437fbde1f3b72ea",
+      "answer_chars": 258,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "isolated_document_compound",
+      "terminal_state": "partial",
+      "model_request_count": 0,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    }
+  ],
+  "deployment": {
+    "ok": true,
+    "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+    "backup": "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\backups\\qa-routing-v14-20260916-r1-20260916-200354",
+    "rollback_applied": false,
+    "guard_paused": true,
+    "guard_restored": true,
+    "readiness_checks": [
+      {
+        "attempt": 1,
+        "proxy_ok": true,
+        "ollama_ok": true,
+        "model_ok": true
+      }
+    ],
+    "old_8093_pid": 18736,
+    "new_8093_pid": 15940,
+    "protected_before": {
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "5432": 12372,
+      "11434": 12656,
+      "8892": null
+    },
+    "protected_after": {
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "5432": 12372,
+      "11434": 12656,
+      "8892": null
+    },
+    "http_8093": 200,
+    "installed_hashes": {
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_verified_facts.py": "461364B60DC6F4E987D0F997F9E3F1E973CD07EA503A44D8EA3760B681BD63FA"
+    }
+  },
+  "privacy": "No raw answers, conversation payloads, production measurements or identities."
+}

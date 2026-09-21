@@ -1,0 +1,125 @@
+{
+  "schema": "bf.qa.routing-production-review.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "checked_at": "2026-09-16",
+  "version": "v11",
+  "production_commit": "9c52d69e2d027bc1dccc42cfd94c65254ee6e803",
+  "focused_tests_passed": 88,
+  "round": "retest-routing-v11-20260916-r1",
+  "requests": 5,
+  "automatic_post_retries": 0,
+  "counts": {
+    "passed": 5,
+    "failed": 0
+  },
+  "deployment": {
+    "ok": true,
+    "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+    "backup": "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\backups\\qa-routing-v11-20260916-r1-20260916-190407",
+    "rollback_applied": false,
+    "guard_paused": true,
+    "guard_restored": true,
+    "old_8093_pid": 3708,
+    "new_8093_pid": 9092,
+    "protected_before": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "protected_after": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "http_8093": 200,
+    "installed_hashes": {
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/ollama_proxy_server.py": "2431A7A78E46F7C693343F333740CFA1AA8B4AE697A86C31C6E21CD29236A593",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_response_projection.py": "60E8DB0EDFAB036F17BC9C201D096D652C75B457570CE4EB07FDB9DCB2CAA693"
+    }
+  },
+  "review_method": "Original-text and expected behavior inspected; V12 independently reviewed after release. Nonempty and SSE done alone are not passing signals.",
+  "results": [
+    {
+      "case_id": "TPL-V10-ATOMIC",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 129,
+      "answer_sha256": "269ab83de445495b224ef2022bf33ccf22bd89db4ea247782eff04890d186c1f",
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": null
+    },
+    {
+      "case_id": "TPL-V10-PREVIEW",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 184,
+      "answer_sha256": "7867f5858d84d1b93b008e1c7fe27c736aa703e357d578655d57d3b7fc913f1e",
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": null
+    },
+    {
+      "case_id": "TPL-V10-SHORT",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 143,
+      "answer_sha256": "51e442ae1d8d5a4fb3e533438062786d46a61207e1c7fca884960334b5e8047a",
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": null
+    },
+    {
+      "case_id": "TPL-V10-TABLE",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 758,
+      "answer_sha256": "0ccf616343d853cf945b9ab9439f6aaa82d896eee642afa5561b2c696f3fe3c7",
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": null
+    },
+    {
+      "case_id": "TPL-V10-UNKNOWN",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 102,
+      "answer_sha256": "4ef7d2a4f5baae813c09852f263c6dfb0db34c37c698f904cc1dfcfde6d6008c",
+      "route": "verified_document_knowledge",
+      "terminal_state": "needs_clarification",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": null
+    }
+  ],
+  "privacy": "No raw answers, conversation payloads, production measurements or identities."
+}

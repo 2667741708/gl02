@@ -1,0 +1,65 @@
+{
+  "schema": "bf.qa.routing-v52-public-evidence.v1",
+  "requirement_id": "REQ-QA-RETEST-ANSWER-ROUTING-20260921",
+  "answer_review": {
+    "artifact": "retest_answer_review_20260921.json",
+    "per_answer_records": 822,
+    "full_answer_manual_review": 184,
+    "knowledge_exact_source_contract_review": 638,
+    "manual_status_counts": {
+      "passed": 21,
+      "partial": 75,
+      "failed": 45,
+      "insufficient_evidence": 40,
+      "oracle_blocked": 3
+    },
+    "knowledge_status_counts": {
+      "pending_semantic_review": 573,
+      "scope_contract_alert": 54,
+      "oracle_blocked": 11
+    },
+    "semantic_pass_inferred_from_transport": false
+  },
+  "candidate": {
+    "name": "v52-r2",
+    "manifest_sha256": "803267bfaee348dd9a685708f33a94eb78f5d36d79a177add7c5c9d327ea5fbb",
+    "file_count": 16,
+    "inherited_v51_files_byte_identical": 14,
+    "changed_files": [
+      "qa_task_plan.py",
+      "ollama_proxy_server.py"
+    ],
+    "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+    "model_switch_allowed": false,
+    "fallback_model_allowed": false,
+    "same_name_weight_replacement_allowed": false,
+    "model_operations": 0,
+    "production_writes": 0,
+    "production_deployed": false
+  },
+  "validation": {
+    "targeted_review_and_routing_tests": {
+      "passed": 26,
+      "failed": 0
+    },
+    "chapter_and_new_routing_after_fix": {
+      "passed": 23,
+      "failed": 0
+    },
+    "qa_selected_full_regression_after_fix": {
+      "passed": 2116,
+      "failed": 0,
+      "deselected": 1003
+    },
+    "mcp_gold_schema": {
+      "passed": 14,
+      "failed": 0
+    }
+  },
+  "boundaries": [
+    "No production questions were reposted.",
+    "No production service, database, scheduler or model state was changed.",
+    "Knowledge source coverage is not reported as semantic accuracy.",
+    "Production remains on V26 until a separately guarded deployment."
+  ]
+}

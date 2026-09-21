@@ -1,0 +1,50 @@
+{
+  "schema": "bf.qa.paired-observations.v1",
+  "checked_at": "2026-09-17",
+  "version": "v25",
+  "production_commit": "6ec408b17db75a040028fdee843cbd1b5b63c5ff",
+  "planned": 822,
+  "attempted": 1,
+  "transport_complete": 1,
+  "passed": 0,
+  "partial": 0,
+  "failed": 1,
+  "proven_unsent": 821,
+  "stable_model_samples": 0,
+  "full_dataset_accuracy_available": false,
+  "accuracy_scope": "One reviewed actual failure; post-turn model identity not verified. No overall gain or fixed-model causal comparison claim.",
+  "initial_failed": 637,
+  "initial_partial": 185,
+  "rows": [
+    {
+      "case_id": "TPL-C5DF79304112ED85",
+      "status": "failed",
+      "before_v24": "failed",
+      "result_sha256": "50ba9c73e14cb3ac7f335aa389c3870352f6b37828a5f2254d28017b55e9d730",
+      "original_prompt_sha256": "a2e6affc0db4d586ad3950024185cc7a9b66e6b8bea1987e81643726c927a778",
+      "seconds": 20.828,
+      "actual_tool_calls": 1,
+      "route": "lifecycle_error_verified_evidence",
+      "model_digest_before": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+      "model_identity_after": "drift_or_unavailable",
+      "requested_objects": 18,
+      "artifact_objects": 16,
+      "missing_objects": [
+        "P_static_upper_E",
+        "P_static_upper_F"
+      ],
+      "artifact_http_ok": true,
+      "artifact_data_sha256": "1139f7c3a8c18c864f760b172645a26fc6ec64a445a0da5768f0edff9a8840c6",
+      "artifact_image_sha256": "45573a329fd4e6c719f6ecb8bc7777e72eb2408490cfbe05968756a22f8f3171",
+      "final_chart_not_delivered": true,
+      "issue_ids": [
+        "QAOPT-R03",
+        "QAOPT-E01",
+        "QAOPT-E05",
+        "QAOPT-O01",
+        "QAOPT-O03"
+      ],
+      "reason": "Route correctly requested all eighteen points; MCP silently limited output to sixteen. Chart artifact exists and responds HTTP200, but final lifecycle fallback omitted both chart and facts. Cannot count nonempty response as success."
+    }
+  ]
+}

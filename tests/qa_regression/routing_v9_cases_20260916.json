@@ -1,0 +1,11 @@
+{
+  "schema": "bf.qa.targeted-cases.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "reviews": [
+    {"case_id":"TPL-V9-R08","question":"查询当前炉顶压力，同时生成Python代码示例。","expected":{"criteria":["verified current query fact","only code subtask refused","partial policy limited"]}},
+    {"case_id":"TPL-3FE672D48EEF6AA0","question":"请完整说明《三规二制》中高炉工长“1工作前”的全部规定。","expected":{"criteria":["only subsection 1","all 1.1 to 1.3 original clauses","no other regulation"]}},
+    {"case_id":"TPL-V9-K-WORK","question":"请完整说明《三规二制》中高炉工长“2工作中”的全部规定。","expected":{"criteria":["only subsection 2","complete original child clauses","no neighboring sections"]}},
+    {"case_id":"TPL-V9-K-TABLE","question":"请完整说明《三规二制》中高炉工长“10工艺影响因素表”的全部规定。","expected":{"criteria":["entire original table or explicit reference conflict","no invented rows"]}},
+    {"case_id":"TPL-V9-CODE","question":"生成查询当前炉顶压力的Python代码示例。","expected":{"criteria":["code ability disabled","no code or unnecessary live query"]}}
+  ]
+}

@@ -1310,7 +1310,10 @@ def parse_variables_arg(variables: Any, max_items: int = 16) -> list[str]:
         out.append(key)
     if not out:
         raise ValueError("variables 至少需要一个变量名，例如 ['T_top'] 或 ['T_top','P_top']")
-    return out[: max(1, min(int(max_items or 16), 80))]
+    maximum = max(1, min(int(max_items or 16), 80))
+    if len(out) > maximum:
+        raise ValueError(f"请求了 {len(out)} 个变量，本工具最多支持 {maximum} 个；请分组查询。未静默截断变量。")
+    return out
 
 
 def numeric_row_value(row: dict[str, Any]) -> float | None:
@@ -2915,6 +2918,8 @@ def plot_gl02_trends(
     moving_average_points 可叠加移动平均；show_extrema/show_latest 可标注极值和最新值；reference_values 可按标准变量名画参考线。
     theme 支持 industrial、light、dark。关系图、相关矩阵、分布图和箱线图请调用 plot_gl02_analysis。
     """
+    # REQ-QA-CHART-COVERAGE-20260917: support all three heights A-F.
+    names = parse_variables_arg(variables, max_items=24)
     if (
         os.getenv("BF_MCP_PLOT_WORKER") != "1"
         and os.getenv("BF_MCP_PLOT_SUBPROCESS", "1").strip().lower() not in {"0", "false", "no", "off"}
@@ -2955,7 +2960,7 @@ def plot_gl02_trends(
                 "ok": False,
                 "error": "PLOT_WORKER_TIMEOUT",
                 "message": f"趋势图生成超过 {timeout} 秒未返回，请缩短时间窗或稍后重试。",
-                "variables": parse_variables_arg(variables),
+                "variables": names,
                 "start_time": start_time,
                 "end_time": end_time,
             }
@@ -2964,7 +2969,7 @@ def plot_gl02_trends(
                 "ok": False,
                 "error": type(exc).__name__,
                 "message": str(exc),
-                "variables": parse_variables_arg(variables),
+                "variables": names,
                 "start_time": start_time,
                 "end_time": end_time,
             }
@@ -2973,7 +2978,7 @@ def plot_gl02_trends(
                 "ok": False,
                 "error": "PLOT_WORKER_FAILED",
                 "message": (proc.stderr or proc.stdout or "").strip()[-4000:],
-                "variables": parse_variables_arg(variables),
+                "variables": names,
                 "start_time": start_time,
                 "end_time": end_time,
             }
@@ -2988,7 +2993,6 @@ def plot_gl02_trends(
                 "stderr": (proc.stderr or "")[-2000:],
             }
 
-    names = parse_variables_arg(variables)
     start_time, end_time = validate_time_range(start_time, end_time)
     scale = normalize_chart_scale(scale)
     chart_type = normalize_chart_type(chart_type)
@@ -3073,6 +3077,10 @@ def plot_gl02_trends(
         "ok": True,
         "tool": "plot_gl02_trends",
         "variables": names,
+        "requested_variables": names,
+        "covered_variables": [item["requested_variable"] for item in drawable],
+        "missing_variables": [name for name in names if name not in {item["requested_variable"] for item in drawable}],
+        "max_points_per_variable": limit,
         "start_time": start_time,
         "end_time": end_time,
         "scale": scale,
@@ -3647,6 +3655,7 @@ def read_report_excerpt(report_path: str, mode: str = "excerpt", max_chars: int 
     if candidate.suffix.lower() not in {".md", ".txt"}:
         raise ValueError("当前工具只允许读取 .md 或 .txt 报表文本")
     text = candidate.read_text(encoding="utf-8", errors="replace")
+    total_chars = len(text)
     if mode != "full":
         text = text[:max_chars]
     else:
@@ -3656,7 +3665,8 @@ def read_report_excerpt(report_path: str, mode: str = "excerpt", max_chars: int 
         "report_path": str(candidate.relative_to(REPORTS_DIR)),
         "mode": mode,
         "chars_returned": len(text),
-        "truncated": len(text) < candidate.stat().st_size,
+        "total_chars": total_chars,
+        "truncated": len(text) < total_chars,
         "content": text,
     }
 

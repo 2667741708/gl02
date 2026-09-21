@@ -1,0 +1,488 @@
+{
+  "schema": "bf.qa.fixed-response-review.v1",
+  "reviewed_at": "2026-09-16",
+  "review_method": "independent assistant review of all 53 flagged questions and refusal variants; 5 structural rows excluded",
+  "not_overall_accuracy": true,
+  "reviews": [
+    {
+      "case_id": "TPL-C5DF79304112ED85",
+      "answer_sha256": "72fb886ca76ed9798726640ac6092d1b841901037a4539f355829de8a4162b6a",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-A60B0CD794D49E48",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-BCA3335AC5ED904A",
+      "answer_sha256": "0060bfc005f0551f09ab1d384fe3f4a9f033e76eb3b5b8a0fc8ee92398769e11",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-8B7C1859A362E3DD",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-D1FB28CE1B9C21E1",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-9350A36260D7589A",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-2945C0479E5AA40A",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-31A40BF0C39381C9",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-F4939324AC3D3D5F",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-7CBE3D558CAAD686",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-0F3B72EDE439BD33",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-00F9E60C73D8BE83",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-7199ADD9883B18D3",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-90EE7B371FE7A879",
+      "answer_sha256": "f7015b49ae1681c4b41ca17973263a04c2047cb5baee0929f56e64151af8e2e5",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-E5DB029B9B3B8DAC",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-7A5E5B1C2350866A",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-18399CD0A0FDD84D",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-EE9BDE0EB2830161",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-ED788A23FD13D06F",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-1FC0AF73CFDEC56F",
+      "answer_sha256": "72abade324526a41c1c27fdeec30227c4e76ce07b3586f4f6b6dd67811d70848",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-AE9F0420FB3D1189",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-79F7FD9CA65536B7",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-3F71EF4AE829B406",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-BEFF144CB0DB67E1",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-86EB16D455D798EB",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-0DD6ED5A8049E4B6",
+      "answer_sha256": "ac380a253134de7758be6f8a1ccb3937309674e89dde2b4acf0d7aefd3430793",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-3482A8EE5B37D413",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-FE10E65E18FBF2B6",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-BD6F5FB0277D3822",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-8C4E95CD3696FCC9",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-0BF027E015754E21",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-C9B957F57204C2C4",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-3A02EAA7FA93AFEC",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-F6D8CBD7DAD56EFE",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-CD0AD52EA976A140",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-11CFDECFC4A6A802",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-3EF41666AA2AA09A",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-B7308A7EA1AF4F22",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-3D55DDF5C7EAE4B1",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-37FA162BCC7D2532",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-0EEFB8ED9A29E554",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-B6358FE6D9300275",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-93F38E930DFF0610",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-9AE8A19F5E9B013B",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-B838D55F62D0F02B",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-C6724F4D7C4AB190",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-94D18AC99322D452",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    },
+    {
+      "case_id": "TPL-1A91673F85279AC5",
+      "answer_sha256": "fa0b20421aa9d0ea2a08fcf4f392b8634b3501de528dbaa2058658488c9e5266",
+      "status": "failed",
+      "classification": "answer_contract_failed",
+      "issue_ids": [
+        "QAOPT-R08"
+      ],
+      "basis": "已审阅问题及固定拒绝回复；用户没有请求代码。部分附有图表，错误拒绝正文仍违反回答合同。"
+    }
+  ]
+}

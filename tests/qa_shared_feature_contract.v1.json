@@ -1,0 +1,21 @@
+{
+  "schema": "bf.deploy.shared-feature-contract.v1",
+  "contract_id": "qa-shared-proxy-20260915-v1",
+  "features": {
+    "accepted_proxy_features": {
+      "artifacts": {
+        "proxy": [
+          "qa_request_control.install(Handler, globals())",
+          "diagnosis_ai_analysis_api.install_handler(Handler, globals())",
+          "/api/auth/register",
+          "/api/qa/asr/status",
+          "/api/qa/asr/session",
+          "validated_abc_initial_answer_with_repair",
+          "owner_subject",
+          "cache_abc_rule_analysis",
+          "cross_source_with_analysis"
+        ]
+      }
+    }
+  }
+}

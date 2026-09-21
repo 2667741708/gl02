@@ -1,0 +1,102 @@
+{
+  "schema": "bf.qa.knowledge-candidate-batches-readonly.v1",
+  "checked_at": "2026-09-16",
+  "version": "v15",
+  "total": 833,
+  "counts": {
+    "coverage_candidate_pass_pending_semantic_review": 803,
+    "oracle_blocked": 30
+  },
+  "batches": [
+    {
+      "offset": 0,
+      "total": 100,
+      "duration_ms": 3094,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 96,
+        "oracle_blocked": 4
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    },
+    {
+      "offset": 100,
+      "total": 100,
+      "duration_ms": 2922,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 91,
+        "oracle_blocked": 9
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    },
+    {
+      "offset": 200,
+      "total": 100,
+      "duration_ms": 4000,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 100
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    },
+    {
+      "offset": 300,
+      "total": 100,
+      "duration_ms": 4172,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 100
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    },
+    {
+      "offset": 400,
+      "total": 100,
+      "duration_ms": 4172,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 100
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    },
+    {
+      "offset": 500,
+      "total": 100,
+      "duration_ms": 4781,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 100
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    },
+    {
+      "offset": 600,
+      "total": 100,
+      "duration_ms": 4250,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 98,
+        "oracle_blocked": 2
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    },
+    {
+      "offset": 700,
+      "total": 100,
+      "duration_ms": 3687,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 85,
+        "oracle_blocked": 15
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    },
+    {
+      "offset": 800,
+      "total": 33,
+      "duration_ms": 1843,
+      "counts": {
+        "coverage_candidate_pass_pending_semantic_review": 33
+      },
+      "candidate_sha256": "2cce0abdf4b18e80f63527e5c8f287e2c56a6258d099ea25c8785f25c825d9f9"
+    }
+  ],
+  "question_posts": 0,
+  "model_calls": 0,
+  "database_writes": 0,
+  "semantic_review": "coverage_only; do not infer independent semantic passing",
+  "source": "actual production KB evaluated in bounded SELECT-only transactions"
+}

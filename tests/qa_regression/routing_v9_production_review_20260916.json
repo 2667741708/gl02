@@ -1,0 +1,16 @@
+{
+  "schema":"bf.qa.production-semantic-review.v1",
+  "requirement_id":"REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version":"routing-v9","production_commit":"36b8d938f23923fca81026d7d668891bbf928dfb",
+  "execution_id":"qa-routing-v9-20260916-r1","requests":5,"sse_done":5,"automatic_post_retries":0,
+  "passed":3,"partial":2,"failed":0,
+  "reviews":[
+    {"case_id":"TPL-V9-R08","status":"partial","allowed_subtask":"pass","reason":"Actual authorized latest query completed with source/time/quality; zero model calls; only code task refused and completion explicitly policy-limited."},
+    {"case_id":"TPL-3FE672D48EEF6AA0","status":"pass","reason":"Only work-before original section and all three child clauses returned, correct regulation and manifest."},
+    {"case_id":"TPL-V9-K-WORK","status":"pass","reason":"Only work-during section with all eight original child clauses; no neighboring subsection."},
+    {"case_id":"TPL-V9-K-TABLE","status":"partial","reason":"Both complete original tables preserved, but one unnumbered heading from next section included. Source heading lacks section number; boundary requires independent source metadata."},
+    {"case_id":"TPL-V9-CODE","status":"pass","reason":"Pure code request rejected without code generation or execution and without live query."}
+  ],
+  "privacy":"Identifiers and sanitized findings only; no raw conversations, measurements or credentials.",
+  "excluded":["833 separate knowledge semantic denominator","one legacy uncertain POST"]
+}

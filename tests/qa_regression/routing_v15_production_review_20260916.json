@@ -1,0 +1,139 @@
+{
+  "schema": "bf.qa.routing-production-review.v1",
+  "checked_at": "2026-09-16",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "version": "v15",
+  "production_commit": "25d4cd1cc4777153bcbe1d8cd38b4ab1755f9874",
+  "focused_tests_passed": 112,
+  "requests": 5,
+  "automatic_post_retries": 0,
+  "counts": {
+    "passed": 5
+  },
+  "review_method": "Explicit independent post-release semantic review; nonempty and SSE done do not imply passing.",
+  "results": [
+    {
+      "case_id": "TPL-V15-CODE-BOUNDARY",
+      "state": "passed",
+      "answer_sha256": "ed726d55bfac0b1de284649e49fe76582b41785d43d7d51c622754a33e054442",
+      "answer_chars": 1051,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "evidence_without_tools",
+      "terminal_state": "partial",
+      "model_request_count": 1,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V15-LATEST-RESET",
+      "state": "passed",
+      "answer_sha256": "a7fd2e72910f6ccdcb7854d322128269d1e67f0768278804e66e373c766a6c37",
+      "answer_chars": 113,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "grounded_fact_only",
+      "terminal_state": "answered_pending_review",
+      "model_request_count": 0,
+      "tool_start_count": 1,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V15-MULTI-ORIGINAL",
+      "state": "passed",
+      "answer_sha256": "f5558e000c7e4b9852874496db937117607d632e0654e51501f40d262ea57426",
+      "answer_chars": 622,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "verified_document_knowledge",
+      "terminal_state": "completed",
+      "model_request_count": 0,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V15-MULTI-UNKNOWN",
+      "state": "passed",
+      "answer_sha256": "28a38f74b893129e8315bd09ac9a7d8839fa27c54dfe58a573b4e72d77a62e23",
+      "answer_chars": 286,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "verified_document_knowledge",
+      "terminal_state": "partial",
+      "model_request_count": 0,
+      "tool_start_count": 0,
+      "message_count": 2,
+      "messages_projection": "turn"
+    },
+    {
+      "case_id": "TPL-V15-WINDOW-SEED",
+      "state": "passed",
+      "answer_sha256": "922af3c2537d70d0ae1570eb9a73a06a1436ae9ef39625340ad05dabda23ab6d",
+      "answer_chars": 397,
+      "request_count": 1,
+      "sse_done": true,
+      "route": "grounded_fact_only",
+      "terminal_state": "answered_pending_review",
+      "model_request_count": 0,
+      "tool_start_count": 1,
+      "message_count": 2,
+      "messages_projection": "turn"
+    }
+  ],
+  "deployment": {
+    "ok": true,
+    "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+    "backup": "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\backups\\qa-routing-v15-20260916-r1-20260916-210751",
+    "rollback_applied": false,
+    "guard_paused": true,
+    "guard_restored": true,
+    "readiness_checks": [
+      {
+        "attempt": 1,
+        "proxy_ok": true,
+        "ollama_ok": true,
+        "model_ok": false
+      },
+      {
+        "attempt": 2,
+        "proxy_ok": true,
+        "ollama_ok": true,
+        "model_ok": false
+      },
+      {
+        "attempt": 3,
+        "proxy_ok": true,
+        "ollama_ok": true,
+        "model_ok": true
+      }
+    ],
+    "old_8093_pid": 15940,
+    "new_8093_pid": 12608,
+    "protected_before": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "protected_after": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "http_8093": 200,
+    "installed_hashes": {
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_document_knowledge.py": "2CCE0ABDF4B18E80F63527E5C8F287E2C56A6258D099EA25C8785F25C825D9F9",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_document_integrity.py": "B616E3F01E940E372FC398AF9535AD399C24DF8134D29F19319F1FE33EFD9BE6",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/mcp_conversation_context.py": "E7F580C71EB334DDE67343C5AFC3A91E3E508408FD1A252F9E4A48F74F8D8507"
+    }
+  },
+  "privacy": "No raw answers, conversation payloads, production measurements or identities."
+}

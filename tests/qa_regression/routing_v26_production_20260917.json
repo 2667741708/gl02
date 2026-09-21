@@ -1,0 +1,36 @@
+{
+  "schema": "bf.qa.production-proof.v1",
+  "version": "v26",
+  "checked_at": "2026-09-17",
+  "production_commit": "7d8a2b1a73fbd3e5b30cf800135ec32c3fa5548e",
+  "production_version_ref_matches": true,
+  "accepted_git_record": true,
+  "post_record_readiness": {
+    "ok": true,
+    "proxy_ok": true,
+    "ollama_ok": true,
+    "model_ok": true,
+    "target_model": "炽穹·高炉炼铁大模型",
+    "error": "",
+    "readiness_contract": "approved_resident_model"
+  },
+  "write_count": 3,
+  "read_count": 25,
+  "focused_tests_passed": 174,
+  "protected_proxy_ast_nodes": 494,
+  "protected_mcp_ast_nodes": 186,
+  "shared_markers": 22,
+  "independent_candidate_and_deployment_review": "gpt-5.6-luna low PASS",
+  "installed_hashes": {
+    "高炉前端数据/智能助手/backend/ollama_proxy_server.py": "47b7e75f6a4c2b932ac21b0dd9628d4c049f7a6f2ee083537bbedf1a6c57f431",
+    "高炉前端数据/智能助手/backend/qa_tool_fallback.py": "c5be1cb459c845510d7ad4b8ce60a8da444910a554e6005683d48bf97dd69dfd",
+    "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "42d81acb60a0d3b28897c55e5c692e71f75ca5cf262dc8088fa4d1dcc6817884"
+  },
+  "chart_repair": [
+    "explicit_24_object_limit_without_silent_truncation",
+    "complete_typed_evidence_retained",
+    "bounded_model_projection_separate_from_evidence",
+    "chart_preserved_after_lifecycle_failure"
+  ],
+  "production_semantic_effectiveness_verified": false
+}

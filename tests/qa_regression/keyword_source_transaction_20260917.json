@@ -1,0 +1,61 @@
+{
+  "schema": "bf.qa.keyword-source-transaction-public-evidence.v1",
+  "requirement_id": "REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_transaction_library_tested_reviewed_not_production_applied",
+  "release_id": "qa-source-keyword-20260917-r2",
+  "doc_id": "bf_three_rules_two_systems_20260712",
+  "plan_sha256": "7ca28451af71cc389076bba21774f75540597a4e926ed4e0a0bf9280dd7dd16d",
+  "generator_sha256": {
+    "tools/qa_keyword_source_transaction.py": "599401787f79e505d2398b7d94a0887518286b130baef8ade08cb8677a91565f",
+    "tools/probe_qa_keyword_source_dependencies_readonly.py": "50fb49fc8d72ca43438e9934c6e57dac1b5c4dbd9615ad601c62bb1a7bc03521",
+    "tests/test_qa_keyword_source_transaction.py": "1a939270256b2c3cb4f9cad6c26bab0921d46a31930b3b3adcccd3b1b636061e",
+    "tests/qa_regression/keyword_source_pg_fixture.sql": "4c5df12d8bcb37a36c34f66c138797fed09a4bd14169f2072512337372ad40d2"
+  },
+  "verification": {
+    "tests_passed": 271,
+    "transaction_tests_passed": 18,
+    "elapsed_seconds": 49.28,
+    "database": "isolated native PostgreSQL 16.13",
+    "vector_extension": "real public.vector",
+    "independent_static_review": "PASS gpt-5.6-luna low",
+    "test_command": "python -m pytest -q --basetemp=.codex_runtime/qa-keyword-transaction-20260917-r5 tests/test_qa_keyword_source_transaction.py tests/test_qa_knowledge_source_binding.py tests/test_qa_source_candidate_freeze.py tests/test_qa_source_scope_contract.py tests/test_three_rules_heading_boundaries.py tests/test_qa_readonly_pg.py tests/test_qa_document_integrity.py tests/test_qa_document_knowledge.py"
+  },
+  "production_readonly_dependencies": {
+    "existing_source_foreign_keys": 2,
+    "delete_action": "CASCADE",
+    "active_user_triggers": 0,
+    "embedding_type": "public.vector"
+  },
+  "contracts": {
+    "single_doc_scope": true,
+    "full_before_archive_in_same_transaction": true,
+    "exact_after_snapshot_gate": true,
+    "advisory_lock_nonblocking": true,
+    "metadata_relation_lock_nowait": true,
+    "incoming_foreign_key_trigger_preflight": true,
+    "commit_uncertainty_readonly_recovery": true,
+    "absent_release_does_not_allow_replay": true,
+    "rollback_restores_vectors_and_prior_binding": true,
+    "semantic_verified": false,
+    "topic_completeness_verified": false
+  },
+  "publication_executor_implemented": true,
+  "production_operational_entry_implemented": false,
+  "production_rollback_snapshot_saved": false,
+  "production_migration_applied": false,
+  "production_database_writes": 0,
+  "reader_integration_applied": false,
+  "production_applied": false,
+  "embedding_generation": false,
+  "model_name": "chiqiongblastfuenace:latest",
+  "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+  "model_switch_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "model_calls": 0,
+  "question_posts": 0,
+  "issues_closed": 0,
+  "original_failure_partial_cohort": 822,
+  "real_retest_requests": 0,
+  "privacy": "Only hashes counts and contract flags; synthetic fixtures contain no original clauses. Private artifacts and production archives remain unpublished."
+}

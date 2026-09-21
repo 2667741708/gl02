@@ -30,6 +30,27 @@ REGULATION_PATTERNS = (
     ("生产联系确认制", re.compile(r"生产联系确认制")),
 )
 
+# Exact original heading variants observed in the frozen source DOCX. These
+# classify headings only; they never rewrite the original clause/table text.
+REGULATION_HEADING_ALIASES = {
+    '安全操作规程': '安全操作规程',
+    '技术操作规程': '技术操作规程',
+    '工艺操作规程': '技术操作规程',
+    '工艺技术规程': '技术操作规程',
+    '工艺技术操作规程': '技术操作规程',
+    '工艺技术技作规程': '技术操作规程',
+    '设备使用维护规程': '设备使用维护规程',
+    '设备维护规程': '设备使用维护规程',
+    '设备维护操作规程': '设备使用维护规程',
+    '设备操维护规程': '设备使用维护规程',
+    '岗位交接班制度': '岗位交接班制度',
+    '生产联系确认制': '生产联系确认制',
+}
+
+# The original chapter 19 body uses 喷煤喷吹工 while its directory says 喷吹工.
+# Bind this exact spelling to this chapter only; never use substring matches.
+CHAPTER_HEADING_ALIASES = {(19, '喷煤喷吹工'): '喷吹工'}
+
 
 @dataclass
 class SourceItem:
@@ -92,7 +113,10 @@ def toc_chapters(document: DocumentObject) -> dict[int, str]:
         text = clean_text(paragraph.text)
         match = TOC_ENTRY.match(text)
         if match:
-            chapters[int(match.group(1))] = match.group(2).strip()
+            code, title = int(match.group(1)), match.group(2).strip()
+            if code in chapters and chapters[code] != title:
+                raise ValueError('同一目录编号存在不同岗位/制度，必须审核源文档')
+            chapters[code] = title
     if len(chapters) < 28:
         raise ValueError(f"目录应至少识别 28 个岗位/制度，实际识别 {len(chapters)} 个")
     return chapters
@@ -104,38 +128,39 @@ def normalized(value: str) -> str:
 
 def match_chapter(text: str, chapters: dict[int, str]) -> tuple[str, str] | None:
     first_line = text.split("\n", 1)[0]
+    if TOC_ENTRY.fullmatch(first_line) or ' | ' in first_line:
+        return None
     match = re.match(r"^\s*(\d+)[.．、]\s*(.+)$", first_line)
     if not match:
         return None
     number = int(match.group(1))
     expected = chapters.get(number)
     if expected:
-        actual_norm = normalized(match.group(2)).replace("三规一制", "").replace("三规二制", "")
+        actual_norm = re.sub(r'(?:“三规[一二]制”|"三规[一二]制"|三规[一二]制)$', '', normalized(match.group(2)))
         expected_norm = normalized(expected)
+        actual_norm = CHAPTER_HEADING_ALIASES.get((number, actual_norm), actual_norm)
         aliases = ("高炉", "原料", "岗位")
         actual_core = actual_norm
         expected_core = expected_norm
         for prefix in aliases:
             actual_core = actual_core.removeprefix(prefix)
             expected_core = expected_core.removeprefix(prefix)
-        if (
-            actual_norm.startswith(expected_norm)
-            or expected_norm.startswith(actual_norm)
-            or (len(expected_norm) >= 3 and expected_norm in actual_norm)
-            or actual_core.startswith(expected_core)
-            or expected_core.startswith(actual_core)
-        ):
+        if actual_norm == expected_norm or (len(expected_core) >= 2 and actual_core == expected_core):
             return str(number), expected
     return None
 
 
 def match_regulation(text: str, chapter_title: str) -> str | None:
-    for label, pattern in REGULATION_PATTERNS:
-        if pattern.search(text):
-            return label
-    if chapter_title in {"岗位交接班制度", "生产联系确认制"}:
-        return chapter_title
-    return None
+    # A regulation mention inside a clause is not a heading. In particular,
+    # assigning the chapter's制度 label to every short paragraph dropped its
+    # original clauses and short tables before chunk creation.
+    if '\n' in text or ' | ' in text:
+        return None
+    candidate = re.sub(r'^\s*(?:\d+(?:\.\d+)*[.．、]*|[一二三四五六七八九十]+[.．、]+|[（(][一二三四五六七八九十\d]+[）)])\s*', '', text).strip()
+    candidate = candidate.rstrip(':：').strip()
+    if chapter_title and candidate != chapter_title and candidate.startswith(chapter_title):
+        candidate = candidate[len(chapter_title):].strip()
+    return REGULATION_HEADING_ALIASES.get(candidate)
 
 
 def parse_source_items(document: DocumentObject) -> tuple[dict[int, str], list[SourceItem]]:
@@ -148,7 +173,9 @@ def parse_source_items(document: DocumentObject) -> tuple[dict[int, str], list[S
     item_index = 0
 
     for block_index, (kind, block_text) in enumerate(iter_blocks(document)):
-        chapter = match_chapter(block_text, chapters)
+        if TOC_ENTRY.fullmatch(block_text):
+            continue
+        chapter = match_chapter(block_text, chapters) if kind == 'paragraph' else None
         if chapter:
             current_chapter_code, current_chapter_title = chapter
             current_regulation = current_chapter_title if int(current_chapter_code) >= 27 else "综合规定"
@@ -164,7 +191,7 @@ def parse_source_items(document: DocumentObject) -> tuple[dict[int, str], list[S
             logical_text = clean_text(logical_text)
             if not logical_text:
                 continue
-            regulation = match_regulation(logical_text, current_chapter_title)
+            regulation = match_regulation(logical_text, current_chapter_title) if kind == 'paragraph' else None
             if regulation and len(logical_text) <= 80:
                 current_regulation = regulation
                 hierarchy.clear()

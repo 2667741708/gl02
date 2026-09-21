@@ -1,0 +1,383 @@
+{
+  "schema": "bf.qa.shared-proxy-integration-public-evidence.v1",
+  "requirement": "REQ-QA-SHARED-PROXY-INTEGRATION-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_frozen_reviewed_not_deployed_fixed_pin_required",
+  "candidate": "v47-r1",
+  "manifest_sha256": "3deab6a3937a3a2afab099b0cabea0277c507176bf326f2529845a24116defe6",
+  "prior_candidate": "v46-r2",
+  "proxy_sha256": "26dbc2f26a44b0f1b19cbd2094470f96812fbfe0b4761c8110ba530801b9eae9",
+  "other_modules_inherited_byte_identical": 15,
+  "shared_symbols": [
+    "Handler.handle_furnace_rule_detail",
+    "Handler.handle_public_furnace_rule_breakdown",
+    "with_public_detail_semantics"
+  ],
+  "shared_import": "from furnace_display_policy import build_display_policy, build_unified_summary, display_name as furnace_display_name",
+  "whole_ast_delta_covered": true,
+  "source_fragment_evidence_sha256": "dda1d2fce703923bc484146583db6702d6786700e21efe2e15f38efd8df9e1c7",
+  "runtime_dependency_pins": {
+    "高炉前端数据/智能助手/backend/furnace_display_policy.py": "494e24e76180d1a05aa70225a07355040e088a3a372f4ab395f0e6ef3c453f7d",
+    "高炉前端数据/智能助手/backend/abc_score_explanation.py": "51cd8030f014c81de1824b452369ee474a90cb09a192b1d0e5a938926b1b98bd"
+  },
+  "v46_prepare_source_gate_unchanged": true,
+  "fixed_identity": {
+    "name": "chiqiongblastfuenace:latest",
+    "digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124"
+  },
+  "model_switch_allowed": false,
+  "fallback_model_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "native_runtime": {
+    "native_python": "3.11.9",
+    "frozen_modules": 16,
+    "transitive_dependencies": 60,
+    "probe_sha256": "e7dfb90eb67ad67cc7baabcd1a1b06a10006a2204509adb77963c0f38ce79dc7",
+    "qa_contracts": {
+      "state": "synthetic_contract_only",
+      "cases": [
+        {
+          "id": "full_json_supplied_data",
+          "passed": true,
+          "status": 200,
+          "mock_requests": 1,
+          "error_code": null,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 1,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_json_code_disabled",
+          "passed": true,
+          "status": 200,
+          "mock_requests": 0,
+          "error_code": null,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 1,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_json_cross_owner_denied",
+          "passed": true,
+          "status": 404,
+          "mock_requests": 0,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 0,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_json_wrong_weight_denied",
+          "passed": true,
+          "status": 500,
+          "mock_requests": 0,
+          "error_code": "fixed_model_identity_not_ready",
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 1,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_json_single_user_busy",
+          "passed": true,
+          "status": 409,
+          "mock_requests": 0,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 0,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_json_duplicate_id_denied",
+          "passed": true,
+          "status": 409,
+          "mock_requests": 0,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 1,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_json_cancel_before_persist",
+          "passed": true,
+          "status": 409,
+          "mock_requests": 1,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 1,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_sse_supplied_data",
+          "passed": true,
+          "status": 200,
+          "events": [
+            "start",
+            "start",
+            "delta",
+            "final",
+            "done"
+          ],
+          "mock_requests": 1,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 1,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_sse_code_disabled",
+          "passed": true,
+          "status": 200,
+          "events": [
+            "start",
+            "start",
+            "delta",
+            "final",
+            "done"
+          ],
+          "mock_requests": 0,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 1,
+          "page_archive_isolated_from_evidence": true
+        },
+        {
+          "id": "full_sse_wrong_weight_denied",
+          "passed": true,
+          "status": 200,
+          "events": [
+            "start",
+            "start",
+            "error"
+          ],
+          "mock_requests": 0,
+          "functional_contract_passed": true,
+          "sensor_context_read_count": 0,
+          "sensor_context_read_kinds": [],
+          "mock_page_archives": 1,
+          "page_archive_isolated_from_evidence": true
+        }
+      ],
+      "mocked_boundaries": [
+        "authentication_session",
+        "database_connection",
+        "sensor_snapshot_provider",
+        "ollama_transport",
+        "heartbeat_thread_start"
+      ],
+      "heartbeat_schedules_mocked": 3,
+      "real_concurrency_verified": false,
+      "full_prepare_executed": true,
+      "real_database_verified": false,
+      "real_model_answer_verified": false,
+      "production_accuracy_inferred": false
+    },
+    "shared_abc_contracts": {
+      "state": "synthetic_contract_only",
+      "cases": [
+        {
+          "id": "shared_public_breakdown_v2",
+          "passed": true,
+          "status": 200,
+          "mock_db_read_count": 2,
+          "mock_operator_checks": 0
+        },
+        {
+          "id": "shared_unavailable_score_not_counted",
+          "passed": true,
+          "status": 200,
+          "mock_db_read_count": 2,
+          "mock_operator_checks": 0
+        },
+        {
+          "id": "shared_public_detail_v3",
+          "passed": true,
+          "status": 200,
+          "mock_db_read_count": 1,
+          "mock_operator_checks": 0
+        },
+        {
+          "id": "shared_stale_detail_fail_closed",
+          "passed": true,
+          "status": 200,
+          "mock_db_read_count": 1,
+          "mock_operator_checks": 0
+        },
+        {
+          "id": "shared_operator_breakdown_denied",
+          "passed": true,
+          "status": 403,
+          "mock_db_read_count": 0,
+          "mock_operator_checks": 1
+        },
+        {
+          "id": "shared_invalid_evaluation_denied",
+          "passed": true,
+          "status": 400,
+          "mock_db_read_count": 0,
+          "mock_operator_checks": 0
+        },
+        {
+          "id": "shared_unknown_rule_denied",
+          "passed": true,
+          "status": 404,
+          "mock_db_read_count": 0,
+          "mock_operator_checks": 0
+        },
+        {
+          "id": "shared_missing_batch_denied",
+          "passed": true,
+          "status": 404,
+          "mock_db_read_count": 1,
+          "mock_operator_checks": 0
+        },
+        {
+          "id": "shared_missing_detail_needs_data",
+          "passed": true,
+          "status": 200,
+          "mock_db_read_count": 1,
+          "mock_operator_checks": 0
+        }
+      ],
+      "mocked_boundaries": [
+        "abc_configuration_provider",
+        "abc_database_connection",
+        "persisted_sensor_review_provider",
+        "operator_permission_result",
+        "http_response_capture"
+      ],
+      "merged_handler_methods_executed": true,
+      "real_database_verified": false,
+      "real_authorization_verified": false,
+      "real_model_answer_verified": false,
+      "production_accuracy_inferred": false
+    },
+    "runtime_dependency_pin_mismatches": [],
+    "side_effect_attempts": [],
+    "semantic_accuracy_inferred": false
+  },
+  "local_regression": {
+    "modules": 32,
+    "passed": 808,
+    "elapsed_seconds": 116.21,
+    "command": [
+      "python",
+      "-B",
+      "-X",
+      "utf8",
+      "-m",
+      "pytest",
+      "-q",
+      "--tb=short",
+      "--basetemp=.codex_runtime/qa-full-import-20260917/pytest-v47-related-r2",
+      "tests/test_qa_supplied_record_scope.py",
+      "tests/test_qa_source_exclusion_scope.py",
+      "tests/test_qa_source_concept_scope.py",
+      "tests/test_qa_response_style_source_scope.py",
+      "tests/test_qa_declared_input_scope.py",
+      "tests/test_qa_user_supplied_scope.py",
+      "tests/test_qa_task_plan.py",
+      "tests/test_qa_compound_source_scope.py",
+      "tests/test_qa_evidence_policy.py",
+      "tests/test_qa_math_function_policy.py",
+      "tests/test_qa_history_compound.py",
+      "tests/test_qa_history_projection.py",
+      "tests/test_qa_history_completion.py",
+      "tests/test_qa_v12_safety.py",
+      "tests/test_qa_final_completion.py",
+      "tests/test_qa_fixed_model_identity.py",
+      "tests/test_qa_history_compound_seams.py",
+      "tests/test_qa_single_window_routing.py",
+      "tests/test_qa_document_knowledge.py",
+      "tests/test_qa_prompt_binding.py",
+      "tests/test_qa_runtime_probe_fixed_pin.py",
+      "tests/test_qa_exclusive_use.py",
+      "tests/test_qa_window_quality.py",
+      "tests/test_qa_v27_fixed_base_candidate.py",
+      "tests/test_qa_sensor_context_source_gate.py",
+      "tests/test_qa_followup_planning.py",
+      "tests/test_qa_context_provenance.py",
+      "tests/test_qa_context_provenance_seams.py",
+      "tests/test_qa_context_boundaries.py",
+      "tests/test_qa_full_candidate_probe.py",
+      "tests/test_qa_full_candidate_probe_evidence.py",
+      "tests/test_qa_shared_proxy_integration.py"
+    ],
+    "gold_schema_passed": 14,
+    "independent_review": "gpt-5.6-luna low PASS bounded integration and fixture review"
+  },
+  "retained_initial_failures": {
+    "native_shared_fixture_failed": 1,
+    "local_suite_passed": 806,
+    "local_suite_failed": 2,
+    "native_fixture_root_cause": "output score_available used as persisted input instead of authoritative score_released",
+    "local_suite_root_cause": "Windows child interpreter output encoding not fixed to UTF-8",
+    "production_failures_inferred": false
+  },
+  "production_readonly_gate": {
+    "observed_at_utc": "2026-09-17T11:59:06.747241+00:00",
+    "head": "cdd390cc386ce486d8a4685ebe060b8eeda7c38a",
+    "runtime_hashes": {
+      "高炉前端数据/智能助手/backend/ollama_proxy_server.py": "d84cfe9d67ded7344e9c15b9de10c807d6d3846fc872b8f53d66b8bfaffe8382",
+      "高炉前端数据/智能助手/mcp/bf_data_mcp_server.py": "42d81acb60a0d3b28897c55e5c692e71f75ca5cf262dc8088fa4d1dcc6817884",
+      "高炉前端数据/智能助手/backend/furnace_display_policy.py": "494e24e76180d1a05aa70225a07355040e088a3a372f4ab395f0e6ef3c453f7d",
+      "高炉前端数据/智能助手/backend/abc_score_explanation.py": "51cd8030f014c81de1824b452369ee474a90cb09a192b1d0e5a938926b1b98bd"
+    },
+    "question_posts": 0,
+    "model_calls": 0,
+    "production_writes": 0,
+    "observed_identity_metadata": {
+      "tags_before": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ],
+      "resident": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ],
+      "tags_after": [
+        {
+          "name": "chiqiongblastfuenace:latest",
+          "digest": "9111be230d48e53a385a28930fb8cf6972767c83e93c0db51f6b331a534e30fb"
+        }
+      ]
+    },
+    "fixed_identity_ready": false
+  },
+  "candidate_shared_proxy_rebase_required_for_pinned_head": false,
+  "fresh_production_dependency_refresh_required": true,
+  "latest_shared_feature_gate_complete": false,
+  "original_question_posts": 0,
+  "real_model_calls": 0,
+  "production_writes": 0,
+  "issue_closures": 0,
+  "original_failed_or_partial_cases_resent": 0,
+  "production_semantic_effectiveness_verified": false,
+  "deployment_authorized_by_this_artifact": false,
+  "remaining_gates": [
+    "immutable approved base identity and residency without model switching",
+    "separately authorized recovery task and DB source release operations",
+    "fresh production hashes and complete shared-feature EOL recordability and guarded scope acceptance",
+    "single-send original-case final-answer review"
+  ],
+  "scope_limitations": [
+    "synthetic configuration database review permission and HTTP seams do not verify real ABC DB or authorization",
+    "ordinary and nonrestricted no-tool questions still retain their old snapshot path",
+    "latest shared integration evidence does not itself authorize deployment or model task changes"
+  ]
+}

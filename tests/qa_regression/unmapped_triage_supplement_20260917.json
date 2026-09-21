@@ -1,0 +1,200 @@
+{
+  "schema": "bf.qa.unmapped-triage-supplement.v1",
+  "requirement_id": "REQ-QA-UNMAPPED-TRIAGE-20260917",
+  "checked_at": "2026-09-17",
+  "source_sha256": "0be29c472012d6a7692f494a0a30e0d788487e711dacce456f941df67f8b8d33",
+  "catalog_sha256": "0e304b4e812a2f24d970d7ea853d9c77af75d5eb781166b5fba49392f423b130",
+  "classification_basis": "frozen final-review reasons and existing issue catalog",
+  "original_judgments_unchanged": true,
+  "frozen_unmapped_cases": 9,
+  "supplemental_triage_cases": 9,
+  "category_counts": {
+    "other": 3,
+    "knowledge": 6
+  },
+  "status_counts": {
+    "partial": 9
+  },
+  "unmapped_after_applying_proposed_supplement": 0,
+  "confirmed_root_causes_or_closed_cases": 0,
+  "real_requests": 0,
+  "sent_unknown_never_replay": [
+    "TPL-10C8C8FAF2C694EF"
+  ],
+  "rows": [
+    {
+      "case_id": "TPL-254A275F94B2E4D5",
+      "status": "partial",
+      "category": "other",
+      "source_path": "PT/MCP可执行功能及口语调用模板.md",
+      "source_line": 187,
+      "original_result_sha256": "8a49684bba047880ab50786a3171d67fe0ace3fe6b7f46bb2171d4b430deef41",
+      "original_prompt_sha256": "7d7a82757702f45e34293364be4bcb8c25721c5e8ae72e8195dcd01acb8cff8f",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-E02",
+        "QAOPT-E03",
+        "QAOPT-E05"
+      ],
+      "reason_code": "latest_unit_and_collection_provenance",
+      "acceptance_gate": "V32 preserves verified values and explicit missing fields; unregistered temperature unit still requires authoritative metadata.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    },
+    {
+      "case_id": "TPL-4F3E4DA366EA5176",
+      "status": "partial",
+      "category": "other",
+      "source_path": "PT/MCP少信息口语模板与无Prompt直连测试规范.md",
+      "source_line": 65,
+      "original_result_sha256": "660ed75c5285962abd1e56c085077a210f33165b853c01e2dae27b7188eaa800",
+      "original_prompt_sha256": "1a23cacb8dafe138a02ab7d123b05e504bc162435eada1b28833d696ece51d5a",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-R03",
+        "QAOPT-E01",
+        "QAOPT-E02",
+        "QAOPT-E05"
+      ],
+      "reason_code": "directory_without_joint_observations",
+      "acceptance_gate": "Resolve both objects and obtain aligned actual sequences; directory data cannot satisfy joint analysis.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    },
+    {
+      "case_id": "TPL-AC03EBFC7B6DE0C9",
+      "status": "partial",
+      "category": "other",
+      "source_path": "PT/MCP少信息口语模板与无Prompt直连测试规范.md",
+      "source_line": 107,
+      "original_result_sha256": "093cd4e268bb6ffab12929aaa2e5cbde3ef7a6edebe41ca210cf599db6dcd2e5",
+      "original_prompt_sha256": "d1a36a026d3b6a4ee4a5e70dfd9846dbebe85da2c01927a054f3507ce00b93e3",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-O02",
+        "QAOPT-E01",
+        "QAOPT-E02",
+        "QAOPT-E05"
+      ],
+      "reason_code": "joint_analysis_timeout_and_prior_evidence_gap",
+      "acceptance_gate": "Preserve only verified prior facts, disclose missing DP evidence, and measure the source timeout without replays.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    },
+    {
+      "case_id": "TPL-BD6C66D1AE3A2397",
+      "status": "partial",
+      "category": "knowledge",
+      "source_path": "PT/三规二制高炉长工长知识库测试题库.md",
+      "source_line": 113,
+      "original_result_sha256": "78f28fbaded362f6229779decdf92d34e9ba8d5f14eb7ac990ff67d1c2c59cb6",
+      "original_prompt_sha256": "fbc59cdd87abe1b2ad9c7eef8c2c581be07ea6b756b49228df463e9fb573c5d2",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-K01",
+        "QAOPT-K03",
+        "QAOPT-E05"
+      ],
+      "reason_code": "incomplete_authoritative_clause",
+      "acceptance_gate": "Retrieve complete authoritative section with ordered coverage; missing text cannot be filled from general knowledge.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    },
+    {
+      "case_id": "TPL-0138CEF2A2BA93B3",
+      "status": "partial",
+      "category": "knowledge",
+      "source_path": "PT/三规二制高炉长工长知识库测试题库.md",
+      "source_line": 153,
+      "original_result_sha256": "c2a349f9ec954d481856d107873b154e4b400c354240f551da58f301afc7e702",
+      "original_prompt_sha256": "abf5b287e7bd992375ffc9566554d101fc1a8ba6629873a80e2448bad634d9aa",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-K01",
+        "QAOPT-K03",
+        "QAOPT-O02",
+        "QAOPT-E05"
+      ],
+      "reason_code": "incomplete_chapter_and_history_timeout",
+      "acceptance_gate": "Use the authoritative chapter rather than conversation history; disclose gaps and retain the original timeout evidence.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    },
+    {
+      "case_id": "TPL-DF40C86F676DD002",
+      "status": "partial",
+      "category": "knowledge",
+      "source_path": "PT/三规二制高炉长工长知识库测试题库.md",
+      "source_line": 753,
+      "original_result_sha256": "2f9a9a97a31bdce8913e6b0a36ea600f0978db3f55d5237bd4e944a6449b3a3a",
+      "original_prompt_sha256": "b47290329dbfd7f79a719e3b8edf5ab2c40f91a15848a6e2477f4a8d53024276",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-K01",
+        "QAOPT-K03",
+        "QAOPT-E05"
+      ],
+      "reason_code": "enterprise_original_missing",
+      "acceptance_gate": "Obtain complete approved enterprise original; distinguish generic principles and keep partial until full coverage is verified.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    },
+    {
+      "case_id": "TPL-1AB4BD6D5D30DFFA",
+      "status": "partial",
+      "category": "knowledge",
+      "source_path": "PT/三规二制高炉长工长知识库测试题库.md",
+      "source_line": 761,
+      "original_result_sha256": "b26909e3f4601d8f96695e967828deff61983493af138bf76bfec729878919e3",
+      "original_prompt_sha256": "7eec770666514d3e2b5b39503a98817a95382c35cba30d3aaa4ef431ce6e736d",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-K01",
+        "QAOPT-K03",
+        "QAOPT-E05"
+      ],
+      "reason_code": "enterprise_original_missing",
+      "acceptance_gate": "Obtain complete approved enterprise original; distinguish generic principles and keep partial until full coverage is verified.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    },
+    {
+      "case_id": "TPL-B2385F77F4DDF9B9",
+      "status": "partial",
+      "category": "knowledge",
+      "source_path": "PT/三规二制高炉长工长知识库测试题库.md",
+      "source_line": 793,
+      "original_result_sha256": "7adeeb16bd95e45187ca5136dd4457fa91020d9d7e24f4f5b7d52d237a8a51b3",
+      "original_prompt_sha256": "7b3f96995ac51af5f9a83c8bee3f2f17db5638c99b5a46b2ca3f03d7b91f36b0",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-K01",
+        "QAOPT-K03",
+        "QAOPT-E05"
+      ],
+      "reason_code": "enterprise_original_missing",
+      "acceptance_gate": "Obtain complete approved enterprise original; distinguish generic principles and keep partial until full coverage is verified.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    },
+    {
+      "case_id": "TPL-5FCE8B443C84E4A8",
+      "status": "partial",
+      "category": "knowledge",
+      "source_path": "PT/三规二制高炉长工长知识库测试题库.md",
+      "source_line": 809,
+      "original_result_sha256": "8ea6cf71e8581b7978520b9c3ac8666ccff6182901727b1cb1abe46e70f2da78",
+      "original_prompt_sha256": "2cc82e20ad37dc48119bb968d0726b6c4b1cfe09a74e7f06f5371f65b79846b9",
+      "prior_issue_ids": [],
+      "proposed_issue_ids": [
+        "QAOPT-K01",
+        "QAOPT-K03",
+        "QAOPT-E05"
+      ],
+      "reason_code": "enterprise_original_missing",
+      "acceptance_gate": "Obtain complete approved enterprise original; distinguish generic principles and keep partial until full coverage is verified.",
+      "root_cause_confirmed": false,
+      "state": "triaged_repair_or_acceptance_open"
+    }
+  ]
+}

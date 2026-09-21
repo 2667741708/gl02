@@ -1,0 +1,95 @@
+{
+  "schema": "bf.qa.context-provenance-readonly.v1",
+  "total": 6,
+  "passed": 6,
+  "results": [
+    {
+      "case_id": "TPL-V19-SEED",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V19-LATEST",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V19-SWITCH",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V19-WINDOW",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V19-USER",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    },
+    {
+      "case_id": "TPL-V19-HISTORY-LIVE",
+      "state": "passed",
+      "checks": {
+        "question_hash": true,
+        "server_turn_binding": true,
+        "objects": true,
+        "object_sources": true,
+        "window": true,
+        "window_source": true,
+        "no_evidence_reuse": true,
+        "all_sources_owned_user_turns": true
+      }
+    }
+  ],
+  "database_writes": 0,
+  "question_posts": 0,
+  "model_calls": 0,
+  "scope": "Known guest test turns only; operator/admin concurrency is not inferred."
+}

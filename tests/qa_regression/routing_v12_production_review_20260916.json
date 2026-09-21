@@ -1,0 +1,164 @@
+{
+  "schema": "bf.qa.routing-production-review.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "checked_at": "2026-09-16",
+  "version": "v12",
+  "production_commit": "7220e6867c62fb161d2333057fcf130a3dfabb0d",
+  "focused_tests_passed": 137,
+  "round": "retest-routing-v12-20260916-r1",
+  "requests": 7,
+  "automatic_post_retries": 0,
+  "counts": {
+    "passed": 5,
+    "failed": 2
+  },
+  "deployment": {
+    "ok": true,
+    "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+    "backup": "F:\\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\\backups\\qa-routing-v12-20260916-r1-20260916-193035",
+    "rollback_applied": false,
+    "guard_paused": true,
+    "guard_restored": true,
+    "old_8093_pid": 16608,
+    "new_8093_pid": 7584,
+    "protected_before": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "protected_after": {
+      "5432": 12372,
+      "8094": 16576,
+      "8768": 6440,
+      "8770": 844,
+      "8892": null,
+      "11434": 12656
+    },
+    "http_8093": 200,
+    "installed_hashes": {
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/ollama_proxy_server.py": "8079F738DA99E07332D8DB8D9D536D87F5DAC46DCEE2C7CD1505F9A7CF8A5A66",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/mcp_tool_selection.py": "2A0B8C8CC33444EF4F5138B23571A736A558229D9F7F09F0D88B735887235111",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_document_compound.py": "EB4FB12D8BFE9D6E1C378BF1F41CCE5688D6EB33FC879FF4657E382D83213AC6",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_tool_fallback.py": "8D5C3737D463AA5990F844655D0925314EB77FC67A83C066E2A4BFD51C3043AB",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_evidence_policy.py": "9EC4132CA8075EE9757663EEDBAB99AA793F330EBB0133880D57ECE4FEC7FE26",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/qa_document_knowledge.py": "89109C1230A161064259BC9C98EE76E0A2DC2FCA1461880FE3A45E86D95CD30B",
+      "F:/高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW/高炉前端数据/智能助手/backend/mcp_host/cross_source_plan.py": "C55458A75A362AAEB4EB91AC99D19DCBE130897779FB800B498BEDF760BF92E1"
+    }
+  },
+  "review_method": "Original-text and expected behavior inspected; V12 independently reviewed after release. Nonempty and SSE done alone are not passing signals.",
+  "results": [
+    {
+      "case_id": "TPL-V12-ATOMIC",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 102,
+      "answer_sha256": "4ef7d2a4f5baae813c09852f263c6dfb0db34c37c698f904cc1dfcfde6d6008c",
+      "route": "verified_document_knowledge",
+      "terminal_state": "needs_clarification",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": 0
+    },
+    {
+      "case_id": "TPL-V12-CONTROL",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 163,
+      "answer_sha256": "23e2cf0c3fe598ad9c1076bb3734cd7b2e01c63ba5dee741798870ec58500748",
+      "route": "evidence_without_tools",
+      "terminal_state": "completed",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": 2
+    },
+    {
+      "case_id": "TPL-V12-HEAT",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 901,
+      "answer_sha256": "edb37229e668aaa865e036d5ba596930202faf8ff575c35c9386c2c22e1e4989",
+      "route": "evidence_without_tools",
+      "terminal_state": "completed",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": 1
+    },
+    {
+      "case_id": "TPL-V12-KB-LIVE",
+      "state": "answer_contract_failed",
+      "review_reasons": [
+        "document original subtask passed; live pressure missing unit and includes unrequested metrics"
+      ],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 469,
+      "answer_sha256": "853fd193ca897bf92336ae26d208dec09c3b790cb9b0c0cb7271f1a2c7cbe2e4",
+      "route": "isolated_document_compound",
+      "terminal_state": "completed",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": 1
+    },
+    {
+      "case_id": "TPL-V12-KB-USER",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 470,
+      "answer_sha256": "8890c4eba0e70e14c2853c7379776b4e6a7ca31183a4b7b122b889bed6dc9bae",
+      "route": "isolated_document_compound",
+      "terminal_state": "completed",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": 1
+    },
+    {
+      "case_id": "TPL-V12-MIXED-CODE",
+      "state": "passed",
+      "review_reasons": [],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 171,
+      "answer_sha256": "7f7675feb935826d226a7a9245fb0d88de38e5008fc7cc6f49911d3a646b755b",
+      "route": "grounded_fact_only",
+      "terminal_state": "partial",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 1,
+      "model_request_count": 0
+    },
+    {
+      "case_id": "TPL-V12-UNKNOWN-LIVE",
+      "state": "answer_contract_failed",
+      "review_reasons": [
+        "document original subtask passed; live pressure missing unit and includes unrequested metrics"
+      ],
+      "request_count": 1,
+      "sse_done": true,
+      "answer_chars": 271,
+      "answer_sha256": "9dcd46d5f77bd84fd042a57a0169e7729f221dfcf4fc92236f0c10794ace7e20",
+      "route": "isolated_document_compound",
+      "terminal_state": "partial",
+      "messages_projection": "turn",
+      "message_count": 2,
+      "tool_start_count": 0,
+      "model_request_count": 1
+    }
+  ],
+  "privacy": "No raw answers, conversation payloads, production measurements or identities."
+}

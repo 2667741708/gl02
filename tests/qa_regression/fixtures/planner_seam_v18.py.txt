@@ -1,0 +1,78 @@
+# Frozen code-only seams from approved proxy C8 baseline; no production values or identities.
+
+def qa_mcp_sensor_query_plan(question: str) -> dict[str, Any] | None:
+    """Batch clear sensor requests without an extra LLM planning round."""
+
+    text = str(question or "")
+    answer_route = qa_answer_route(text)
+    if answer_route == QA_ANSWER_ROUTE_CODE:
+        return None
+    if (not qa_evidence_policy.no_live_lookup(text) and "炉况" in text
+            and any(v in text for v in ("当前", "现在", "目前"))
+            and not qa_mcp_variables(text)):
+        return {"tool": "get_latest_furnace_snapshot", "arguments": {}}
+    body_statistics_plan = qa_mcp_body_temperature_statistics_plan(text)
+    if body_statistics_plan:
+        return body_statistics_plan
+    user_text = text.split("\n[服务端对话状态：", 1)[0]
+    variables = qa_mcp_analysis_variables(text)
+    if not variables:
+        return None
+    # The suffix may carry the previous turn's intent.  A temporal phrase in
+    # the current user request must override that stale context, especially for
+    # cross-source questions such as “上一炉 Si 平均值 + 当前顶压”.
+    intent = ""
+    if answer_route == QA_ANSWER_ROUTE_ANALYSIS:
+        intent = "statistics"
+    elif any(term in user_text for term in ("现在", "当前", "目前", "最新")):
+        intent = "latest"
+    elif any(term in user_text for term in ("平均", "最高", "最低", "统计", "波动", "稳不稳")):
+        intent = "statistics"
+    elif any(term in user_text for term in ("历史", "趋势", "走势", "变化", "最近", "过去")):
+        intent = "history"
+    if not intent:
+        intent_match = re.search(r"查询意图：(latest|history|statistics)", text)
+        intent = intent_match.group(1) if intent_match else ""
+    if not intent:
+        if any(term in text for term in ("现在", "当前", "最新", "是多少", "多少")):
+            intent = "latest"
+        elif any(term in text for term in ("平均", "最高", "最低", "统计", "波动", "稳不稳")):
+            intent = "statistics"
+        elif any(term in text for term in ("历史", "趋势", "走势", "变化", "最近", "过去")):
+            intent = "history"
+    if not intent:
+        return None
+    arguments: dict[str, Any] = {
+        "variables": variables,
+        "query_type": "latest" if intent == "latest" else "statistics",
+    }
+    if intent != "latest":
+        duration_minutes = qa_mcp_duration_minutes(text) or 60
+        end_dt = datetime.now().astimezone().replace(second=0, microsecond=0)
+        start_dt = end_dt - timedelta(minutes=duration_minutes)
+        arguments.update(
+            {
+                "start_time": start_dt.isoformat(timespec="seconds"),
+                "end_time": end_dt.isoformat(timespec="seconds"),
+                "agg": "all",
+            }
+        )
+    return {"tool": "query_gl02_sensors", "arguments": arguments}
+
+def qa_mcp_current_user_text(question: str) -> str:
+    return str(question or "").split("\n[服务端对话状态：", 1)[0].strip()
+
+def qa_mcp_planning_question(question: str) -> str:
+    """Use prior context only for genuinely referential follow-up questions."""
+
+    raw = str(question or "")
+    current = qa_mcp_current_user_text(raw)
+    has_reference = any(term in current for term in (
+        "它", "该变量", "这个变量", "上述变量", "刚才的", "前面的",
+    ))
+    has_explicit_object = bool(
+        qa_mcp_variables(current)
+        or qa_mcp_imes_plan(current)
+        or _detect_heat_reference(current)
+    )
+    return raw if has_reference and not has_explicit_object else current

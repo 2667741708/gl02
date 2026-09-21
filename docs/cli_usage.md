@@ -1,5 +1,9 @@
 # CLI 使用手册
 
+## OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917
+
+[生产只读范围审计](../tools/audit_qa_release_baseline_readonly.py#L29)：`python -B -X utf8 tools/audit_qa_release_baseline_readonly.py --stage <reviewed-stage>`，默认使用生产 Windows Git 路径，测试可用 `--git <absolute-git>`。退出码 0 表示全部范围、依赖、候选与稳定性合同通过；1 表示检查结果不通过；格式或工具错误直接失败。不因全局 HEAD 变化自动重发部署。[可复现测试与限制](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
 ## 炉次质量回看本机验证
 
 只读 dry-run 示例：
@@ -709,3 +713,71 @@ D:\ProgramData\anaconda3\python.exe -X utf8 .\tools\evaluate_mcp_extended_produc
 生产执行必须显式给出 8093 SSE URL、输出路径和并发数；工具不自动重试。故障夹具不得指向 8093，
 只允许由 `tools/mcp_fault_preview_acceptance.py` 在独立回环预览中运行。完整复现命令和请求账本见
 [扩展生产回归交接](handoffs/2026-08-14-mcp-extended-production-regression.md)。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：keyword单文档入口
+
+状态：2026-09-17本机291项及静态审查通过，生产未执行。先运行python tools/qa_keyword_source_release_entry.py --help（实际通过）；入口参数为--root、--artifact-dir、--contract、--contract-sha、--action及--operation-id。
+action=plan无DB连接、秘密配置读取或记录写入；recover启动只读，publish/rollback要求用户单独数据库授权及显式--authorized-database-write。该标志不授予授权。原始contract/封存包仅私有，不把身份或秘密值填入普通文档。
+预期成功输出ok=true及安全计数/状态；失败ok=false与稳定error_code，退出2。重复执行编号直接拒绝，无第二次连接；提交/收据不确定只能新只读recover，不自动重放。
+增量表须先通过独立受控DDL和完整schema验收，入口不创建表。生产使用Reliable SSH精确argv，不直接ssh，不串接上传/执行/验证。完整候选闭包/read_set/命令合同见[当前交接](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+probe_qa_paired_runtime_readonly.py --root <repo> --scope-file <reviewed-gate.json>；也支持互斥 --scope-json <structured-json>，与前者共享路径审查。仅GET且不使用网络代理。成功ok=true/退出0；身份不符ok=false/退出1，无自动修复。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+python -X utf8 tools/build_qa_prompt_binding_candidate.py --revision rN只冻结本机16文件受控私有闭包，OEXCL禁止覆写；逐字节继承14文件并验证全部其余函数AST。不是上传或部署入口。聚焦验证python -X utf8 -m pytest -q tests/test_qa_prompt_binding.py --tb=short。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+生成：python -B -X utf8 tools/build_qa_full_candidate_probe.py --dependency-root <reviewed-root> --output-script <new-ignored-private-path>。校验：python -B -X utf8 tools/verify_qa_full_candidate_probe.py --evidence <private-report> --output-read-scope <new-private-read-scope>。两入口--help通过。脚本只经Reliable SSH精确Python -B -X utf8 - argv/stdin执行，remote不落源码；ok=false退出1，无自动重放或部署授权。全部传递依赖须加入后续守卫read_set并新鲜复核。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+python -B -X utf8 tools/build_qa_sensor_context_candidate.py --revision rN只冻结本机候选；编号需未存在，O_EXCL，不授予部署或模型权限。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+python -B -X utf8 tools/build_qa_shared_proxy_candidate.py --revision rN只构建未存在编号的本机候选；只读probe在RAM读取固定Git对象，verify核对原生证据，不授予部署或换模。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+python -B -X utf8 tools/build_qa_ordinary_context_candidate.py --revision rN只构建新编号本机候选。verify同时要求10QA/9共享/6普通准备来源证据，不能据此授权部署。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V50测点确认和准备权限顺序（2026-09-17）
+
+REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅由整句精确目录别名确认，保留目标/窗口并重新取数；解析在全部sensor读取之前执行。有效确认也不注入通用传感器；失效、跨会话及页面禁工具关闭预取和来源。两新增纯函数、prepare单函数变更与14模块逐字节继承通过冻结检查；55原生只读合成合同通过，实际取数/最终回答/并发和部署未验收。
+
+[实施/复现/剩余门](handoffs/2026-09-17-qa-pending-object-confirmation.md)；[机器证据](../tests/qa_regression/pending_object_confirmation_20260917.json)。无关Git提交按路径范围保留；固定底座检查独立，33项不销项。
+
+## V49对象追问执行（2026-09-17）
+
+python -B -X utf8 tools/build_qa_owned_followup_candidate.py --revision rN只构建未存在编号本机候选；verify要求10QA/9共享/6普通准备/15追问合同，不能据此授权部署。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。

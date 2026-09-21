@@ -1,0 +1,15 @@
+{
+  "schema": "bf.qa.targeted-cases.v1",
+  "requirement_id": "REQ-QA-FULL-ISSUE-INVENTORY-20260916",
+  "reviews": [
+    {"case_id": "TPL-V8-K01", "question": "完整列出高炉工长安全操作规程原文", "expected": {"criteria": ["verified original", "version and source", "no live tools"]}},
+    {"case_id": "TPL-V8-K02", "question": "列出《三规二制》完整目录", "expected": {"criteria": ["28 chapters", "no invented furnace-director chapter"]}},
+    {"case_id": "TPL-V8-K03", "question": "列出《高炉事故处理》全文", "expected": {"criteria": ["actual original text", "source version", "no extra official clauses"]}},
+    {"case_id": "TPL-V8-K04", "question": "根据《不存在的制度》解释全部条款，不要查询实时数据。", "expected": {"criteria": ["needs clarification", "no fabricated provisions"]}},
+    {"case_id": "TPL-V8-K05", "question": "完整列出高炉工长技术操作规程原文第1页", "expected": {"criteria": ["whole blocks", "page coverage", "partial if multiple pages"]}},
+    {"case_id": "TPL-V8-K06", "question": "完整列出高炉工长技术操作规程原文第2页", "expected": {"criteria": ["next original page or invalid-page clarification", "no auto continuation"]}},
+    {"case_id": "TPL-V8-E01", "question": "仅根据我提供的这些数：10、20、30，计算均值，并说明能否判断真实现场异常。", "expected": {"criteria": ["mean 20", "no live calls", "hypothetical data cannot establish real abnormality"]}},
+    {"case_id": "TPL-V8-R08", "question": "查询当前炉顶压力，同时生成Python代码示例。", "expected": {"criteria": ["actual authorized latest fact", "no generated code", "only code subtask rejected"]}},
+    {"case_id": "TPL-3FE672D48EEF6AA0", "question": "请完整说明《三规二制》中高炉工长“1 工作前”的全部规定。", "expected": {"criteria": ["clauses 1.1 through 1.3", "correct subsection rather than whole chapter"]}}
+  ]
+}

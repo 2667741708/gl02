@@ -1,0 +1,82 @@
+{
+  "schema": "bf.qa.original-source-reader-public-evidence.v1",
+  "requirement_id": "REQ-QA-ORIGINAL-SOURCE-READER-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_tested_reviewed_frozen_not_production_applied",
+  "issue_ids": [
+    "QAOPT-K03",
+    "QAOPT-K06"
+  ],
+  "candidate": "v33-r1",
+  "generator_sha256": {
+    "高炉前端数据/智能助手/backend/qa_document_knowledge.py": "8a86f02f6076340a60939016a2c337e7107cdda194f63299f265e3fd3af0c40f",
+    "高炉前端数据/智能助手/backend/qa_knowledge_reader_source_gate.py": "e416cdc4920da84173bb4d689b6b423971d8662c42c7e35a31e807ec7e8a4501",
+    "高炉前端数据/智能助手/backend/qa_knowledge_source_binding.py": "556da1541c8dd3e219d65a4739b3ce0632bca5f1a6e92c0bcf35c2301ef42683",
+    "tests/test_qa_knowledge_reader_source_gate.py": "fb68d21453d05a6ee5244025401f4e03150ca3b911ecc2fb5b014ce868ae182d",
+    "tests/test_qa_document_knowledge.py": "aac01f1ad6043b7377c478d782e0d54ddc7558a7d709a1bf3a8aefda13531bdc"
+  },
+  "verification": {
+    "tests_passed": 356,
+    "reader_gate_tests_passed": 44,
+    "prior_source_entry_tests_passed": 291,
+    "compound_safety_tests_passed": 21,
+    "elapsed_seconds": 22.76,
+    "database": "isolated native PostgreSQL 16.13",
+    "vector_extension": "real public.vector",
+    "independent_static_review": "PASS gpt-5.6-luna low",
+    "test_command": "python -X utf8 -m pytest -q --tb=short --basetemp=.codex_runtime/qa-reader-final-20260917-r1 tests/test_qa_keyword_source_release_entry.py tests/test_qa_keyword_source_transaction.py tests/test_qa_knowledge_source_binding.py tests/test_qa_source_candidate_freeze.py tests/test_qa_source_scope_contract.py tests/test_three_rules_heading_boundaries.py tests/test_qa_readonly_pg.py tests/test_qa_document_integrity.py tests/test_qa_document_knowledge.py tests/test_qa_knowledge_reader_source_gate.py tests/test_qa_v12_safety.py"
+  },
+  "private_original_reader": {
+    "schema": "bf.qa.private-original-reader-local-verification.v1",
+    "state": "isolated_original_reader_verified_not_production",
+    "source_chunks": 5587,
+    "scope_groups": 11,
+    "private_reader_requests": 14,
+    "one_statement_per_request": true,
+    "all_expected_section_blocks_preserved": true,
+    "production_requests": 0,
+    "production_writes": 0,
+    "model_calls": 0,
+    "semantic_accuracy_inferred": false
+  },
+  "private_candidate": {
+    "files": 10,
+    "manifest_sha256": "eb5a8f7e820fd72604b5449ad71d31f6abb88b728d8f2d0e6cd6c11214f139c2",
+    "inherited_v32_files_byte_identical": 7,
+    "ast_parse_and_reader_import_verified": true,
+    "production_sealed": false,
+    "production_dependency_refresh_required": true
+  },
+  "reader_contract": {
+    "one_mvcc_statement_per_request": true,
+    "source_snapshot_cache": false,
+    "fixed_document_projection_fields": 4,
+    "fixed_retrieval_projection_fields": 19,
+    "fixed_manifest_and_applied_release_required": true,
+    "full_after_snapshot_required": true,
+    "keyword_zero_vectors_required": true,
+    "missing_source_is_dependency_blocked": true,
+    "missing_compound_source_preserves_data_partial": true,
+    "atomic_role_no_longer_hardcoded": true,
+    "unknown_role_does_not_default_to_whole_book": true,
+    "source_coverage_is_not_semantic_accuracy": true
+  },
+  "model_name": "chiqiongblastfuenace:latest",
+  "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+  "model_switch_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "production_transport_identity_probe": "timeout_no_command_dispatched",
+  "production_transport_route_probe": "timeout_no_command_dispatched",
+  "production_current_state_freshly_verified": false,
+  "production_database_writes": 0,
+  "production_applied": false,
+  "database_write_authorization_received": false,
+  "question_posts": 0,
+  "model_calls": 0,
+  "issues_closed": 0,
+  "original_failure_partial_cohort": 822,
+  "real_retest_requests": 0,
+  "semantic_verified": false,
+  "topic_completeness_verified": false,
+  "privacy": "No source clauses conversations measurements identities credentials or private candidates are published."
+}

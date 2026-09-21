@@ -1,5 +1,70 @@
 # 测试参考
 
+## OPS-QA-DEPLOYMENT-PATH-SCOPE-20260917
+
+[真实 Git 路径范围测试](../tests/test_qa_deployment_path_scope.py)与[原有 PowerShell 模型就绪测试](../tests/test_qa_release_readiness.py)共 36 项通过，覆盖无关更新保留、相关范围拒绝、血缘/分支/合并状态、字节摘要、仓库和 stage 路径安全，并直接执行实际 `Assert-Baselines` 的通过、审计器篡改与依赖漂移拒绝；PowerShell 解析和 UTF-8 运行时检查通过，独立审查 PASS。不是原始 QA 答案复测，不计入 822 题准确率。[复现命令与实际生产范围证据](handoffs/2026-09-17-qa-deployment-path-scope.md)。
+
+## REQ-QA-LATEST-PREFETCH-REUSE-20260917 / V24
+
+[最新值复用与禁代码承诺回归](../tests/test_qa_latest_reuse_and_code_offers.py)连同证据策略/统计范围共76项通过。5道原题真实发送后独立全文审核1通过/3部分/1失败，传输5/5；身份稳定4题完整1题，仅小样本。402题逐条依赖阻断，已发送不重放。[复现、结果哈希和剩余方案](handoffs/2026-09-17-qa-v24-latest-reuse-and-code-boundary.md)。
+
+## REQ-QA-STATISTICAL-SCOPE-20260917 / REQ-QA-SINGLE-WINDOW-OBSERVATION-20260917
+
+新增[test_qa_statistical_scope.py](../tests/test_qa_statistical_scope.py)、[test_qa_single_window_routing.py](../tests/test_qa_single_window_routing.py)、[test_qa_batch_identity.py](../tests/test_qa_batch_identity.py)，覆盖总体标准差独立复算、CV无效域、趋势双信号范围、实际生产渲染前后对比、单窗观察正反例和模型标签/驻留不一致。最终105项通过，真实V22六题单列全文审阅，V23的407失败题复测进行中；正确率与传输率不混用。[复現与验收](handoffs/2026-09-17-qa-v23-single-window-routing.md)。
+
+## REQ-QA-INITIAL-828-SEMANTIC-REVIEW-20260916：待审全集一致性门
+
+限定`gpt-5.6-luna`逐题离线审阅828份首次已有答复，进行中，无生产POST。完成后运行`python -X utf8 tools/validate_qa_initial_828_review.py --report tests/qa_regression/initial_828_semantic_review_20260916.json`，预期`ok=true`、`reviewed=828`、`remaining=0`及首次结果哈希一致。此命令只验证范围与隐私字段，不重新判语义，不代表已通过全量审核或准确率。
+
+## REQ-QA-PAIRED-FAILURE-RETEST-20260916：原题复测观察
+
+首次405确认失败题加原8题的新轮413题计划已冻结；4题有确定结果，内容独立审核3通过/1部分正确，观察内容准确率75%、传输完成率100%，不能外推全集或称固定模型评测完成。模型digest漂移在第5题发送前阻断；409题未发送。前后模型身份核验仍需补强，真实双角色/取消验收待测。[脱敏逐题报告](../tests/qa_regression/routing_v21_paired_observations_20260916.json)、[复核与阻断证据](handoffs/2026-09-16-qa-routing-v21-paired-retest.md)。
+
+## REQ-QA-EXCLUSIVE-USE-20260916：全角色独占回归
+
+[test_qa_exclusive_use.py](../tests/test_qa_exclusive_use.py)以真实控制模块、合成身份验证6组角色对、取消保持占用、失败释放和同时注册竞态，共9项通过；关联来源绑定与测试持久化共35项通过，独立应用审查通过。命令：`python -X utf8 -m pytest tests/test_qa_exclusive_use.py tests/test_qa_context_provenance.py tests/test_qa_retest_persistence.py -q --basetemp .codex_runtime/pytest-exclusive-new-run`。0生产POST、0模型调用；V21已受控发布并通过字节/PID/CAS验收；真实角色409与取消现场行为仍待测。[证据](handoffs/2026-09-16-qa-exclusive-use-local.md)。
+
+## V20 指代趋势追问（2026-09-16）
+
+规划器新增“这个/那个/这些/它们/刚才/上面”指代识别，明确新对象仍优先当前问题。V19失败的30分钟追问现走确定性统计；真实五题与数据库只读来源各5/5通过，模型趋势解释被可信守卫拒绝单列。仅更新8093代理，模型配置不变；整体33项仍执行中。[权威证据](handoffs/2026-09-16-qa-routing-v20-production.md)。
+
+## V18–V19 多轮来源与适配器修复（2026-09-16）
+
+V19发布前107项不同测试通过，包括真实PgCompatConnection/CursorAdapter；生产6POST、5passed/1answer_contract_failed、0重发；6/6数据库只读来源proof。续跑器新增2项已发送claim拒绝和会话依赖恢复测试（持久化共7项）。 [权威证据](handoffs/2026-09-16-qa-routing-v18-v19-production.md)。
+
+## V17 历史复合回归（2026-09-16）
+
+长期反例见 `tests/test_qa_history_completion.py`，覆盖旧原文合同、对象不符、重复对象、非有限值、缺时间/来源、明确失败、趋势分析和禁工具。合并历史/来源/原文/持久化回归 133 项通过；实际生产五题独立通过，已发轮次不得重放。[复现与脱敏报告](handoffs/2026-09-16-qa-routing-v17-production.md)。
+
+## V15生产复测与长期回归（2026-09-16）
+
+新增`tests/test_qa_context_boundaries.py`、原文多引用测试及选中章节缓存删改失效测试。112个不同聚焦测试通过；9批实际KB只读检查803项覆盖候选通过、30项阻断。真实5题均逐题独立审查通过，非空和done不计为通过。可复现命令及脱敏产物：[V15交接](handoffs/2026-09-16-qa-routing-v15-production.md)。
+
+## BUG-QA-SELECTED-SCOPE-TAIL-20260916
+
+- 本机候选：完整原子索引不能掩盖所选章节索引的末页缺失；新增同岗位/规程跨索引覆盖门。
+- 命令：python -X utf8 -m pytest tests/test_qa_document_integrity.py tests/test_qa_document_knowledge.py -q；38 passed。
+- [反例、修复及远端阻断](handoffs/2026-09-16-qa-document-scope-tail-local.md)。尚未部署；真实索引兼容性、原子条款边界及scope元数据独立核验待做。
+
+## TEST-QA-FULL-ISSUE-INVENTORY-20260916：V10–V14
+
+本轮V14针对性35项及实际PowerShell GET就绪故障4项通过，真实定向3题独立语义通过，0自动POST重放。V12/V13分别保留2个失败答案的阶段报告，V14解决压力单位/额外指标问题。
+833知识源中有效803题完成一次POST并核验原文覆盖/来源/版本合同；30个oracle冲突阻断，不声称833题全部语义通过。当前数值取[逐项台账](../tests/qa_regression/optimization_execution_ledger_20260916.md)，历史828待审不能直接当当前剩余分母。
+命令、独立审查与脱敏报告见[V10–V14交接](handoffs/2026-09-16-qa-routing-v10-v14-production.md)。
+
+## TEST-QA-EVIDENCE-FIRST-REGRESSION-20260915
+
+```powershell
+python -X utf8 tools/qa_regression.py
+python -X utf8 tools/qa_regression.py --list
+python -X utf8 -m unittest discover -s tests -p test_qa_regression.py -v
+```
+
+- 对应需求：REQ-QA-EVIDENCE-FIRST-REGRESSION-20260915；[目录、格式、评分及持续扩展](../tests/qa_regression/README.md)。
+- 首批验证：30条用例、11组完全合成夹具合法；17项评分器测试通过，包含舍入/编号、伪造值、错误载荷、跨owner、部分失败、时限及审阅绑定。
+- 只验证集合与评分器，没有实际模型或生产MCP执行；不报告生产通过率。
+- `python -X utf8 tools/qa_regression.py --results tests/qa_regression/run.example.json` 预期退出1：仅有一条人工构造示例，报告待审阅及其余未运行，不得当作全绿。
+
 ## TEST-SENSOR-REGISTRY-HOPPER-WEIGHT-SET-20260814
 
 ```powershell
@@ -1288,6 +1353,10 @@ node tools\verify_bf3d_review_v4_preview.cjs
 GLB 各有四条本机绝对路径 extras；解码内存/真机性能、R1/R5 AO、生产 8092、现场
 Edge、P50/P60/P70/QA-70、长稳和 Blender/Three 数值光度等价仍待。不得把本测试的 isolated illustrative
 PASS 写成正式 GLB、生产页或阶段批准。
+
+## QA V8/V9 当前验收增量（2026-09-16）
+
+V9验证：`python -X utf8 -m pytest tests/test_qa_document_knowledge.py tests/test_qa_routing_v9_seams.py tests/test_qa_evidence_policy.py tests/test_qa_history_projection.py tests/test_qa_task_plan.py tests/test_qa_v6_contracts.py -q`预期73passed。真实5次POST/5done/零自动重放，3通过/2部分/0失败；混合请求正常子任务通过仍因代码策略partial。833题库一致性审计不等于语义通过，原始生产答案禁止提交。见[V8/V9交接](handoffs/2026-09-16-qa-routing-v8-v9-production.md)。
 
 ## TEST-BF3D-R2V-V5-PORTABILITY-WEB-20260720
 
@@ -3108,3 +3177,400 @@ pwsh.exe -NoLogo -NoProfile -File `
 
   本次成功信号：`legacy_rules=8`、`abc_rules=33`、`pdf_pages=55`，正常顺行在第2页、B4在第26页、
   C11在第54页；封面、B4和C11页面另外完成PNG视觉检查，中文与表格可读。
+
+## REQ-QA-ROUTING-ASSISTANT-UPDATE-20260916
+
+- 构建精确候选：
+
+  ```powershell
+  python tools/build_qa_routing_candidate.py --proxy-baseline <V2代理基线> --selection-baseline <V2工具选择基线> --output .codex_runtime/qa-routing-v3/candidate
+  ```
+
+  成功信号：两个基线 SHA-256 精确匹配；`syntax=passed`、`production_changed=false`。
+- 聚焦测试：
+
+  ```powershell
+  python -m pytest tests/test_qa_task_plan.py tests/test_qa_evidence_claims.py tests/test_qa_routing_candidate.py tests/test_qa_evidence_policy.py -q
+  ```
+
+  本次成功信号：`44 passed`。覆盖公开失败模板的文档/历史/实时三联路由、工具域隔离、JSON围栏、
+  混合代码问题、合理舍入、错对象和生命周期异常后的事实保留。
+- 回归合同与既有目录：
+
+  ```powershell
+  python tools/evaluate_qa_task_plan_contracts.py
+  python tools/qa_regression.py
+  python tools/evaluate_mcp_gold_tasks.py --validate
+  ```
+
+  本次成功信号：TaskPlan `ok=true checked=15`；合成问答 `corpus_valid case_count=32`；MCP 金标
+  `ok=true case_count=14`。
+- 生产逐题复测：
+
+  ```powershell
+  python -X utf8 tools/run_qa_failed_retest_once.py --help
+  ```
+
+  实际执行使用新建的 Git 忽略输出目录、显式 `--execute` 和逐题不可覆盖 claim。16 道既有失败题共
+  POST 16 次，自动重试 0；14 次完整 `done`，1 次明确模型未驻留 SSE 错误，1 次同源客户端合同拒绝。
+  人工审阅为通过 2、部分通过 6、失败 7、客户端合同阻断 1。脱敏逐题结果见
+  [routing_retest_review_20260916.json](../tests/qa_regression/routing_retest_review_20260916.json)，原始回答不得提交。
+
+## TEST-QAOPT-R03-MULTI-ENTITY-20260916
+
+- 构建：
+
+  ```powershell
+  python -X utf8 tools/build_qa_routing_v4_candidate.py --v3-candidate .codex_runtime/qa-routing-v3/candidate --mcp-baseline .codex_runtime/qa-routing-v4/production-baseline/bf_data_mcp_server.py --output .codex_runtime/qa-routing-v4/candidate
+  ```
+
+- 聚焦验证：
+
+  ```powershell
+  python -m pytest tests/test_qa_entity_resolution.py tests/test_qa_task_plan.py tests/test_qa_routing_v4_candidate.py -q -p no:cacheprovider
+  ```
+
+- 成功信号：`19 passed`；V4候选固定到已验收V3代理哈希。三气体解析为
+  `CO_top/CO2_top/H2_top`，炉喉`A-D`展开四点，南北探尺按用户顺序保留两个对象，未知对象不生成虚构ID。
+- 生产状态：本机候选验证通过，尚未部署；部署后每道代表题只允许一次POST，禁止自动重放。
+
+### QAOPT-R04/R05：窗口及报表工作流回归
+
+- 2026-09-16本机相关回归98 passed；命令、环境和完整限制见[V4交接](handoffs/2026-09-16-qa-routing-v4-temporal-report-local.md)。
+- [时间窗测试](../tests/test_qa_time_window_plan.py)：独立窗口成员集合、算术复算、基线时间/对象/质量、部分失败不重放。
+- [报表依赖测试](../tests/test_qa_report_workflow.py)：真实原题TaskPlan门禁、目录→正文顺序、失败停止、路径和代码限制。
+- [中文截断测试](../tests/test_qa_report_excerpt_contract.py)：执行真实本机及生产差分候选读取函数；中文全文不误报，实际截断仍标记。
+- [候选接缝测试](../tests/test_qa_routing_v4_candidate.py)：实际代理AST接缝与精确生产基线；不导入无关生产模块。
+- 不包含生产复测、模型驻留竞争或并发通过证明；非空不记语义通过。
+# QA V4 生产复测补充（2026-09-16）
+
+REQ-QA-FULL-ISSUE-INVENTORY-20260916：六题各一次POST，3通过/1部分/2失败；
+见[生产交接](handoffs/2026-09-16-qa-routing-v4-production-and-retest.md)和
+[脱敏审阅](../tests/qa_regression/routing_v4_production_review_20260916.json)。
+`run_qa_failed_retest_once.py`仅在POST claim创建之前对就绪GET最多重查三次，记录四项布尔状态；
+所有已发送或发送不确定的问题仍禁止自动重放。
+## QA V5 回归补充（2026-09-16，候选）
+
+103项聚焦pytest通过，覆盖实际代理/MCP接缝、两owner SQL、当前消息排除、通配符、未知模型、
+超时、取消和真实报表摘要结构；TaskPlan15/15，MCP金标14/14仅结构验证。
+新增`test_qa_routing_v5_candidate.py`、`test_qa_history_projection.py`、`test_qa_model_readiness.py`。
+生产验收待受控部署；详细范围见[V5交接](handoffs/2026-09-16-qa-routing-v5-local-candidate.md)。
+
+## QA V5生产与V6回归（2026-09-16）
+
+V5真实八题2通过/4部分/2失败，七题SSE落盘，第八题只读恢复答案而未恢复事件。V6共106项聚焦回归通过；新增`test_qa_v6_contracts.py`检查有限值/来源/对象/单位/窗口、质量缺项、截断压缩和继承；`test_qa_retest_persistence.py`复现元数据缺少时已发送结果保全。生产Python3.11只编译不执行模型，临时索引原始/语义275行一致，没有换行迁移。[权威交接](handoffs/2026-09-16-qa-routing-v5-production-and-v6-candidate.md)。
+
+
+### V23真实复测冻结补记（2026-09-17）
+
+407题已发8题：2通过、3部分、3失败；399明确未发送，模型身份未核实中断。只计算观察小样本，不发布全量准确率。详情见[逐题核验](handoffs/2026-09-17-qa-v23-single-window-routing.md)与[受控模型窗口/V24方案](handoffs/2026-09-17-qa-model-window-and-v24-plan.md)。
+
+
+### V23续跑终止补记（2026-09-17）
+
+在只读证明未发送的范围内续跑r2，首题TPL-A60B0CD794D49E48返回真实顶压值但仍部分完成，随后身份不可核实中断。两轮累计9次单POST，2通过、4部分、3失败；398原失败题明确未发送，逐题记录为模型依赖阻断。身份稳定7题中的2通过仅是小样本观察，不代表全量准确率。下一步需受控固定模型窗口，原9题不自动重放。
+
+## V25智能助手更新与首次全题统计（2026-09-17）
+
+状态：V25已部署；首次1233题判定已合并。最新权威方案见 [33项优化与核对方案](handoffs/2026-09-17-qa-full-optimization-plan.md)。
+
+明确钟点/跨午夜窗口不回落最近一小时，历史记录和质量保留；18点绘图已进入正确路由，但生产工具只返回16点且生命周期降级遗漏图，仍待修复。
+
+本机159检查、14黄金题结构、4写24读/490 AST/22标记、8093受控发布和CAS通过。新版822原失败/部分题复测只发1题且失败，821题证明未发。首次完整正确269/可判1091=24.66%，不能报告优化后全量准确率。
+
+## V26图表证据修复及固定模型复测（2026-09-17）
+
+状态：V26已部署，174本机检查和独立审查通过；822原失败/部分题发送前因Qwen身份变化拦截，零发送。线上语义修复效果未确认。
+需求：REQ-QA-CHART-COVERAGE-20260917、OPS-QA-FIXED-MODEL-WINDOW-20260917。
+最新权威来源：[V26部署与固定模型复测方案](handoffs/2026-09-17-qa-v26-model-window.md)、[33项优化方案](handoffs/2026-09-17-qa-full-optimization-plan.md)、[V26生产哈希](../tests/qa_regression/routing_v26_production_20260917.json)、[822未发题证据](../tests/qa_regression/routing_v26_unattempted_dependencies_20260917.json)。
+执行器见 [窗口owner](../tools/run_qa_fixed_model_window.ps1)、[独立启动器](../tools/start_qa_fixed_model_window.ps1)、[只读准备器](../tools/prepare_qa_fixed_model_window.py)；11项真实控制流/截止预算隔离测试通过，另有8项身份/续跑合同回归通过。窗口仅本机准备，计划任务操作尚未授权执行；继续保留V25历史记录，不以非空答复计算正确率。
+
+## 历史：模型恢复稳定性本机候选（2026-09-17，已取代）
+
+需求OPS-QA-MODEL-REPAIR-STABILITY-20260917，关联QAOPT-O01。健康批准驻留优先、候选失败alias/state恢复、最长15分钟冷却、暂停失败恢复责任及Switch实际alias回滚已形成r2本机候选；32其他函数和顶层mutex/dispatch保持，26隔离回归与独立代码审查通过，未部署管理器。
+当前生产仍为V26，822失败/部分题均未发送。真实任务/模型验收和管理器变更独立授权仍待完成；本机检查不等同线上语义成功。
+权威来源：[候选和26项证据](handoffs/2026-09-17-qa-model-repair-stability.md)、[候选冻结元数据](../tests/qa_regression/model_repair_stability_candidate_20260917.json)、[构建器](../tools/build_qa_model_repair_candidate.ps1)、[聚焦回归](../tests/test_qa_model_repair_policy.py)。
+
+## REQ-QA-SINGLE-BASE-MODEL-20260917：固定同一底座
+
+状态：本机候选52项检查及独立审查通过，未部署；生产仍V26。唯一e4ad74…底座，Switch/替代fallback禁用，每次模型POST与复测plan核验相同digest；旧双批准池窗口已停用。恢复任务仍曾自行漂移版本0，不能声称生产已锁定。管理器/计划任务维护独立授权，安装失败不能再启用旧切换策略。
+当前合同：[单底座合同、代码和验收方案](handoffs/2026-09-17-qa-single-base-model-policy.md)。[最初候选冻结证据](../tests/qa_regression/single_base_model_candidate_20260917.json)是历史快照，其安装器哈希不代表本轮候选；本轮任务由[完整修复提示词](handoffs/2026-09-17-model-identity-repair-agent-prompt.md)约束，最终本机候选及测试见[实施报告](handoffs/2026-09-17-model-identity-repair-implementation.md)。前代r2批准fallback候选仅保留历史复现，禁止部署。
+
+## REQ-QA-STATISTICS-EVIDENCE-20260917：V28统计证据与答复
+
+状态：本机候选，生产仍为V26；最后核对2026-09-17。关联QAOPT-E01/E02/E03/E04/E05。
+V28保留固定同一底座身份检查，仅修复统计预取、证据完整性和确定性答复三个函数。完整保留stddev/单位/质量及来源窗口；非零微量不舍入成0；缺单位仅继承现有精确合同并披露，Held端点不证明整窗质量或炉况稳定。直接答复同样校验请求对象、来源和时间窗，未核实不得输出正式STDDEV/CV/趋势。没有新增API或配置，不改模型、生产数据库或ABC33合同。
+权威：[实施、回归及未完成项](handoffs/2026-09-17-qa-v28-statistics-evidence.md)、[机器检查证据](../tests/qa_regression/statistical_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_statistics_evidence.py)。本机通过不得写成线上准确率提高；822原失败/部分题尚未发送。
+
+## REQ-QA-FINAL-COMPLETION-20260917：V29最终答复完成状态
+
+状态：本机r2候选、92项聚焦回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E05/O04/T03。
+统一识别模型截断、未知终止、空答案和末行空标题；工具后解释未完成时保留事实并标部分，MCP降级仍最多一次无工具回合。普通免工具问答保留原有一次有界补答；JSON/SSE核对实际最终answer，图表/文档追加不能擦除已记录的空标题。固定底座、V28统计合同及其他AST保留，无新增配置、工具重试或数据库变更。
+权威：[实施、实际检查及剩余边界](handoffs/2026-09-17-qa-v29-final-completion.md)、[候选机器证据](../tests/qa_regression/final_completion_candidate_20260917.json)、[真实函数回归](../tests/test_qa_final_completion.py)。处理器接缝为AST与合同检查，尚未执行线上处理器/822原题语义验收；这些问题未销项。
+
+## REQ-QA-WINDOW-QUALITY-20260917：V30质量窗口证据
+
+状态：本机r2候选、独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E02/E04/E06。
+数据库在原统计SELECT同一tag/窗口中追加质量计数，非空数值为分母，空值行单列；原参数、查询次数和数值公式保持。pSpace/派生只声明实际返回样本，不声称整窗完整。质量总和、类型、schema/basis及请求窗口必须匹配，未知标签不猜测为Good，不由Held/Bad或派生标记判正式稳定/风险等级。固定同一底座与V29完成状态保持，没有新配置或数据库迁移。
+权威：[实施、质量范围与验收边界](handoffs/2026-09-17-qa-v30-window-quality.md)、[机器证据](../tests/qa_regression/window_quality_candidate_20260917.json)、[实际MCP函数回归](../tests/test_qa_window_quality.py)。本机合同尚未在真实数据库或原822题验证，不标线上有效或销项。
+
+
+## REQ-QA-RENDERER-CONTRACT-20260917：V31答复格式与字段兼容
+
+状态：本机冻结候选、126项相关回归及独立审查通过，未部署；最后核对2026-09-17，关联QAOPT-E02/E03/E05。
+传感器字符串列表按实际工具拆分、去重，保持80个上限，请求与外层结果规范化列表必须一致；顶层字符串和非字符串项不放宽为合法调用。单位仅从明确元数据绑定继承规范合同并披露，原单位优先、不换算或猜描述。异常结果容器逐项明示并保留相邻有效事实；对象、来源、只读策略与窗口门禁保持。仅修改一个代理函数和统计证据模块，无新增API、配置、工具或模型回合，固定同一底座保持。
+权威：[确认缺陷、程序与未完成验收](handoffs/2026-09-17-qa-v31-renderer-contract.md)、[机器回归证据](../tests/qa_regression/renderer_contract_candidate_20260917.json)、[实际冻结函数回归](../tests/test_qa_renderer_contract.py)。本机通过不能用于线上准确率或问题销项；禁切换管理器安装、8093部署及822原题复测仍待完成。
+
+
+## REQ-QA-LATEST-EVIDENCE-20260917：V32最新值与完成合同
+
+状态：本机r2冻结候选、284项相关回归及独立审查通过，未部署；最后核对2026-09-17。
+实际284 passed：新latest证据46、既有读取/禁代码72、renderer/统计/质量126、完成状态40；r1/r2独立审查PASS。回归含旧错对象显示、typed source与溢出反例、日期缺时分、未登记单位、pSpace时间标记、混时/缺组件派生值及工具出口表达式。合成数据/真实函数接缝不代替完整线上链路及822题语义验收。
+权威：[确认缺陷、实现及生产依赖](handoffs/2026-09-17-qa-v32-latest-evidence.md)、[机器证据](../tests/qa_regression/latest_evidence_candidate_20260917.json)、[实际函数回归](../tests/test_qa_latest_evidence.py)、[九条提出归类补充](../tests/qa_regression/unmapped_triage_supplement_20260917.json)。本轮0线上问题，不改首次1233题判定，822原题复测仍待完成。
+
+## REQ-QA-SINGLE-BASE-MODEL-20260917：强约束再次复核
+
+状态：本机47项通过；最后核对2026-09-17；生产管理器安装未完成。历史双底座窗口的六种真实PowerShell隔离场景均必须拒绝执行且无任务/HTTP操作，保留截止时间与请求预算测试。固定身份、禁切换管理器、退役窗口及安装事务共47项通过。生产只读快照显示固定名称未匹配冻结摘要、驻留为空，未使用其他底座继续测试。
+权威：[本轮缺陷及可复现命令](handoffs/2026-09-17-qa-fixed-base-constraint-recheck.md)、[退役窗口回归](../tests/test_qa_fixed_model_window.py)。本机通过不代表生产已锁定，也不代表原题准确率提高。
+
+## 2026-09-17：只读启动与制度短条款回归
+
+151 passed：52项[只读审计](../tests/test_qa_readonly_pg.py)、55项[原书标题与源解析](../tests/test_three_rules_heading_boundaries.py)、44项既有文档合同。真实数据库默认/当前事务均readonly=on；原DOCX旧解析与生产96fd哈希相同，修复后fbf583哈希不同、两制度章补回123片段。比较旧authority退出1是必须受控重建知识库的信号，不放宽为语义通过。
+权威：[命令、逐类检查与未完成验收](handoffs/2026-09-17-qa-readonly-audit-and-source-repair.md)、[机器证据](../tests/qa_regression/readonly_audit_source_repair_20260917.json)。独立审查PASS；未生产写入、未复问原题、不更新线上准确率。
+
+## REQ-QA-SOURCE-SCOPE-20260917：独立源及冻结回归
+
+实际202 passed：新增[原始位置/范围mutation](../tests/test_qa_source_scope_contract.py)、[身份与私有冻结边界](../tests/test_qa_source_candidate_freeze.py)，并覆盖标题、启动只读和既有文档合同。实际原书28章/4663item、5587chunk绑定通过，缺失/额外item为0；topic完整性及语义不宣称通过。
+权威：[可复现命令与候选hash](handoffs/2026-09-17-qa-independent-source-scope.md)、[机器证据](../tests/qa_regression/source_scope_candidate_20260917.json)。独立审查PASS，0数据库/模型/问题操作，822原题未复测。
+
+## REQ-QA-KEYWORD-SOURCE-RELEASE-20260917：源绑定反例及准备验收
+
+实际253 passed：新增[51项绑定/准备回归](../tests/test_qa_knowledge_source_binding.py)，覆盖固定SHA/JSON字段、集合/内容/所有检索元数据、可选岗位/规程/块位置、文档来源路径、旧CAS漂移及私有输出。真实原书5587规划行准备检查通过，database_snapshot_verified=false。初次独立审查FAIL后补齐元数据检查，最终PASS；未执行DB发布/回滚事务，不能代替其验收。
+权威：[复现命令、冻结hash和剩余验收](handoffs/2026-09-17-qa-keyword-source-release-preparation.md)、[机器证据](../tests/qa_regression/keyword_source_release_preparation_20260917.json)。0生产写入/模型/问答操作，不更新线上准确率。
+
+## REQ-QA-KEYWORD-SOURCE-TRANSACTION-20260917：真实隔离PG事务验收
+
+状态：本机271项及独立静态复审通过，2026-09-17核对；生产未应用。
+实际271 passed（49.28秒），其中[事务18项](../tests/test_qa_keyword_source_transaction.py)使用原生PostgreSQL16.13和真实pgvector，[合成SQL夹具](../tests/qa_regression/keyword_source_pg_fixture.sql)没有原制度内容。覆盖完整回滚、跨文档隔离、提交两种不确定状态、漂移、外键/触发器和并发DDL阻断。0生产写入/问题POST，不能换算线上准确率。
+当前权威：[事务、真实依赖与剩余发布门](handoffs/2026-09-17-qa-keyword-source-transaction.md)、[机器证据](../tests/qa_regression/keyword_source_transaction_20260917.json)。上节253项报告是准备阶段历史快照，当前执行器状态以本节为准。
+
+## REQ-QA-SOURCE-RELEASE-ENTRY-20260917：入口反例与真实身份
+
+状态：2026-09-17本机验证，生产未执行。
+入口20项及既有271项合并291 passed（16.81秒），真实原生PG16.13/pgvector。DB实例/主机/root/配置封存、单次尝试、提交后收据失败恢复及明确keyword反例；静态复审PASS，不计线上准确率。
+当前权威：[封存包、291项及剩余授权/部署门](handoffs/2026-09-17-qa-source-release-entry.md)、[机器证据](../tests/qa_regression/source_release_entry_20260917.json)。上节271项为事务库阶段快照，当前入口状态以本节为准。
+
+
+## REQ-QA-ORIGINAL-SOURCE-READER-20260917：制度原书读取门禁
+
+状态：2026-09-17本机验证/复审并冻结，生产未接入。
+
+合并356 passed（22.76秒），新门禁44项使用隔离原生PG16.13/真实public.vector：19检索+4文档字段篡改、缺源/回滚/向量、删除尾片段、并发写后一致快照、岗位选择/澄清及综合降级。另真实私有原源5587索引、11组14次确定性读取逐块保留，0生产请求/模型调用。旧44文档选择/完整性层测试不计为原源验证，测试命令见机器证据。
+
+当前权威：[读取门禁交接](handoffs/2026-09-17-qa-original-source-reader.md)、[脱敏机器证据](../tests/qa_regression/original_source_reader_20260917.json)。291项入口报告是历史阶段，完整源发布及822原题现场验收尚未完成。
+
+
+## REQ-QA-FORMAL-DOCUMENT-SCOPE-20260917：书名与全部请求范围
+
+状态：2026-09-17本机378项/复审及V34-r1冻结，生产未应用。
+
+新增22项；V33初19项实际16fail/3pass，补充规程作用域3项修复前3fail。修复后合并378 passed（28.86秒），独立静态复审PASS。中途5例测试适配器属性误用已单列，不算产品失败；ask已有独立单SELECT断言。更新读取器后私有原源11组14次保真验证再次通过（15.17秒），0生产/模型请求。
+
+当前权威：[范围修复交接](handoffs/2026-09-17-qa-document-scope-resolution.md)、[脱敏机器证据](../tests/qa_regression/document_scope_resolution_20260917.json)。V33/356项为前阶段快照；822原题现场验证未完成。
+
+
+## REQ-QA-DOCUMENT-REGULATION-SCOPE-20260917：条款规程范围与逐项覆盖
+
+状态：2026-09-17本机400项/复审通过，V35-r1冻结，生产未应用。
+
+V34初19项17fail/2pass；后续中间候选另3分页项2fail/1pass，分开记录。最终400 passed/34.85秒；随后只加全JSON断言的22项再次通过/5.92秒，运行代码不变。独立审查复核完整not-chosen控制流后纠正初判并PASS。实际私有原源11组14读再次通过/15.07秒。0模型/生产请求，不推导线上准确率。
+
+当前权威：[规程范围交接](handoffs/2026-09-17-qa-document-regulation-scope.md)、[脱敏机器证据](../tests/qa_regression/document_regulation_scope_20260917.json)。V34/378项保留为历史阶段；822原题现场复问未完成。
+
+
+## REQ-QA-FIXED-MODEL-OVERRIDE-20260917：唯一固定底座禁止参数覆盖
+
+状态：2026-09-17本机61项/独立审查通过，V36-r1冻结，生产未应用。
+
+5覆盖反例在旧17项运行实际5fail/12pass，修复17pass。相关五组最终61pass/38.05秒；先前38pass/23默认Temp权限夹具错误单列，改用工作树独立basetemp，未修改共享ACL或删目录。独立Luna low语义PASS；实际PowerShell隔离harness不代表生产经理执行。V35/400为历史未重跑，不虚构合并461或原题准确率。
+
+当前权威：[固定参数门交接](handoffs/2026-09-17-qa-fixed-model-override.md)、[脱敏机器证据](../tests/qa_regression/fixed_model_override_20260917.json)。源/制度前阶段以V35报告保留；822原失败partial题0复问。
+
+
+## REQ-QA-COMPOUND-SOURCE-SCOPE-20260917：复合子任务与来源禁令
+
+状态：2026-09-17本机557项相关回归及独立审查通过，V37-r2冻结，生产未应用。
+
+新增34项回归；初始23项17fail/6pass，追加制度禁止读库3项全部失败后修复。最终相关24组557pass/79.81秒，110项聚焦4.16秒；实际私有原源11组14次读取保真，1pass/15.77秒。先前554项属于补齐前r1，不作最终验收；3个异步测试适配错误单列。独立Luna low复审PASS，未调用助手模型，未复问822原题。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-compound-source-scope.md)、[脱敏证据](../tests/qa_regression/compound_source_scope_20260917.json)。0生产销项，原题准确率未验证。
+
+
+## REQ-QA-MATH-FUNCTION-POLICY-20260917：正常数学函数问答
+
+状态：2026-09-17本机225项相关回归/独立审查通过，V38-r2冻结，生产未应用。
+
+初始22项11fail/11pass；新增数学29项及历史质量4反例。最终10模块225pass/18.27秒，独立Luna low复审PASS，金标schema14项通过。首次扩展218pass/3fail为2个AST测试依赖遗漏及1个旧成功fixture，已保留过程并补反例；不与V37/557项合并成当前运行数。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-math-function-policy.md)、[脱敏机器证据](../tests/qa_regression/math_function_policy_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-USER-DATA-SOURCE-SCOPE-20260917：用户给定数据与外部来源范围
+
+状态：2026-09-17本机286项相关回归/独立审查通过，V39-r3冻结，生产未应用。
+
+初始23项17fail/6pass；新增43项含实际代理alias、实体冻结、MCP门、时窗和时钟输入测试。最终13模块286pass/27.70秒，Luna low复审PASS、共享22标记通过。r2虽276pass但范围审查FAIL，过程保留并新增10例；本机通过不是线上正确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-user-data-source-scope.md)、[脱敏机器证据](../tests/qa_regression/user_data_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-DECLARED-INPUT-SCOPE-20260917：声明输入与现场核验
+
+状态：2026-09-17本机327项相关回归/独立审查通过，V40-r2冻结，生产未应用。
+
+初始27项19fail/8pass；新增41例。r1曾323pass/29.38秒和静态PASS，主任务再发现4个钟点/日期输入误判，均失败后修正r2。最终14模块327pass/29.07秒，Luna low复审PASS，14金标schema及22共享标记通过；不是线上正确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-declared-input-scope.md)、[脱敏机器证据](../tests/qa_regression/declared_input_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项；R07重新开放。
+
+
+## REQ-QA-RESPONSE-STYLE-SOURCE-SCOPE-20260917：回答形式与资料来源
+
+状态：2026-09-17本机395项相关回归/独立审查通过，V41-r1冻结，生产未应用。
+
+新增32例；初始27项20fail/7pass。首次7个历史快照耦合错误和2个外层MCP测试遗漏均保留记录，修正测试组合而未放宽语义断言。最终16模块395pass/31.20秒，Luna复审PASS、14金标schema和22共享标记通过；不是线上准确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-response-style-source-scope.md)、[脱敏机器证据](../tests/qa_regression/response_style_source_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-CONCEPT-SCOPE-20260917：来源概念与具体记录
+
+状态：2026-09-17本机436项相关回归/独立审查通过，V42-r1冻结，生产未应用。
+
+新增41例；初始30项18fail/12pass。首次聚焦139pass/1fail发现这个概念误识别为具体记录，修正后142pass/9.59秒。最终17模块436pass/34.40秒、Luna复审PASS、14金标schema/22共享标记通过；不代表线上正确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-concept-scope.md)、[脱敏机器证据](../tests/qa_regression/source_concept_scope_20260917.json)。本轮0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SOURCE-EXCLUSION-SCOPE-20260917：来源排除与子任务继承
+
+状态：2026-09-17本机498项相关回归、原源保真及独立审查通过，V43-r6冻结，生产未应用。
+
+新增62例，初始25项20fail/5pass；r1/r2独立审查FAIL及具名/连词反例完整保留，r4疑点实测纠正，r5发现2个知识库别名绕过再修r6。最终18模块498pass；原源5587索引、11组14次读取保真通过；Luna最终PASS/14金标schema/22共享标记，未推导线上正确率。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-source-exclusion-scope.md)、[脱敏机器证据](../tests/qa_regression/source_exclusion_scope_20260917.json)。0助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-SUPPLIED-RECORD-SCOPE-20260917：已给记录数据与来源核验
+
+状态：2026-09-17本机546项相关回归、原源保真和独立审查通过，V44-r2冻结，生产未应用。
+
+新增48例，首批29项19fail/10pass；r1旧范围535pass后4个来源核验反例全失败，独立审查结论纠正。r2最终19模块546pass，原源5587索引/11组14读取保真、14schema/22标记和Luna复审通过。
+
+权威：[逐项交接](handoffs/2026-09-17-qa-supplied-record-scope.md)、[脱敏证据](../tests/qa_regression/supplied_record_scope_20260917.json)。0生产助手模型调用/生产写入/原题发送/销项。
+
+
+## REQ-QA-RUNTIME-PROBE-FIXED-PIN-20260917：固定底座只读验收门
+
+状态：2026-09-17本机33项合同测试及独立审查通过，生产V26固定身份阻断。
+
+首次7例3fail/4pass；最终33项底座合同测试及Luna只读审查通过。最新生产实际权重不符，0原题发送；合同测试不能计入线上正确率。
+
+权威：[交接](handoffs/2026-09-17-qa-runtime-fixed-pin.md)、[脱敏证据](../tests/qa_regression/runtime_fixed_pin_20260917.json)。0生产写入/模型调用/原题重发/销项。
+
+
+## REQ-QA-ACTUAL-PROMPT-BINDING-20260917：实际系统Prompt与缓存凭证
+
+状态：2026-09-17 V45-r2本机回归及独立审查通过，生产未应用。
+
+新增30例，初始21例11fail/10pass；r1审查FAIL的3个后缀反例全部失败已修。r2最终24模块643pass、14schema/22标记/复审通过，0真实模型请求，不计线上准确率。
+
+权威：[交接](handoffs/2026-09-17-qa-actual-prompt-binding.md)、[脱敏证据](../tests/qa_regression/actual_prompt_binding_20260917.json)。33项状态不变，0生产写/模型调用/原题发送/销项。
+
+
+## REQ-QA-FULL-CANDIDATE-RUNTIME-20260917：完整候选原生门
+
+状态：2026-09-17已完成原生加载与合成合同，生产固定身份仍阻断。
+
+tests/test_qa_full_candidate_probe.py与tests/test_qa_full_candidate_probe_evidence.py共34 pass（7.25秒）。生产独立Python3.11.9实际完整加载16冻结模块及59项目依赖，10完整合成合同pass。五个外部I/O边界为夹具；不计为真实数据库、模型答案、并发或线上准确率。
+
+权威：[当前交接](handoffs/2026-09-17-qa-full-candidate-runtime.md)、[脱敏机器证据](../tests/qa_regression/full_candidate_runtime_20260917.json)。0真实模型调用/原题POST/生产写/销项。
+
+
+## V46炉况源执行门（2026-09-17）
+
+31模块760合同通过；24源门测试及9新增证据拒绝反例，10完整原生合成Handler受限读取0；不是线上语义或并发通过。
+
+[实施/复现/限制](handoffs/2026-09-17-qa-sensor-context-source-gate.md)；[脱敏证据](../tests/qa_regression/sensor_context_source_gate_20260917.json)。15其他模块与固定底座不变；最新生产ABC33共享代理需要合并保留，身份仍阻断。0销项/原题重发/生产写；历史统计不变。
+
+
+## V47共享代理发布保护（2026-09-17）
+
+32模块808合同、14金标schema、16冻结模块/60实际依赖及19完整原生Handler合成合同通过；保留首轮1夹具错误和2编码错误，不计生产准确率。
+
+[实施/验证/未验证项](handoffs/2026-09-17-qa-shared-proxy-integration.md)；[脱敏证据](../tests/qa_regression/shared_proxy_integration_20260917.json)。本机集成通过，尚未部署，固定身份阻断及33项原题复测范围保持。
+
+
+## V48普通准备来源授权（2026-09-17）
+
+33模块861项回归、14金标schema、16候选/60实际依赖原生加载与25合成合同通过；6普通prepare合同不生成模型答案，不计生产准确率。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-ordinary-context-source-gate.md)；[脱敏机器证据](../tests/qa_regression/ordinary_context_source_gate_20260917.json)。尚未部署，固定生产身份仍阻断，33项不销项。
+
+
+## V50测点确认和准备权限顺序（2026-09-17）
+
+REQ-QA-PENDING-OBJECT-CONFIRMATION-20260917：owner待确认任务600秒内仅由整句精确目录别名确认，保留目标/窗口并重新取数；解析在全部sensor读取之前执行。有效确认也不注入通用传感器；失效、跨会话及页面禁工具关闭预取和来源。两新增纯函数、prepare单函数变更与14模块逐字节继承通过冻结检查；55原生只读合成合同通过，实际取数/最终回答/并发和部署未验收。
+
+[实施/复现/剩余门](handoffs/2026-09-17-qa-pending-object-confirmation.md)；[机器证据](../tests/qa_regression/pending_object_confirmation_20260917.json)。无关Git提交按路径范围保留；固定底座检查独立，33项不销项。
+
+## V49对象追问执行（2026-09-17）
+
+34模块905回归、14金标schema、16候选/60实际依赖及40原生合成合同通过，15追问场景含三个缺失latest反例。外部模拟与真实准确率分开。
+
+[实施/复现/未验证项](handoffs/2026-09-17-qa-owned-followup-execution.md)；[脱敏机器证据](../tests/qa_regression/owned_followup_execution_20260917.json)。尚未部署，生产身份仍漂移，33项不销项。
+
+## QA发布预检与停服前模型身份（2026-09-17）
+
+REQ-QA-RELEASE-PREFLIGHT-BINDING-20260917、REQ-QA-PRESTOP-FIXED-MODEL-GATE-20260917：实际Git隔离夹具69 passed/106.58秒，实际PowerShell身份门禁及readiness21 passed/15.28秒，独立只读审查PASS。
+
+[命令、唯一已用临时目录及未验证项](handoffs/2026-09-17-qa-release-preflight-and-model-gates.md)。无生产推理或服务操作，不能计入822原题复测成功率。
+
+## 固定管理器安装与单次驻留恢复（2026-09-17）
+
+BUG-QA-ATOMIC-REPLACE-NULL-BACKUP-20260917：test_qa_manager_atomic_replace.py 真实 Windows 本机文件替换/回滚及异常路径 **12 passed/8.71秒**。OPS-QA-RESTORE-FROZEN-BASE-20260917：test_qa_unapproved_resident_unload.py AST 提取实际纯边界函数 **56 passed/41.35秒**，不执行控制器顶层，不访问网络或生产模型。独立审查 PASS。
+
+[终止证据、生产影响与未发问边界](handoffs/2026-09-17-qa-single-base-manager-production-install.md)。安装源码已读回核实；68个新增本机检查不计入原题准确率或成功回答率。
+
+## 静默后台复测门（2026-09-18）
+
+OPS-QA-QUIET-ORIGINAL-RETEST-20260918：test_qa_single_base_background.py **36 passed/0.38秒**，覆盖严格身份、布尔状态、状态查询期间漂移、原题排除、source/目录漂移、等待零调用、停止、不重复执行以及三次稳定观察只启动一次合成batch。全为无网络合成夹具。
+
+[JUnit、PowerShell检查、Python3.11服务器只读编译及真实PID](handoffs/2026-09-18-qa-quiet-background-retest.md)。实际822问答尚未发送，不能将36回归计为线上成功。
+
+## 已授权恢复的CIM兼容与连贯退出（2026-09-18）
+
+BUG-QA-CIM-TASK-STATE-20260918：[卸载边界回归](../tests/test_qa_unapproved_resident_unload.py) **61 passed/42.37秒**；严格Disabled/1且布尔false，拒绝未知、运行、排队及非布尔字段。OPS-QA-RESTORE-FROZEN-BASE-20260917：[实际AST边界与退出等待](../tests/test_qa_frozen_base_restore.py) **15 passed/11.13秒**，等待仅GET，耗尽及身份改变拒绝，无模拟中的模型POST。
+
+[生产审计、独立审查与线上原题边界](handoffs/2026-09-18-qa-authorized-frozen-base-restore.md)。76本机合同检查不计入原题准确率。
+
+## V51给定数组来源回归（2026-09-18）
+
+REQ-QA-NUMERIC-VECTOR-SCOPE-20260918：[新增38项](../tests/test_qa_numeric_vector_scope.py#L31)覆盖给定数据、混合实时、独立记录源、候选/引文反例、排他/代码边界及实际代理别名。有效修复前22失败/10通过，修复后38通过（新增6实际代理合同）；继承链针对性72通过，相关37模块结果与命令见[脱敏证据](../tests/qa_regression/numeric_vector_source_scope_20260918.json)。14 gold仅验证schema。
+
+[失败夹具记录、冻结和未验证项](handoffs/2026-09-18-qa-numeric-vector-scope.md)。822/822线上回复已收齐；没有重发或审阅最终答案，不能计为822成功，也不能把本机合同解释为生产准确率。V51尚未部署及原生Python3.11验收。
+## V52 答案审阅与目录/观察路由回归（2026-09-21）
+
+- `tests/qa_regression/retest_answer_review_20260921.json`：822 条逐答案脱敏记录；184 条人工全文审阅，638 条知识来源合同审阅。状态不把 HTTP 200 或非空答案记为通过。
+- `tests/test_build_retest_answer_review.py`：验证脱敏、哈希绑定、单次发送和知识范围告警不会被算作语义通过。
+- `tests/test_qa_catalog_observation_scope.py`：验证目录只允许元数据、口语观察授权、概念/禁止取数不扩权及章节编号中文逗号保护。
+- `tests/test_qa_catalog_candidate.py`：验证一次有界目录查询、家族过滤、元数据边界声明和零模型目录回答。
+- 全量 QA 选择回归首轮为 2114 通过、1 失败；失败暴露章节编号中文逗号分句缺陷。修复后的章节/新增路由 23 项通过；最终全量复跑为 2116 通过、0 失败、1003 条按筛选条件未执行。
+
+## V52 定时复测控制流（2026-09-21）
+
+- [tests/test_qa_v52_scheduled_retest.py](../tests/test_qa_v52_scheduled_retest.py)：26 passed，覆盖跨午夜窗口、固定版本/摘要/822 题/排除题/时区 fail-closed、真实用户优先门禁、GPU 和模型门禁、Windows 标准 `nvidia-smi` 路径、唯一 8093 PID/创建时间绑定、服务重启拒绝、已完成题哈希续跑、跨批传输汇总、运行文件瞬态/持续异常分流和脱敏摘要。
+- 本机执行 Python 与密封器均通过 `py_compile`；启动器通过 PowerShell 7 AST 解析。
+- 远端 Python 3.11 编译、PowerShell 7 AST、manifest/plan/78 pin/Git/点位目录/8093 进程身份/固定模型只读预检全部通过。
+- r1/r2 各收集 2 个、r3 收集 4 个完整单次结果后在下一题 claim 前 fail-closed；8 条结果进入 r6 prior。r4/r5 未启动且没有 claim。r6 只含剩余 814 题，已完成 6 题并跨过此前中断位置。这只证明控制流和不重放恢复生效，不计语义成功率。
+
+[完整启动证据及收集后验收规则](handoffs/2026-09-21-qa-v52-scheduled-failure-retest.md)。

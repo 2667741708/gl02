@@ -1,0 +1,39 @@
+{
+  "schema": "bf.qa.model-repair-local-candidate.v1",
+  "requirement_id": "OPS-QA-MODEL-REPAIR-STABILITY-20260917",
+  "checked_at": "2026-09-17",
+  "state": "superseded_not_deployable",
+  "production_version": "v26",
+  "baseline_sha256": "856f38b6edb088327e2138b88e68961db1a153b451aedb6709bea9fd2a8e99fa",
+  "candidate_r2_sha256": "37cc7582d9dee079c010cd5f7b2e58289ca9f23fd6cfe0a3950f414a44c59f94",
+  "changed_functions": [
+    "Invoke-Repair",
+    "Invoke-Switch",
+    "Test-PublicAliasResident"
+  ],
+  "protected_functions": 32,
+  "protected_top_level_dispatch": true,
+  "added_policy_functions": 4,
+  "focused_tests_passed": 26,
+  "test_counts": {
+    "policy": 13,
+    "actual_activation_dependency": 10,
+    "switch_regression": 3
+  },
+  "independent_code_review": "gpt-5.6-luna low PASS r2",
+  "predecessor_review": "FAIL r1: stale-state and unconditional Switch rollback",
+  "cooldown_seconds": [
+    60,
+    120,
+    240,
+    480,
+    900
+  ],
+  "requires_separate_model_and_task_authorization": true,
+  "production_semantic_effectiveness_verified": false,
+  "real_retest_requests": 0,
+  "original_failure_partial_cohort": 822,
+  "automatic_post_retries": 0,
+  "superseded_by": "REQ-QA-SINGLE-BASE-MODEL-20260917",
+  "deployment_allowed": false
+}

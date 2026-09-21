@@ -1,5 +1,5 @@
 schema: ops.automation-index.v1
-updated_at: '2026-08-11T16:55:00+08:00'
+updated_at: '2026-09-21T22:32:00+08:00'
 entries:
   - id: OPS-8093-PWSH7-RUNTIME-MIGRATION-20260811
     name: 8093受控运行时与自动诊断摘要保护
@@ -992,3 +992,49 @@ entries:
         8095: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\backups\curve_inspector_static_8095_20260811_182215'
         8096: 'F:\炽穹·高炉炼铁大模型V3\backups\curve_inspector_static_8096_20260811_182358'
     documentation: docs/config_reference.md#传感器曲线统一交互-2026-08-11
+  - id: OPS-QA-V52-SCHEDULED-FAILURE-RETEST-20260921
+    name: V52原失败题夜间复测与完成验收
+    scope: 22012-8093-qa-readonly-observation-and-single-post-retest
+    status: production_collection_running
+    owner:
+      type: sealed_pythonw_worker
+      initial_pid: 2208
+      create_time: 1790003846.03116
+      stage: 'C:\Users\Administrator\AppData\Local\Temp\qa-v52-scheduled-retest-20260921-r6'
+      output: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\qa_v52_scheduled_retest_20260921_r6'
+    schedule:
+      timezone: Asia/Shanghai
+      start: '22:30'
+      end: '07:30'
+      poll_seconds: 10
+      stable_observations: 3
+    quiet_gate:
+      external_user_seconds: 300
+      gpu_utilization_max_percent: 5
+      unavailable_action: wait_without_claim
+    delivery:
+      authorized_case_count: 822
+      prior_completed_count: 8
+      remaining_case_count: 814
+      one_post_per_case: true
+      automatic_replay: false
+      uncertain_send_action: blocked_no_replay
+    fixed_identity:
+      application_version: V52
+      v52_base_commit: 19892017d93028fbf1cd6dcd0ed8799fca778fa0
+      production_commit: 5364bd590c0f7506b4a590c7707c0624dbac9313
+      service_pid: 10212
+      service_create_time: 1790003038.3367703
+      runtime_pin_count: 78
+      model: 'chiqiongblastfuenace:latest'
+      digest: e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124
+    acceptance:
+      semantic_review_required: true
+      nonempty_is_pass: false
+      paired_baseline: V26
+    heartbeat:
+      id: automation
+      interval_minutes: 60
+      unchanged_notification: silent
+      completion_action: semantic_acceptance_then_pause
+    documentation: docs/handoffs/2026-09-21-qa-v52-scheduled-failure-retest.md

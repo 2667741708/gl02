@@ -1,0 +1,123 @@
+{
+  "schema": "bf.qa.supplied-record-scope-public-evidence.v1",
+  "requirement_id": "REQ-QA-SUPPLIED-RECORD-SCOPE-20260917",
+  "checked_at": "2026-09-17",
+  "state": "local_tested_reviewed_frozen_not_production_applied",
+  "candidate": "v44-r2",
+  "issue_ids": [
+    "QAOPT-R01",
+    "QAOPT-R07",
+    "QAOPT-K04"
+  ],
+  "defect_reproduction": {
+    "cases": 29,
+    "failed": 19,
+    "passed": 10,
+    "elapsed_seconds": 0.37,
+    "defect": "Source labels on provided data incorrectly enabled record reads and introduced unrelated compound source tasks."
+  },
+  "verification": {
+    "new_regression_cases": 48,
+    "related_passed": 546,
+    "related_elapsed_seconds": 45.53,
+    "related_modules": 19,
+    "test_command": "python -X utf8 -m pytest -q --tb=short --basetemp=.codex_runtime/qa-supplied-record-final-20260917-r2 tests/test_qa_supplied_record_scope.py tests/test_qa_source_exclusion_scope.py tests/test_qa_source_concept_scope.py tests/test_qa_response_style_source_scope.py tests/test_qa_declared_input_scope.py tests/test_qa_user_supplied_scope.py tests/test_qa_task_plan.py tests/test_qa_compound_source_scope.py tests/test_qa_evidence_policy.py tests/test_qa_math_function_policy.py tests/test_qa_history_compound.py tests/test_qa_history_projection.py tests/test_qa_history_completion.py tests/test_qa_v12_safety.py tests/test_qa_final_completion.py tests/test_qa_fixed_model_identity.py tests/test_qa_history_compound_seams.py tests/test_qa_single_window_routing.py tests/test_qa_document_knowledge.py",
+    "first_focused_attempt": {
+      "passed": 153,
+      "failed": 1,
+      "elapsed_seconds": 8.85,
+      "failure_kind": "New assertion only executed the pure-history branch for a mixed request; corrected to execute the actual compound assignment with unchanged owner/cutoff and one read requirement."
+    },
+    "r1_focused_passed": 154,
+    "r1_focused_elapsed_seconds": 9.32,
+    "prior_r1": {
+      "related_passed": 535,
+      "elapsed_seconds": 41.95,
+      "static_review": "PASS superseded and corrected: explicit source verification requests were swallowed",
+      "verification_counterexamples": {
+        "cases": 4,
+        "failed": 4,
+        "elapsed_seconds": 0.29
+      },
+      "not_deployed_or_published": true
+    },
+    "r2_focused_passed": 165,
+    "r2_focused_elapsed_seconds": 11.87,
+    "actual_proxy_outer_tool_owner_compound_and_document_entry_checked": true,
+    "current_execution_binds_latest_full_frozen_candidate": true,
+    "independent_static_review": "PASS gpt-5.6-luna low V44-r2; prior r1 verification claim corrected",
+    "gold_task_schema_validation_passed": 14,
+    "shared_feature_preservation_passed": true,
+    "shared_feature_required_markers": 22,
+    "real_model_generation_executed": false,
+    "private_original_reader": {
+      "passed": 1,
+      "elapsed_seconds": 15.93,
+      "source_chunks": 5587,
+      "scope_groups": 11,
+      "requests": 14,
+      "one_statement_per_request": true,
+      "all_expected_section_blocks_preserved": true,
+      "current_planner_reader_manifest_binding_verified": true,
+      "semantic_accuracy_inferred": false
+    }
+  },
+  "contracts": {
+    "supplied_record_labels_do_not_authorize_external_reads": true,
+    "input_values_retained_in_user_message": true,
+    "independent_live_history_report_formal_sources_preserved": true,
+    "explicit_external_source_verification_not_swallowed_as_input_assertion": true,
+    "local_input_validation_does_not_imply_external_read": true,
+    "compound_owner_and_cutoff_unchanged": true,
+    "historical_v43_snapshot_and_current_execution_verified_separately": true,
+    "proxy_prompts_code_policy_reader_and_fixed_identity_byte_unchanged": true
+  },
+  "private_candidate": {
+    "files": 15,
+    "manifest_sha256": "9b9b797b82bd261bfbcce936e8f24aef5974f5b5f056e001633acc4b856a7ee6",
+    "inherited_v43_files_byte_identical": 14,
+    "changed_modules_sha256": {
+      "qa_task_plan.py": "42b664aef8bb39aff00ab8f4672fc6260e25924e241dd74960a297989ff53802"
+    },
+    "proxy_bytes_unchanged": true,
+    "additional_runtime_read_set_preserved": true,
+    "production_sealed": false,
+    "production_dependency_refresh_required": true
+  },
+  "generator_sha256": {
+    "tools/build_qa_supplied_record_candidate.py": "a8eb0cf2f342aa98f703f858383549a4cdc41d8668bc65e3d35a31e3d54f7c66",
+    "tests/test_qa_supplied_record_scope.py": "7a0483f0e7dbd3cc929fa0cfc6ed0366d510420817ced84e6fe0d21133be6614",
+    "tests/test_qa_source_exclusion_scope.py": "59c14580120bb746c1bb8ad8276b4cc35cfac193db576c07c0e2c81f86023dba",
+    "高炉前端数据/智能助手/backend/qa_task_plan.py": "42b664aef8bb39aff00ab8f4672fc6260e25924e241dd74960a297989ff53802"
+  },
+  "evaluation_scope": "Local supplied record-data labels versus explicit external source reads/verification; not final-answer accuracy.",
+  "not_tested": [
+    "production_MCP_execution",
+    "real_final_answer_accuracy",
+    "latency_cost",
+    "pass5",
+    "production_single_user_concurrency",
+    "qualified_date_report_exclusion_with_another_allowed_date",
+    "qualified_person_record_exclusion_semantics",
+    "arbitrary_pasted_record_text_and_multiline_table_semantics"
+  ],
+  "model_name": "chiqiongblastfuenace:latest",
+  "model_digest": "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124",
+  "model_switch_allowed": false,
+  "same_name_weight_replacement_allowed": false,
+  "fallback_model_allowed": false,
+  "production_identity_and_routes": "Reliable_SSH_identity_and_routes_tool_timeout_no_verified_connection",
+  "production_current_state_freshly_verified": false,
+  "production_applied": false,
+  "production_writes": 0,
+  "question_posts": 0,
+  "assistant_model_calls": 0,
+  "issues_closed": 0,
+  "all_33_issue_states_preserved": true,
+  "initial_judgments_and_prior_production_retest_preserved": true,
+  "original_failure_partial_cohort": 822,
+  "real_retest_requests": 0,
+  "semantic_improvement_verified": false,
+  "initial_results_matched_same_base_claimed": false,
+  "privacy": "Public code synthetic questions hashes contracts and counts only; no raw clauses QA production data identities credentials or private artifacts."
+}
