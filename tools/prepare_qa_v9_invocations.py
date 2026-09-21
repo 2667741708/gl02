@@ -9,7 +9,7 @@ def sha(path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", choices=("v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25", "v26"), default="v9")
+    parser.add_argument("--version", choices=("v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25", "v26", "v52"), default="v9")
     args = parser.parse_args()
     RELEASE = ROOT / f".codex_runtime/qa-routing-{args.version}/release"
     text = (ROOT / ".codex_runtime/qa-routing-v8/release/invoke-deployment.ps1").read_text(encoding="utf-8")
@@ -22,6 +22,12 @@ if __name__ == "__main__":
         if text.count(old) != 1:
             raise ValueError("Invocation binding seam changed")
         text = text.replace(old, new)
-    (RELEASE / "invoke-deployment.ps1").write_text(text.replace("v8", args.version).replace("V8", args.version.upper()), encoding="utf-8", newline="\n")
+    text = text.replace("v8", args.version).replace("V8", args.version.upper())
+    if args.version == "v52":
+        text = text.replace("qa-routing-v52-20260916-r1", "qa-routing-v52-20260921-r1")
+    (RELEASE / "invoke-deployment.ps1").write_text(text, encoding="utf-8", newline="\n")
     record = (ROOT / ".codex_runtime/qa-routing-v8/release/invoke-record.ps1").read_text(encoding="utf-8")
-    (RELEASE / "invoke-record.ps1").write_text(record.replace("v8", args.version).replace("V8", args.version.upper()), encoding="utf-8", newline="\n")
+    record = record.replace("v8", args.version).replace("V8", args.version.upper())
+    if args.version == "v52":
+        record = record.replace("qa-routing-v52-20260916-r1", "qa-routing-v52-20260921-r1")
+    (RELEASE / "invoke-record.ps1").write_text(record, encoding="utf-8", newline="\n")

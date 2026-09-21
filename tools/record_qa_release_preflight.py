@@ -88,7 +88,7 @@ def validate_preflight_evidence(baseline, evidence, expectation):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version', choices=('v21','v22','v23','v24','v25','v26'), required=True)
+    parser.add_argument('--version', choices=('v21','v22','v23','v24','v25','v26','v52'), required=True)
     args = parser.parse_args()
     release = ROOT/f'.codex_runtime/qa-routing-{args.version}/release'
     baseline = json.loads((release/'readonly-baseline.json').read_text(encoding='utf-8'))

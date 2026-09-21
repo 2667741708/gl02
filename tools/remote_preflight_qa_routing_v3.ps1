@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23','V24','V25','V26')][string]$Version = 'V3')
+param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23','V24','V25','V26','V52')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -37,6 +37,7 @@ if ($Version -eq 'V23') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Tem
 if ($Version -eq 'V24') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v24-20260916-r1' }
 if ($Version -eq 'V25') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v25-20260916-r1' }
 if ($Version -eq 'V26') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v26-20260916-r1' }
+if ($Version -eq 'V52') { $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v52-20260921-r1' }
 $Python = 'C:\Program Files\Python311\python.exe'
 $Guard = Join-Path $StageRoot 'git_record_guard.py'
 $Expectation = Join-Path $StageRoot 'recordability-expectation.json'

@@ -10,13 +10,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--version', choices=('v18', 'v19', 'v20', 'v21', 'v22', 'v23', 'v24', 'v25', 'v26'), required=True)
+    parser.add_argument('--version', choices=('v18', 'v19', 'v20', 'v21', 'v22', 'v23', 'v24', 'v25', 'v26', 'v52'), required=True)
     parser.add_argument('--phase', choices=('preflight', 'activation'), required=True)
     args = parser.parse_args()
     recipe = json.loads((ROOT/'tools/qa_routing_release_extensions.json').read_text(encoding='utf-8'))[args.version]
     release = ROOT/f'.codex_runtime/qa-routing-{args.version}/release'
-    candidate = release.parent/'candidate'
-    stage = f'C:/Users/Administrator/AppData/Local/Temp/qa-routing-{args.version}-20260916-r1'
+    candidate = release.parent/recipe.get('candidate_dir', 'candidate')
+    execution_id = recipe.get('execution_id', f'qa-routing-{args.version}-20260916-r1')
+    stage = f'C:/Users/Administrator/AppData/Local/Temp/{execution_id}'
     if args.phase == 'preflight':
         files = [(candidate/name, name) for name in recipe['artifacts']]
         files += [(release/name, name) for name in ('scope-gate.json', 'recordability-expectation.json')]

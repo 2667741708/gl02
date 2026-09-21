@@ -201,8 +201,8 @@ def main() -> int:
             })
     extension = extensions.get(args.version)
     if extension is not None:
-        REQ = "REQ-QA-FULL-ISSUE-INVENTORY-20260916"
-        EXECUTION = f"qa-routing-{args.version}-20260916-r1"
+        REQ = extension.get("requirement_id", "REQ-QA-FULL-ISSUE-INVENTORY-20260916")
+        EXECUTION = extension.get("execution_id", f"qa-routing-{args.version}-20260916-r1")
         STAGE = Path("C:/Users/Administrator/AppData/Local/Temp") / EXECUTION
         ARTIFACTS = extension["artifacts"]
         READ_SET = extension["read_files"]
@@ -211,7 +211,8 @@ def main() -> int:
         raise ValueError("base head must be a full commit id")
 
     root = Path(__file__).resolve().parents[1]
-    candidate = root / ".codex_runtime" / f"qa-routing-{args.version}" / "candidate"
+    candidate_name = extension.get("candidate_dir", "candidate") if extension is not None else "candidate"
+    candidate = root / ".codex_runtime" / f"qa-routing-{args.version}" / candidate_name
     release = root / ".codex_runtime" / f"qa-routing-{args.version}" / "release"
     release.mkdir(parents=True, exist_ok=True)
     targets: dict[str, dict[str, str]] = {}

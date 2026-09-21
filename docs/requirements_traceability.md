@@ -1496,4 +1496,4 @@ REQ-QA-NUMERIC-VECTOR-SCOPE-20260918 / BUG-QA-LITERAL-VECTOR-LIVE-LOOKUP-2026091
 [实现、验证、面板和生产边界](handoffs/2026-09-18-qa-numeric-vector-scope.md)；[脱敏机器证据](../tests/qa_regression/numeric_vector_source_scope_20260918.json)。用户选择本机面板，服务器不新增服务，本轮0生产写入/停启/模型操作/原题重发。
 ## REQ-QA-RETEST-ANSWER-ROUTING-20260921：822 条答案审阅与 V52 路由
 
-同一批 822 条生产 V26 复测结果已建立逐答案脱敏索引；184 条非知识回答完成全文人工审阅，638 条知识回答完成全文哈希、原始覆盖和独立来源范围合同核对。传输完成或答案非空不得推导语义通过。V52-r2 本机候选补充点位目录元数据路由、口语观察路由和中文逗号章节列表保护，保持固定底座且未部署生产。权威统计、完整计划、验证和剩余门见[交接](handoffs/2026-09-21-qa-retest-answer-review-and-routing-v52.md)与[逐题索引](../tests/qa_regression/retest_answer_review_20260921.json)。
+同一批 822 条生产 V26 复测结果已建立逐答案脱敏索引；184 条非知识回答完成全文人工审阅，638 条知识回答完成全文哈希、原始覆盖和独立来源范围合同核对。传输完成或答案非空不得推导语义通过。V52-r2 补充点位目录元数据路由、口语观察路由和中文逗号章节列表保护，已在固定底座下受控部署到 220.12:8093；16 个安装哈希、HTTP、模型身份、受保护监听和匿名 bootstrap 复核通过，原失败题尚未重发。权威统计和优化计划见[答案审阅交接](handoffs/2026-09-21-qa-retest-answer-review-and-routing-v52.md)，生产证据见[部署交接](handoffs/2026-09-21-qa-routing-v52-production-deployment.md)，逐题状态见[脱敏索引](../tests/qa_regression/retest_answer_review_20260921.json)。

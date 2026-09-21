@@ -16,7 +16,7 @@ foreach ($Name in $Scripts) {
     [void][Management.Automation.Language.Parser]::ParseFile($Path, [ref]$Tokens, [ref]$Errors)
     if ($Errors.Count -ne 0) { throw "Release script parse failed: $Name" }
     $Text = [IO.File]::ReadAllText($Path, $Utf8)
-    if (-not $Text.Contains("ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23','V24','V25','V26')")) { throw "Version gate missing: $Name" }
+    if (-not $Text.Contains("ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23','V24','V25','V26','V52')")) { throw "Version gate missing: $Name" }
 }
 $Deployer = [IO.File]::ReadAllText((Join-Path $PSScriptRoot $Scripts[1]), $Utf8)
 $ReadonlyPath = Join-Path $PSScriptRoot 'invoke_qa_document_candidate_readonly.ps1'

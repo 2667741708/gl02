@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23','V24','V25','V26')][string]$Version = 'V3')
+param([ValidateSet('V3','V4','V5','V6','V7','V8','V9','V10','V11','V12','V13','V14','V15','V16','V17','V18','V19','V20','V21','V22','V23','V24','V25','V26','V52')][string]$Version = 'V3')
 
 $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
@@ -218,6 +218,15 @@ if ($Version -eq 'V26') {
     $ExecutionId = 'qa-routing-v26-20260916-r1'
     $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v26-20260916-r1'
     $CommitMessage = 'fix: retain complete chart evidence and cover all requested points [REQ-QA-CHART-COVERAGE-20260917] [REQ-QA-FULL-ISSUE-INVENTORY-20260916] [qa-routing-v26-20260916-r1]'
+    $Guard = Join-Path $StageRoot 'git_record_guard.py'
+    $OperationPath = Join-Path $StageRoot 'operation.json'
+    $PlanPath = Join-Path $StageRoot 'record-plan.json'
+}
+if ($Version -eq 'V52') {
+    $RequirementId = 'REQ-QA-RETEST-ANSWER-ROUTING-20260921'
+    $ExecutionId = 'qa-routing-v52-20260921-r1'
+    $StageRoot = 'C:/Users/Administrator/AppData/Local/Temp/qa-routing-v52-20260921-r1'
+    $CommitMessage = 'fix: route catalog and observation questions with frozen evidence [REQ-QA-RETEST-ANSWER-ROUTING-20260921] [qa-routing-v52-20260921-r1]'
     $Guard = Join-Path $StageRoot 'git_record_guard.py'
     $OperationPath = Join-Path $StageRoot 'operation.json'
     $PlanPath = Join-Path $StageRoot 'record-plan.json'
