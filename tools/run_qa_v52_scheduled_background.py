@@ -20,6 +20,19 @@ from zoneinfo import ZoneInfo
 
 MODEL_NAME = "chiqiongblastfuenace:latest"
 MODEL_DIGEST = "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124"
+APPROVED_LIVE_RUNTIME_DELTA = {
+    "proxy": {
+        "relative": "高炉前端数据/智能助手/backend/ollama_proxy_server.py",
+        "base_sha256": "a6da5b84ddab29bd05fc51c23f6a181338e0d5bed446ee9fb99860f5dd5b12fa",
+        "live_sha256": "9d842f276aa9dfb2828490d211f61bfa49cdfb18bd09e32288592fc50d02ca45",
+        "working_tree_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    },
+    "added_module": {
+        "relative": "高炉前端数据/智能助手/backend/same_port_websocket_proxy.py",
+        "live_sha256": "3ab7dbf96498afda4aed7940aeb27fdd593beb0666303d92870f20f47b931241",
+    },
+    "reason": "same_port_websocket_and_shared_guest_owner_fix_committed_20260921",
+}
 EXPECTED_FILES = {
     "worker.py", "batch.py", "collector.py", "plan.private.json", "summary.py", "start.ps1"
 }
@@ -39,14 +52,15 @@ def write(path: Path, value: dict) -> None:
     temporary.replace(path)
 
 
-def runtime_hash_matches(path: Path, expected: str, hash_reader=sha, pause=time.sleep) -> bool:
+def runtime_hash_matches(path: Path, expected: str | set[str], hash_reader=sha, pause=time.sleep) -> bool:
     """Tolerate one partial read, then require three consecutive expected bytes."""
-    if hash_reader(path) == expected:
+    allowed = {expected} if isinstance(expected, str) else set(expected)
+    if hash_reader(path) in allowed:
         return True
     consecutive = 0
     for _ in range(5):
         pause(1)
-        if hash_reader(path) == expected:
+        if hash_reader(path) in allowed:
             consecutive += 1
             if consecutive == 3:
                 return True
@@ -152,6 +166,15 @@ def production_listener_process(psutil_module, root: Path):
     return listeners[0]
 
 
+def verify_process_identity(plan: dict, root: Path, psutil_module=None) -> None:
+    if psutil_module is None:
+        import psutil as psutil_module
+    expected = plan["process_identity"]
+    process = production_listener_process(psutil_module, root)
+    if process.pid != expected["pid"] or abs(process.create_time() - expected["create_time"]) > 0.001:
+        raise ValueError("8093 process identity changed")
+
+
 def latest_external_user_epoch(root: Path, title_prefix: str) -> float | None:
     """Read the latest non-retest user message using the production process environment."""
     import psutil
@@ -207,6 +230,15 @@ def validate_plan(plan: dict) -> None:
         raise ValueError("fixed model name required")
     if identity.get("digest") != MODEL_DIGEST or identity.get("approved_digests") != [MODEL_DIGEST]:
         raise ValueError("single fixed model digest required")
+    if plan.get("approved_live_runtime_delta") != APPROVED_LIVE_RUNTIME_DELTA:
+        raise ValueError("unreviewed live runtime delta")
+    process_identity = plan.get("process_identity")
+    if not isinstance(process_identity, dict) or process_identity.get("port") != 8093:
+        raise ValueError("8093 process identity required")
+    if not isinstance(process_identity.get("pid"), int) or process_identity["pid"] <= 0:
+        raise ValueError("invalid 8093 process pid")
+    if not isinstance(process_identity.get("create_time"), (int, float)):
+        raise ValueError("invalid 8093 process create time")
     cases = plan.get("cases")
     prior = plan.get("prior_completed_records") or []
     if not isinstance(cases, list) or not isinstance(prior, list):
@@ -251,10 +283,21 @@ def verify_inputs(stage: Path, root: Path, manifest: dict, manifest_sha: str) ->
         raise ValueError("collector changed")
     if not runtime_hash_matches(root / "数据库同步和存取/config/点位语义目录.json", plan["catalog_sha256"]):
         raise ValueError("point catalog changed")
+    verify_process_identity(plan, root)
     for relative, expected in plan["runtime_hashes"].items():
         target = (root / relative).resolve()
         if not target.is_relative_to(root.resolve()) or not runtime_hash_matches(target, expected):
             raise ValueError(f"production runtime changed: {relative}")
+    proxy_delta = plan["approved_live_runtime_delta"]["proxy"]
+    diff = subprocess.run(
+        ["git", "diff", "--binary", "--", proxy_delta["relative"]],
+        cwd=root,
+        capture_output=True,
+        timeout=20,
+        check=False,
+    )
+    if diff.returncode or hashlib.sha256(diff.stdout).hexdigest() != proxy_delta["working_tree_diff_sha256"]:
+        raise ValueError("approved live proxy delta changed")
     ancestry = subprocess.run(
         ["git", "merge-base", "--is-ancestor", plan["production_commit"], "HEAD"],
         cwd=root,

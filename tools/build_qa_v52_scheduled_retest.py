@@ -12,6 +12,19 @@ ROOT = Path(__file__).resolve().parents[1]
 MODEL_NAME = "chiqiongblastfuenace:latest"
 MODEL_DIGEST = "e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124"
 FORBIDDEN_CASE = "TPL-10C8C8FAF2C694EF"
+APPROVED_LIVE_RUNTIME_DELTA = {
+    "proxy": {
+        "relative": "高炉前端数据/智能助手/backend/ollama_proxy_server.py",
+        "base_sha256": "a6da5b84ddab29bd05fc51c23f6a181338e0d5bed446ee9fb99860f5dd5b12fa",
+        "live_sha256": "9d842f276aa9dfb2828490d211f61bfa49cdfb18bd09e32288592fc50d02ca45",
+        "working_tree_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    },
+    "added_module": {
+        "relative": "高炉前端数据/智能助手/backend/same_port_websocket_proxy.py",
+        "live_sha256": "3ab7dbf96498afda4aed7940aeb27fdd593beb0666303d92870f20f47b931241",
+    },
+    "reason": "same_port_websocket_and_shared_guest_owner_fix_committed_20260921",
+}
 
 
 def read(path: Path) -> dict:
@@ -85,6 +98,12 @@ def build(args: argparse.Namespace) -> dict:
 
     if runtime_hashes.get("数据库同步和存取/config/点位语义目录.json"):
         raise ValueError("point catalog must use its dedicated pin")
+    proxy_delta = APPROVED_LIVE_RUNTIME_DELTA["proxy"]
+    if runtime_hashes.get(proxy_delta["relative"]) != proxy_delta["base_sha256"]:
+        raise ValueError("approved live delta no longer descends from the reviewed V52 bytes")
+    runtime_hashes[proxy_delta["relative"]] = proxy_delta["live_sha256"]
+    added_module = APPROVED_LIVE_RUNTIME_DELTA["added_module"]
+    runtime_hashes[added_module["relative"]] = added_module["live_sha256"]
     catalog_hash = recipe["read_files"]["高炉前端数据/智能助手/mcp/gl02_static_pressure_points.json"]
     point_catalog = args.point_catalog
     if sha(point_catalog) != args.point_catalog_sha256:
@@ -105,6 +124,12 @@ def build(args: argparse.Namespace) -> dict:
         "catalog_sha256": args.point_catalog_sha256,
         "static_pressure_catalog_sha256": catalog_hash,
         "runtime_hashes": dict(sorted(runtime_hashes.items())),
+        "approved_live_runtime_delta": APPROVED_LIVE_RUNTIME_DELTA,
+        "process_identity": {
+            "port": 8093,
+            "pid": args.service_pid,
+            "create_time": args.service_create_time,
+        },
         "model_identity": {
             "name": MODEL_NAME,
             "digest": MODEL_DIGEST,
@@ -144,6 +169,8 @@ def main() -> int:
     parser.add_argument("--point-catalog-sha256", required=True)
     parser.add_argument("--collector", type=Path, required=True)
     parser.add_argument("--production-commit", required=True)
+    parser.add_argument("--service-pid", type=int, required=True)
+    parser.add_argument("--service-create-time", type=float, required=True)
     parser.add_argument("--prior-completed", action="append", default=[])
     parser.add_argument("--execution-id", default="qa-v52-scheduled-retest-20260921-r1")
     parser.add_argument("--start", default="22:30")

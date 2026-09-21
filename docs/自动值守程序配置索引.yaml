@@ -998,9 +998,10 @@ entries:
     status: production_collection_running
     owner:
       type: sealed_pythonw_worker
-      initial_pid: 6388
-      stage: 'C:\Users\Administrator\AppData\Local\Temp\qa-v52-scheduled-retest-20260921-r3'
-      output: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\qa_v52_scheduled_retest_20260921_r3'
+      initial_pid: 2208
+      create_time: 1790003846.03116
+      stage: 'C:\Users\Administrator\AppData\Local\Temp\qa-v52-scheduled-retest-20260921-r6'
+      output: 'F:\高炉炼铁项目-real-sensor-v2_V4_8093_PREVIEW\logs\qa_v52_scheduled_retest_20260921_r6'
     schedule:
       timezone: Asia/Shanghai
       start: '22:30'
@@ -1013,14 +1014,18 @@ entries:
       unavailable_action: wait_without_claim
     delivery:
       authorized_case_count: 822
-      prior_completed_count: 4
-      remaining_case_count: 818
+      prior_completed_count: 8
+      remaining_case_count: 814
       one_post_per_case: true
       automatic_replay: false
       uncertain_send_action: blocked_no_replay
     fixed_identity:
       application_version: V52
-      production_commit: 19892017d93028fbf1cd6dcd0ed8799fca778fa0
+      v52_base_commit: 19892017d93028fbf1cd6dcd0ed8799fca778fa0
+      production_commit: 5364bd590c0f7506b4a590c7707c0624dbac9313
+      service_pid: 10212
+      service_create_time: 1790003038.3367703
+      runtime_pin_count: 78
       model: 'chiqiongblastfuenace:latest'
       digest: e4ad74c41d68de1c8004419d8141a2b2df2275fa08f0dcf326ca0e63fb6d8124
     acceptance:

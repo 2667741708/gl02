@@ -1509,8 +1509,8 @@ Reliable SSH MCP的220.12固定实例启用一个常驻Plink会话、30秒SSH协
 
 ## OPS-QA-V52-SCHEDULED-FAILURE-RETEST-20260921
 
-- 远端 owner：r1 PID18428 与 r2 PID19280 各完成 2 个完整结果后 fail-closed 并退出；四题按哈希加入 prior。r3 PID6388 只续跑剩余 818 题。运行目录和输出均绑定各自 manifest/plan SHA；没有注册或修改 Windows 计划任务。
-- 调度：每天 22:30–07:30；真实用户近 300 秒活动、GPU 高于 5%、状态不可读、V52/固定模型/hash 漂移时等待且不 claim。
+- 远端 owner：r1/r2 各完成 2 题、r3 完成 4 题后 fail-closed 并退出；8 题按 claim/result 哈希加入 prior。r4/r5 未启动且没有 claim。当前唯一 owner 为 r6 PID2208，stage/output 绑定 manifest `9494897…` 和 plan `67b2a67…`，只续跑剩余 814 题。没有注册或修改 Windows 计划任务。
+- 调度：每天 22:30–07:30；真实用户近 300 秒活动、GPU 高于 5%、状态不可读、固定模型、当前生产提交、8093 PID/创建时间或 78 个 pin 漂移时等待或阻断且不 claim。
 - 投递：822 题串行，每题最多一次 POST，claim 先于发送；发送不确定立即 `blocked_no_replay`。
 - 跟进：现有 Codex heartbeat `automation` 更新为每 60 分钟只读检查。正常运行或等待保持安静；阻断时通知；全部收集后执行全文语义验收，完成后暂停自身。
 - 隔离：不更改 8093、8094、8768、8770、5432、11434 服务，不执行模型加载/切换/卸载/预热，不写业务数据库。

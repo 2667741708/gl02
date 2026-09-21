@@ -26,6 +26,8 @@ def plan():
         },
         "authorized_case_count": 822,
         "prior_completed_records": [],
+        "approved_live_runtime_delta": worker.APPROVED_LIVE_RUNTIME_DELTA,
+        "process_identity": {"port": 8093, "pid": 10212, "create_time": 1790003038.3367703},
         "schedule": {
             "timezone": "Asia/Shanghai",
             "start": "22:30",
@@ -50,7 +52,10 @@ def test_overnight_schedule_boundaries(clock, expected):
     assert worker.inside_window(now, "22:30", "07:30") is expected
 
 
-@pytest.mark.parametrize("change", ["version", "digest", "alternate", "count", "duplicate", "uncertain", "timezone"])
+@pytest.mark.parametrize("change", [
+    "version", "digest", "alternate", "count", "duplicate", "uncertain", "timezone", "live_delta",
+    "process_identity",
+])
 def test_plan_fails_closed(change):
     value = plan()
     if change == "version":
@@ -67,6 +72,10 @@ def test_plan_fails_closed(change):
         value["cases"][0]["case_id"] = "TPL-10C8C8FAF2C694EF"
     elif change == "timezone":
         value["schedule"]["timezone"] = "UTC"
+    elif change == "live_delta":
+        value["approved_live_runtime_delta"] = {}
+    elif change == "process_identity":
+        value["process_identity"]["pid"] = 0
     with pytest.raises(ValueError):
         worker.validate_plan(value)
 
@@ -166,6 +175,21 @@ def test_listener_selection_ignores_unattributed_and_unrelated_listeners():
     assert worker.production_listener_process(Psutil, Path(r"F:\production")).pid == 10
 
 
+def test_process_identity_rejects_service_restart(monkeypatch):
+    value = plan()
+
+    class Process:
+        pid = value["process_identity"]["pid"] + 1
+
+        @staticmethod
+        def create_time():
+            return value["process_identity"]["create_time"] + 1
+
+    monkeypatch.setattr(worker, "production_listener_process", lambda *_: Process())
+    with pytest.raises(ValueError, match="process identity changed"):
+        worker.verify_process_identity(value, Path("."), object())
+
+
 def test_runtime_hash_requires_three_expected_reads_after_a_mismatch():
     observations = iter(["bad", "expected", "bad", "expected", "expected", "expected"])
     assert worker.runtime_hash_matches(
@@ -177,6 +201,15 @@ def test_runtime_hash_rejects_persistent_or_unstable_mismatch():
     observations = iter(["bad", "expected", "bad", "expected", "bad", "expected"])
     assert not worker.runtime_hash_matches(
         Path("runtime.py"), "expected", hash_reader=lambda _path: next(observations), pause=lambda _seconds: None
+    )
+
+
+def test_runtime_hash_accepts_only_an_explicit_alternate():
+    assert worker.runtime_hash_matches(
+        Path("runtime.py"), {"base", "reviewed"}, hash_reader=lambda _path: "reviewed", pause=lambda _seconds: None
+    )
+    assert not worker.runtime_hash_matches(
+        Path("runtime.py"), {"base", "reviewed"}, hash_reader=lambda _path: "unknown", pause=lambda _seconds: None
     )
 
 
